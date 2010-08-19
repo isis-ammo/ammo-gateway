@@ -1,0 +1,22 @@
+project {
+  Define_Custom(Protobuf) {
+    command = $(PROTOBUF_ROOT)/bin/protoc
+    commandflags = -I=./<%input_dirname%> --cpp_out=./<%input_dirname%>
+    inputext = .proto
+    pre_extension = .pb
+    source_outputext = .cc
+    header_outputext = .h
+  }
+  includes += $(PROTOBUF_ROOT)/include/
+  libpaths += $(PROTOBUF_ROOT)/lib/
+  libs += protobuf
+  
+  //We expect $PROTOBUF_ROOT to be defined, but just in case it isn't,
+  //we default to /usr/ (this funkiness here is to keep it from defaulting to /,
+  //which would be very rare)
+  
+  expand(PROTOBUF_ROOT) {
+    $PROTOBUF_ROOT
+    /usr/
+  }
+}

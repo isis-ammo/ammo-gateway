@@ -1,0 +1,11 @@
+project(AndroidGatewayPlugin) : aceexe, protobuf {
+  exename=AndroidGatewayPlugin
+  
+  Protobuf_Files {
+    protocol/Test.proto
+  }
+  
+  Source_Files {
+    main.cpp
+  }
+}
