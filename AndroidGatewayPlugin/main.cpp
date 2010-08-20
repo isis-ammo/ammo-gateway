@@ -38,4 +38,5 @@ int main(int argc, char **argv) {
   peer.send_n(stringToSend.c_str(), stringToSend.length() + 1);
   
   peer.close();
+  return 0;
 }

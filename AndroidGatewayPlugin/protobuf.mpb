@@ -7,16 +7,16 @@ project {
     source_outputext = .cc
     header_outputext = .h
   }
-  includes += $(PROTOBUF_ROOT)/include/
-  libpaths += $(PROTOBUF_ROOT)/lib/
-  libs += protobuf
+  includes += $(PROTOBUF_ROOT)/include
+  libpaths += $(PROTOBUF_ROOT)/lib
+  lit_libs += libprotobuf
   
   //We expect $PROTOBUF_ROOT to be defined, but just in case it isn't,
   //we default to /usr/ (this funkiness here is to keep it from defaulting to /,
   //which would be very rare)
   
   expand(PROTOBUF_ROOT) {
-    $PROTOBUF_ROOT
+    $(PROTOBUF_ROOT)
     /usr/
   }
 }
