@@ -24,7 +24,6 @@ Building on Linux:
         export PATH=$PROTOBUF_ROOT/bin:$ACE_ROOT/bin:$PATH
         export LD_LIBRARY_PATH=$PROTOBUF_ROOT/lib:$ACE_ROOT/lib
   
-        
   4) Create a file called "config.h" in $ACE_ROOT/ace/ containing:
         #define ACE_HAS_STANDARD_CPP_LIBRARY 1
         #include "ace/config-linux.h"
@@ -32,15 +31,15 @@ Building on Linux:
   5) Create a symbolic link called platform_macros.GNU in $ACE_ROOT/include/makeinclude
      pointing to the file platform_linux.GNU
         
-  4) Build ACE (you may also build TAO and CIAO at this point, but they are not
+  6) Build ACE (you may also build TAO and CIAO at this point, but they are not
      currently required for the gateway):
         cd $ACE_ROOT
         make
         
-  5) Generate Gateway workspace:
+  7) Generate Gateway workspace:
         mwc.pl --type make Gateway.mwc
         
-  6) Build the gateway:
+  8) Build the gateway:
         make
         
   Linux build notes:
