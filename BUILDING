@@ -23,6 +23,14 @@ Building on Linux:
         export PROTOBUF_ROOT=(Protobuf installation directory)
         export PATH=$PROTOBUF_ROOT/bin:$ACE_ROOT/bin:$PATH
         export LD_LIBRARY_PATH=$PROTOBUF_ROOT/lib:$ACE_ROOT/lib
+  
+        
+  4) Create a file called "config.h" in $ACE_ROOT/ace/ containing:
+        #define ACE_HAS_STANDARD_CPP_LIBRARY 1
+        #include "ace/config-linux.h"
+        
+  5) Create a symbolic link called platform_macros.GNU in $ACE_ROOT/include/makeinclude
+     pointing to the file platform_linux.GNU
         
   4) Build ACE (you may also build TAO and CIAO at this point, but they are not
      currently required for the gateway):
@@ -58,16 +66,20 @@ Building on Windows (Visual Studio 2008)
         (After setting environment variables, any open command prompts or Visual
         Studio instances must be restarted for changes to take effect.)
         
-  3) Build ACE (you may also build TAO and CIAO at this point, but they are not
+  3) Create a file called 'config.h' in %ACE_ROOT%/ace/ containing:
+        #define ACE_HAS_STANDARD_CPP_LIBRARY 1
+        #include "ace/config-win32.h"
+        
+  4) Build ACE (you may also build TAO and CIAO at this point, but they are not
      currently required for the gateway):
         Open ACE_wrappers_vc9.sln from within the ACE_wrappers folder and build.
         
-  4) If not already installed, download and install perl for Windows.  The DOC
+  5) If not already installed, download and install perl for Windows.  The DOC
      group recommends ActiveState ActivePerl (http://www.activestate.com/activeperl)
      
-  5) Generate the Gateway workspace:
-       %ACE_ROOT\bin\mwc.pl --type vc9 Gateway.mwc
+  6) Generate the Gateway workspace:
+       %ACE_ROOT%\bin\mwc.pl --type vc9 Gateway.mwc
        
-  6) Build the gateway:
+  7) Build the gateway:
       Open Gateway.sln in Visual Studio and build.
   
