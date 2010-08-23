@@ -1,0 +1,39 @@
+package ammmo.protocol;
+
+message DataMessage {
+  required string uri = 1;
+  optional string mime_type = 3;
+  optional bytes data = 2;
+}
+
+//Sent on initial connection to gateway to authenticate user
+message AuthenticationMessage {
+  required string device_id = 1;
+  required string user_id = 2;
+  required string user_key = 3;
+}
+
+//Sent by gateway to show result of authentication
+message AuthenticationResult {
+  enum Status {
+    FAILED = 0;
+    SUCCESS = 1;
+  }
+  required Status result = 1;
+  optional string message = 2;
+}
+
+message MessageWrapper {
+  enum MessageType {
+    DATA_MESSAGE = 0;
+    AUTHENTICATION_MESSAGE = 1;
+    AUTHENTICATION_RESULT = 2;
+  }
+
+  required MessageType type = 1;
+  optional string session_uuid = 2;
+  
+  optional DataMessage data_message = 3;
+  optional AuthenticationMessage authentication_message= 4;
+  optional AuthenticationResult authentication_result = 5;
+}

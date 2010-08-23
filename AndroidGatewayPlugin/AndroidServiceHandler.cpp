@@ -8,38 +8,50 @@
 int AndroidServiceHandler::open(void *ptr) {
   if(super::open(ptr) == -1) {
     return -1;
-    state = READING_SIZE;
-    dataSize = 0;
-    checksum = 0;
-    collectedData = NULL;
-    position = 0;
+    
   }
+  state = READING_SIZE;
+  dataSize = 0;
+  checksum = 0;
+  collectedData = NULL;
+  position = 0;
 }
 
 int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
+  //std::cout << "In handle_input" << std::endl << std::flush;
   int count = 0;
   
   if(state == READING_SIZE) {
     count = this->peer().recv_n(&dataSize, sizeof(dataSize));
+    //std::cout << "SIZE Read " << count << " bytes" << std::endl << std::flush;
   } else if(state == READING_CHECKSUM) {
     count = this->peer().recv_n(&checksum, sizeof(checksum));
+    //std::cout << "SUM Read " << count << " bytes" << std::endl << std::flush;
   } else if(state == READING_DATA) {
-    count = this->peer().recv(&collectedData, dataSize - position);
+    count = this->peer().recv(collectedData + position, dataSize - position);
+    //std::cout << "DATA Read " << count << " bytes" << std::endl << std::flush;
+  } else {
+    std::cout << "Invalid state!" << std::endl << std::flush;
   }
+  
+  
   
   if(count > 0) {
     if(state == READING_SIZE) {
       collectedData = new char[dataSize];
       position = 0;
-      std::cout << "Got data size (" << dataSize << ")" << std::endl << std::flush;
+      //std::cout << "Got data size (" << dataSize << ")" << std::endl << std::flush;
       state = READING_CHECKSUM;
     } else if(state == READING_CHECKSUM) {
-      std::cout << "Got data checksum (" << checksum << ")" << std::endl << std::flush;
+      //std::cout << "Got data checksum (" << checksum << ")" << std::endl << std::flush;
       state = READING_DATA;
     } else if(state == READING_DATA) {
+      //std::cout << "Got some data..." << std::endl << std::flush;
       position += count;
       if(position == dataSize) {
-        processData(collectedData, checksum, dataSize);
+        //std::cout << "Got all the data... processing" << std::endl << std::flush;
+        processData(collectedData, dataSize, checksum);
+        //std::cout << "Processsing complete.  Deleting buffer." << std::endl << std::flush;
         delete collectedData;
         collectedData = NULL;
         dataSize = 0;
@@ -54,6 +66,8 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
     std::cout << "Socket error occurred. (" << ACE_OS::last_error() << ")" << std::endl << std::flush;
     return -1;
   }
+  //std::cout << "Leaving handle_input()" << std::endl << std::flush;
+  return 0;
 }
 
 int AndroidServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
