@@ -9,34 +9,32 @@
 #include "ace/INET_Addr.h"
 #include "ace/SOCK_Connector.h"
 #include "ace/SOCK_Stream.h"
+#include "ace/SOCK_Acceptor.h"
+
+#include "ace/Acceptor.h"
+
+#include "ace/Reactor.h"
+
+#include "AndroidServiceHandler.h"
 
 #include "protocol/Test.pb.h"
 
 using namespace std;
 
 int main(int argc, char **argv) {
-  cout << "Hello World" << endl;
+  cout << "Creating acceptor..." << endl;
   
-  Person p;
-  p.set_id(5);
-  p.set_name("Bob");
+  //TODO: make interface and port number specifiable on the command line
+  ACE_INET_Addr serverAddress(32869, "0.0.0.0");
   
-  cout << "Protocol Buffers Person: " << p.DebugString() << endl;
+  cout << "Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr() << endl;
   
-  ACE_SOCK_Connector connector;
-  ACE_SOCK_Stream peer;
-  ACE_INET_Addr peer_addr;
+  //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor
+  //for accept events
+  ACE_Acceptor<AndroidServiceHandler, ACE_SOCK_Acceptor> acceptor(serverAddress);
   
-  if(peer_addr.set(12345, "localhost") == -1) {
-    return 1;
-  } else if(connector.connect(peer, peer_addr) == -1) {
-    return 1;
-  }
-  
-  string stringToSend = "Hello";
-  
-  peer.send_n(stringToSend.c_str(), stringToSend.length() + 1);
-  
-  peer.close();
-  return 0;
+  //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
+  ACE_Reactor *reactor = ACE_Reactor::instance();
+  cout << "Starting event loop..." << endl << flush;
+  reactor->run_reactor_event_loop();
 }

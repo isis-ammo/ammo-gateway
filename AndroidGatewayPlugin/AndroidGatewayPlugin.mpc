@@ -3,9 +3,11 @@ project(AndroidGatewayPlugin) : aceexe, protobuf {
   
   Protobuf_Files {
     protocol/Test.proto
+    protocol/DataMessage.proto
   }
   
   Source_Files {
     main.cpp
+    AndroidServiceHandler.cpp
   }
 }
