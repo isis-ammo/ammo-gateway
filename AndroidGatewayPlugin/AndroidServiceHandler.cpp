@@ -1,5 +1,5 @@
 #include "AndroidServiceHandler.h"
-#include "protocol/DataMessage.pb.h"
+#include "protocol/AmmmoMessages.pb.h"
 
 #include <iostream>
 

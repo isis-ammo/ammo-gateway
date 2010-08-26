@@ -3,7 +3,7 @@ project(AndroidGatewayPlugin) : aceexe, protobuf {
   
   Protobuf_Files {
     protocol/Test.proto
-    protocol/DataMessage.proto
+    protocol/AmmmoMessages.proto
   }
   
   Source_Files {

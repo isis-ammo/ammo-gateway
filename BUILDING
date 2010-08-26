@@ -13,6 +13,7 @@ Building on Linux:
         ./configure --prefix=$HOME/protobuf230/
         
         or similar to avoid causing system-wide conflicts.
+        
   2) Download ACE+TAO+CIAO and extract
   
   3) Set environment variables (in .bashrc or similar):

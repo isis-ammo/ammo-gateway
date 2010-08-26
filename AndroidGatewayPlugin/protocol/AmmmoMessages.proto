@@ -1,5 +1,7 @@
 package ammmo.protocol;
 
+option java_package = "edu.vu.isis.ammmo.coreapplication.pb";
+
 message DataMessage {
   required string uri = 1;
   optional string mime_type = 3;
