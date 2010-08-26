@@ -2,8 +2,8 @@ project(AndroidGatewayPlugin) : aceexe, protobuf {
   exename=AndroidGatewayPlugin
   
   Protobuf_Files {
-    protocol/Test.proto
     protocol/AmmmoMessages.proto
+    protocol/GatewayPrivateMessages.proto
   }
   
   Source_Files {

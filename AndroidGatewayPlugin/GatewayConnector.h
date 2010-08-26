@@ -1,5 +1,5 @@
 class GatewayConnectorDelegate;
-class DataPushReceiverDelegate;
+class DataPushReceiverListener;
 
 class GatewayConnector {
 public:
@@ -12,8 +12,9 @@ public:
   //Sender-side
   bool pushData(string uri, string mimeType, vector<char> &data);
   //Receiver-side
-  bool registerDataInterest(string uri, DataPushReceiverDelegate *delegate);
+  bool registerDataInterest(string uri, DataPushReceiverListener *listener);
   bool unregisterDataInterest(string uri);
+pri
 };
 
 class GatewayConnectorDelegate {
@@ -21,7 +22,7 @@ class GatewayConnectorDelegate {
   virtual void onDisconnect(GatewayConnector &sender) = 0;
 };
 
-class DataPushReceiverDelegate {
+class DataPushReceiverListener {
 public:
   virtual void onDataReceived(GatewayConnector &sender, string uri, vector<char> &data) = 0;
 };
