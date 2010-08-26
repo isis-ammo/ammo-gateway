@@ -17,8 +17,6 @@
 
 #include "AndroidServiceHandler.h"
 
-#include "protocol/Test.pb.h"
-
 using namespace std;
 
 int main(int argc, char **argv) {

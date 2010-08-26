@@ -1,3 +1,6 @@
+#include <string>
+#include <vector>
+
 class GatewayConnectorDelegate;
 class DataPushReceiverListener;
 
@@ -6,15 +9,14 @@ public:
   GatewayConnector(GatewayConnectorDelegate *delegate);
   
   //General connection negotiation and bookkeeping
-  bool associateDevice(string device, string user, string key);
+  bool associateDevice(std::string device, std::string user, std::string key);
   
   //--Data-Push support methods--
   //Sender-side
-  bool pushData(string uri, string mimeType, vector<char> &data);
+  bool pushData(std::string uri, std::string mimeType, std::vector<char> &data);
   //Receiver-side
-  bool registerDataInterest(string uri, DataPushReceiverListener *listener);
-  bool unregisterDataInterest(string uri);
-pri
+  bool registerDataInterest(std::string uri, DataPushReceiverListener *listener);
+  bool unregisterDataInterest(std::string uri);
 };
 
 class GatewayConnectorDelegate {
@@ -24,5 +26,5 @@ class GatewayConnectorDelegate {
 
 class DataPushReceiverListener {
 public:
-  virtual void onDataReceived(GatewayConnector &sender, string uri, vector<char> &data) = 0;
+  virtual void onDataReceived(GatewayConnector &sender, std::string uri, std::vector<char> &data) = 0;
 };

@@ -3,11 +3,13 @@ project(AndroidGatewayPlugin) : aceexe, protobuf {
   
   Protobuf_Files {
     protocol/AmmmoMessages.proto
-    protocol/GatewayPrivateMessages.proto
+    GatewayConnector/protocol/GatewayPrivateMessages.proto
   }
   
   Source_Files {
     main.cpp
     AndroidServiceHandler.cpp
+    GatewayConnector/GatewayConnector.cpp
+    GatewayConnector/GatewayServiceHandler.cpp
   }
 }
