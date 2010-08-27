@@ -100,8 +100,8 @@ int GatewayServiceHandler::handle_output(ACE_HANDLE) {
 
 void GatewayServiceHandler::sendData(ammmo::gateway::protocol::GatewayWrapper &msg) {
   unsigned int messageSize = msg.ByteSize();
-  char *messageToSend = new char[messageSize]
-  msg.serializeToArray(messageToSend, messageSize);
+  char *messageToSend = new char[messageSize];
+  msg.SerializeToArray(messageToSend, messageSize);
   unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
   
   ACE_Message_Block *messageSizeBlock = new ACE_Message_Block(sizeof(messageSize));

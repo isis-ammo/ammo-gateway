@@ -3,13 +3,16 @@
 
 #include "ace/Svc_Handler.h"
 #include "ace/LSOCK_Stream.h"
+#include "protocol/GatewayPrivateMessages.pb.h"
 #include <vector>
 
 class GatewayServiceHandler : public ACE_Svc_Handler<ACE_LSOCK_STREAM, ACE_NULL_SYNCH> {
 public:
   int open(void *ptr = 0);
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
+  int handle_output(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   
+  void sendData(ammmo::gateway::protocol::GatewayWrapper &msg);
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
   
 protected:
