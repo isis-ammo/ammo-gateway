@@ -1,10 +1,17 @@
 #include "GatewayConnector.h"
+#include "ace/Connector.h"
 #include <string>
 
 using namespace std;
 
 GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) {
-  
+  ACE_INET_Addr serverAddress("localhost", 12475);
+  connector = new ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector>();
+  //connector->connect(&handler, serverAddress);
+}
+
+GatewayConnector::~GatewayConnector() {
+  delete connector;
 }
   
 bool GatewayConnector::associateDevice(string device, string user, string key) {
