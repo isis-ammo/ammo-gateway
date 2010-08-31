@@ -1,0 +1,6 @@
+Makefile*
+*.o
+.depend*
+GatewayCore
+GatewayCore.exe
+Debug\
