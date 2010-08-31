@@ -15,6 +15,8 @@ int AndroidServiceHandler::open(void *ptr) {
   checksum = 0;
   collectedData = NULL;
   position = 0;
+  
+  gatewayConnector = new GatewayConnector(NULL);
 }
 
 int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
@@ -52,7 +54,7 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
         //std::cout << "Got all the data... processing" << std::endl << std::flush;
         processData(collectedData, dataSize, checksum);
         //std::cout << "Processsing complete.  Deleting buffer." << std::endl << std::flush;
-        delete collectedData;
+        delete[] collectedData;
         collectedData = NULL;
         dataSize = 0;
         position = 0;
@@ -88,5 +90,16 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
   }
   std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
   
+  if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE) {
+    if(gatewayConnector != NULL) {
+      ammmo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
+      gatewayConnector->associateDevice(authMessage.device_id(), authMessage.user_id(), authMessage.user_key());
+    }
+  }
+  
   return 0;
+}
+
+AndroidServiceHandler::~AndroidServiceHandler() {
+  delete gatewayConnector;
 }

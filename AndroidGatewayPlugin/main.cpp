@@ -20,6 +20,17 @@
 using namespace std;
 
 int main(int argc, char **argv) {
+  cout << "ACE_MESSAGE_QUEUE TEST" << endl;
+  
+  ACE_Message_Queue<ACE_NULL_SYNCH> *queue = new ACE_Message_Queue<ACE_NULL_SYNCH>();
+  
+  unsigned int messageSize = 5;
+  char *messageToSend = new char[messageSize];
+  unsigned int messageChecksum = 79;
+  
+  ACE_Message_Block *messageSizeBlock = new ACE_Message_Block(sizeof(messageSize));
+  queue->enqueue_tail(messageSizeBlock);
+  
   cout << "Creating acceptor..." << endl;
   
   //TODO: make interface and port number specifiable on the command line

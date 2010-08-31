@@ -31,12 +31,15 @@ private:
   GatewayConnectorDelegate *delegate;
   std::map<std::string, DataPushReceiverListener *> receiverListeners;
   ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector> *connector;
-  GatewayServiceHandler handler;
+  GatewayServiceHandler *handler;
+  
+  bool connected;
 };
 
 class GatewayConnectorDelegate {
   virtual void onConnect(GatewayConnector &sender) = 0;
   virtual void onDisconnect(GatewayConnector &sender) = 0;
+  virtual void onAuthenticationResponse(GatewayConnector &sender, bool result) = 0;
 };
 
 class DataPushReceiverListener {

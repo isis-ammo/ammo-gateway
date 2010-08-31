@@ -5,6 +5,12 @@
 
 #include "ace/OS_NS_errno.h"
 
+/* GatewayServiceHandler::GatewayServiceHandler(ACE_Thread_Manager *tm = 0, ACE_Message_Queue<ACE_NULL_SYNCH> *mq = 0, ACE_Reactor *reactor = ACE_Reactor::instance())
+: ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>(tm, mq, reactor)
+{
+  
+} */
+
 int GatewayServiceHandler::open(void *ptr) {
   if(super::open(ptr) == -1) {
     return -1;
@@ -15,6 +21,8 @@ int GatewayServiceHandler::open(void *ptr) {
   checksum = 0;
   collectedData = NULL;
   position = 0;
+  
+  //return 0;
 }
 
 int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
@@ -115,6 +123,8 @@ void GatewayServiceHandler::sendData(ammmo::gateway::protocol::GatewayWrapper &m
   ACE_Message_Block *messageToSendBlock = new ACE_Message_Block(messageSize);
   messageToSendBlock->copy(messageToSend, messageSize);
   this->putq(messageToSendBlock);
+  
+  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
 }
 
 int GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
@@ -136,4 +146,8 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
   
   return 0;
+}
+
+GatewayServiceHandler::~GatewayServiceHandler() {
+  std::cout << "GatewayServiceHandler being destroyed!" << std::endl << std::flush;
 }

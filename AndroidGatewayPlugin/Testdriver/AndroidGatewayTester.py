@@ -30,11 +30,11 @@ if __name__ == "__main__":
   client = GatewayTestClient(sys.argv[1], sys.argv[2])
   print "Generating message"
   m = DataMessage_pb2.MessageWrapper()
-  m.type = DataMessage_pb2.MessageWrapper.DATA_MESSAGE
+  m.type = DataMessage_pb2.MessageWrapper.AUTHENTICATION_MESSAGE
   #m.data_message = DataMessage_pb2.DataMessage()
-  m.data_message.uri = "urn:edu.vanderbilt.isis.ammmo.test.string"
-  m.data_message.mime_type = "text/plain"
-  m.data_message.data = "Hello World"
+  m.authentication_message.device_id = "device:test/device1"
+  m.authentication_message.user_id = "user:test/user1"
+  m.authentication_message.user_key = "dummy"
   print "Sending message"
   client.sendMessageWrapper(m)
   print "Closing socket"
