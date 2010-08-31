@@ -1,8 +1,3 @@
-/**
-* Work in progress:  this file currently just tests whether or not ACE, MWC, and
-* Protocol Buffers are correctly installed.
-*/
-
 #include <iostream>
 #include <string>
 
