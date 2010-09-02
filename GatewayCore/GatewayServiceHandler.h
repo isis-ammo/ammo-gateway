@@ -17,6 +17,8 @@ public:
   void sendData(ammmo::gateway::protocol::GatewayWrapper &msg);
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
   
+  bool sendPushedData(std::string uri, std::string mimeType, const std::string &data);
+  
 protected:
   typedef ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH> super;
   
@@ -31,6 +33,8 @@ protected:
   unsigned int checksum;
   char *collectedData;
   unsigned int position;
+  
+  std::vector<std::string> registeredHandlers;
 };
 
 #endif        //  #ifndef GATEWAY_SERVICE_HANDLER_H

@@ -8,5 +8,6 @@ project(GatewayCore) : aceexe, protobuf {
   Source_Files {
     main.cpp
     GatewayServiceHandler.cpp
+    GatewayCore.cpp
   }
 }

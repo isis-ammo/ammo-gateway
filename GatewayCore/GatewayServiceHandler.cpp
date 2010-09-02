@@ -1,4 +1,5 @@
 #include "GatewayServiceHandler.h"
+#include "GatewayCore.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
 
 #include <iostream>
@@ -161,11 +162,37 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     newMsg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT);
     newMsg.mutable_associate_result()->set_result(ammmo::gateway::protocol::AssociateResult_Status_SUCCESS);
     this->sendData(newMsg);
+  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST) {
+    std::string uri = msg.register_data_interest().uri();
+    bool result = GatewayCore::getInstance()->registerDataInterest(uri, this);
+    if(result == true) {
+      registeredHandlers.push_back(uri);
+    }
+  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
+    bool result = GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data());
   }
   
   return 0;
 }
 
+bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data) {
+  ammmo::gateway::protocol::GatewayWrapper msg;
+  ammmo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
+  pushMsg->set_uri(uri);
+  pushMsg->set_mime_type(mimeType);
+  pushMsg->set_data(data);
+  
+  msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
+  
+  std::cout << "Sending Data Push message to connected plugin" << std::endl << std::flush;
+  this->sendData(msg);
+  return true;
+}
+
 GatewayServiceHandler::~GatewayServiceHandler() {
   std::cout << "GatewayServiceHandler being destroyed!" << std::endl << std::flush;
+  std::cout << "Unregistering data handlers..." << std::endl << std::flush;
+  for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
+    GatewayCore::getInstance()->unregisterDataInterest(*it, this);
+  }
 }

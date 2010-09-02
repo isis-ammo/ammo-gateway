@@ -3,6 +3,7 @@
 
 #include "ace/Reactor.h"
 
+#include "SamplePushReceiver.h"
 #include "GatewayConnector/GatewayConnector.h"
 
 using namespace std;
@@ -10,7 +11,11 @@ using namespace std;
 int main(int argc, char **argv) {  
   cout << "Creating gateway connector..." << endl << flush;
   
-  GatewayConnector *gatewayConnector = new GatewayConnector(NULL);
+  SamplePushReceiver *pushReceiver = new SamplePushReceiver();
+  
+  GatewayConnector *gatewayConnector = new GatewayConnector(pushReceiver);
+  
+  gatewayConnector->registerDataInterest("type:edu.vanderbilt.isis.ammmo.Test", pushReceiver);
   
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();
