@@ -16,7 +16,7 @@ int AndroidServiceHandler::open(void *ptr) {
   collectedData = NULL;
   position = 0;
   
-  gatewayConnector = new GatewayConnector(NULL);
+  gatewayConnector = new GatewayConnector(this);
 }
 
 int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
@@ -72,6 +72,37 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
   return 0;
 }
 
+void AndroidServiceHandler::sendData(ammmo::protocol::MessageWrapper &msg) {
+  /*Fixme: potential deadlock here
+  unsigned int messageSize = msg.ByteSize();
+  char *messageToSend = new char[messageSize];
+  msg.SerializeToArray(messageToSend, messageSize);
+  unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
+  
+  ACE_Message_Block *messageSizeBlock = new ACE_Message_Block(sizeof(messageSize));
+  messageSizeBlock->copy((char *) &messageSize, sizeof(messageSize));
+  this->putq(messageSizeBlock);
+  
+  ACE_Message_Block *messageChecksumBlock = new ACE_Message_Block(sizeof(messageChecksum));
+  messageChecksumBlock->copy((char *) &messageChecksum, sizeof(messageChecksum));
+  this->putq(messageChecksumBlock);
+  
+  ACE_Message_Block *messageToSendBlock = new ACE_Message_Block(messageSize);
+  messageToSendBlock->copy(messageToSend, messageSize);
+  this->putq(messageToSendBlock);
+  
+  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);*/
+  
+  unsigned int messageSize = msg.ByteSize();
+  char *messageToSend = new char[messageSize];
+  msg.SerializeToArray(messageToSend, messageSize);
+  unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
+  
+  this->peer().send_n(&messageSize, sizeof(messageSize));
+  this->peer().send_n(&messageChecksum, sizeof(messageChecksum));
+  this->peer().send_n(messageToSend, messageSize);
+}
+
 int AndroidServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
@@ -95,9 +126,30 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
       ammmo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
       gatewayConnector->associateDevice(authMessage.device_id(), authMessage.user_id(), authMessage.user_key());
     }
+  } else if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_DATA_MESSAGE) {
+    if(gatewayConnector != NULL) {
+      ammmo::protocol::DataMessage dataMessage = msg.data_message();
+      gatewayConnector->pushData(dataMessage.uri(), dataMessage.mime_type(), dataMessage.data());
+    }
   }
   
   return 0;
+}
+
+void AndroidServiceHandler::onConnect(GatewayConnector *sender) {
+  
+}
+
+void AndroidServiceHandler::onDisconnect(GatewayConnector *sender) {
+  
+}
+
+void AndroidServiceHandler::onAuthenticationResponse(GatewayConnector *sender, bool result) {
+  std::cout << "Delegate: onAuthenticationResponse" << std::endl << std::flush;
+  ammmo::protocol::MessageWrapper newMsg;
+  newMsg.set_type(ammmo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
+  newMsg.mutable_authentication_result()->set_result(result ? ammmo::protocol::AuthenticationResult_Status_SUCCESS : ammmo::protocol::AuthenticationResult_Status_SUCCESS);
+  this->sendData(newMsg);
 }
 
 AndroidServiceHandler::~AndroidServiceHandler() {

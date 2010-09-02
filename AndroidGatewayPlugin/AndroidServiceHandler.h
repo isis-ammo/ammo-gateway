@@ -4,14 +4,21 @@
 #include "GatewayConnector/GatewayConnector.h"
 #include "ace/Svc_Handler.h"
 #include "ace/SOCK_Stream.h"
+#include "protocol/AmmmoMessages.pb.h"
 #include <vector>
 
-class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH> {
+class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>, GatewayConnectorDelegate {
 public:
   int open(void *ptr = 0);
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   
+  void sendData(ammmo::protocol::MessageWrapper &msg);
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
+  
+  //GatewayConnectorDelegate methods
+  virtual void onConnect(GatewayConnector *sender);
+  virtual void onDisconnect(GatewayConnector *sender);
+  virtual void onAuthenticationResponse(GatewayConnector *sender, bool result);
   
   ~AndroidServiceHandler();
   

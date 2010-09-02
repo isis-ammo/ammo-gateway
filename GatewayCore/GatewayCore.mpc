@@ -1,0 +1,12 @@
+project(GatewayCore) : aceexe, protobuf {
+  exename=GatewayCore
+  
+  Protobuf_Files {
+    protocol/GatewayPrivateMessages.proto
+  }
+  
+  Source_Files {
+    main.cpp
+    GatewayServiceHandler.cpp
+  }
+}

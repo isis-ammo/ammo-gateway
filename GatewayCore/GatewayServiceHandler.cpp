@@ -107,6 +107,7 @@ int GatewayServiceHandler::handle_output(ACE_HANDLE) {
 }
 
 void GatewayServiceHandler::sendData(ammmo::gateway::protocol::GatewayWrapper &msg) {
+  /*Fixme: potential deadlock here
   unsigned int messageSize = msg.ByteSize();
   char *messageToSend = new char[messageSize];
   msg.SerializeToArray(messageToSend, messageSize);
@@ -124,7 +125,16 @@ void GatewayServiceHandler::sendData(ammmo::gateway::protocol::GatewayWrapper &m
   messageToSendBlock->copy(messageToSend, messageSize);
   this->putq(messageToSendBlock);
   
-  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);*/
+  
+  unsigned int messageSize = msg.ByteSize();
+  char *messageToSend = new char[messageSize];
+  msg.SerializeToArray(messageToSend, messageSize);
+  unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
+  
+  this->peer().send_n(&messageSize, sizeof(messageSize));
+  this->peer().send_n(&messageChecksum, sizeof(messageChecksum));
+  this->peer().send_n(messageToSend, messageSize);
 }
 
 int GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
@@ -144,6 +154,14 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     return -1;
   }
   std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
+  
+  if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE) {
+    //TODO: split out into a different function and do more here
+    ammmo::gateway::protocol::GatewayWrapper newMsg;
+    newMsg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT);
+    newMsg.mutable_associate_result()->set_result(ammmo::gateway::protocol::AssociateResult_Status_SUCCESS);
+    this->sendData(newMsg);
+  }
   
   return 0;
 }

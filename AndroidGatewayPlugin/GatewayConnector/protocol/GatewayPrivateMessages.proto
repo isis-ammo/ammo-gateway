@@ -41,6 +41,7 @@ message GatewayWrapper {
   required MessageType type = 1;
   
   optional AssociateDevice associate_device = 2;
+  optional AssociateResult associate_result = 6;
   optional PushData push_data = 3;
   optional RegisterDataInterest register_data_interest = 4;
   optional UnregisterDataInterest unregister_data_interest = 5;
