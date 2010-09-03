@@ -168,6 +168,16 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     if(result == true) {
       registeredHandlers.push_back(uri);
     }
+  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST) {
+    std::string uri = msg.unregister_data_interest().uri();
+    bool result = GatewayCore::getInstance()->unregisterDataInterest(uri, this);
+    if(result == true) {
+      for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
+        if((*it) == uri) {
+          registeredHandlers.erase(it);
+        }
+      }
+    }
   } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     bool result = GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data());
   }

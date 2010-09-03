@@ -28,8 +28,10 @@ GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : connect
 
 GatewayConnector::~GatewayConnector() {
   std::cout << "Deleting GatewayConnector()" << std::endl << std::flush;
-  handler->close();
-  connector->close();
+  if(connected) {
+    handler->close();
+    connector->close();
+  }
   delete connector;
 }
   
@@ -91,7 +93,21 @@ bool GatewayConnector::registerDataInterest(string uri, DataPushReceiverListener
 }
 
 bool GatewayConnector::unregisterDataInterest(string uri) {
-  return false;
+  ammmo::gateway::protocol::GatewayWrapper msg;
+  ammmo::gateway::protocol::UnregisterDataInterest *di = msg.mutable_unregister_data_interest();
+  di->set_uri(uri);
+  
+  msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST);
+  
+  std::cout << "Sending UnregisterDataInterest message to gateway core" << std::endl << std::flush;
+  if(connected) {
+    handler->sendData(msg);
+    receiverListeners.erase(uri);
+    return true;
+  } else {
+    std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
+    return false;
+  }
 }
 
 void GatewayConnector::onAssociateResultReceived(const ammmo::gateway::protocol::AssociateResult &msg) {
