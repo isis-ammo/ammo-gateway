@@ -24,8 +24,8 @@ public:
   //Sender-side
   bool pushData(std::string uri, std::string mimeType, const std::string &data);
   //Receiver-side
-  bool registerDataInterest(std::string uri, DataPushReceiverListener *listener);
-  bool unregisterDataInterest(std::string uri);
+  bool registerDataInterest(std::string mime_type, DataPushReceiverListener *listener);
+  bool unregisterDataInterest(std::string mime_type);
   
   void onAssociateResultReceived(const ammmo::gateway::protocol::AssociateResult &msg);
   void onPushDataReceived(const ammmo::gateway::protocol::PushData &msg);

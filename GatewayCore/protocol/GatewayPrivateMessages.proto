@@ -22,11 +22,11 @@ message PushData {
 }
 
 message RegisterDataInterest {
-  required string uri = 1;
+  required string mime_type = 1;
 }
 
 message UnregisterDataInterest {
-  required string uri = 1;
+  required string mime_type = 1;
 }
 
 message GatewayWrapper {

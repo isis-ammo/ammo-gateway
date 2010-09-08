@@ -73,17 +73,17 @@ bool GatewayConnector::pushData(string uri, string mimeType, const string &data)
   }
 }
 
-bool GatewayConnector::registerDataInterest(string uri, DataPushReceiverListener *listener) {
+bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverListener *listener) {
   ammmo::gateway::protocol::GatewayWrapper msg;
   ammmo::gateway::protocol::RegisterDataInterest *di = msg.mutable_register_data_interest();
-  di->set_uri(uri);
+  di->set_mime_type(mime_type);
   
   msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST);
   
   std::cout << "Sending RegisterDataInterest message to gateway core" << std::endl << std::flush;
   if(connected) {
     handler->sendData(msg);
-    receiverListeners[uri] = listener;
+    receiverListeners[mime_type] = listener;
     return true;
   } else {
     std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
@@ -92,17 +92,17 @@ bool GatewayConnector::registerDataInterest(string uri, DataPushReceiverListener
   }
 }
 
-bool GatewayConnector::unregisterDataInterest(string uri) {
+bool GatewayConnector::unregisterDataInterest(string mime_type) {
   ammmo::gateway::protocol::GatewayWrapper msg;
   ammmo::gateway::protocol::UnregisterDataInterest *di = msg.mutable_unregister_data_interest();
-  di->set_uri(uri);
+  di->set_mime_type(mime_type);
   
   msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST);
   
   std::cout << "Sending UnregisterDataInterest message to gateway core" << std::endl << std::flush;
   if(connected) {
     handler->sendData(msg);
-    receiverListeners.erase(uri);
+    receiverListeners.erase(mime_type);
     return true;
   } else {
     std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
@@ -120,7 +120,7 @@ void GatewayConnector::onPushDataReceived(const ammmo::gateway::protocol::PushDa
   string mimeType = msg.mime_type();
   vector<char> data(msg.data().begin(), msg.data().end());
   
-  receiverListeners[uri]->onDataReceived(this, uri, mimeType, data);
+  receiverListeners[mimeType]->onDataReceived(this, uri, mimeType, data);
 }
 
 //--GatewayConnectorDelegate default implementations (for optional delegate methods)

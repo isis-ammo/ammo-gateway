@@ -1,6 +1,6 @@
 Makefile*
 *.o
 .depend*
-AndroidGatewayPlugin
-AndroidGatewayPlugin.exe
+SamplePushReceiverGatewayPlugin
+SamplePushReceiverGatewayPlugin.exe
 Debug\

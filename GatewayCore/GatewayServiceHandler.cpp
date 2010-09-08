@@ -163,17 +163,17 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     newMsg.mutable_associate_result()->set_result(ammmo::gateway::protocol::AssociateResult_Status_SUCCESS);
     this->sendData(newMsg);
   } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST) {
-    std::string uri = msg.register_data_interest().uri();
-    bool result = GatewayCore::getInstance()->registerDataInterest(uri, this);
+    std::string mime_type = msg.register_data_interest().mime_type();
+    bool result = GatewayCore::getInstance()->registerDataInterest(mime_type, this);
     if(result == true) {
-      registeredHandlers.push_back(uri);
+      registeredHandlers.push_back(mime_type);
     }
   } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST) {
-    std::string uri = msg.unregister_data_interest().uri();
-    bool result = GatewayCore::getInstance()->unregisterDataInterest(uri, this);
+    std::string mime_type = msg.unregister_data_interest().mime_type();
+    bool result = GatewayCore::getInstance()->unregisterDataInterest(mime_type, this);
     if(result == true) {
       for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
-        if((*it) == uri) {
+        if((*it) == mime_type) {
           registeredHandlers.erase(it);
         }
       }

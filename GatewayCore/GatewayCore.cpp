@@ -16,18 +16,18 @@ GatewayCore* GatewayCore::getInstance() {
   return sharedInstance;
 }
 
-bool GatewayCore::registerDataInterest(std::string uri, GatewayServiceHandler *handler) {
-  cout << "Registering interest in " << uri << " by handler " << handler << endl << flush;
-  pushHandlers.insert(pair<string, GatewayServiceHandler *>(uri, handler));
+bool GatewayCore::registerDataInterest(std::string mime_type, GatewayServiceHandler *handler) {
+  cout << "Registering interest in " << mime_type << " by handler " << handler << endl << flush;
+  pushHandlers.insert(pair<string, GatewayServiceHandler *>(mime_type, handler));
   return true;
 }
 
-bool GatewayCore::unregisterDataInterest(std::string uri, GatewayServiceHandler *handler) {
-  cout << "Unregistering interest in " << uri << " by handler " << handler << endl << flush;
+bool GatewayCore::unregisterDataInterest(std::string mime_type, GatewayServiceHandler *handler) {
+  cout << "Unregistering interest in " << mime_type << " by handler " << handler << endl << flush;
   multimap<string,GatewayServiceHandler *>::iterator it;
   pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
   
-  handlerIterators = pushHandlers.equal_range(uri);
+  handlerIterators = pushHandlers.equal_range(mime_type);
   
   for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
     if(handler == (*it).second) {
@@ -42,7 +42,7 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::str
   multimap<string,GatewayServiceHandler *>::iterator it;
   pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
   
-  handlerIterators = pushHandlers.equal_range(uri);
+  handlerIterators = pushHandlers.equal_range(mimeType);
   
   for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
     (*it).second->sendPushedData(uri, mimeType, data);

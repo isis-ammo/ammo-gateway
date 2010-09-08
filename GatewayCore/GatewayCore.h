@@ -10,8 +10,8 @@ class GatewayCore {
 public:
   static GatewayCore* getInstance();
   
-  bool registerDataInterest(std::string uri, GatewayServiceHandler *handler);
-  bool unregisterDataInterest(std::string uri, GatewayServiceHandler *handler);
+  bool registerDataInterest(std::string mime_type, GatewayServiceHandler *handler);
+  bool unregisterDataInterest(std::string mime_type, GatewayServiceHandler *handler);
   
   bool pushData(std::string uri, std::string mimeType, const std::string &data);
   

@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
   
   GatewayConnector *gatewayConnector = new GatewayConnector(pushReceiver);
   
-  gatewayConnector->registerDataInterest("type:edu.vanderbilt.isis.ammmo.Test", pushReceiver);
+  gatewayConnector->registerDataInterest("text/plain", pushReceiver);
   
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();
