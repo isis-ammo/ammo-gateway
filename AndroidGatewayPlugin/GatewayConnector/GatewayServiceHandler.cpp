@@ -160,6 +160,8 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   
   if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
     parent->onAssociateResultReceived(msg.associate_result());
+  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
+    parent->onPushDataReceived(msg.push_data());
   }
   
   return 0;

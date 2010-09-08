@@ -28,6 +28,7 @@ public:
   bool unregisterDataInterest(std::string uri);
   
   void onAssociateResultReceived(const ammmo::gateway::protocol::AssociateResult &msg);
+  void onPushDataReceived(const ammmo::gateway::protocol::PushData &msg);
   
 private:
   GatewayConnectorDelegate *delegate;
@@ -42,12 +43,12 @@ class GatewayConnectorDelegate {
 public:
   virtual void onConnect(GatewayConnector *sender) = 0;
   virtual void onDisconnect(GatewayConnector *sender) = 0;
-  virtual void onAuthenticationResponse(GatewayConnector *sender, bool result) = 0;
+  virtual void onAuthenticationResponse(GatewayConnector *sender, bool result);
 };
 
 class DataPushReceiverListener {
 public:
-  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::vector<char> &data) = 0;
+  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data) = 0;
 };
 
 #endif        //  #ifndef GATEWAY_CONNECTOR_H

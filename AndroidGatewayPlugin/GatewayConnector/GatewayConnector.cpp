@@ -28,8 +28,10 @@ GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : connect
 
 GatewayConnector::~GatewayConnector() {
   std::cout << "Deleting GatewayConnector()" << std::endl << std::flush;
-  handler->close();
-  connector->close();
+  if(connected) {
+    handler->close();
+    connector->close();
+  }
   delete connector;
 }
   
@@ -72,14 +74,59 @@ bool GatewayConnector::pushData(string uri, string mimeType, const string &data)
 }
 
 bool GatewayConnector::registerDataInterest(string uri, DataPushReceiverListener *listener) {
-  return false;
+  ammmo::gateway::protocol::GatewayWrapper msg;
+  ammmo::gateway::protocol::RegisterDataInterest *di = msg.mutable_register_data_interest();
+  di->set_uri(uri);
+  
+  msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST);
+  
+  std::cout << "Sending RegisterDataInterest message to gateway core" << std::endl << std::flush;
+  if(connected) {
+    handler->sendData(msg);
+    receiverListeners[uri] = listener;
+    return true;
+  } else {
+    std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
+    std::cout << "Receiver listener was not registered; it won't receive any data." << std::endl << std::flush;
+    return false;
+  }
 }
 
 bool GatewayConnector::unregisterDataInterest(string uri) {
-  return false;
+  ammmo::gateway::protocol::GatewayWrapper msg;
+  ammmo::gateway::protocol::UnregisterDataInterest *di = msg.mutable_unregister_data_interest();
+  di->set_uri(uri);
+  
+  msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST);
+  
+  std::cout << "Sending UnregisterDataInterest message to gateway core" << std::endl << std::flush;
+  if(connected) {
+    handler->sendData(msg);
+    receiverListeners.erase(uri);
+    return true;
+  } else {
+    std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
+    return false;
+  }
 }
 
 void GatewayConnector::onAssociateResultReceived(const ammmo::gateway::protocol::AssociateResult &msg) {
   std::cout << "Got associate result of " << msg.result() << std::endl << std::flush;
   delegate->onAuthenticationResponse(this, msg.result());
 }
+
+void GatewayConnector::onPushDataReceived(const ammmo::gateway::protocol::PushData &msg) {
+  string uri = msg.uri();
+  string mimeType = msg.mime_type();
+  vector<char> data(msg.data().begin(), msg.data().end());
+  
+  receiverListeners[uri]->onDataReceived(this, uri, mimeType, data);
+}
+
+//--GatewayConnectorDelegate default implementations (for optional delegate methods)
+
+void GatewayConnectorDelegate::onAuthenticationResponse(GatewayConnector *sender, bool result) {
+  std::cout << "GatewayConnectorDelegate::onAuthenticationResponse : result = " << result << std::endl << std::flush;
+}
+
+
