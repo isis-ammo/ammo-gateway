@@ -39,6 +39,8 @@ bool GatewayCore::unregisterDataInterest(std::string mime_type, GatewayServiceHa
 }
 
 bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::string &data) {
+  cout << "  Pushing data with uri: " << uri << endl;
+  cout << "                    type: " << mimeType << endl << flush;
   multimap<string,GatewayServiceHandler *>::iterator it;
   pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
   

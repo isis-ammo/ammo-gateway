@@ -1,0 +1,36 @@
+#!/bin/bash
+
+JOURNAL_FILE="$1/ammmo_core/network_proxy_service.journal"
+SCRIPT_NAME="$0"
+
+function usage {
+	echo "Usage:"
+	echo "  $SCRIPT_NAME sdcard-path host port"
+}
+
+if [[ $# != 3 ]]
+then
+  echo $#
+	usage
+	exit 0
+fi
+
+if [ ! -f "$JOURNAL_FILE" ]
+then
+	echo "Error:  Journal file not found in $1"
+	echo ""
+	usage
+	exit 0
+fi
+
+echo "Transferring journal..."
+cat "$JOURNAL_FILE" | nc "$2" "$3" > /dev/null
+STATUS=$?
+
+if [[ $STATUS == 0 ]]
+then
+  echo "Transfer succeeded...  deleting journal."
+	rm "$JOURNAL_FILE"
+else
+  echo "Transfer failed...  is the gateway available?"
+fi
