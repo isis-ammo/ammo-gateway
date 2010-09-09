@@ -154,21 +154,24 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     std::cout << "Client must have sent something that isn't a protocol buffer (or the wrong type)." << std::endl << std::flush;
     return -1;
   }
-  std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
+  //std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
   
   if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE) {
+    std::cout << "Received Associate Device..." << std::endl << std::flush;
     //TODO: split out into a different function and do more here
     ammmo::gateway::protocol::GatewayWrapper newMsg;
     newMsg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT);
     newMsg.mutable_associate_result()->set_result(ammmo::gateway::protocol::AssociateResult_Status_SUCCESS);
     this->sendData(newMsg);
   } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST) {
+    std::cout << "Received Register Data Interest..." << std::endl << std::flush;
     std::string mime_type = msg.register_data_interest().mime_type();
     bool result = GatewayCore::getInstance()->registerDataInterest(mime_type, this);
     if(result == true) {
       registeredHandlers.push_back(mime_type);
     }
   } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST) {
+    std::cout << "Received Unregister Data Interest..." << std::endl << std::flush;
     std::string mime_type = msg.unregister_data_interest().mime_type();
     bool result = GatewayCore::getInstance()->unregisterDataInterest(mime_type, this);
     if(result == true) {
@@ -179,6 +182,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       }
     }
   } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
+    std::cout << "Received Push Data..." << std::endl << std::flush;
     bool result = GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data());
   }
   

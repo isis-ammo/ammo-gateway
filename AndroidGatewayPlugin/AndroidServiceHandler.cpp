@@ -119,14 +119,16 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
     std::cout << "Client must have sent something that isn't a protocol buffer (or the wrong type)." << std::endl << std::flush;
     return -1;
   }
-  std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
+  //std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
   
   if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE) {
+    std::cout << "Received Authentication Message..." << std::endl << std::flush;
     if(gatewayConnector != NULL) {
       ammmo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
       gatewayConnector->associateDevice(authMessage.device_id(), authMessage.user_id(), authMessage.user_key());
     }
   } else if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_DATA_MESSAGE) {
+    std::cout << "Received Data Message..." << std::endl << std::flush;
     if(gatewayConnector != NULL) {
       ammmo::protocol::DataMessage dataMessage = msg.data_message();
       gatewayConnector->pushData(dataMessage.uri(), dataMessage.mime_type(), dataMessage.data());

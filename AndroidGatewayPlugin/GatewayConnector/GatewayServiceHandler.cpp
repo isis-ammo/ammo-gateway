@@ -156,11 +156,13 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     std::cout << "Client must have sent something that isn't a protocol buffer (or the wrong type)." << std::endl << std::flush;
     return -1;
   }
-  std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
+  //std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
   
   if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
+    std::cout << "Received Associate Result..." << std::endl << std::flush;
     parent->onAssociateResultReceived(msg.associate_result());
   } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
+    std::cout << "Received Push Data..." << std::endl << std::flush;
     parent->onPushDataReceived(msg.push_data());
   }
   
