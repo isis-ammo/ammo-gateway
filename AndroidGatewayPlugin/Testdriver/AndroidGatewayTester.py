@@ -67,6 +67,16 @@ if __name__ == "__main__":
     m.data_message.data = "This is some text being pushed out to the gateway."
     print "Sending data message"
     client.sendMessageWrapper(m)
+  elif sys.argv[3] == "subscribe": 
+    #wait for auth response, then send a data push message
+    response = client.receiveMessage()
+    if response.authentication_result.result != DataMessage_pb2.AuthenticationResult.SUCCESS:
+      print "Authentication failed..."
+    m = DataMessage_pb2.MessageWrapper()
+    m.type = DataMessage_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
+    m.subscribe_message.mime_type = "text/plain"
+    print "Sending subscription request..."
+    client.sendMessageWrapper(m)
     
   
   while True:

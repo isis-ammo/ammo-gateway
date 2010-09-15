@@ -1,5 +1,7 @@
 package ammmo.protocol;
 
+option java_package = "edu.vu.isis.ammmo.coreapplication.pb";
+
 message DataMessage {
   required string uri = 1;
   optional string mime_type = 3;
@@ -11,6 +13,11 @@ message AuthenticationMessage {
   required string device_id = 1;
   required string user_id = 2;
   required string user_key = 3;
+}
+
+message SubscribeMessage {
+  required string mime_type = 1;
+  optional string query = 2;
 }
 
 //Sent by gateway to show result of authentication
@@ -28,6 +35,7 @@ message MessageWrapper {
     DATA_MESSAGE = 0;
     AUTHENTICATION_MESSAGE = 1;
     AUTHENTICATION_RESULT = 2;
+    SUBSCRIBE_MESSAGE = 4;
   }
 
   required MessageType type = 1;
@@ -36,4 +44,5 @@ message MessageWrapper {
   optional DataMessage data_message = 3;
   optional AuthenticationMessage authentication_message= 4;
   optional AuthenticationResult authentication_result = 5;
+  optional SubscribeMessage subscribe_message = 6;
 }

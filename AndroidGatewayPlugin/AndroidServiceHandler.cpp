@@ -133,6 +133,12 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
       ammmo::protocol::DataMessage dataMessage = msg.data_message();
       gatewayConnector->pushData(dataMessage.uri(), dataMessage.mime_type(), dataMessage.data());
     }
+  } else if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
+    std::cout << "Received Subscribe Message..." << std::endl << std::flush;
+    if(gatewayConnector != NULL) {
+      ammmo::protocol::SubscribeMessage subscribeMessage = msg.subscribe_message();
+      gatewayConnector->registerDataInterest(subscribeMessage.mime_type(), this);
+    }
   }
   
   return 0;
@@ -144,6 +150,23 @@ void AndroidServiceHandler::onConnect(GatewayConnector *sender) {
 
 void AndroidServiceHandler::onDisconnect(GatewayConnector *sender) {
   
+}
+
+void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data) {
+  std::cout << "Sending subscribed data to device..." << std::endl << std::flush;
+  std::cout << "   URI: " << uri << ", Type: " << mimeType;
+  
+  std::string dataString(data.begin(), data.end());
+  ammmo::protocol::MessageWrapper msg;
+  ammmo::protocol::DataMessage *dataMsg = msg.mutable_data_message();
+  dataMsg->set_uri(uri);
+  dataMsg->set_mime_type(mimeType);
+  dataMsg->set_data(dataString);
+  
+  msg.set_type(ammmo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
+  
+  std::cout << "Sending Data Push message to connected plugin" << std::endl << std::flush;
+  this->sendData(msg);
 }
 
 void AndroidServiceHandler::onAuthenticationResponse(GatewayConnector *sender, bool result) {
