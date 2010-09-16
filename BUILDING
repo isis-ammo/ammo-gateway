@@ -22,8 +22,9 @@ Building on Linux:
         export TAO_ROOT=$ACE_ROOT/TAO
         export CIAO_ROOT=$TAO_ROOT/CIAO
         export PROTOBUF_ROOT=(Protobuf installation directory)
+        export GATEWAY_ROOT=(This Gateway directory)
         export PATH=$PROTOBUF_ROOT/bin:$ACE_ROOT/bin:$PATH
-        export LD_LIBRARY_PATH=$PROTOBUF_ROOT/lib:$ACE_ROOT/lib
+        export LD_LIBRARY_PATH=$GATEWAY_ROOT/lib:$PROTOBUF_ROOT/lib:$ACE_ROOT/lib:$LD_LIBRARY_PATH
   
   4) Create a file called "config.h" in $ACE_ROOT/ace/ containing:
         #define ACE_HAS_STANDARD_CPP_LIBRARY 1
