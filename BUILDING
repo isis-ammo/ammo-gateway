@@ -24,7 +24,7 @@ Building on Linux:
         export PROTOBUF_ROOT=(Protobuf installation directory)
         export GATEWAY_ROOT=(This Gateway directory)
         export PATH=$PROTOBUF_ROOT/bin:$ACE_ROOT/bin:$PATH
-        export LD_LIBRARY_PATH=$GATEWAY_ROOT/lib:$PROTOBUF_ROOT/lib:$ACE_ROOT/lib:$LD_LIBRARY_PATH
+        export LD_LIBRARY_PATH=$GATEWAY_ROOT/build/lib:$PROTOBUF_ROOT/lib:$ACE_ROOT/lib:$LD_LIBRARY_PATH
   
   4) Create a file called "config.h" in $ACE_ROOT/ace/ containing:
         #define ACE_HAS_STANDARD_CPP_LIBRARY 1
@@ -62,7 +62,8 @@ Building on Windows (Visual Studio 2008)
         TAO_ROOT = %ACE_ROOT%\TAO
         CIAO_ROOT = %TAO_ROOT%\CIAO
         PROTOBUF_ROOT = (protobuf-2.3.0-win-i386\ directory within your Git working directory)
-        PATH = %PROTOBUF_ROOT%\bin;%ACE_ROOT%\bin;%ACE_ROOT%\lib
+        GATEWAY_ROOT = (this Gateway directory)
+        PATH = %PROTOBUF_ROOT%\bin;%ACE_ROOT%\bin;%ACE_ROOT%\lib;%GATEWAY_ROOT%\build\lib
         
         (After setting environment variables, any open command prompts or Visual
         Studio instances must be restarted for changes to take effect.)
