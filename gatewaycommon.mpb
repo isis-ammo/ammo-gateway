@@ -1,0 +1,4 @@
+project {
+  exeout=$(GATEWAY_ROOT)/build/bin
+  libout=$(GATEWAY_ROOT)/build/lib
+}

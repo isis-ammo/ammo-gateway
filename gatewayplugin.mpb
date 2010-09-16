@@ -1,0 +1,5 @@
+project {
+  includes += $(GATEWAY_ROOT)/LibGatewayConnector
+  libs += gatewayconnector
+  libpaths += $(GATEWAY_ROOT)/build/lib
+}

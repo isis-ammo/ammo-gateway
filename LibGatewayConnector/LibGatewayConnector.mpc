@@ -1,6 +1,5 @@
-project(LibGatewayConnector) : aceexe, protobuf {
+project(LibGatewayConnector) : aceexe, protobuf, gatewaycommon {
   sharedname = gatewayconnector
-  libout = ../build/lib
   
   Protobuf_Files {
     protocol/GatewayPrivateMessages.proto

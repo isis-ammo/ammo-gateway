@@ -1,12 +1,7 @@
-project(AndroidGatewayPlugin) : aceexe, protobuf {
+project(AndroidGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
   after += LibGatewayConnector
 
   exename=AndroidGatewayPlugin
-  exeout=../build/bin
-  
-  includes += ../LibGatewayConnector/
-  libs += gatewayconnector
-  libpaths += ../build/lib/
   
   Protobuf_Files {
     protocol/AmmmoMessages.proto
