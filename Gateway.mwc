@@ -1,4 +1,5 @@
 workspace(AndroidGatewayPlugin) {
+  LibGatewayConnector/
   GatewayCore/
   AndroidGatewayPlugin/
   SamplePushReceiverGatewayPlugin/

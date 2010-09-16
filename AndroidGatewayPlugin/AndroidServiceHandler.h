@@ -1,7 +1,7 @@
 #ifndef ANDROID_SERVICE_HANDLER_H
 #define ANDROID_SERVICE_HANDLER_H
 
-#include "GatewayConnector/GatewayConnector.h"
+#include "GatewayConnector.h"
 #include "ace/Svc_Handler.h"
 #include "ace/SOCK_Stream.h"
 #include "protocol/AmmmoMessages.pb.h"

@@ -1,15 +1,19 @@
 project(AndroidGatewayPlugin) : aceexe, protobuf {
+  after += LibGatewayConnector
+
   exename=AndroidGatewayPlugin
+  exeout=../build/bin
+  
+  includes += ../LibGatewayConnector/
+  libs += gatewayconnector
+  libpaths += ../build/lib/
   
   Protobuf_Files {
     protocol/AmmmoMessages.proto
-    GatewayConnector/protocol/GatewayPrivateMessages.proto
   }
   
   Source_Files {
     main.cpp
     AndroidServiceHandler.cpp
-    GatewayConnector/GatewayConnector.cpp
-    GatewayConnector/GatewayServiceHandler.cpp
   }
 }

@@ -1,5 +1,6 @@
 project(GatewayCore) : aceexe, protobuf {
   exename=GatewayCore
+  exeout=../build/bin
   
   Protobuf_Files {
     protocol/GatewayPrivateMessages.proto

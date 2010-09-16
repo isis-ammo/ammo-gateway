@@ -4,7 +4,7 @@
 #include "ace/Reactor.h"
 
 #include "SamplePushReceiver.h"
-#include "GatewayConnector/GatewayConnector.h"
+#include "GatewayConnector.h"
 
 using namespace std;
 

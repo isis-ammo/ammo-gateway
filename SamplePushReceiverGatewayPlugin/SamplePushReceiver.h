@@ -1,7 +1,7 @@
 #ifndef SAMPLE_PUSH_RECEIVER_H
 #define SAMPLE_PUSH_RECEIVER_H
 
-#include "GatewayConnector/GatewayConnector.h"
+#include "GatewayConnector.h"
 
 class SamplePushReceiver : public DataPushReceiverListener, public GatewayConnectorDelegate {
 public:

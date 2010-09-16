@@ -1,0 +1,13 @@
+project(LibGatewayConnector) : aceexe, protobuf {
+  sharedname = gatewayconnector
+  libout = ../build/lib
+  
+  Protobuf_Files {
+    protocol/GatewayPrivateMessages.proto
+  }
+  
+  Source_Files {
+    GatewayConnector.cpp
+    GatewayServiceHandler.cpp
+  }
+}

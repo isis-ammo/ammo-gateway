@@ -1,14 +1,15 @@
 project(SamplePushReceiverGatewayPlugin) : aceexe, protobuf {
+  after += LibGatewayConnector  
+
   exename=SamplePushReceiverGatewayPlugin
+  exeout=../build/bin
   
-  Protobuf_Files {
-    GatewayConnector/protocol/GatewayPrivateMessages.proto
-  }
-  
+  includes += ../LibGatewayConnector/
+  libs += gatewayconnector
+  libpaths += ../build/lib/
+
   Source_Files {
     main.cpp
     SamplePushReceiver.cpp
-    GatewayConnector/GatewayConnector.cpp
-    GatewayConnector/GatewayServiceHandler.cpp
   }
 }

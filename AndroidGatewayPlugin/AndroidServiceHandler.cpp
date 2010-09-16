@@ -153,8 +153,8 @@ void AndroidServiceHandler::onDisconnect(GatewayConnector *sender) {
 }
 
 void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data) {
-  std::cout << "Sending subscribed data to device..." << std::endl << std::flush;
-  std::cout << "   URI: " << uri << ", Type: " << mimeType;
+  std::cout << "Sending subscribed data to device..." << std::endl;
+  std::cout << "   URI: " << uri << ", Type: " << mimeType << std::endl << std::flush;;
   
   std::string dataString(data.begin(), data.end());
   ammmo::protocol::MessageWrapper msg;
