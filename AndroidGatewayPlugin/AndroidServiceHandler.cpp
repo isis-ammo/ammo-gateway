@@ -5,6 +5,9 @@
 
 #include "ace/OS_NS_errno.h"
 
+extern std::string gatewayAddress;
+extern int gatewayPort;
+
 int AndroidServiceHandler::open(void *ptr) {
   if(super::open(ptr) == -1) {
     return -1;
