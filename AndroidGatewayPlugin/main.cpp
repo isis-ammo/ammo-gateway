@@ -19,9 +19,6 @@ string gatewayAddress;
 int gatewayPort;
 
 int main(int argc, char **argv) {  
-  gatewayAddress = "127.0.0.1";
-  gatewayPort = 12475;
-  
   string androidAddress = "0.0.0.0";
   int androidPort = 32869;
   
@@ -46,7 +43,7 @@ int main(int argc, char **argv) {
       cout << "Usage: AndroidGatewayPlguin [--listenPort port] [--listenAddress address]" << endl;
       cout << endl;
       cout << "  --listenPort port        Sets the listening port for the Android " << endl;
-      cout << "                           interface (default 12475)" << endl;
+      cout << "                           interface (default 32869)" << endl;
       cout << "  --listenAddress address  Sets the listening address for the Android" << endl;
       cout << "                           interface (default 0.0.0.0, or all interfaces)" << endl << flush;
       return 1;

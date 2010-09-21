@@ -1,6 +1,10 @@
 project(LibGatewayConnector) : aceexe, protobuf, gatewaycommon {
+  after += LibJSON
+  
   sharedname = gatewayconnector
   
+  includes += $(GATEWAY_ROOT)/LibJSON/
+
   Protobuf_Files {
     protocol/GatewayPrivateMessages.proto
   }
@@ -8,5 +12,6 @@ project(LibGatewayConnector) : aceexe, protobuf, gatewaycommon {
   Source_Files {
     GatewayConnector.cpp
     GatewayServiceHandler.cpp
+    GatewayConfigurationManager.cpp
   }
 }

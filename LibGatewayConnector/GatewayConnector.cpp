@@ -1,4 +1,5 @@
 #include "GatewayConnector.h"
+#include "GatewayConfigurationManager.h"
 #include "ace/Connector.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
 #include <string>
@@ -7,7 +8,9 @@
 using namespace std;
 
 GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : connected(false), handler(NULL), delegate(delegate) {
-  ACE_INET_Addr serverAddress(12475, "127.0.0.1");
+  GatewayConfigurationManager *config = GatewayConfigurationManager::getInstance();
+  
+  ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayAddress().c_str());
   connector = new ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector>();
   int status = connector->connect(handler, serverAddress);
   if(status == -1) {

@@ -12,47 +12,17 @@
 #include "ace/Reactor.h"
 
 #include "GatewayServiceHandler.h"
+#include "GatewayConfigurationManager.h"
 
 using namespace std;
 
 int main(int argc, char **argv) {  
-  //parse command line args
-  int gatewayPort = 12475;
-  string gatewayAddress = "0.0.0.0";
-  
-  queue<string> argumentQueue;
-  for(int i=1; i < argc; i++) {
-    argumentQueue.push(string(argv[i]));
-  }
-  
-  while(!argumentQueue.empty()) {
-    string arg = argumentQueue.front();
-    argumentQueue.pop();
-    
-    if(arg == "--listenPort" && argumentQueue.size() >= 1) {
-      string param = argumentQueue.front();
-      argumentQueue.pop();
-      gatewayPort = atoi(param.c_str());
-    } else if(arg == "--listenAddress" && argumentQueue.size() >= 1) {
-      string param = argumentQueue.front();
-      argumentQueue.pop();
-      gatewayAddress = param;
-    } else {
-      cout << "Usage: GatewayCore [--listenPort port] [--listenAddress address]" << endl;
-      cout << endl;
-      cout << "  --listenPort port        Sets the listening port for the gateway " << endl;
-      cout << "                           plugin interface (default 12475)" << endl;
-      cout << "  --listenAddress address  Sets the listening address for the gateway" << endl;
-      cout << "                           plugin interface (default 0.0.0.0, or all" << endl;
-      cout << "                           interfaces)" << endl << flush;
-      return 1;
-    }
-  }
+  GatewayConfigurationManager *config = GatewayConfigurationManager::getInstance();
   
   cout << "Creating acceptor..." << endl;
   
   //TODO: make interface and port number specifiable on the command line
-  ACE_INET_Addr serverAddress(gatewayPort, gatewayAddress.c_str());
+  ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayInterface().c_str());
   
   cout << "Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr() << endl;
   

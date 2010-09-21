@@ -1,0 +1,11 @@
+project(LibJSON) : aceexe, gatewaycommon {
+  sharedname = json
+  
+  includes += .
+  
+  Source_Files {
+    json/json_reader.cpp
+    json/json_writer.cpp
+    json/json_value.cpp
+  }
+}
