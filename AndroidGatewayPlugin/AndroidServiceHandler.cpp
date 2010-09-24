@@ -122,7 +122,7 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
     std::cout << "Client must have sent something that isn't a protocol buffer (or the wrong type)." << std::endl << std::flush;
     return -1;
   }
-  //std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
+  std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
   
   if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE) {
     std::cout << "Received Authentication Message..." << std::endl << std::flush;
