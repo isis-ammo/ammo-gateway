@@ -8,6 +8,10 @@ message DataMessage {
   optional bytes data = 2;
 }
 
+message PushAcknowledgement {
+  required string uri = 1;
+}
+
 //Sent on initial connection to gateway to authenticate user
 message AuthenticationMessage {
   required string device_id = 1;
@@ -36,6 +40,7 @@ message MessageWrapper {
     AUTHENTICATION_MESSAGE = 1;
     AUTHENTICATION_RESULT = 2;
     SUBSCRIBE_MESSAGE = 4;
+    PUSH_ACKNOWLEDGEMENT = 5;
   }
 
   required MessageType type = 1;
@@ -45,4 +50,5 @@ message MessageWrapper {
   optional AuthenticationMessage authentication_message= 4;
   optional AuthenticationResult authentication_result = 5;
   optional SubscribeMessage subscribe_message = 6;
+  optional PushAcknowledgement push_acknowledgement = 7;
 }

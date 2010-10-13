@@ -22,6 +22,7 @@ class GatewayTestClient:
     self.sock.sendall(serializedMsg);
     
   def receiveMessage(self):
+    print "Receiving a message..."
     (messageSize,) = struct.unpack("<I", self.sock.recv(4));
     (checksum,) = struct.unpack("<i", self.sock.recv(4));
     protobufMsg = ""

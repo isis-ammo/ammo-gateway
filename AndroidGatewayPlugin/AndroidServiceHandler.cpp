@@ -136,11 +136,11 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
       ammmo::protocol::DataMessage dataMessage = msg.data_message();
       gatewayConnector->pushData(dataMessage.uri(), dataMessage.mime_type(), dataMessage.data());
       ammmo::protocol::MessageWrapper ackMsg;
-      ammmo::protocol::PushAcknowledgement *ack = msg.mutable_push_acknowledgement();
+      ammmo::protocol::PushAcknowledgement *ack = ackMsg.mutable_push_acknowledgement();
       ack->set_uri(dataMessage.uri());
       msg.set_type(ammmo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
       std::cout << "Sending push acknowledgement to connected device..." << std::endl << std::flush;
-      this->sendData(msg);
+      this->sendData(ackMsg);
       
     }
   } else if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
