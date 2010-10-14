@@ -138,7 +138,7 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
       ammmo::protocol::MessageWrapper ackMsg;
       ammmo::protocol::PushAcknowledgement *ack = ackMsg.mutable_push_acknowledgement();
       ack->set_uri(dataMessage.uri());
-      msg.set_type(ammmo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
+      ackMsg.set_type(ammmo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
       std::cout << "Sending push acknowledgement to connected device..." << std::endl << std::flush;
       this->sendData(ackMsg);
       
