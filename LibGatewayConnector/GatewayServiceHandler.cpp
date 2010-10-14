@@ -132,12 +132,17 @@ void GatewayServiceHandler::sendData(ammmo::gateway::protocol::GatewayWrapper &m
   
   unsigned int messageSize = msg.ByteSize();
   char *messageToSend = new char[messageSize];
-  msg.SerializeToArray(messageToSend, messageSize);
-  unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
   
-  this->peer().send_n(&messageSize, sizeof(messageSize));
-  this->peer().send_n(&messageChecksum, sizeof(messageChecksum));
-  this->peer().send_n(messageToSend, messageSize);
+  if(msg.IsInitialized()) { //Don't send a message if it's missing required fields (SerializeToArray is supposed to check for this, but doesn't)
+    msg.SerializeToArray(messageToSend, messageSize);
+    unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
+    
+    this->peer().send_n(&messageSize, sizeof(messageSize));
+    this->peer().send_n(&messageChecksum, sizeof(messageChecksum));
+    this->peer().send_n(messageToSend, messageSize);
+  } else {
+    std::cout << "SEND ERROR (LibGatewayConnector):  Message is missing a required element." << std::endl << std::flush;
+  }
 }
 
 int GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
