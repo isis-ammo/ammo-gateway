@@ -34,6 +34,24 @@ message AuthenticationResult {
   optional string message = 2;
 }
 
+message PullRequest {
+  required string request_uid = 1;
+  required string plugin_id = 2;
+  required string mime_type = 3;
+  required string query = 4;
+  optional string projection = 5;
+  optional uint32 max_results = 6 [default = 0]; //0 means infinite results--  send as many as possible
+  optional uint32 start_from_count = 7 [default = 0];
+  optional bool live_query = 8 [default = false];
+}
+
+message PullResponse {
+  required string request_uid = 1;
+  required string plugin_id = 2;
+  required string uri = 3;
+  required bytes data = 4;
+}
+
 message MessageWrapper {
   enum MessageType {
     DATA_MESSAGE = 0;
@@ -41,6 +59,8 @@ message MessageWrapper {
     AUTHENTICATION_RESULT = 2;
     SUBSCRIBE_MESSAGE = 4;
     PUSH_ACKNOWLEDGEMENT = 5;
+    PULL_REQUEST = 6;
+    PULL_RESPONSE = 7;
   }
 
   required MessageType type = 1;
@@ -51,4 +71,6 @@ message MessageWrapper {
   optional AuthenticationResult authentication_result = 5;
   optional SubscribeMessage subscribe_message = 6;
   optional PushAcknowledgement push_acknowledgement = 7;
+  optional PullRequest pull_request = 8;
+  optional PullResponse pull_response = 9;
 }
