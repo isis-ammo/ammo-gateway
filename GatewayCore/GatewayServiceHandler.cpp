@@ -189,6 +189,15 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     std::cout << "Received Push Data..." << std::endl << std::flush;
     bool result = GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data());
+  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
+    std::cout << "Received Pull Reqeust..." << std::endl << std::flush;
+    std::cout << "  " << msg.DebugString() << std::endl << std::flush;
+    
+    ammmo::gateway::protocol::PullRequest pullMsg = msg.pull_request();
+    bool result = GatewayCore::getInstance()->pullRequest(pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
+      pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), this);
+  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
+    
   }
   
   return 0;
@@ -205,6 +214,23 @@ bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType
   
   std::cout << "Sending Data Push message to connected plugin" << std::endl << std::flush;
   this->sendData(msg);
+  return true;
+}
+
+bool GatewayServiceHandler::sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, 
+                                           std::string query, std::string projection, unsigned int maxResults, 
+                                           unsigned int startFromCount, bool liveQuery) {
+  ammmo::gateway::protocol::GatewayWrapper msg;
+  ammmo::gateway::protocol::PullRequest *pullMsg = msg.mutable_pull_request();
+  pullMsg->set_request_uid(requestUid);
+  pullMsg->set_plugin_id(pluginId);
+  pullMsg->set_mime_type(mimeType);
+  pullMsg->set_query(query);
+  pullMsg->set_projection(projection);
+  pullMsg->set_max_results(maxResults);
+  pullMsg->set_start_from_count(startFromCount);
+  pullMsg->set_live_query(liveQuery);
+
   return true;
 }
 

@@ -18,6 +18,8 @@ public:
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
   
   bool sendPushedData(std::string uri, std::string mimeType, const std::string &data);
+  bool sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
+                   unsigned int maxResults, unsigned int startFromCount, bool liveQuery);
   
 protected:
   typedef ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH> super;
@@ -35,6 +37,7 @@ protected:
   unsigned int position;
   
   std::vector<std::string> registeredHandlers;
+  std::vector<std::string> registeredPushRequestHandlers;
 };
 
 #endif        //  #ifndef GATEWAY_SERVICE_HANDLER_H

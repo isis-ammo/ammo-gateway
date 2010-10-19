@@ -38,6 +38,28 @@ bool GatewayCore::unregisterDataInterest(std::string mime_type, GatewayServiceHa
   return true;
 }
 
+bool GatewayCore::registerPullInterest(std::string mime_type, GatewayServiceHandler *handler) {
+  cout << "Registering pull interest in " << mime_type << " by handler " << handler << endl << flush;
+  pullHandlers.insert(pair<string, GatewayServiceHandler *>(mime_type, handler));
+  return true;
+}
+
+bool GatewayCore::unregisterPullInterest(std::string mime_type, GatewayServiceHandler *handler) {
+  cout << "Unregistering pull interest in " << mime_type << " by handler " << handler << endl << flush;
+  multimap<string,GatewayServiceHandler *>::iterator it;
+  pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
+  
+  handlerIterators = pullHandlers.equal_range(mime_type);
+  
+  for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
+    if(handler == (*it).second) {
+      pullHandlers.erase(it);
+    }
+  }
+  
+  return true;
+}
+
 bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::string &data) {
   cout << "  Pushing data with uri: " << uri << endl;
   cout << "                    type: " << mimeType << endl << flush;
@@ -49,6 +71,28 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::str
   for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
     (*it).second->sendPushedData(uri, mimeType, data);
   }
+  
+  return true;
+}
+
+bool GatewayCore::pullRequest(std::string requestUid, std::string pluginId, std::string mimeType, 
+                              std::string query, std::string projection, unsigned int maxResults, 
+                              unsigned int startFromCount, bool liveQuery, GatewayServiceHandler *originatingPlugin) {
+  cout << "  Sending pull request with type: " << mimeType << endl;
+  cout << "                        pluginId: " << pluginId << endl;
+  cout << "                           query: " << query << endl << flush;
+  multimap<string,GatewayServiceHandler *>::iterator it;
+  pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
+  
+  handlerIterators = pullHandlers.equal_range(mimeType);
+  
+  for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
+    //check for something here?
+    (*it).second->sendPullRequest(requestUid, pluginId, mimeType, query, projection, maxResults, startFromCount, liveQuery);
+  }
+  
+  //update plugin ID to the originating service handler that called this method
+  plugins[pluginId] = originatingPlugin;
   
   return true;
 }

@@ -21,6 +21,32 @@ message PushData {
   optional bytes data = 3;
 }
 
+message PullRequest {
+  required string request_uid = 1;
+  required string plugin_id = 2;
+  required string mime_type = 3;
+  required string query = 4;
+  optional string projection = 5;
+  optional uint32 max_results = 6 [default = 0]; //0 means infinite results--  send as many as possible
+  optional uint32 start_from_count = 7 [default = 0];
+  optional bool live_query = 8 [default = false];
+}
+
+message PullResponse {
+  required string request_uid = 1;
+  required string plugin_id = 2;
+  required string uri = 3;
+  required bytes data = 4;
+}
+
+message RegisterPullInterest {
+  required string mime_type = 1;
+}
+
+message UnregisterPullInterest {
+  required string mime_type = 1;
+}
+
 message RegisterDataInterest {
   required string mime_type = 1;
 }
@@ -36,6 +62,10 @@ message GatewayWrapper {
     PUSH_DATA = 2;
     REGISTER_DATA_INTEREST = 3;
     UNREGISTER_DATA_INTEREST = 4;
+    PULL_REQUEST = 5;
+    PULL_RESPONSE = 6;
+    REGISTER_PULL_INTEREST = 7;
+    UNREGISTER_PULL_INTEREST = 8;
   }
   
   required MessageType type = 1;
@@ -45,4 +75,8 @@ message GatewayWrapper {
   optional PushData push_data = 3;
   optional RegisterDataInterest register_data_interest = 4;
   optional UnregisterDataInterest unregister_data_interest = 5;
+  optional PullRequest pull_request = 7;
+  optional PullResponse pull_response = 8;
+  optional RegisterPullInterest register_pull_interest = 9;
+  optional UnregisterPullInterest unregister_pull_interest = 10;
 }
