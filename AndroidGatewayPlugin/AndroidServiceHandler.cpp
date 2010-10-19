@@ -153,13 +153,24 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
       ammmo::protocol::SubscribeMessage subscribeMessage = msg.subscribe_message();
       gatewayConnector->registerDataInterest(subscribeMessage.mime_type(), this);
     }
+  } else if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
+    std::cout << "Received Pull Request Message..." << std::endl << std::flush;
+    if(gatewayConnector != NULL) {
+      ammmo::protocol::PullRequest pullRequest = msg.pull_request();
+      // register for pull response - 
+      gatewayConnector->registerPullResponseInterest(pullRequest.mime_type(), this);
+      // now send request
+      gatewayConnector->pullRequest( pullRequest.request_uid(), pullRequest.plugin_id(), pullRequest.mime_type(), pullRequest.query(),
+				     pullRequest.projection(), pullRequest.max_results(), pullRequest.start_from_count(), pullRequest.live_query() );
+
+    }
   }
   
+
   return 0;
 }
 
 void AndroidServiceHandler::onConnect(GatewayConnector *sender) {
-  
 }
 
 void AndroidServiceHandler::onDisconnect(GatewayConnector *sender) {
@@ -182,6 +193,28 @@ void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string
   std::cout << "Sending Data Push message to connected plugin" << std::endl << std::flush;
   this->sendData(msg);
 }
+
+void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::vector<char> &data) {
+  std::cout << "Sending pull response to device..." << std::endl;
+  std::cout << "   URI: " << uri << ", Type: " << mimeType << std::endl << std::flush;;
+  
+  std::string dataString(data.begin(), data.end());
+  ammmo::protocol::MessageWrapper msg;
+  ammmo::protocol::PullResponse *pullMsg = msg.mutable_pull_response();
+
+  pullMsg->set_request_uid(requestUid);
+  pullMsg->set_plugin_id(pluginId);
+  pullMsg->set_mime_type(mimeType);
+  pullMsg->set_uri(uri);
+  pullMsg->set_data(dataString);
+  
+  msg.set_type(ammmo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);
+  
+  std::cout << "Sending Pull Response message to connected plugin" << std::endl << std::flush;
+  this->sendData(msg);
+}
+
+
 
 void AndroidServiceHandler::onAuthenticationResponse(GatewayConnector *sender, bool result) {
   std::cout << "Delegate: onAuthenticationResponse" << std::endl << std::flush;

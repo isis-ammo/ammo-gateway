@@ -76,6 +76,36 @@ bool GatewayConnector::pushData(string uri, string mimeType, const string &data)
   }
 }
 
+bool GatewayConnector::pullRequest(std::string requestUid, std::string pluginId,
+				   std::string mimeType, std::string query,
+				   std::string projection, unsigned int maxResults,
+				   unsigned int startFromCount, bool liveQuery) {
+
+  ammmo::gateway::protocol::GatewayWrapper msg;
+  ammmo::gateway::protocol::PullRequest *pullMsg = msg.mutable_pull_request();
+  pullMsg->set_request_uid(requestUid);
+  pullMsg->set_plugin_id(pluginId);
+  pullMsg->set_mime_type(mimeType);
+  pullMsg->set_query(query);
+  pullMsg->set_projection(projection);
+  pullMsg->set_max_results(maxResults);
+  pullMsg->set_start_from_count(startFromCount);
+  pullMsg->set_live_query(liveQuery);
+  
+  msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
+  
+  std::cout << "Sending Pull Request message to gateway core" << std::endl << std::flush;
+  if(connected) {
+    handler->sendData(msg);
+    return true;
+  } else {
+    std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
+    return false;
+  }
+}
+
+
+
 bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverListener *listener) {
   ammmo::gateway::protocol::GatewayWrapper msg;
   ammmo::gateway::protocol::RegisterDataInterest *di = msg.mutable_register_data_interest();
@@ -113,6 +143,55 @@ bool GatewayConnector::unregisterDataInterest(string mime_type) {
   }
 }
 
+
+bool GatewayConnector::registerPullInterest(string mime_type, PullRequestReceiverListener *listener) {
+  ammmo::gateway::protocol::GatewayWrapper msg;
+  ammmo::gateway::protocol::RegisterPullInterest *di = msg.mutable_register_pull_interest();
+  di->set_mime_type(mime_type);
+  
+  msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST);
+  
+  std::cout << "Sending RegisterPullInterest message to gateway core" << std::endl << std::flush;
+  if(connected) {
+    handler->sendData(msg);
+    pullRequestListeners[mime_type] = listener;
+    return true;
+  } else {
+    std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
+    std::cout << "Pull Request listener was not registered; it won't receive any data." << std::endl << std::flush;
+    return false;
+  }
+}
+
+bool GatewayConnector::unregisterPullInterest(string mime_type) {
+  ammmo::gateway::protocol::GatewayWrapper msg;
+  ammmo::gateway::protocol::UnregisterPullInterest *di = msg.mutable_unregister_pull_interest();
+  di->set_mime_type(mime_type);
+  
+  msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST);
+  
+  std::cout << "Sending UnregisterPullInterest message to gateway core" << std::endl << std::flush;
+  if(connected) {
+    handler->sendData(msg);
+    pullRequestListeners.erase(mime_type);
+    return true;
+  } else {
+    std::cout << "Not connected to gateway; can't send pull" << std::endl << std::flush;
+    return false;
+  }
+}
+
+bool GatewayConnector::registerPullResponseInterest(string mime_type, PullResponseReceiverListener *listener) {
+  pullResponseListeners[mime_type] = listener;
+  return true;
+}
+
+bool GatewayConnector::unregisterPullResponseInterest(string mime_type) {
+  pullResponseListeners.erase(mime_type);
+  return true;
+}
+
+
 void GatewayConnector::onAssociateResultReceived(const ammmo::gateway::protocol::AssociateResult &msg) {
   std::cout << "Got associate result of " << msg.result() << std::endl << std::flush;
   delegate->onAuthenticationResponse(this, msg.result());
@@ -125,6 +204,28 @@ void GatewayConnector::onPushDataReceived(const ammmo::gateway::protocol::PushDa
   
   receiverListeners[mimeType]->onDataReceived(this, uri, mimeType, data);
 }
+
+void GatewayConnector::onPullRequestReceived(const ammmo::gateway::protocol::PullRequest &msg) {
+  string mimeType = msg.mime_type();
+  map<std::string, PullRequestReceiverListener *>::iterator it = pullRequestListeners.find(mimeType);
+  if ( it != pullRequestListeners.end() ) {
+    (*it).second->onDataReceived(this, msg.request_uid(), msg.plugin_id(), msg.mime_type(), msg.query(),
+				 msg.projection(), msg.max_results(), msg.start_from_count(), msg.live_query() );
+  } 
+}
+
+
+void GatewayConnector::onPullResponseReceived(const ammmo::gateway::protocol::PullResponse &msg) {
+  string mimeType = msg.mime_type();
+  map<std::string, PullResponseReceiverListener *>::iterator it = pullResponseListeners.find(mimeType);
+  if ( it != pullResponseListeners.end() ) {
+    vector<char> data(msg.data().begin(), msg.data().end());
+    (*it).second->onDataReceived(this, msg.request_uid(), msg.plugin_id(), msg.mime_type(), msg.uri(), data );
+  }
+}
+
+
+
 
 //--GatewayConnectorDelegate default implementations (for optional delegate methods)
 

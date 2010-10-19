@@ -197,7 +197,11 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     bool result = GatewayCore::getInstance()->pullRequest(pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
       pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), this);
   } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
+    std::cout << "Received Pull Response..." << std::endl << std::flush;
+    std::cout << "  " << msg.DebugString() << std::endl << std::flush;
     
+    ammmo::gateway::protocol::PullResponse pullRsp = msg.pull_response();
+    bool result = GatewayCore::getInstance()->pullResponse( pullRsp.request_uid(), pullRsp.plugin_id(), pullRsp.mime_type(), pullRsp.uri(), pullRsp.data() );
   }
   
   return 0;
@@ -233,6 +237,21 @@ bool GatewayServiceHandler::sendPullRequest(std::string requestUid, std::string 
 
   return true;
 }
+
+bool GatewayServiceHandler::sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType,
+					     std::string uri, const std::string& data) {
+  ammmo::gateway::protocol::GatewayWrapper msg;
+  ammmo::gateway::protocol::PullResponse *pullRsp = msg.mutable_pull_response();
+  pullRsp->set_request_uid(requestUid);
+  pullRsp->set_plugin_id(pluginId);
+  pullRsp->set_mime_type(mimeType);
+  pullRsp->set_uri(uri);
+  pullRsp->set_data(data);
+
+  return true;
+}
+
+
 
 GatewayServiceHandler::~GatewayServiceHandler() {
   std::cout << "GatewayServiceHandler being destroyed!" << std::endl << std::flush;

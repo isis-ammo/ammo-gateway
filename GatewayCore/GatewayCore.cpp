@@ -97,3 +97,16 @@ bool GatewayCore::pullRequest(std::string requestUid, std::string pluginId, std:
   return true;
 }
 
+bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string& data) {
+  cout << "  Sending pull response with type: " << mimeType << endl;
+  cout << "                        pluginId: " << pluginId << endl;
+
+  map<string,GatewayServiceHandler *>::iterator it = plugins.find(pluginId);
+  if ( it != plugins.end() ) {
+    //check for something here?
+    (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uri, data);
+  }
+  
+  return true;
+}
+

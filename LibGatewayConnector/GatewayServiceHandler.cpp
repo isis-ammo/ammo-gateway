@@ -169,6 +169,12 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     std::cout << "Received Push Data..." << std::endl << std::flush;
     parent->onPushDataReceived(msg.push_data());
+  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
+    std::cout << "Received Pull Request..." << std::endl << std::flush;
+    parent->onPullRequestReceived(msg.pull_request());
+  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
+    std::cout << "Received Pull Response..." << std::endl << std::flush;
+    parent->onPullResponseReceived(msg.pull_response());
   }
   
   return 0;

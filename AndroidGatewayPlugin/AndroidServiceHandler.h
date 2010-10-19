@@ -7,7 +7,7 @@
 #include "protocol/AmmmoMessages.pb.h"
 #include <vector>
 
-class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>, GatewayConnectorDelegate, DataPushReceiverListener {
+class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>, GatewayConnectorDelegate, DataPushReceiverListener, PullResponseReceiverListener {
 public:
   int open(void *ptr = 0);
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
@@ -22,6 +22,13 @@ public:
   
   //DataPushReceiverListener methods
   virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data);
+
+  //PullResponseReceiverListener method
+  virtual void onDataReceived(GatewayConnector *sender, 
+			      std::string requestUid, std::string pluginId, std::string mimeType,
+			      std::string uri, std::vector<char> &data);
+
+
   
   ~AndroidServiceHandler();
   

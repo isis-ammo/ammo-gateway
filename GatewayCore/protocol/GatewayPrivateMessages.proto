@@ -35,8 +35,9 @@ message PullRequest {
 message PullResponse {
   required string request_uid = 1;
   required string plugin_id = 2;
-  required string uri = 3;
-  required bytes data = 4;
+  required string mime_type = 3;
+  required string uri = 4;
+  required bytes data = 5;
 }
 
 message RegisterPullInterest {
