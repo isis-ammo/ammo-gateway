@@ -32,6 +32,11 @@ public:
 		   std::string projection, unsigned int maxResults,
 		   unsigned int startFromCount, bool liveQuery);
 
+  bool pullResponse(std::string requestUid, std::string pluginId,
+		    std::string mimeType, std::string uri,
+		    std::vector<char>& data);
+
+
   //Receiver-side
   bool registerDataInterest(std::string mime_type, DataPushReceiverListener *listener);
   bool unregisterDataInterest(std::string mime_type);

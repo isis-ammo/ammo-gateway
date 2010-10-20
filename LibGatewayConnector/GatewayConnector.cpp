@@ -104,6 +104,31 @@ bool GatewayConnector::pullRequest(std::string requestUid, std::string pluginId,
   }
 }
 
+bool GatewayConnector::pullResponse(std::string requestUid, std::string pluginId,
+				   std::string mimeType, std::string uri,
+				    std::vector<char>& data) {
+
+  ammmo::gateway::protocol::GatewayWrapper msg;
+  ammmo::gateway::protocol::PullResponse *pullMsg = msg.mutable_pull_response();
+  pullMsg->set_request_uid(requestUid);
+  pullMsg->set_plugin_id(pluginId);
+  pullMsg->set_mime_type(mimeType);
+  pullMsg->set_uri(uri);
+  pullMsg->set_data( std::string(data.begin(), data.end()) );
+  
+  msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
+  
+  std::cout << "Sending Pull Response message to gateway core" << std::endl << std::flush;
+  if(connected) {
+    handler->sendData(msg);
+    return true;
+  } else {
+    std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
+    return false;
+  }
+}
+
+
 
 
 bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverListener *listener) {

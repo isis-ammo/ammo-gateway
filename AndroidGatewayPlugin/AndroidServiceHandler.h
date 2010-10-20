@@ -7,7 +7,7 @@
 #include "protocol/AmmmoMessages.pb.h"
 #include <vector>
 
-class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>, GatewayConnectorDelegate, DataPushReceiverListener, PullResponseReceiverListener {
+class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>, public GatewayConnectorDelegate, public DataPushReceiverListener, public PullResponseReceiverListener {
 public:
   int open(void *ptr = 0);
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
