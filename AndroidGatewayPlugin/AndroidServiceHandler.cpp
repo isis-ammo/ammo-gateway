@@ -190,7 +190,7 @@ void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string
   
   msg.set_type(ammmo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
   
-  std::cout << "Sending Data Push message to connected plugin" << std::endl << std::flush;
+  std::cout << "Sending Data Push message to connected device" << std::endl << std::flush;
   this->sendData(msg);
 }
 
@@ -210,7 +210,7 @@ void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string
   
   msg.set_type(ammmo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);
   
-  std::cout << "Sending Pull Response message to connected plugin" << std::endl << std::flush;
+  std::cout << "Sending Pull Response message to connected device" << std::endl << std::flush;
   this->sendData(msg);
 }
 

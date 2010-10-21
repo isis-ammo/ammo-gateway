@@ -190,7 +190,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     std::cout << "Received Push Data..." << std::endl << std::flush;
     bool result = GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data());
   } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
-    std::cout << "Received Pull Reqeust..." << std::endl << std::flush;
+    std::cout << "Received Pull Request..." << std::endl << std::flush;
     std::cout << "  " << msg.DebugString() << std::endl << std::flush;
     
     ammmo::gateway::protocol::PullRequest pullMsg = msg.pull_request();
@@ -202,6 +202,24 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     
     ammmo::gateway::protocol::PullResponse pullRsp = msg.pull_response();
     bool result = GatewayCore::getInstance()->pullResponse( pullRsp.request_uid(), pullRsp.plugin_id(), pullRsp.mime_type(), pullRsp.uri(), pullRsp.data() );
+  }else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST) {
+    std::cout << "Received Register Pull Interest..." << std::endl << std::flush;
+    std::string mime_type = msg.register_pull_interest().mime_type();
+    bool result = GatewayCore::getInstance()->registerPullInterest(mime_type, this);
+    if(result == true) {
+      registeredPullRequestHandlers.push_back(mime_type);
+    }
+  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST) {
+    std::cout << "Received Unregister Pull Interest..." << std::endl << std::flush;
+    std::string mime_type = msg.unregister_pull_interest().mime_type();
+    bool result = GatewayCore::getInstance()->unregisterPullInterest(mime_type, this);
+    if(result == true) {
+      for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
+        if((*it) == mime_type) {
+          registeredPullRequestHandlers.erase(it);
+        }
+      }
+    }
   }
   
   return 0;
@@ -234,6 +252,11 @@ bool GatewayServiceHandler::sendPullRequest(std::string requestUid, std::string 
   pullMsg->set_max_results(maxResults);
   pullMsg->set_start_from_count(startFromCount);
   pullMsg->set_live_query(liveQuery);
+  
+  msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
+  
+  std::cout << "Sending Pull Request message to connected plugin" << std::endl << std::flush;
+  this->sendData(msg);
 
   return true;
 }
@@ -247,6 +270,11 @@ bool GatewayServiceHandler::sendPullResponse(std::string requestUid, std::string
   pullRsp->set_mime_type(mimeType);
   pullRsp->set_uri(uri);
   pullRsp->set_data(data);
+  
+  msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
+  
+  std::cout << "Sending Pull Response message to connected plugin" << std::endl << std::flush;
+  this->sendData(msg);
 
   return true;
 }
@@ -258,5 +286,10 @@ GatewayServiceHandler::~GatewayServiceHandler() {
   std::cout << "Unregistering data handlers..." << std::endl << std::flush;
   for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
     GatewayCore::getInstance()->unregisterDataInterest(*it, this);
+  }
+  
+  std::cout << "Unregistering pull request handlers..." << std::endl << std::flush;
+  for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
+    GatewayCore::getInstance()->unregisterPullInterest(*it, this);
   }
 }

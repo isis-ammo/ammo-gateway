@@ -88,6 +88,7 @@ bool GatewayCore::pullRequest(std::string requestUid, std::string pluginId, std:
   
   for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
     //check for something here?
+    cout << "Sending request to " << (*it).second << endl << flush;
     (*it).second->sendPullRequest(requestUid, pluginId, mimeType, query, projection, maxResults, startFromCount, liveQuery);
   }
   

@@ -38,7 +38,7 @@ protected:
   unsigned int position;
   
   std::vector<std::string> registeredHandlers;
-  std::vector<std::string> registeredPushRequestHandlers;
+  std::vector<std::string> registeredPullRequestHandlers;
 };
 
 #endif        //  #ifndef GATEWAY_SERVICE_HANDLER_H
