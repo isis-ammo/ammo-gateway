@@ -1,0 +1,25 @@
+AMMMO Gateway
+(C) 2010 Vanderbilt University
+For licensing information, see LICENSE in this directory.
+
+==Usage===
+To run the core gateway and Android plugin:
+
+   1) export LD_LIBRARY_PATH=<gateway_release_location>/lib/:$LD_LIBRARY_PATH
+   2) Run from the extracted location (the GatewayCore must be started before 
+      plugins):
+        a) ./GatewayCore
+        b) ./AndroidGatewayPlugin
+   3) If you are running in the online mode (network enabled on the Android 
+      devices), then please run the CoreApplication on Android and set the IP 
+      address to point to the machine where your AndroidPlugin is running, and 
+      the port to: 32869
+   4) If you are running in the offline mode – then please mount the device SD 
+      card on the laptop where the Gateway is running (or any node with network 
+      access to Gateway), and the run the GatewayUsbTransfer script in the 
+      gateway install directory, like so:
+        ./GatewayUsbTransfer <sdcard-path> <host>   <port>
+           * Note that sdcard path is the path to the sdcard (i.e. 
+             /media/SERIAL_NO, for current versions of Ubuntu), not to the 
+             actual file or directory in the sdcard where journal files are 
+             stored.
