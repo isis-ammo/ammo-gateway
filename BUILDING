@@ -1,6 +1,6 @@
 Build prerequisites (tested version):
   * Google Protocol Buffers (2.3.0)
-  * ACE (5.8.1)
+  * ACE (5.8.3)
   * Perl (Linux: 5.10.1, Windows 5.12.1)
   
 Building on Linux:
@@ -15,6 +15,9 @@ Building on Linux:
         or similar to avoid causing system-wide conflicts.
         
   2) Download ACE+TAO+CIAO and extract
+        http://download.dre.vanderbilt.edu/
+        e.g.
+        http://download.dre.vanderbilt.edu/previous_versions/ACE+TAO+CIAO-5.8.3.tar.bz2
   
   3) Set environment variables (in .bashrc or similar):
         export ACE_ROOT=(ACE_wrappers directory)
@@ -32,6 +35,8 @@ Building on Linux:
         
   5) Create a symbolic link called platform_macros.GNU in $ACE_ROOT/include/makeinclude
      pointing to the file platform_linux.GNU
+     i.e. ln -s platform_linux.GNU platform_macros.GNU
+     (If platform_macros.GNU already exists you will need to remove it.)
         
   6) Build ACE (you may also build TAO and CIAO at this point, but they are not
      currently required for the gateway):
