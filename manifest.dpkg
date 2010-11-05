@@ -1,3 +1,6 @@
 g++
 libprotobuf-dev
 protobuf-compiler
+libcurl4-openssl-dev
+bison
+flex
