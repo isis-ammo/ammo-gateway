@@ -41,10 +41,10 @@ if __name__ == "__main__":
   if len(sys.argv) != 4:
     print "Usage:", sys.argv[0], "host port message-type"
     print '''
-  where message-type is one of:"
-    authenticate : always run, this a dummy actually anything would work.
-    subscribe : subscribe to type:edu.vanderbilt.isis.ammmo.Test.
-    push : send a data message of topic type:edu.vanderbilt.isis.ammmo.Test.
+ where message-type is one of:"
+  authenticate : this is always sent regardless of what you request. 
+       however as you must send some message this type is provided.
+  initial : a message sending a single unit and its location"
 '''
     exit(-1)
   
@@ -59,17 +59,26 @@ if __name__ == "__main__":
   print "Sending message"
   client.sendMessageWrapper(m)
   
-  if(sys.argv[3] == "push"):
+  if(sys.argv[3] == "initial"):
     #wait for auth response, then send a data push message
     response = client.receiveMessage()
     if response.authentication_result.result != DataMessage_pb2.AuthenticationResult.SUCCESS:
       print "Authentication failed..."
     m = DataMessage_pb2.MessageWrapper()
     m.type = DataMessage_pb2.MessageWrapper.DATA_MESSAGE
-    m.data_message.uri = "type:edu.vanderbilt.isis.ammmo.Test"
-    m.data_message.mime_type = "text/plain"
-    m.data_message.data = "This is some text being pushed out to the gateway."
-    print "Sending data message"
+    m.data_message.uri = "content:edu.vanderbilt.isis.ammmo.BlueForceTest"
+    m.data_message.mime_type = "application/vnd.edu.vu.isis.ammmo.battlespace.gcm"
+    m.data_message.data = '''
+{"uuid":"bumper id","title":"title","description":"description","gcm type":"UNIT",
+"standard id":"FRIEND","longitude"::-86.7,"latitude":36.1}
+'''
+    print "Sending bso base information"
+    client.sendMessageWrapper(m)
+    m.data_message.mime_type = "application/vnd.edu.vu.isis.ammmo.battlespace.gcm_anchor"
+    m.data_message.data = '''
+{"gcm uuid":"bumper id","longitude":-87.5,"latitude":35.7}
+'''
+    print "Sending bso base information"
     client.sendMessageWrapper(m)
   elif sys.argv[3] == "subscribe": 
     #wait for auth response, then send a data push message
