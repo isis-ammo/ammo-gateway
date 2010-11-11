@@ -58,27 +58,29 @@ if __name__ == "__main__":
   m.authentication_message.user_key = "dummy"
   print "Sending message"
   client.sendMessageWrapper(m)
+
+  #wait for auth response, then send a data push message
+  response = client.receiveMessage()
+  if response.authentication_result.result != DataMessage_pb2.AuthenticationResult.SUCCESS:
+      print "Authentication failed..."
   
   if(sys.argv[3] == "initial"):
-    #wait for auth response, then send a data push message
-    response = client.receiveMessage()
-    if response.authentication_result.result != DataMessage_pb2.AuthenticationResult.SUCCESS:
-      print "Authentication failed..."
     m = DataMessage_pb2.MessageWrapper()
     m.type = DataMessage_pb2.MessageWrapper.DATA_MESSAGE
     m.data_message.uri = "content:edu.vanderbilt.isis.ammmo.BlueForceTest"
     m.data_message.mime_type = "application/vnd.edu.vu.isis.ammmo.battlespace.gcm"
     m.data_message.data = '''
-{"uuid":"bumper id","title":"title","description":"description","gcm type":"UNIT",
-"standard id":"FRIEND","longitude"::-86.7,"latitude":36.1}
+{"uuid":"bumper id","title":"title","description":"description","gcm_type":"UNIT",
+"standard_id":"FRIEND","longitude"::-86.7,"latitude":36.1}
 '''
     print "Sending bso base information"
     client.sendMessageWrapper(m)
+
     m.data_message.mime_type = "application/vnd.edu.vu.isis.ammmo.battlespace.gcm_anchor"
     m.data_message.data = '''
-{"gcm uuid":"bumper id","longitude":-87.5,"latitude":35.7}
+{"gcm_uuid":"bumper id","longitude":-87.5,"latitude":35.7}
 '''
-    print "Sending bso base information"
+    print "Sending bso anchor information"
     client.sendMessageWrapper(m)
   elif sys.argv[3] == "subscribe": 
     #wait for auth response, then send a data push message
@@ -92,9 +94,9 @@ if __name__ == "__main__":
     client.sendMessageWrapper(m)
     
   
-  while True:
-    msg = client.receiveMessage()
-    print msg
+  #while True:
+  #  msg = client.receiveMessage()
+  #  print msg
   
   print "Closing socket"
   
