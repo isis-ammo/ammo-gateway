@@ -219,7 +219,9 @@ bool GatewayConnector::unregisterPullResponseInterest(string mime_type) {
 
 void GatewayConnector::onAssociateResultReceived(const ammmo::gateway::protocol::AssociateResult &msg) {
   std::cout << "Got associate result of " << msg.result() << std::endl << std::flush;
-  delegate->onAuthenticationResponse(this, msg.result());
+  if(delegate != NULL) {
+    delegate->onAuthenticationResponse(this, msg.result());
+  }
 }
 
 void GatewayConnector::onPushDataReceived(const ammmo::gateway::protocol::PushData &msg) {
