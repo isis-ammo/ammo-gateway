@@ -1,0 +1,10 @@
+project(LocationStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
+  after += LibGatewayConnector  
+
+  exename = LocationStoreGatewayPlugin
+
+  Source_Files {
+    main.cpp
+    LocationStore.cpp
+  }
+}
