@@ -1,6 +1,8 @@
 AndroidGatewayPlugin
 GatewayCore
 SamplePushReceiverGatewayPlugin
+LocationStoreGatewayPlugin
 AndroidGatewayPlugin.exe
 GatewayCore.exe
 SamplePushReceiverPlugin.exe
+LocationStoreGatewayPlugin
