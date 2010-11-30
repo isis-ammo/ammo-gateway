@@ -1,0 +1,16 @@
+This directory contains the configuration files for the Doxygen
+documentation for the GatewayConnector library.
+
+Requirements:
+* doxygen (1.7.1 or later)
+* graphviz/dot (2.26.3 or later) to generate nice diagrams
+* latex (preferably TeXLive 2010, although other distributions
+  may work)
+
+Build instructions:
+* Run 'doxygen' in this directory (no arguments).  HTML 
+  documentation will be generated in the html/ subdirectory;
+  its index will be at 'html/index.html'.
+* Build PDF documentation by running 'doxygen', changing to the 
+  latex/ subdirectory, and running 'make'.  Output will be found
+  in 'latex/refman.pdf'.
