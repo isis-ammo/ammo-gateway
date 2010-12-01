@@ -14,6 +14,14 @@ class DataPushReceiverListener;
 class PullRequestReceiverListener;
 class PullResponseReceiverListener;
 
+/**
+* This class is used to connect a gateway plugin to the core gateway.  Each 
+* plugin should use at least one instance of this class; a plugin may create
+* more than one (establish more than one connection to the core gateway) if
+* needed (see the AndroidGatewayPlugin, which creates a new GatewayConnector
+* for each connected device; this aids in tracking requests and subscriptions
+* for multiple devices).
+*/
 class GatewayConnector {
 public:
   /**
