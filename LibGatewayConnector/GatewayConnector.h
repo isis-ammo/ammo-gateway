@@ -1,3 +1,12 @@
+/**
+* @mainpage
+* 
+* This library provides the interface from a gateway plugin to the core gateway.
+* Client plugins should create at least one GatewayConnector object, then
+* subclass GatewayConnectorDelegate and any listener classes (i.e. 
+* DataPushReceiverListener) that they need.
+*/
+
 #ifndef GATEWAY_CONNECTOR_H
 #define GATEWAY_CONNECTOR_H
 
