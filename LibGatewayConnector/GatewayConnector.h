@@ -33,6 +33,10 @@ public:
   *                 will be called).
   */
   GatewayConnector(GatewayConnectorDelegate *delegate);
+  
+  /**
+  * Destroys a GatewayConnector.
+  */
   ~GatewayConnector();
   
   //General connection negotiation and bookkeeping
