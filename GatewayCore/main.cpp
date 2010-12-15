@@ -17,6 +17,17 @@
 using namespace std;
 
 int main(int argc, char **argv) {  
+  // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
+  // during write)
+  {
+    struct sigaction sa;
+    sigemptyset(&sa.sa_mask);
+
+    // Register the handler for SIGINT
+    sa.sa_handler = SIG_IGN;
+    sigaction(SIGPIPE, &sa, 0);
+  }
+  
   GatewayConfigurationManager *config = GatewayConfigurationManager::getInstance();
   
   cout << "Creating acceptor..." << endl;
