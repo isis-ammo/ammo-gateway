@@ -9,6 +9,7 @@
 
 class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>, public GatewayConnectorDelegate, public DataPushReceiverListener, public PullResponseReceiverListener {
 public:
+  AndroidServiceHandler();
   int open(void *ptr = 0);
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   

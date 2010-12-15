@@ -8,6 +8,10 @@
 extern std::string gatewayAddress;
 extern int gatewayPort;
 
+AndroidServiceHandler::AndroidServiceHandler() : gatewayConnector(NULL) {
+  
+}
+
 int AndroidServiceHandler::open(void *ptr) {
   if(super::open(ptr) == -1) {
     return -1;
@@ -225,5 +229,7 @@ void AndroidServiceHandler::onAuthenticationResponse(GatewayConnector *sender, b
 }
 
 AndroidServiceHandler::~AndroidServiceHandler() {
-  delete gatewayConnector;
+  if(gatewayConnector) {
+    delete gatewayConnector;
+  }
 }
