@@ -1,6 +1,6 @@
 #!/bin/bash
 
-JOURNAL_FILE="$1/ammmo_core/network_proxy_service.journal"
+JOURNAL_FILE="$1/ammo_core/network_proxy_service.journal"
 SCRIPT_NAME="$0"
 
 function usage {
