@@ -43,8 +43,8 @@ if __name__ == "__main__":
     print '''
   where message-type is one of:"
     authenticate : always run, this a dummy actually anything would work.
-    subscribe : subscribe to type:edu.vanderbilt.isis.ammmo.Test.
-    push : send a data message of topic type:edu.vanderbilt.isis.ammmo.Test.
+    subscribe : subscribe to type:edu.vanderbilt.isis.ammo.Test.
+    push : send a data message of topic type:edu.vanderbilt.isis.ammo.Test.
 '''
     exit(-1)
   
@@ -66,7 +66,7 @@ if __name__ == "__main__":
       print "Authentication failed..."
     m = DataMessage_pb2.MessageWrapper()
     m.type = DataMessage_pb2.MessageWrapper.DATA_MESSAGE
-    m.data_message.uri = "type:edu.vanderbilt.isis.ammmo.Test"
+    m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
     m.data_message.mime_type = "text/plain"
     m.data_message.data = "This is some text being pushed out to the gateway."
     print "Sending data message"
@@ -78,7 +78,7 @@ if __name__ == "__main__":
       print "Authentication failed..."
     m = DataMessage_pb2.MessageWrapper()
     m.type = DataMessage_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
-    m.subscribe_message.mime_type = "application/vnd.edu.vu.isis.ammmo.battlespace.gcm"
+    m.subscribe_message.mime_type = "application/vnd.edu.vu.isis.ammo.battlespace.gcm"
     print "Sending subscription request..."
     client.sendMessageWrapper(m)
     

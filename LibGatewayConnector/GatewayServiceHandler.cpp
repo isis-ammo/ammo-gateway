@@ -107,7 +107,7 @@ int GatewayServiceHandler::handle_output(ACE_HANDLE) {
   return 0;
 }
 
-void GatewayServiceHandler::sendData(ammmo::gateway::protocol::GatewayWrapper &msg) {
+void GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper &msg) {
   /*//this is bad--  if the message queue gets filled, putq will block forever
   //because there's not another thread pulling objects out of the queue.
   //TODO: figure out how to queue data infinitely without blocking
@@ -154,7 +154,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   }
   
   //checksum is valid; parse the data
-  ammmo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::GatewayWrapper msg;
   bool result = msg.ParseFromArray(data, messageSize);
   if(result == false) {
     std::cout << "GatewayWrapper could not be deserialized." << std::endl;
@@ -163,16 +163,16 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   }
   //std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
   
-  if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
+  if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
     std::cout << "Received Associate Result..." << std::endl << std::flush;
     parent->onAssociateResultReceived(msg.associate_result());
-  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     std::cout << "Received Push Data..." << std::endl << std::flush;
     parent->onPushDataReceived(msg.push_data());
-  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
     std::cout << "Received Pull Request..." << std::endl << std::flush;
     parent->onPullRequestReceived(msg.pull_request());
-  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
     std::cout << "Received Pull Response..." << std::endl << std::flush;
     parent->onPullResponseReceived(msg.pull_response());
   }

@@ -4,7 +4,7 @@
 #include "GatewayConnector.h"
 #include "ace/Svc_Handler.h"
 #include "ace/SOCK_Stream.h"
-#include "protocol/AmmmoMessages.pb.h"
+#include "protocol/AmmoMessages.pb.h"
 #include <vector>
 
 class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>, public GatewayConnectorDelegate, public DataPushReceiverListener, public PullResponseReceiverListener {
@@ -13,7 +13,7 @@ public:
   int open(void *ptr = 0);
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   
-  void sendData(ammmo::protocol::MessageWrapper &msg);
+  void sendData(ammo::protocol::MessageWrapper &msg);
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
   
   //GatewayConnectorDelegate methods

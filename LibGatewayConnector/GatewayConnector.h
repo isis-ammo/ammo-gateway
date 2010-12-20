@@ -217,10 +217,10 @@ public:
   bool unregisterPullResponseInterest(std::string mime_type);
   
 private:
-  void onAssociateResultReceived(const ammmo::gateway::protocol::AssociateResult &msg);
-  void onPushDataReceived(const ammmo::gateway::protocol::PushData &msg);
-  void onPullRequestReceived(const ammmo::gateway::protocol::PullRequest &msg);
-  void onPullResponseReceived(const ammmo::gateway::protocol::PullResponse &msg);
+  void onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg);
+  void onPushDataReceived(const ammo::gateway::protocol::PushData &msg);
+  void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg);
+  void onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg);
   
   GatewayConnectorDelegate *delegate;
   std::map<std::string, DataPushReceiverListener *> receiverListeners;

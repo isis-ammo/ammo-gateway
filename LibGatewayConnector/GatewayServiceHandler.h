@@ -16,7 +16,7 @@ public:
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   int handle_output(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   
-  void sendData(ammmo::gateway::protocol::GatewayWrapper &msg);
+  void sendData(ammo::gateway::protocol::GatewayWrapper &msg);
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
   
   void setParentConnector(GatewayConnector *parent);

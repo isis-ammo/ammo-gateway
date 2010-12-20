@@ -1,5 +1,5 @@
 #include "AndroidServiceHandler.h"
-#include "protocol/AmmmoMessages.pb.h"
+#include "protocol/AmmoMessages.pb.h"
 
 #include <iostream>
 
@@ -79,7 +79,7 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
   return 0;
 }
 
-void AndroidServiceHandler::sendData(ammmo::protocol::MessageWrapper &msg) {
+void AndroidServiceHandler::sendData(ammo::protocol::MessageWrapper &msg) {
   /*Fixme: potential deadlock here
   unsigned int messageSize = msg.ByteSize();
   char *messageToSend = new char[messageSize];
@@ -123,7 +123,7 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
   }
   
   //checksum is valid; parse the data
-  ammmo::protocol::MessageWrapper msg;
+  ammo::protocol::MessageWrapper msg;
   bool result = msg.ParseFromArray(data, messageSize);
   if(result == false) {
     std::cout << "MessageWrapper could not be deserialized." << std::endl;
@@ -132,35 +132,35 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
   }
   std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
   
-  if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE) {
+  if(msg.type() == ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE) {
     std::cout << "Received Authentication Message..." << std::endl << std::flush;
     if(gatewayConnector != NULL) {
-      ammmo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
+      ammo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
       gatewayConnector->associateDevice(authMessage.device_id(), authMessage.user_id(), authMessage.user_key());
     }
-  } else if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_DATA_MESSAGE) {
+  } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE) {
     std::cout << "Received Data Message..." << std::endl << std::flush;
     if(gatewayConnector != NULL) {
-      ammmo::protocol::DataMessage dataMessage = msg.data_message();
+      ammo::protocol::DataMessage dataMessage = msg.data_message();
       gatewayConnector->pushData(dataMessage.uri(), dataMessage.mime_type(), dataMessage.data());
-      ammmo::protocol::MessageWrapper ackMsg;
-      ammmo::protocol::PushAcknowledgement *ack = ackMsg.mutable_push_acknowledgement();
+      ammo::protocol::MessageWrapper ackMsg;
+      ammo::protocol::PushAcknowledgement *ack = ackMsg.mutable_push_acknowledgement();
       ack->set_uri(dataMessage.uri());
-      ackMsg.set_type(ammmo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
+      ackMsg.set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
       std::cout << "Sending push acknowledgement to connected device..." << std::endl << std::flush;
       this->sendData(ackMsg);
       
     }
-  } else if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
+  } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
     std::cout << "Received Subscribe Message..." << std::endl << std::flush;
     if(gatewayConnector != NULL) {
-      ammmo::protocol::SubscribeMessage subscribeMessage = msg.subscribe_message();
+      ammo::protocol::SubscribeMessage subscribeMessage = msg.subscribe_message();
       gatewayConnector->registerDataInterest(subscribeMessage.mime_type(), this);
     }
-  } else if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
+  } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
     std::cout << "Received Pull Request Message..." << std::endl << std::flush;
     if(gatewayConnector != NULL) {
-      ammmo::protocol::PullRequest pullRequest = msg.pull_request();
+      ammo::protocol::PullRequest pullRequest = msg.pull_request();
       // register for pull response - 
       gatewayConnector->registerPullResponseInterest(pullRequest.mime_type(), this);
       // now send request
@@ -186,13 +186,13 @@ void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string
   std::cout << "   URI: " << uri << ", Type: " << mimeType << std::endl << std::flush;;
   
   std::string dataString(data.begin(), data.end());
-  ammmo::protocol::MessageWrapper msg;
-  ammmo::protocol::DataMessage *dataMsg = msg.mutable_data_message();
+  ammo::protocol::MessageWrapper msg;
+  ammo::protocol::DataMessage *dataMsg = msg.mutable_data_message();
   dataMsg->set_uri(uri);
   dataMsg->set_mime_type(mimeType);
   dataMsg->set_data(dataString);
   
-  msg.set_type(ammmo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
+  msg.set_type(ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
   
   std::cout << "Sending Data Push message to connected device" << std::endl << std::flush;
   this->sendData(msg);
@@ -203,8 +203,8 @@ void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string
   std::cout << "   URI: " << uri << ", Type: " << mimeType << std::endl << std::flush;;
   
   std::string dataString(data.begin(), data.end());
-  ammmo::protocol::MessageWrapper msg;
-  ammmo::protocol::PullResponse *pullMsg = msg.mutable_pull_response();
+  ammo::protocol::MessageWrapper msg;
+  ammo::protocol::PullResponse *pullMsg = msg.mutable_pull_response();
 
   pullMsg->set_request_uid(requestUid);
   pullMsg->set_plugin_id(pluginId);
@@ -212,7 +212,7 @@ void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string
   pullMsg->set_uri(uri);
   pullMsg->set_data(dataString);
   
-  msg.set_type(ammmo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);
+  msg.set_type(ammo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);
   
   std::cout << "Sending Pull Response message to connected device" << std::endl << std::flush;
   this->sendData(msg);
@@ -222,9 +222,9 @@ void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string
 
 void AndroidServiceHandler::onAuthenticationResponse(GatewayConnector *sender, bool result) {
   std::cout << "Delegate: onAuthenticationResponse" << std::endl << std::flush;
-  ammmo::protocol::MessageWrapper newMsg;
-  newMsg.set_type(ammmo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
-  newMsg.mutable_authentication_result()->set_result(result ? ammmo::protocol::AuthenticationResult_Status_SUCCESS : ammmo::protocol::AuthenticationResult_Status_SUCCESS);
+  ammo::protocol::MessageWrapper newMsg;
+  newMsg.set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
+  newMsg.mutable_authentication_result()->set_result(result ? ammo::protocol::AuthenticationResult_Status_SUCCESS : ammo::protocol::AuthenticationResult_Status_SUCCESS);
   this->sendData(newMsg);
 }
 

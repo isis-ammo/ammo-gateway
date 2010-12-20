@@ -1,4 +1,4 @@
-package ammmo.gateway.protocol;
+package ammo.gateway.protocol;
 
 message AssociateDevice {
   required string device = 1;

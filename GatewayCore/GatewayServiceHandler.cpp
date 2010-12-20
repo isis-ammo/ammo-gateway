@@ -107,7 +107,7 @@ int GatewayServiceHandler::handle_output(ACE_HANDLE) {
   return 0;
 }
 
-void GatewayServiceHandler::sendData(ammmo::gateway::protocol::GatewayWrapper &msg) {
+void GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper &msg) {
   /*Fixme: potential deadlock here
   unsigned int messageSize = msg.ByteSize();
   char *messageToSend = new char[messageSize];
@@ -152,7 +152,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   }
   
   //checksum is valid; parse the data
-  ammmo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::GatewayWrapper msg;
   bool result = msg.ParseFromArray(data, messageSize);
   if(result == false) {
     std::cout << "GatewayWrapper could not be deserialized." << std::endl;
@@ -161,21 +161,21 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   }
   //std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
   
-  if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE) {
+  if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE) {
     std::cout << "Received Associate Device..." << std::endl << std::flush;
     //TODO: split out into a different function and do more here
-    ammmo::gateway::protocol::GatewayWrapper newMsg;
-    newMsg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT);
-    newMsg.mutable_associate_result()->set_result(ammmo::gateway::protocol::AssociateResult_Status_SUCCESS);
+    ammo::gateway::protocol::GatewayWrapper newMsg;
+    newMsg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT);
+    newMsg.mutable_associate_result()->set_result(ammo::gateway::protocol::AssociateResult_Status_SUCCESS);
     this->sendData(newMsg);
-  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST) {
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST) {
     std::cout << "Received Register Data Interest..." << std::endl << std::flush;
     std::string mime_type = msg.register_data_interest().mime_type();
     bool result = GatewayCore::getInstance()->registerDataInterest(mime_type, this);
     if(result == true) {
       registeredHandlers.push_back(mime_type);
     }
-  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST) {
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST) {
     std::cout << "Received Unregister Data Interest..." << std::endl << std::flush;
     std::string mime_type = msg.unregister_data_interest().mime_type();
     bool result = GatewayCore::getInstance()->unregisterDataInterest(mime_type, this);
@@ -186,30 +186,30 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
         }
       }
     }
-  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     std::cout << "Received Push Data..." << std::endl << std::flush;
     bool result = GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data());
-  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
     std::cout << "Received Pull Request..." << std::endl << std::flush;
     std::cout << "  " << msg.DebugString() << std::endl << std::flush;
     
-    ammmo::gateway::protocol::PullRequest pullMsg = msg.pull_request();
+    ammo::gateway::protocol::PullRequest pullMsg = msg.pull_request();
     bool result = GatewayCore::getInstance()->pullRequest(pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
       pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), this);
-  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
     std::cout << "Received Pull Response..." << std::endl << std::flush;
     std::cout << "  " << msg.DebugString() << std::endl << std::flush;
     
-    ammmo::gateway::protocol::PullResponse pullRsp = msg.pull_response();
+    ammo::gateway::protocol::PullResponse pullRsp = msg.pull_response();
     bool result = GatewayCore::getInstance()->pullResponse( pullRsp.request_uid(), pullRsp.plugin_id(), pullRsp.mime_type(), pullRsp.uri(), pullRsp.data() );
-  }else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST) {
+  }else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST) {
     std::cout << "Received Register Pull Interest..." << std::endl << std::flush;
     std::string mime_type = msg.register_pull_interest().mime_type();
     bool result = GatewayCore::getInstance()->registerPullInterest(mime_type, this);
     if(result == true) {
       registeredPullRequestHandlers.push_back(mime_type);
     }
-  } else if(msg.type() == ammmo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST) {
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST) {
     std::cout << "Received Unregister Pull Interest..." << std::endl << std::flush;
     std::string mime_type = msg.unregister_pull_interest().mime_type();
     bool result = GatewayCore::getInstance()->unregisterPullInterest(mime_type, this);
@@ -226,13 +226,13 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
 }
 
 bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data) {
-  ammmo::gateway::protocol::GatewayWrapper msg;
-  ammmo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
+  ammo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
   pushMsg->set_uri(uri);
   pushMsg->set_mime_type(mimeType);
   pushMsg->set_data(data);
   
-  msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
+  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   
   std::cout << "Sending Data Push message to connected plugin" << std::endl << std::flush;
   this->sendData(msg);
@@ -242,8 +242,8 @@ bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType
 bool GatewayServiceHandler::sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, 
                                            std::string query, std::string projection, unsigned int maxResults, 
                                            unsigned int startFromCount, bool liveQuery) {
-  ammmo::gateway::protocol::GatewayWrapper msg;
-  ammmo::gateway::protocol::PullRequest *pullMsg = msg.mutable_pull_request();
+  ammo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::PullRequest *pullMsg = msg.mutable_pull_request();
   pullMsg->set_request_uid(requestUid);
   pullMsg->set_plugin_id(pluginId);
   pullMsg->set_mime_type(mimeType);
@@ -253,7 +253,7 @@ bool GatewayServiceHandler::sendPullRequest(std::string requestUid, std::string 
   pullMsg->set_start_from_count(startFromCount);
   pullMsg->set_live_query(liveQuery);
   
-  msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
+  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
   
   std::cout << "Sending Pull Request message to connected plugin" << std::endl << std::flush;
   this->sendData(msg);
@@ -263,15 +263,15 @@ bool GatewayServiceHandler::sendPullRequest(std::string requestUid, std::string 
 
 bool GatewayServiceHandler::sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType,
 					     std::string uri, const std::string& data) {
-  ammmo::gateway::protocol::GatewayWrapper msg;
-  ammmo::gateway::protocol::PullResponse *pullRsp = msg.mutable_pull_response();
+  ammo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::PullResponse *pullRsp = msg.mutable_pull_response();
   pullRsp->set_request_uid(requestUid);
   pullRsp->set_plugin_id(pluginId);
   pullRsp->set_mime_type(mimeType);
   pullRsp->set_uri(uri);
   pullRsp->set_data(data);
   
-  msg.set_type(ammmo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
+  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
   
   std::cout << "Sending Pull Response message to connected plugin" << std::endl << std::flush;
   this->sendData(msg);
