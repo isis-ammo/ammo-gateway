@@ -1,0 +1,13 @@
+project(LdapGatewayPlugin) : aceexe, protobuf, gatewayplugin {
+  exename=LdapGatewayPlugin
+
+  libs+= json ldap  
+  includes+=. $(GATEWAY_ROOT)/LibJSON
+  libpaths += $(GATEWAY_ROOT)/build/lib
+  
+  Source_Files {
+    main.cpp
+    LdapPushReceiver.cpp
+    LdapConfigurationManager.cpp
+  }
+}
