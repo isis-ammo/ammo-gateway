@@ -1,4 +1,4 @@
-project(LdapGatewayPlugin) : aceexe, protobuf, gatewayplugin {
+project(LdapGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
   exename=LdapGatewayPlugin
 
   libs+= json ldap  

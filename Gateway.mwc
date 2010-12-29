@@ -5,4 +5,5 @@ workspace(AndroidGatewayPlugin) {
   AndroidGatewayPlugin/
   SamplePushReceiverGatewayPlugin/
   LocationStoreGatewayPlugin/
+  LDAPPlugin/
 }

@@ -13,8 +13,8 @@
 
 using namespace std;
 
-const string CONTACT_MIME_TYPE = "application/vnd.edu.vu.isis.ammmo.launcher.contact";
-const string CONTACT_PULL_MIME_TYPE = "application/vnd.edu.vu.isis.ammmo.launcher.contact_pull";
+const string CONTACT_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.launcher.contact";
+const string CONTACT_PULL_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.launcher.contact_pull";
 
 
 int main(int argc, char **argv) {  
