@@ -26,7 +26,8 @@ void LocationStoreReceiver::onDisconnect (GatewayConnector *sender)
 void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 										    std::string uri,
 										    std::string mimeType,
-										    std::vector<char> & /* data */)
+										    std::vector<char> &, /* data */
+										    std::string originUser)
 {
   out_ << uri << endl
 	   << mimeType << endl;

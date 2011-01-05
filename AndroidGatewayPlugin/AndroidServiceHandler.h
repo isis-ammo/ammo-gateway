@@ -22,7 +22,7 @@ public:
   virtual void onAuthenticationResponse(GatewayConnector *sender, bool result);
   
   //DataPushReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data);
+  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
 
   //PullResponseReceiverListener method
   virtual void onDataReceived(GatewayConnector *sender, 

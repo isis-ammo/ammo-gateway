@@ -228,8 +228,9 @@ void GatewayConnector::onPushDataReceived(const ammo::gateway::protocol::PushDat
   string uri = msg.uri();
   string mimeType = msg.mime_type();
   vector<char> data(msg.data().begin(), msg.data().end());
+  string originUser = msg.origin_user();
   
-  receiverListeners[mimeType]->onDataReceived(this, uri, mimeType, data);
+  receiverListeners[mimeType]->onDataReceived(this, uri, mimeType, data, originUser);
 }
 
 void GatewayConnector::onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg) {

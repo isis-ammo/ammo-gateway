@@ -89,7 +89,7 @@ void LdapPushReceiver::onDisconnect(GatewayConnector *sender) {
  * User has edited his own contact information - do an ldapadd/modify on the LDAPServer
  */
 
-void LdapPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data) {
+void LdapPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
   cout << "Got data." << endl;
   cout << "  URI: " << uri << endl;
   cout << "  Mime type: " << mimeType << endl;

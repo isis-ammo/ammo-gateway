@@ -10,7 +10,7 @@ public:
   virtual void onDisconnect(GatewayConnector *sender);
   
   //DataPushReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data);
+  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
 };
 
 #endif        //  #ifndef SAMPLE_PUSH_RECEIVER_H
