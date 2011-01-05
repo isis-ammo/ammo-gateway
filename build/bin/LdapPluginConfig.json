@@ -1,0 +1,6 @@
+{
+  "LdapBaseAddress": "ldap://localhost", //Base address for the TIGR server (i.e. http://tigr/r4/)
+  "LdapUsername": "cn=Manager,dc=transapp,dc=darpa,dc=mil", //Username for the LDAP server
+  "LdapPassword": "ammmo"  //Password for the TIGR server
+}
+//:mode=javascript: (jEdit modeline for syntax highlighting)
