@@ -22,6 +22,8 @@ int GatewayServiceHandler::open(void *ptr) {
   checksum = 0;
   collectedData = NULL;
   position = 0;
+  username = "";
+  usernameAuthenticated = false;
   
   //return 0;
 }
@@ -168,6 +170,8 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     newMsg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT);
     newMsg.mutable_associate_result()->set_result(ammo::gateway::protocol::AssociateResult_Status_SUCCESS);
     this->sendData(newMsg);
+    username = msg.associate_device().user();
+    usernameAuthenticated = true;
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST) {
     std::cout << "Received Register Data Interest..." << std::endl << std::flush;
     std::string mime_type = msg.register_data_interest().mime_type();
@@ -188,7 +192,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     }
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     std::cout << "Received Push Data..." << std::endl << std::flush;
-    bool result = GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data());
+    bool result = GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), this->username);
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
     std::cout << "Received Pull Request..." << std::endl << std::flush;
     std::cout << "  " << msg.DebugString() << std::endl << std::flush;
@@ -225,12 +229,13 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   return 0;
 }
 
-bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data) {
+bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
   pushMsg->set_uri(uri);
   pushMsg->set_mime_type(mimeType);
   pushMsg->set_data(data);
+  pushMsg->set_origin_user(originUser);
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   

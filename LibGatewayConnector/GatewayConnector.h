@@ -275,7 +275,7 @@ public:
 */
 class DataPushReceiverListener {
 public:
-  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data) = 0;
+  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUsername) = 0;
 };
 
 /**

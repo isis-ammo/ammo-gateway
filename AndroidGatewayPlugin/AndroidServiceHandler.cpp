@@ -181,7 +181,7 @@ void AndroidServiceHandler::onDisconnect(GatewayConnector *sender) {
   
 }
 
-void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data) {
+void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
   std::cout << "Sending subscribed data to device..." << std::endl;
   std::cout << "   URI: " << uri << ", Type: " << mimeType << std::endl << std::flush;;
   

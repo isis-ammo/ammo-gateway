@@ -30,7 +30,7 @@ public:
   virtual void onDisconnect(GatewayConnector *sender);
   
   //DataPushReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data);
+  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
   
   bool get(std::string query, std::vector<std::string> &jsonResults);
   std::string jsonForObject(LDAPMessage *entry);
