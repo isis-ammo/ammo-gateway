@@ -13,6 +13,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include <ldap.h>
+#include "decode.h"
 
 using namespace std;
 
@@ -287,7 +288,6 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
       ldap_value_free_len(vals);
     }
     
-    // insignia - photo not to serialize with JSON
     char *dn = ldap_get_dn(ldapServer, entry);
     char **edn = ldap_explode_dn(dn, 0);
     int i = 0;
@@ -302,6 +302,46 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
     root["unit"] = unit;
 
     cout << "JSON: " << root.toStyledString() << endl;
+
+    //get the string underlying root
+    std::string root_str = root.toStyledString ();
+
+    // photo
+    vals = ldap_get_values_len(ldapServer, entry, "photo");
+    if (vals) {
+
+      unsigned long len = vals[0]->bv_len; // get the length of the data  
+
+      //Decode image from base64 using the libb64 lib ....
+      base64::decoder d;
+      char* image = new char(len);//allocate image buffer ...
+
+      // decode the base64 data into plain characters ...
+      d.decode (vals[0]->bv_val,vals[0]->bv_len, image);
+
+      int buffer_len = 1/*first null terminator*/ 
+	             + 5/*first null terminator*/
+	             + len/*the actual data*/ 
+                     + 2*4/*the length added two times*/;
+
+      unsigned long nlen = htonl (len); // convert to maintain endianness
+
+      // form the string that stores the photo 
+      unsigned char* photo_buf = new unsigned char [buffer_len];
+
+      photo_buf[0] = '\0'; // start the photo buffer with a null
+      memcpy (photo_buf+1, "photo", 5);
+      memcpy (photo_buf+6, "\0", 1);
+      memcpy (photo_buf+7, (unsigned char*)nlen, 4);
+      memcpy (photo_buf+7, image, len);
+      memcpy (photo_buf+7, (unsigned char*)nlen, 4);
+
+
+
+      root["photo"] = photo_buf;// add the photo data
+      ldap_value_free_len(vals);
+    }
+
     return root.toStyledString();
 
 }
