@@ -242,18 +242,22 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
   
 
     // name
-    vals = ldap_get_values_len(ldapServer, entry, "cn");
-    string cn = vals[0]->bv_val; // there must be only one name
-    ldap_value_free_len(vals);
+    vals = ldap_get_values_len(ldapServer, entry, "givenName");
+    if (vals) {
+      root["name"] = vals[0]->bv_val; // there must be only one name
+      ldap_value_free_len(vals);
+    }
     
+    vals = ldap_get_values_len(ldapServer, entry, "sn");
+    if (vals) {
+      root["lastname"] = vals[0]->bv_val; // there must be only one name
+      ldap_value_free_len(vals);
+    }
 
-    vector<string> parts;
-    boost::split(parts, cn, boost::is_any_of(" "));
-
-    root["name"] = parts[0];
-    if (parts.size() >= 2)  {
-      root["middle_initial"] = parts[1];
-      root["lastname"] = parts[2];
+    vals = ldap_get_values_len(ldapServer, entry, "initials");
+    if (vals) {
+      root["middle_initial"] = vals[0]->bv_val; // there must be only one name
+      ldap_value_free_len(vals);
     }
 
     // rank
