@@ -14,6 +14,7 @@
 
 #include <ldap.h>
 #include "decode.h"
+#include <fstream>
 
 using namespace std;
 
@@ -194,7 +195,8 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
 
   filter += " )";
 
-  struct timeval timeout = { 1, 0 }; // 1 sec timeout
+  //changed the timeout to 5 sec ... since jpeg files are taking long
+  struct timeval timeout = { 5, 0 }; // 1 sec timeout
   LDAPControl *serverctrls = NULL, *clientctrls = NULL;
   char *attrs[] = { "*" };
   
@@ -211,6 +213,8 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
 			      &timeout,
 			      10, // number of results
 			      &results);
+
+  cout << "LDAP Return From Search for: " << filter << endl;
 
   if (ret != LDAP_SUCCESS)   {
     cout << "LDAP Search failed for " << filter << ": " << hex << ret << " - " << ldap_err2string(ret) << endl;
@@ -231,11 +235,13 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
 string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
     Json::Value root;
     struct berval **vals;
-    
+  
+
     // name
     vals = ldap_get_values_len(ldapServer, entry, "cn");
     string cn = vals[0]->bv_val; // there must be only one name
     ldap_value_free_len(vals);
+    
 
     vector<string> parts;
     boost::split(parts, cn, boost::is_any_of(" "));
@@ -267,6 +273,7 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
       ldap_value_free_len(vals);
     }
     
+    
     // unit
     vals = ldap_get_values_len(ldapServer, entry, "x-Unit");
     if (vals) {
@@ -281,6 +288,8 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
       ldap_value_free_len(vals);
     }
     
+	
+    
     // phone
     vals = ldap_get_values_len(ldapServer, entry, "mobile");
     if (vals) {
@@ -288,6 +297,10 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
       ldap_value_free_len(vals);
     }
     
+
+    
+
+/*    
     char *dn = ldap_get_dn(ldapServer, entry);
     char **edn = ldap_explode_dn(dn, 0);
     int i = 0;
@@ -300,27 +313,35 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
       unit = string(oval) + string("/") + unit;
     }
     root["unit"] = unit;
+    
 
     cout << "JSON: " << root.toStyledString() << endl;
+*/
+	
 
-    //get the string underlying root
-    std::string root_str = root.toStyledString ();
+    std::string ret = root.toStyledString();
 
     // photo
-    vals = ldap_get_values_len(ldapServer, entry, "photo");
+    vals = ldap_get_values_len(ldapServer, entry, "jpegPhoto");
     if (vals) {
 
       unsigned long len = vals[0]->bv_len; // get the length of the data  
 
       //Decode image from base64 using the libb64 lib ....
       base64::decoder d;
-      char* image = new char(len);//allocate image buffer ...
+      unsigned char* image = new unsigned char [len];//allocate image buffer ...
 
       // decode the base64 data into plain characters ...
-      d.decode (vals[0]->bv_val,vals[0]->bv_len, image);
+
+      //decode is now commented since b
+      //d.decode (vals[0]->bv_val,vals[0]->bv_len, image);ase64 data cannot 
+      // be inserted into LDAP ..
+      //using the memcpy for now ... later will add the decode function
+      memcpy (image, vals[0]->bv_val, len);
+      cout << "Ret string" << ret.data () << endl;
 
       int buffer_len = 1/*first null terminator*/ 
-	             + 5/*first null terminator*/
+	             + 6/*The string "photo" and a null terminator*/
 	             + len/*the actual data*/ 
                      + 2*4/*the length added two times*/;
 
@@ -329,20 +350,62 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
       // form the string that stores the photo 
       unsigned char* photo_buf = new unsigned char [buffer_len];
 
+      
+
       photo_buf[0] = '\0'; // start the photo buffer with a null
-      memcpy (photo_buf+1, "photo", 5);
-      memcpy (photo_buf+6, "\0", 1);
-      memcpy (photo_buf+7, (unsigned char*)nlen, 4);
-      memcpy (photo_buf+7, image, len);
-      memcpy (photo_buf+7, (unsigned char*)nlen, 4);
+      int index = 1;
+      memcpy (photo_buf+index, "photo", 5);
+      index += 5;
+      photo_buf[6] = '\0';
+     // memcpy (photo_buf + index, "\0", 1);
+      index += 1;
+      memcpy (photo_buf + index, (unsigned char*)(&nlen), 4);
+      index += 4;
+      memcpy (photo_buf + index, image, len);
+      index += len;
+      memcpy (photo_buf + index, (unsigned char*)(&nlen), 4);
+      index += 4;
+      //cout << "After photo buf setting " << endl;
 
 
+      //get the length of the root_str, needed for memcpy in the end
+      int root_len = ret.length ();
+      cout << "Before Allocation " << endl;
 
-      root["photo"] = photo_buf;// add the photo data
-      ldap_value_free_len(vals);
+      char* root_str = new char[root_len + index];
+      memset (root_str, 0 , root_len + index);
+
+      //copy the string underlying root
+      memcpy(root_str, ret.data (), root_len);
+    
+
+
+      // concat the photo data
+      // use the index as the length of the 
+      //buffer since it tells the number of characters 
+      //in the photo_buf
+      memcpy (root_str + root_len, photo_buf, index);
+      //cout << "After final root_string " << endl;
+
+      ldap_value_free_len(vals); 
+
+
+      // added this file to check the binary nature of the 
+      // root string sent .. will delete it later 
+      ofstream out ("root", ifstream::binary);
+
+      out.write (root_str, root_len + index);
+
+      out.close ();
+      delete [] image; 
+      delete [] photo_buf;
+      //need also to delete the root_str .. 
+      ret = root_str;
     }
 
-    return root.toStyledString();
+    return ret;
+
+//    return root.toStyledString();
 
 }
 
