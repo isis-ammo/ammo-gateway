@@ -305,26 +305,28 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
       ldap_value_free_len(vals);
     }
 
-#ifdef TEST_PHOTO
 
-/*    
     char *dn = ldap_get_dn(ldapServer, entry);
     char **edn = ldap_explode_dn(dn, 0);
-    int i = 0;
     string unit;
-    while( edn[i] )  {
+    for(int i=0; edn && edn[i]; i++) {
       int ret = strncmp( edn[i], "ou", 2 );
       if (ret != 0)
 	continue;
       char *oval = strchr( edn[i], '=' );
-      unit = string(oval) + string("/") + unit;
+      if (oval)
+         oval++;
+
+      if (unit == "")
+         unit = string(oval);
+      else
+         unit = string(oval) + string("/") + unit;
     }
     root["unit"] = unit;
     
 
-    cout << "JSON: " << root.toStyledString() << endl;
-*/
  
+#ifdef TEST_PHOTO
     std::string ret = root.toStyledString();
 
     // photo
