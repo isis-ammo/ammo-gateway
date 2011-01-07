@@ -170,7 +170,8 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   LdapConfigurationManager *config = LdapConfigurationManager::getInstance();
 
   LDAPMessage *results;
-  std::string filter = "(& (objectClass=x-Military) ";
+  std::string filter = "(& (objectClass=x-Military) (objectClass=inetOrgPerson) ";
+
   
   // build the filter based on query expression
   // query = comma-separated field-name / value pairs
@@ -194,7 +195,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
 
   filter += " )";
 
-  struct timeval timeout = { 1, 0 }; // 1 sec timeout
+  struct timeval timeout = { 10, 0 }; // 1 sec timeout
   LDAPControl *serverctrls = NULL, *clientctrls = NULL;
   char *attrs[] = { "*" };
   
@@ -209,13 +210,15 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
 			      &serverctrls,
 			      &clientctrls,
 			      &timeout,
-			      10, // number of results
+			      -1, // number of results
 			      &results);
 
   if (ret != LDAP_SUCCESS)   {
     cout << "LDAP Search failed for " << filter << ": " << hex << ret << " - " << ldap_err2string(ret) << endl;
     return false;
-  }
+  } else {
+    cout << "LDAP Search Returned " << ldap_count_entries(ldapServer, results) << " results" << endl;
+ }
 
 
   /* process the results */
@@ -287,7 +290,7 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
       root["phone"] = vals[0]->bv_val;	// use only the first phone
       ldap_value_free_len(vals);
     }
-    
+#if 0   
     char *dn = ldap_get_dn(ldapServer, entry);
     char **edn = ldap_explode_dn(dn, 0);
     int i = 0;
@@ -341,7 +344,8 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
       root["photo"] = photo_buf;// add the photo data
       ldap_value_free_len(vals);
     }
-
+#endif 
+    cout << "JSON: " << root.toStyledString() << endl;
     return root.toStyledString();
 
 }

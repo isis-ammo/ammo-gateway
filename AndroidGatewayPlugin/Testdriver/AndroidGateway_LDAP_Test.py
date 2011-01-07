@@ -91,7 +91,8 @@ if __name__ == "__main__":
     m.type = DataMessage_pb2.MessageWrapper.PULL_REQUEST
     m.pull_request.request_uid = "contact-req-1"
     m.pull_request.plugin_id = "android-plugin-test"
-    m.pull_request.query = "x-Callsign = Hawk*"
+    #m.pull_request.query = "x-Callsign = Hawk*"
+    m.pull_request.query = ""
     m.pull_request.mime_type = "application/vnd.edu.vu.isis.ammo.launcher.contact_pull"
     print "Sending pull request..."
     client.sendMessageWrapper(m)
