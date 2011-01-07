@@ -213,7 +213,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
 			      &serverctrls,
 			      &clientctrls,
 			      &timeout,
-			      -1, // number of results
+			      -1, // number of results : -1 = unlimited
 			      &results);
 
   cout << "LDAP Return From Search for: " << filter << endl;
@@ -301,6 +301,8 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
       ldap_value_free_len(vals);
     }
 
+#ifdef TEST_PHOTO
+
 /*    
     char *dn = ldap_get_dn(ldapServer, entry);
     char **edn = ldap_explode_dn(dn, 0);
@@ -318,7 +320,7 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
 
     cout << "JSON: " << root.toStyledString() << endl;
 */
-
+ 
     std::string ret = root.toStyledString();
 
     // photo
@@ -403,8 +405,11 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
       ret = root_str;
     }
     cout << "JSON: " << root.toStyledString() << endl;
+    return ret; 
+#else
+    return root.toStyledString();
+#endif 
 
-    return ret; //    return root.toStyledString();
 }
 
 
