@@ -1,0 +1,14 @@
+*~
+*.ncb
+*.sln
+*.suo
+*.ilk
+*.pdb
+*.vcproj
+*.vcproj.*
+Makefile*
+*.o
+.depend*
+PassGatewayPlugin
+PassGatewayPlugin.exe
+Debug\

@@ -1,5 +1,5 @@
 project(TigrGatewayPlugin) : aceexe, protobuf, gatewayplugin, gatewaycommon {
-  after += LibGeotransMgrs LibJSON
+  after += LibGatewayConnector LibGeotransMgrs LibJSON
   
   exename=TigrGatewayPlugin
   

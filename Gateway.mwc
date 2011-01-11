@@ -8,4 +8,5 @@ workspace(AndroidGatewayPlugin) {
   LocationStoreGatewayPlugin/
   LDAPPlugin/
   TigrGatewayPlugin/
+  PassGatewayPlugin/
 }
