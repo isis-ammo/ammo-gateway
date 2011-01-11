@@ -1,0 +1,17 @@
+{
+  "TigrBaseAddress": "http://tigr:4080/r4/", //Base address for the TIGR server (i.e. http://tigr/r4/)
+  "TigrUsername": "jwilliams", //Username for the TIGR server (must have permission to access web services)
+  "TigrPassword": "jwilliams",  //Password for the TIGR server
+  
+  "UsernameMap": {
+    "user:test/user1": {
+      "TigrUsername": "jwilliams",
+      "TigrPassword": "jwilliams"
+    },
+    "user:test/user2": {
+      "TigrUsername": "asdf",
+      "TigrPassword": "jkl;"
+    }
+  }
+}
+//:mode=javascript: (jEdit modeline for syntax highlighting)

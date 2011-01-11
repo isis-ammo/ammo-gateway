@@ -1,9 +1,11 @@
 workspace(AndroidGatewayPlugin) {
   LibGatewayConnector/
   LibJSON/
+  LibGeotransMgrs/
   GatewayCore/
   AndroidGatewayPlugin/
   SamplePushReceiverGatewayPlugin/
   LocationStoreGatewayPlugin/
   LDAPPlugin/
+  TigrGatewayPlugin/
 }

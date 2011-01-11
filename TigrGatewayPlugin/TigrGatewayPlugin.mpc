@@ -1,0 +1,28 @@
+project(TigrGatewayPlugin) : aceexe, protobuf, gatewayplugin, gatewaycommon {
+  after += LibGeotransMgrs LibJSON
+  
+  exename=TigrGatewayPlugin
+  
+  libs+=gsoap++ gsoap curl
+  libs+=gsoapssl++ 
+  libs+=ssl crypto z geotrans-mgrs
+  includes+=/usr/local/share/gsoap/plugin
+  includes+=./soap
+  includes+=.
+  includes+=$(GATEWAY_ROOT)/LibJSON
+  includes+=$(GATEWAY_ROOT)/LibGeotransMgrs
+  
+  macros+=WITH_DOM WITH_OPENSSL
+  
+  Source_Files {
+    main.cpp
+    TigrPushReceiver.cpp
+    TigrConfigurationManager.cpp
+    soap/soapC.cpp
+    soap/soapContentServiceSoapBindingProxy.cpp
+    soap/smdevp.c
+    soap/wsseapi.cpp
+    soap/dom.cpp
+    soap/wsaapi.cpp
+  }
+}
