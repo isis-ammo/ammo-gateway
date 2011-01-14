@@ -11,6 +11,7 @@ public:
   static TigrConfigurationManager* getInstance();
   
   std::string getTigrBaseAddress();
+  std::string getTigrSecurityInfo();
   
   
   std::pair<std::string, std::string> getTigrCredentialsForUser(std::string username);
@@ -23,6 +24,7 @@ private:
   std::string tigrBaseAddress;
   std::string tigrUsername;
   std::string tigrPassword;
+  std::string tigrSecurityInfo;
   
   Json::Value root;
 };

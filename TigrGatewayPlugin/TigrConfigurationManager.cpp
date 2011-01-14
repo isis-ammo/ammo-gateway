@@ -11,7 +11,7 @@ using namespace std;
 
 TigrConfigurationManager *TigrConfigurationManager::sharedInstance = NULL;
 
-TigrConfigurationManager::TigrConfigurationManager() : tigrBaseAddress("http://tigr/r4/"), tigrUsername("jwilliams"), tigrPassword("jwilliams") {
+TigrConfigurationManager::TigrConfigurationManager() : tigrBaseAddress("http://tigr/r4/"), tigrUsername("jwilliams"), tigrPassword("jwilliams"), tigrSecurityInfo("X") {
   //cout << "Parsing config file..." << endl << flush;
   ifstream configFile(TIGR_CONFIG_FILE);
   if(configFile) {
@@ -32,6 +32,12 @@ TigrConfigurationManager::TigrConfigurationManager() : tigrBaseAddress("http://t
         cout << "Error: TigrUsername is missing or wrong type (should be string)" << endl << flush;
       }
       
+      if(root["TigrSecurityInfo"].isString()) {
+        tigrSecurityInfo = root["TigrSecurityInfo"].asString();
+      } else {
+        cout << "Error: TigrSecurityInfo is missing or wrong type (should be string)" << endl << flush;
+      }
+      
       if(root["TigrPassword"].isString()) {
         tigrPassword = root["TigrPassword"].asString();
       } else {
@@ -49,12 +55,17 @@ TigrConfigurationManager::TigrConfigurationManager() : tigrBaseAddress("http://t
   cout << "Tigr Connector Configuration: " << endl;
   cout << "  Base Address: " << tigrBaseAddress << endl;
   cout << "  Address: " << tigrUsername << endl;
-  cout << "  Password: " << tigrPassword << endl << flush;
+  cout << "  Password: " << tigrPassword << endl;
+  cout << "  SecurityInfo: " << tigrSecurityInfo << endl << flush;
   cout << endl;
 }
 
 std::string TigrConfigurationManager::getTigrBaseAddress() {
   return tigrBaseAddress;
+}
+
+std::string TigrConfigurationManager::getTigrSecurityInfo() {
+  return tigrSecurityInfo;
 }
 
 std::string TigrConfigurationManager::getTigrUsername() {

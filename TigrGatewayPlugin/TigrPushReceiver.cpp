@@ -479,7 +479,7 @@ string TigrPushReceiver::createMedia(string filename, string fileReference, stri
   createBody.__unionAbstractContentUserProperties = SOAP_UNION__ns2__union_CreateType_MediaUserProperties;
   createBody.__union_CreateType.MediaUserProperties = new ns2__MediaUserPropertiesType();
   
-  createBody.__union_CreateType.MediaUserProperties->securityInfo = "X";
+  createBody.__union_CreateType.MediaUserProperties->securityInfo = config->getTigrSecurityInfo();
   createBody.__union_CreateType.MediaUserProperties->title = filename;
   createBody.__union_CreateType.MediaUserProperties->fileReference = new string(fileReference);
   
@@ -527,7 +527,7 @@ bool TigrPushReceiver::createEvent(string title, string description, double lati
   createBody.__unionAbstractContentUserProperties = SOAP_UNION__ns2__union_CreateType_EventUserProperties;
   createBody.__union_CreateType.EventUserProperties = new ns2__EventUserPropertiesType();
   
-  createBody.__union_CreateType.EventUserProperties->securityInfo = "X";
+  createBody.__union_CreateType.EventUserProperties->securityInfo = config->getTigrSecurityInfo();
   createBody.__union_CreateType.EventUserProperties->title = title;
   createBody.__union_CreateType.EventUserProperties->description = new string(description);
   
