@@ -3,17 +3,25 @@
 #include "json/reader.h"
 #include "json/value.h"
 
+#include <log4cxx/logger.h>
+#include <log4cxx/ndc.h>
+
 #include <iostream>
 #include <fstream>
 
 const char *CONFIG_FILE = "GatewayConfig.json";
 
 using namespace std;
+using namespace log4cxx;
+using namespace log4cxx::helpers;
+
+extern LoggerPtr logger; //statically declared in main.cpp
 
 GatewayConfigurationManager *GatewayConfigurationManager::sharedInstance = NULL;
 
 GatewayConfigurationManager::GatewayConfigurationManager() : gatewayAddress("127.0.0.1"), gatewayInterface("0.0.0.0"), gatewayPort(12475) {
-  //cout << "Parsing config file..." << endl << flush;
+  NDC::push("GatewayConfig");
+  LOG4CXX_DEBUG(logger, "Parsing config file...");
   ifstream configFile(CONFIG_FILE);
   if(configFile) {
     Json::Value root;
@@ -25,34 +33,33 @@ GatewayConfigurationManager::GatewayConfigurationManager() : gatewayAddress("127
       if(root["GatewayInterface"].isString()) {
         gatewayInterface = root["GatewayInterface"].asString();
       } else {
-        cout << "Error: GatewayInterface is missing or wrong type (should be string)" << endl << flush;
+        LOG4CXX_ERROR(logger, "GatewayInterface is missing or wrong type (should be string)");
       }
       
       if(root["GatewayAddress"].isString()) {
         gatewayAddress = root["GatewayAddress"].asString();
       } else {
-        cout << "Error: GatewayAddress is missing or wrong type (should be string)" << endl << flush;
+        LOG4CXX_ERROR(logger, "GatewayAddress is missing or wrong type (should be string)");
       }
       
       if(root["GatewayPort"].isInt()) {
         gatewayPort = root["GatewayPort"].asInt();
       } else {
-        cout << "Error: GatewayPort is missing or wrong type (should be integer)" << endl << flush;
+        LOG4CXX_ERROR(logger, "GatewayPort is missing or wrong type (should be integer)");
       }
     } else {
-      cout << "JSON parsing error in config file '" << CONFIG_FILE << "'.  Using defaults." << endl << flush;
+      LOG4CXX_ERROR(logger, "JSON parsing error in config file '" << CONFIG_FILE << "'.  Using defaults.");
     }
     configFile.close();
   } else {
-    cout << "Could not read from config file '" << CONFIG_FILE << "'.  Using defaults." << endl << flush;
+    LOG4CXX_WARN(logger, "Could not read from config file '" << CONFIG_FILE << "'.  Using defaults.");
   }
   
-  cout << endl;
-  cout << "Gateway Configuration: " << endl;
-  cout << "  Interface: " << gatewayInterface << endl;
-  cout << "  Address: " << gatewayAddress << endl;
-  cout << "  Port: " << gatewayPort << endl << flush;
-  cout << endl;
+  LOG4CXX_INFO(logger, "Gateway Configuration: ");
+  LOG4CXX_INFO(logger, "  Interface: " << gatewayInterface);
+  LOG4CXX_INFO(logger, "  Address: " << gatewayAddress);
+  LOG4CXX_INFO(logger, "  Port: " << gatewayPort);
+  NDC::pop();
 }
 
 std::string GatewayConfigurationManager::getGatewayAddress() {

@@ -78,7 +78,7 @@ if __name__ == "__main__":
       print "Authentication failed..."
     m = DataMessage_pb2.MessageWrapper()
     m.type = DataMessage_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
-    m.subscribe_message.mime_type = "application/vnd.edu.vu.isis.ammo.battlespace.gcm"
+    m.subscribe_message.mime_type = "text/plain"
     print "Sending subscription request..."
     client.sendMessageWrapper(m)
     

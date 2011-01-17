@@ -6,3 +6,6 @@ AndroidGatewayPlugin.exe
 GatewayCore.exe
 SamplePushReceiverPlugin.exe
 LocationStoreGatewayPlugin
+LdapGatewayPlugin
+TigrGatewayPlugin
+PassGatewayPlugin
