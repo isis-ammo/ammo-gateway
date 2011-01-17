@@ -3,6 +3,8 @@ project(AndroidGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
 
   exename=AndroidGatewayPlugin
   
+  libs += log4cxx
+  
   Protobuf_Files {
     protocol/AmmoMessages.proto
   }
