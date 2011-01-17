@@ -21,7 +21,7 @@ using namespace std;
 using namespace log4cxx;
 using namespace log4cxx::helpers;
 
-LoggerPtr logger(Logger::getLogger("ammo.gateway.Core"));
+LoggerPtr logger(Logger::getLogger("ammo.gateway.AndroidGatewayPlugin"));
 
 string gatewayAddress;
 int gatewayPort;
