@@ -27,6 +27,7 @@ string gatewayAddress;
 int gatewayPort;
 
 int main(int argc, char **argv) {  
+  GatewayConnector::setLoggerParentId("ammo.gateway.AndroidGatewayPlugin");
   NDC::push("main");
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)

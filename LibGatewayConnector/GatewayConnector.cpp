@@ -4,33 +4,45 @@
 #include "protocol/GatewayPrivateMessages.pb.h"
 #include <string>
 #include <iostream>
+#include <log4cxx/logger.h>
+#include <log4cxx/ndc.h>
 
 using namespace std;
 
+using namespace log4cxx;
+using namespace log4cxx::helpers;
+
+LoggerPtr GatewayConnector::logger(Logger::getLogger("ammo.gateway.LibGatewayConnector"));
+  
+void GatewayConnector::setLoggerParentId(std::string id) {
+  logger = Logger::getLogger(id + ".GatewayConnector");
+}
+
 GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : connected(false), handler(NULL), delegate(delegate) {
+  
   GatewayConfigurationManager *config = GatewayConfigurationManager::getInstance();
   
   ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayAddress().c_str());
   connector = new ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector>();
   int status = connector->connect(handler, serverAddress);
   if(status == -1) {
-    std::cout << "connection failed" << std::endl << std::flush;
-    std::cout << "errno: " << errno << std::endl << std::flush;
-    std::cout << "error: " << strerror(errno) << std::endl << std::flush;
+    LOG4CXX_ERROR(logger, "connection failed");
+    LOG4CXX_ERROR(logger, "errno: " << errno);
+    LOG4CXX_ERROR(logger, "error: " << strerror(errno));
     connected = false;
   } else {
     connected = true;
     handler->setParentConnector(this);
   }
   if(handler == NULL) {
-    std::cout << "Handler not created by ACE_Connector" << std::endl << std::flush;
+    LOG4CXX_ERROR(logger, "Handler not created by ACE_Connector");
   } else {
-    std::cout << "Gateway service handler created by ACE_Connector" << std::endl << std::flush;
+    LOG4CXX_DEBUG(logger, "Gateway service handler created by ACE_Connector");
   }
 }
 
 GatewayConnector::~GatewayConnector() {
-  std::cout << "Deleting GatewayConnector()" << std::endl << std::flush;
+  LOG4CXX_DEBUG(logger, "Deleting GatewayConnector()");
   if(connected) {
     handler->close();
     connector->close();
@@ -47,12 +59,12 @@ bool GatewayConnector::associateDevice(string device, string user, string key) {
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE);
   
-  std::cout << "Sending Associate Device message to gateway core" << std::endl << std::flush;
+  LOG4CXX_DEBUG(logger, "Sending Associate Device message to gateway core");
   if(connected) {
     handler->sendData(msg);
     return true;
   } else {
-    std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
+    LOG4CXX_ERROR(logger, "Not connected to gateway; can't send data");
     return false;
   }
 }
@@ -66,12 +78,12 @@ bool GatewayConnector::pushData(string uri, string mimeType, const string &data)
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   
-  std::cout << "Sending Data Push message to gateway core" << std::endl << std::flush;
+  LOG4CXX_DEBUG(logger, "Sending Data Push message to gateway core");
   if(connected) {
     handler->sendData(msg);
     return true;
   } else {
-    std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
+    LOG4CXX_ERROR(logger, "Not connected to gateway; can't send data");
     return false;
   }
 }
@@ -94,12 +106,12 @@ bool GatewayConnector::pullRequest(std::string requestUid, std::string pluginId,
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
   
-  std::cout << "Sending Pull Request message to gateway core" << std::endl << std::flush;
+  LOG4CXX_DEBUG(logger, "Sending Pull Request message to gateway core");
   if(connected) {
     handler->sendData(msg);
     return true;
   } else {
-    std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
+    LOG4CXX_ERROR(logger, "Not connected to gateway; can't send data");
     return false;
   }
 }
@@ -118,12 +130,12 @@ bool GatewayConnector::pullResponse(std::string requestUid, std::string pluginId
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
   
-  std::cout << "Sending Pull Response message to gateway core" << std::endl << std::flush;
+  LOG4CXX_DEBUG(logger, "Sending Pull Response message to gateway core");
   if(connected) {
     handler->sendData(msg);
     return true;
   } else {
-    std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
+    LOG4CXX_ERROR(logger, "Not connected to gateway; can't send data");
     return false;
   }
 }
@@ -138,14 +150,14 @@ bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverLi
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST);
   
-  std::cout << "Sending RegisterDataInterest message to gateway core" << std::endl << std::flush;
+  LOG4CXX_DEBUG(logger, "Sending RegisterDataInterest message to gateway core");
   if(connected) {
     handler->sendData(msg);
     receiverListeners[mime_type] = listener;
     return true;
   } else {
-    std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
-    std::cout << "Receiver listener was not registered; it won't receive any data." << std::endl << std::flush;
+    LOG4CXX_ERROR(logger, "Not connected to gateway; can't send data");
+    LOG4CXX_ERROR(logger, "Receiver listener was not registered; it won't receive any data.");
     return false;
   }
 }
@@ -157,13 +169,13 @@ bool GatewayConnector::unregisterDataInterest(string mime_type) {
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST);
   
-  std::cout << "Sending UnregisterDataInterest message to gateway core" << std::endl << std::flush;
+  LOG4CXX_DEBUG(logger, "Sending UnregisterDataInterest message to gateway core");
   if(connected) {
     handler->sendData(msg);
     receiverListeners.erase(mime_type);
     return true;
   } else {
-    std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
+    LOG4CXX_ERROR(logger, "Not connected to gateway; can't send data");
     return false;
   }
 }
@@ -176,14 +188,14 @@ bool GatewayConnector::registerPullInterest(string mime_type, PullRequestReceive
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST);
   
-  std::cout << "Sending RegisterPullInterest message to gateway core" << std::endl << std::flush;
+  LOG4CXX_DEBUG(logger, "Sending RegisterPullInterest message to gateway core");
   if(connected) {
     handler->sendData(msg);
     pullRequestListeners[mime_type] = listener;
     return true;
   } else {
-    std::cout << "Not connected to gateway; can't send data" << std::endl << std::flush;
-    std::cout << "Pull Request listener was not registered; it won't receive any data." << std::endl << std::flush;
+    LOG4CXX_ERROR(logger, "Not connected to gateway; can't send data");
+    LOG4CXX_ERROR(logger, "Pull Request listener was not registered; it won't receive any data.");
     return false;
   }
 }
@@ -195,13 +207,13 @@ bool GatewayConnector::unregisterPullInterest(string mime_type) {
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST);
   
-  std::cout << "Sending UnregisterPullInterest message to gateway core" << std::endl << std::flush;
+  LOG4CXX_DEBUG(logger, "Sending UnregisterPullInterest message to gateway core");
   if(connected) {
     handler->sendData(msg);
     pullRequestListeners.erase(mime_type);
     return true;
   } else {
-    std::cout << "Not connected to gateway; can't send pull" << std::endl << std::flush;
+    LOG4CXX_ERROR(logger, "Not connected to gateway; can't send pull");
     return false;
   }
 }
@@ -218,7 +230,7 @@ bool GatewayConnector::unregisterPullResponseInterest(string mime_type) {
 
 
 void GatewayConnector::onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg) {
-  std::cout << "Got associate result of " << msg.result() << std::endl << std::flush;
+  LOG4CXX_INFO(logger, "Got associate result of " << msg.result());
   if(delegate != NULL) {
     delegate->onAuthenticationResponse(this, msg.result());
   }
@@ -258,7 +270,7 @@ void GatewayConnector::onPullResponseReceived(const ammo::gateway::protocol::Pul
 //--GatewayConnectorDelegate default implementations (for optional delegate methods)
 
 void GatewayConnectorDelegate::onAuthenticationResponse(GatewayConnector *sender, bool result) {
-  std::cout << "GatewayConnectorDelegate::onAuthenticationResponse : result = " << result << std::endl << std::flush;
+  //LOG4CXX_INFO(logger, "GatewayConnectorDelegate::onAuthenticationResponse : result = " << result);
 }
 
 
