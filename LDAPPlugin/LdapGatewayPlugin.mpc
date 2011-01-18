@@ -1,7 +1,7 @@
 project(LdapGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
   exename=LdapGatewayPlugin
 
-  libs+= json ldap  
+  libs+= json ldap log4cxx
   includes+=. $(GATEWAY_ROOT)/LibJSON
   includes+=. $(GATEWAY_ROOT)/LibGatewayConnector
   libpaths += $(GATEWAY_ROOT)/build/lib

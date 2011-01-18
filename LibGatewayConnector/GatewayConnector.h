@@ -16,6 +16,8 @@
 #include "ace/Connector.h"
 #include "ace/SOCK_Connector.h"
 
+#include <log4cxx/logger.h>
+
 #include "GatewayServiceHandler.h"
 
 class GatewayConnectorDelegate;
@@ -33,6 +35,8 @@ class PullResponseReceiverListener;
 */
 class GatewayConnector {
 public:
+  static void setLoggerParentId(std::string id);
+  
   /**
   * Creates a new GatewayConnector with the given GatewayConnectorDelegate and
   * establishes a connection to the gateway core.
@@ -40,6 +44,7 @@ public:
   * @param delegate A GatewayConnectorDelegate object to be used by this
   *                 GatewayConnector instance.  May be NULL (no delegate methods
   *                 will be called).
+  * @param loggerName The logger name that should be used by this GatewayConnector.
   */
   GatewayConnector(GatewayConnectorDelegate *delegate);
   
@@ -215,6 +220,9 @@ public:
   * @return true if the operation succeeded; false if the operation failed.
   */
   bool unregisterPullResponseInterest(std::string mime_type);
+  
+public:
+  static log4cxx::LoggerPtr logger;
   
 private:
   void onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg);

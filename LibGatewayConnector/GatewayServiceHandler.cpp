@@ -27,20 +27,20 @@ int GatewayServiceHandler::open(void *ptr) {
 }
 
 int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
-  //std::cout << "In handle_input" << std::endl << std::flush;
+  //LOG4CXX_TRACE(GatewayConnector::logger, "In handle_input");
   int count = 0;
   
   if(state == READING_SIZE) {
     count = this->peer().recv_n(&dataSize, sizeof(dataSize));
-    //std::cout << "SIZE Read " << count << " bytes" << std::endl << std::flush;
+    //LOG4CXX_TRACE(GatewayConnector::logger, "SIZE Read " << count << " bytes");
   } else if(state == READING_CHECKSUM) {
     count = this->peer().recv_n(&checksum, sizeof(checksum));
-    //std::cout << "SUM Read " << count << " bytes" << std::endl << std::flush;
+    //LOG4CXX_TRACE(GatewayConnector::logger, "SUM Read " << count << " bytes");
   } else if(state == READING_DATA) {
     count = this->peer().recv(collectedData + position, dataSize - position);
-    //std::cout << "DATA Read " << count << " bytes" << std::endl << std::flush;
+    //LOG4CXX_TRACE(GatewayConnector::logger, "DATA Read " << count << " bytes");
   } else {
-    std::cout << "Invalid state!" << std::endl << std::flush;
+    LOG4CXX_ERROR(GatewayConnector::logger, "Invalid state!");
   }
   
   
@@ -49,18 +49,18 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
     if(state == READING_SIZE) {
       collectedData = new char[dataSize];
       position = 0;
-      //std::cout << "Got data size (" << dataSize << ")" << std::endl << std::flush;
+      //LOG4CXX_TRACE(GatewayConnector::logger, "Got data size (" << dataSize << ")");
       state = READING_CHECKSUM;
     } else if(state == READING_CHECKSUM) {
-      //std::cout << "Got data checksum (" << checksum << ")" << std::endl << std::flush;
+      //LOG4CXX_TRACE(GatewayConnector::logger, "Got data checksum (" << checksum << ")");
       state = READING_DATA;
     } else if(state == READING_DATA) {
-      //std::cout << "Got some data..." << std::endl << std::flush;
+      //LOG4CXX_TRACE(GatewayConnector::logger, "Got some data...");
       position += count;
       if(position == dataSize) {
-        //std::cout << "Got all the data... processing" << std::endl << std::flush;
+        //LOG4CXX_TRACE(GatewayConnector::logger, "Got all the data... processing");
         processData(collectedData, dataSize, checksum);
-        //std::cout << "Processsing complete.  Deleting buffer." << std::endl << std::flush;
+        //LOG4CXX_TRACE(GatewayConnector::logger, "Processsing complete.  Deleting buffer.");
         delete collectedData;
         collectedData = NULL;
         dataSize = 0;
@@ -69,13 +69,13 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
       }
     }
   } else if(count == 0) {
-    std::cout << "Connection closed." << std::endl << std::flush;
+    LOG4CXX_ERROR(GatewayConnector::logger, "Connection closed.");
     return -1;
   } else if(count == -1 && ACE_OS::last_error () != EWOULDBLOCK) {
-    std::cout << "Socket error occurred. (" << ACE_OS::last_error() << ")" << std::endl << std::flush;
+    LOG4CXX_ERROR(GatewayConnector::logger, "Socket error occurred. (" << ACE_OS::last_error() << ")");
     return -1;
   }
-  //std::cout << "Leaving handle_input()" << std::endl << std::flush;
+  //LOG4CXX_TRACE(GatewayConnector::logger, "Leaving handle_input()");
   return 0;
 }
 
@@ -87,7 +87,7 @@ int GatewayServiceHandler::handle_output(ACE_HANDLE) {
   while (-1 != this->getq(mb, &nowait)) {
     ssize_t send_cnt = this->peer().send(mb->rd_ptr(), mb->length());
     if (send_cnt == -1) {
-      std::cout << "Send error..." << std::endl << std::flush;
+      LOG4CXX_ERROR(GatewayConnector::logger, "Send error...");
     } else {
       mb->rd_ptr(static_cast<size_t>(send_cnt));
     }
@@ -141,7 +141,7 @@ void GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper &ms
     this->peer().send_n(&messageChecksum, sizeof(messageChecksum));
     this->peer().send_n(messageToSend, messageSize);
   } else {
-    std::cout << "SEND ERROR (LibGatewayConnector):  Message is missing a required element." << std::endl << std::flush;
+    LOG4CXX_ERROR(GatewayConnector::logger, "SEND ERROR (LibGatewayConnector):  Message is missing a required element.");
   }
 }
 
@@ -149,7 +149,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if(calculatedChecksum != messageChecksum) {
-    std::cout << "Invalid checksum--  we've been sent bad data (perhaps a message size mismatch?)" << std::endl << std::flush;
+    LOG4CXX_ERROR(GatewayConnector::logger, "Invalid checksum--  we've been sent bad data (perhaps a message size mismatch?)");
     return -1;
   }
   
@@ -157,23 +157,23 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   ammo::gateway::protocol::GatewayWrapper msg;
   bool result = msg.ParseFromArray(data, messageSize);
   if(result == false) {
-    std::cout << "GatewayWrapper could not be deserialized." << std::endl;
-    std::cout << "Client must have sent something that isn't a protocol buffer (or the wrong type)." << std::endl << std::flush;
+    LOG4CXX_ERROR(GatewayConnector::logger, "GatewayWrapper could not be deserialized.");
+    LOG4CXX_ERROR(GatewayConnector::logger, "Client must have sent something that isn't a protocol buffer (or the wrong type).");
     return -1;
   }
-  //std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
+  //LOG4CXX_INFO(GatewayConnector::logger, "Message Received: " << msg.DebugString());
   
   if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
-    std::cout << "Received Associate Result..." << std::endl << std::flush;
+    LOG4CXX_DEBUG(GatewayConnector::logger, "Received Associate Result...");
     parent->onAssociateResultReceived(msg.associate_result());
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
-    std::cout << "Received Push Data..." << std::endl << std::flush;
+    LOG4CXX_DEBUG(GatewayConnector::logger, "Received Push Data...");
     parent->onPushDataReceived(msg.push_data());
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
-    std::cout << "Received Pull Request..." << std::endl << std::flush;
+    LOG4CXX_DEBUG(GatewayConnector::logger, "Received Pull Request...");
     parent->onPullRequestReceived(msg.pull_request());
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
-    std::cout << "Received Pull Response..." << std::endl << std::flush;
+    LOG4CXX_DEBUG(GatewayConnector::logger, "Received Pull Response...");
     parent->onPullResponseReceived(msg.pull_response());
   }
   
@@ -181,7 +181,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
 }
 
 GatewayServiceHandler::~GatewayServiceHandler() {
-  std::cout << "GatewayServiceHandler being destroyed!" << std::endl << std::flush;
+  LOG4CXX_TRACE(GatewayConnector::logger, "GatewayServiceHandler being destroyed!");
 }
 
 void GatewayServiceHandler::setParentConnector(GatewayConnector *parent) {

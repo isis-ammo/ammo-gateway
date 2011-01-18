@@ -8,17 +8,27 @@
 #include "ace/SOCK_Acceptor.h"
 
 #include "ace/Acceptor.h"
-
 #include "ace/Reactor.h"
+
+#include <log4cxx/logger.h>
+#include <log4cxx/ndc.h>
 
 #include "AndroidServiceHandler.h"
 
 using namespace std;
 
+using namespace std;
+using namespace log4cxx;
+using namespace log4cxx::helpers;
+
+LoggerPtr logger(Logger::getLogger("ammo.gateway.AndroidGatewayPlugin"));
+
 string gatewayAddress;
 int gatewayPort;
 
 int main(int argc, char **argv) {  
+  GatewayConnector::setLoggerParentId("ammo.gateway.AndroidGatewayPlugin");
+  NDC::push("main");
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
   {
@@ -51,22 +61,21 @@ int main(int argc, char **argv) {
       argumentQueue.pop();
       androidAddress = param;
     } else {
-      cout << "Usage: AndroidGatewayPlguin [--listenPort port] [--listenAddress address]" << endl;
-      cout << endl;
-      cout << "  --listenPort port        Sets the listening port for the Android " << endl;
-      cout << "                           interface (default 32869)" << endl;
-      cout << "  --listenAddress address  Sets the listening address for the Android" << endl;
-      cout << "                           interface (default 0.0.0.0, or all interfaces)" << endl << flush;
+      LOG4CXX_FATAL(logger, "Usage: AndroidGatewayPlguin [--listenPort port] [--listenAddress address]");
+      LOG4CXX_FATAL(logger, "  --listenPort port        Sets the listening port for the Android ");
+      LOG4CXX_FATAL(logger, "                           interface (default 32869)");
+      LOG4CXX_FATAL(logger, "  --listenAddress address  Sets the listening address for the Android");
+      LOG4CXX_FATAL(logger, "                           interface (default 0.0.0.0, or all interfaces)");
       return 1;
     }
   }
   
-  cout << "Creating acceptor..." << endl;
+  LOG4CXX_DEBUG(logger, "Creating acceptor...");
   
   //TODO: make interface and port number specifiable on the command line
   ACE_INET_Addr serverAddress(androidPort, androidAddress.c_str());
   
-  cout << "Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr() << endl;
+  LOG4CXX_INFO(logger, "Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr());
   
   //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor
   //for accept events
@@ -74,6 +83,7 @@ int main(int argc, char **argv) {
   
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();
-  cout << "Starting event loop..." << endl << flush;
+  LOG4CXX_DEBUG(logger, "Starting event loop...");
   reactor->run_reactor_event_loop();
+  NDC::pop();
 }
