@@ -42,7 +42,7 @@ GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : connect
 }
 
 GatewayConnector::~GatewayConnector() {
-  LOG4CXX_DEBUG(logger, "Deleting GatewayConnector()");
+  //LOG4CXX_DEBUG(logger, "Deleting GatewayConnector()");
   if(connected) {
     handler->close();
     connector->close();

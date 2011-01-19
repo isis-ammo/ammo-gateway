@@ -181,7 +181,8 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
 }
 
 GatewayServiceHandler::~GatewayServiceHandler() {
-  LOG4CXX_TRACE(GatewayConnector::logger, "GatewayServiceHandler being destroyed!");
+  //Can't use log4cxx in a destructor, or things crash when a program exits cleanly
+  //std::cout << "GatewayServiceHandler being destroyed!") << std::endl << std::flush;
 }
 
 void GatewayServiceHandler::setParentConnector(GatewayConnector *parent) {
