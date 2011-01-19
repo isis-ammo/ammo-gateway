@@ -1,6 +1,7 @@
 #include "TigrConfigurationManager.h"
 
-
+#include <log4cxx/logger.h>
+#include <log4cxx/ndc.h>
 
 #include <iostream>
 #include <fstream>
@@ -8,11 +9,16 @@
 const char *TIGR_CONFIG_FILE = "TigrPluginConfig.json";
 
 using namespace std;
+using namespace log4cxx;
+using namespace log4cxx::helpers;
+
+extern LoggerPtr logger;
 
 TigrConfigurationManager *TigrConfigurationManager::sharedInstance = NULL;
 
 TigrConfigurationManager::TigrConfigurationManager() : tigrBaseAddress("http://tigr/r4/"), tigrUsername("jwilliams"), tigrPassword("jwilliams"), tigrSecurityInfo("X") {
-  //cout << "Parsing config file..." << endl << flush;
+  NDC::push("config");
+  //LOG4CXX_TRACE(logger, "Parsing config file...");
   ifstream configFile(TIGR_CONFIG_FILE);
   if(configFile) {
     Json::Reader reader;
@@ -23,41 +29,40 @@ TigrConfigurationManager::TigrConfigurationManager() : tigrBaseAddress("http://t
       if(root["TigrBaseAddress"].isString()) {
         tigrBaseAddress = root["TigrBaseAddress"].asString();
       } else {
-        cout << "Error: TigrBaseAddress is missing or wrong type (should be string)" << endl << flush;
+        LOG4CXX_ERROR(logger, "Error: TigrBaseAddress is missing or wrong type (should be string)");
       }
       
       if(root["TigrUsername"].isString()) {
         tigrUsername = root["TigrUsername"].asString();
       } else {
-        cout << "Error: TigrUsername is missing or wrong type (should be string)" << endl << flush;
+        LOG4CXX_ERROR(logger, "Error: TigrUsername is missing or wrong type (should be string)");
       }
       
       if(root["TigrSecurityInfo"].isString()) {
         tigrSecurityInfo = root["TigrSecurityInfo"].asString();
       } else {
-        cout << "Error: TigrSecurityInfo is missing or wrong type (should be string)" << endl << flush;
+        LOG4CXX_ERROR(logger, "Error: TigrSecurityInfo is missing or wrong type (should be string)");
       }
       
       if(root["TigrPassword"].isString()) {
         tigrPassword = root["TigrPassword"].asString();
       } else {
-        cout << "Error: TigrPassword is missing or wrong type (should be integer)" << endl << flush;
+        LOG4CXX_ERROR(logger, "Error: TigrPassword is missing or wrong type (should be integer)");
       }
     } else {
-      cout << "JSON parsing error in config file '" << TIGR_CONFIG_FILE << "'.  Using defaults." << endl << flush;
+      LOG4CXX_ERROR(logger, "JSON parsing error in config file '" << TIGR_CONFIG_FILE << "'.  Using defaults.");
     }
     configFile.close();
   } else {
-    cout << "Could not read from config file '" << TIGR_CONFIG_FILE << "'.  Using defaults." << endl << flush;
+    LOG4CXX_WARN(logger, "Could not read from config file '" << TIGR_CONFIG_FILE << "'.  Using defaults.");
   }
   
-  cout << endl;
-  cout << "Tigr Connector Configuration: " << endl;
-  cout << "  Base Address: " << tigrBaseAddress << endl;
-  cout << "  Address: " << tigrUsername << endl;
-  cout << "  Password: " << tigrPassword << endl;
-  cout << "  SecurityInfo: " << tigrSecurityInfo << endl << flush;
-  cout << endl;
+  LOG4CXX_INFO(logger, "Tigr Connector Configuration: ");
+  LOG4CXX_INFO(logger, "  Base Address: " << tigrBaseAddress);
+  LOG4CXX_INFO(logger, "  Address: " << tigrUsername);
+  LOG4CXX_INFO(logger, "  Password: " << tigrPassword);
+  LOG4CXX_INFO(logger, "  SecurityInfo: " << tigrSecurityInfo);
+  NDC::pop();
 }
 
 std::string TigrConfigurationManager::getTigrBaseAddress() {

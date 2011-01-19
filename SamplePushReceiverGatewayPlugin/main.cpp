@@ -17,6 +17,10 @@ int main(int argc, char **argv) {
   
   gatewayConnector->registerDataInterest("text/plain", pushReceiver);
   
+  for(;;) {
+    gatewayConnector->pushData("someUrl", "sometype", "someData");
+  }
+  
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();
   cout << "Starting event loop..." << endl << flush;

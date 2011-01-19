@@ -6,10 +6,15 @@
 
 #include <openssl/evp.h>
 
+#include <log4cxx/logger.h>
+#include <log4cxx/ndc.h>
+
 #include "wsseapi.h"
 #include "wsaapi.h"
 
 #include "json/json.h"
+
+#include "mgrs.h"
 
 #include <iostream>
 #include <string>
@@ -21,8 +26,10 @@
 #include <curl/easy.h>
 
 using namespace std;
+using namespace log4cxx;
+using namespace log4cxx::helpers;
 
-#include "mgrs.h"
+extern LoggerPtr logger;
 
 const string USERNAME = "jwilliams";
 const string PASSWORD = "jwilliams";
@@ -51,12 +58,15 @@ void TigrPushReceiver::onDisconnect(GatewayConnector *sender) {
 
 
 void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
-      cout << "Got data." << endl;
-    cout << "  URI: " << uri << endl;
-    cout << "  Mime type: " << mimeType << endl;
+  NDC::push("DataReceived");
+  LOG4CXX_DEBUG(logger, "Got data.");
+  LOG4CXX_DEBUG(logger, "  URI: " << uri);
+  LOG4CXX_DEBUG(logger, "  Mime type: " << mimeType);
+  
   if(mimeType == "application/vnd.edu.vu.isis.ammo.collector.event") {
+    NDC::push("event");
     
-    cout << "Extracting JSON metadata..." << endl << flush;
+    LOG4CXX_DEBUG(logger, "Extracting JSON metadata...");
     
     unsigned int jsonEnd = 0;
     for(vector<char>::iterator it = data.begin(); it != data.end(); it++) {
@@ -68,7 +78,7 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
     
     string json(&data[0], jsonEnd);
     
-    cout << "JSON string: " << json << endl;
+    LOG4CXX_DEBUG(logger, "JSON string: " << json);
     
     Json::Value jsonRoot;
     Json::Reader jsonReader;
@@ -76,12 +86,12 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
     bool parseSuccess = jsonReader.parse(json, jsonRoot);
     
     if(!parseSuccess) {
-      cout << "JSON parsing error:" << endl;
-      cout << jsonReader.getFormatedErrorMessages() << endl;
+      LOG4CXX_ERROR(logger, "JSON parsing error:");
+      LOG4CXX_ERROR(logger, jsonReader.getFormatedErrorMessages());
       return;
     }
     
-    cout << "Parsed JSON: " << jsonRoot.toStyledString() << endl;
+    LOG4CXX_DEBUG(logger, "Parsed JSON: " << jsonRoot.toStyledString());
     EventReport newEvent;
     newEvent.uri = uri;
     newEvent.title = jsonRoot["title"].asString();
@@ -99,7 +109,7 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
     
     int lastSlashPosition = uri.find_last_of("/");
     string eventNumberString = uri.substr(lastSlashPosition + 1);
-    cout << "Event Number: " << eventNumberString << endl << flush;
+    LOG4CXX_DEBUG(logger, "Event Number: " << eventNumberString);
     newEvent.eventNumber = atoi(eventNumberString.c_str());
     
     //add newEvent to the map
@@ -112,24 +122,10 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
       unsentEventReports[newEvent.eventNumber] = newEvent;
     }
     
-    /*ostringstream filename;
-    
-    if(title == "") {
-      title = "Untitled";
-    }
-    
-    filename << title << ".jpg";
-    
-    cout << "Uploading image to TIGR with name " << filename.str() << "..." << endl << flush;
-    string fileReference = uploadImage(&data[jsonEnd], data.size() - jsonEnd, filename.str());
-    if(fileReference != "") {
-      string imageCid = createMedia(filename.str(), fileReference);
-      if(imageCid != "") {
-        createEvent(title, description, latitude, longitude, timeSeconds, imageCid);
-      }
-    }*/
+    NDC::pop();
   } else if(mimeType == "application/vnd.edu.vu.isis.ammo.collector.media") {
-    cout << "Extracting JSON metadata..." << endl << flush;
+    NDC::push("Media");
+    LOG4CXX_DEBUG(logger, "Extracting JSON metadata...");
     
     unsigned int jsonEnd = 0;
     bool jsonEndFound = false;
@@ -152,7 +148,7 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
     
     string json(&data[0], jsonEnd);
     
-    cout << "JSON string: " << json << endl;
+    LOG4CXX_DEBUG(logger, "JSON string: " << json);
     
     Json::Value jsonRoot;
     Json::Reader jsonReader;
@@ -160,12 +156,12 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
     bool parseSuccess = jsonReader.parse(json, jsonRoot);
     
     if(!parseSuccess) {
-      cout << "JSON parsing error:" << endl;
-      cout << jsonReader.getFormatedErrorMessages() << endl;
+      LOG4CXX_ERROR(logger, "JSON parsing error:");
+      LOG4CXX_ERROR(logger, jsonReader.getFormatedErrorMessages());
       return;
     }
     
-    cout << "Parsed JSON: " << jsonRoot.toStyledString() << endl;
+    LOG4CXX_DEBUG(logger, "Parsed JSON: " << jsonRoot.toStyledString());
     MediaObject newMedia;
     newMedia.uri = uri;
     string filePath = jsonRoot["data"].asString();
@@ -178,18 +174,18 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
     
     unsigned int dataSize = *((int *) &data[tagEnd]);
     
-    cout << "Media Data Size:" << dataSize << endl << flush;
+    LOG4CXX_DEBUG(logger, "Media Data Size:" << dataSize);
     
     unsigned int maxSize = data.size() - tagEnd - 8;
-    cout << "Maximum valid data size: " << maxSize;
+    LOG4CXX_DEBUG(logger, "Maximum valid data size: " << maxSize);
     
     if(dataSize > maxSize) {
-      cout << "Error:  data size is larger than available data." << endl << flush;
+      LOG4CXX_ERROR(logger, "Error:  data size is larger than available data.");
       return;
     }
     
     
-    cout << "Uploading image to TIGR with name " << newMedia.filename << "..." << endl << flush;
+    LOG4CXX_INFO(logger, "Uploading image to TIGR with name " << newMedia.filename << "...");
     string fileReference = uploadMedia(&data[tagEnd + 4], dataSize, newMedia.filename, newMedia.mimeType, originUser);
     if(fileReference != "") {
       string imageCid = createMedia(newMedia.filename, fileReference, originUser);
@@ -199,9 +195,10 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
         unsentEventReports.erase(newMedia.associatedEventId);
       }
     }
+    NDC::pop();
   } else if(mimeType == "application/vnd.edu.vu.isis.ammo.report.report_base") {
-    
-    cout << "Extracting JSON metadata..." << endl << flush;
+    NDC::push("Spot");
+    LOG4CXX_DEBUG(logger, "Extracting JSON metadata...");
     
     unsigned int jsonEnd = 0;
     for(vector<char>::iterator it = data.begin(); it != data.end(); it++) {
@@ -213,7 +210,7 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
     
     string json(&data[0], jsonEnd);
     
-    cout << "JSON string: " << json << endl;
+    LOG4CXX_DEBUG(logger, "JSON string: " << json);
     
     Json::Value jsonRoot;
     Json::Reader jsonReader;
@@ -221,42 +218,29 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
     bool parseSuccess = jsonReader.parse(json, jsonRoot);
     
     if(!parseSuccess) {
-      cout << "JSON parsing error:" << endl;
-      cout << jsonReader.getFormatedErrorMessages() << endl;
+      LOG4CXX_ERROR(logger, "JSON parsing error:");
+      LOG4CXX_ERROR(logger, jsonReader.getFormatedErrorMessages());
       return;
     }
     
-    cout << "Parsed JSON: " << jsonRoot.toStyledString() << endl;
+    LOG4CXX_DEBUG(logger, "Parsed JSON: " << jsonRoot.toStyledString());
 
     SpotReport sr;
     sr.content_guid = jsonRoot["contentGuid"].asString();
-std::cout << __LINE__ << std::endl;
     sr.report_time = (long) (jsonRoot["reportTime"].asDouble()/1000.0);
-std::cout << __LINE__ << std::endl;
     sr.reporting_unit = jsonRoot["reportingUnit"].asString();
-std::cout << __LINE__ << std::endl;
 //    sr.size = jsonRoot["size"].asInt();
-std::cout << __LINE__ << std::endl;
     sr.activity = jsonRoot["activity"].asString();
-std::cout << __LINE__ << std::endl;
-
     sr.location_utm = jsonRoot["locationUtm"].asString();
-std::cout << __LINE__ << std::endl;
     sr.enemy_unit = jsonRoot["enemyUnit"].asString();
-std::cout << __LINE__ << std::endl;
     sr.observation_time = (long) (jsonRoot["observationTime"].asDouble()/1000.0);
-std::cout << __LINE__ << std::endl;
     sr.unit = jsonRoot["unit"].asString();
-std::cout << __LINE__ << std::endl;
     sr.equipment = jsonRoot["equipment"].asString();
-std::cout << __LINE__ << std::endl;
     sr.assessment = jsonRoot["assessment"].asString();
-std::cout << __LINE__ << std::endl;
     sr.narrative = jsonRoot["narrative"].asString();
-std::cout << __LINE__ << std::endl;
     sr.authentication = jsonRoot["authentication"].asString();
 
-    cout << "Done reading spotreport" << std::endl;
+    LOG4CXX_DEBUG(logger, "Done reading spotreport");
 
 
     EventReport newEvent;
@@ -268,7 +252,7 @@ std::cout << __LINE__ << std::endl;
     time_t rawtime;
     rawtime = sr.report_time;
     des += ctime(&rawtime);
-    std::cout << "raw: " << rawtime << "  ctime: " << des << std::endl;
+    LOG4CXX_DEBUG(logger, "raw: " << rawtime << "  ctime: " << des);
     des += "UNIT:           " + sr.reporting_unit + "\n";
     //    des += "SIZE:           " + size_strings[sr.size] + "\n";
     des += "ACTIVITY:       " + sr.activity+"\n";
@@ -290,7 +274,7 @@ std::cout << __LINE__ << std::endl;
     Convert_MGRS_To_Geodetic((char *)sr.location_utm.c_str(), &cLat, &cLon);
     cLat *= 180.00 / M_PI;
     cLon *= 180.00 / M_PI;
-     std::cout << " Convert MGRS: "<< sr.location_utm << " to " << cLat << ", " << cLon << std::endl; 
+     LOG4CXX_DEBUG(logger, " Convert MGRS: "<< sr.location_utm << " to " << cLat << ", " << cLon); 
 
 
     newEvent.latitude = cLat; //jsonRoot["latitude"].asDouble();
@@ -302,7 +286,7 @@ std::cout << __LINE__ << std::endl;
     
     int lastSlashPosition = uri.find_last_of("/");
     string eventNumberString = uri.substr(lastSlashPosition + 1);
-    cout << "Event Number: " << eventNumberString << "At:(" << cLat << "," << cLon << ")  Descr[" << des << endl << flush;
+    LOG4CXX_DEBUG(logger, "Event Number: " << eventNumberString << "At:(" << cLat << "," << cLon << ")  Descr[" << des);
     newEvent.eventNumber = atoi(eventNumberString.c_str());
     
     //add newEvent to the map
@@ -311,29 +295,12 @@ std::cout << __LINE__ << std::endl;
       sendEventReport(newEvent);
     } else {
       unsentEventReports[newEvent.eventNumber] = newEvent;
-    }
-    
-    /*ostringstream filename;
-    
-    if(title == "") {
-      title = "Untitled";
-    }
-    
-    filename << title << ".jpg";
-    
-    cout << "Uploading image to TIGR with name " << filename.str() << "..." << endl << flush;
-    string fileReference = uploadImage(&data[jsonEnd], data.size() - jsonEnd, filename.str());
-    if(fileReference != "") {
-      string imageCid = createMedia(filename.str(), fileReference);
-      if(imageCid != "") {
-        createEvent(title, description, latitude, longitude, timeSeconds, imageCid);
-      }
-    }*/
-  
+    }  
+    NDC::pop();
   }
 
   else {
-    cout << "ERROR!  Invalid Mime Type." << endl << flush;
+    LOG4CXX_ERROR(logger, "ERROR!  Invalid Mime Type.");
   }
   
 }
@@ -386,10 +353,10 @@ bool TigrPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   
   ns2__GetResponseType response;
   
-  cout << "Sending get request (for media)..." << endl << flush;
+  LOG4CXX_INFO(logger, "Sending get request (for media)...");
   if(proxy.GetOperation(&getBody, &response) == SOAP_OK) {
-    cout << "done." << endl << flush;
-    cout << "Response: __size_GetResponseType = " << response.__size_GetResponseType << endl;
+    LOG4CXX_INFO(logger, "done.");
+    LOG4CXX_TRACE(logger, "Response: __size_GetResponseType = " << response.__size_GetResponseType);
     for(int i=0; i<response.__size_GetResponseType; i++) {
       string jsonString = jsonForObject(response.__union_GetResponseType[i]);
       if(jsonString != "") {
@@ -416,7 +383,7 @@ string TigrPushReceiver::jsonForObject(__ns2__union_GetResponseType &obj) {
       if(obj.union_GetResponseType.Event->locationList->__sizeAbstractGeometry == 1) {
         if(obj.union_GetResponseType.Event->locationList->__union_LocationListType->__unionAbstractGeometry == SOAP_UNION__ns2__union_LocationListType_ns3__Point) {
           string coords = obj.union_GetResponseType.Event->locationList->__union_LocationListType->__union_LocationListType.ns3__Point->coordinates;
-          //cout << "Coords: " << coords << endl << flush;
+          //LOG4CXX_INFO(logger, "Coords: " << coords);
           //find the space separator
           int sep = coords.find(" ");
           if(sep != string::npos) {
@@ -425,24 +392,24 @@ string TigrPushReceiver::jsonForObject(__ns2__union_GetResponseType &obj) {
             latitude = atof(latString.c_str());
             longitude = atof(longString.c_str());
           } else {
-            cout << "Invalid coordinate" << endl << flush;
+            LOG4CXX_ERROR(logger, "Invalid coordinate");
           }
           
         } else {
-          cout << "Location error: Only Points are supported at this time." << endl << flush;
+          LOG4CXX_ERROR(logger, "Location error: Only Points are supported at this time.");
         }
       } else {
-        cout << "Location error: More than one location not supported at this time." << endl << flush;
+        LOG4CXX_ERROR(logger, "Location error: More than one location not supported at this time.");
       }
     }
     
-    cout << "Got an event:" << endl << flush;
-    cout << "  cid: " << cid << endl << flush;
-    cout << "  Title: " << title << endl << flush;
-    cout << "  Description: " << description << endl << flush;
-    cout << "  Category: " << category << endl << flush;
-    cout << "  Unit: " << unit << endl << flush;
-    cout << "  Position: " << latitude << ", " << longitude << endl << flush;
+    LOG4CXX_TRACE(logger, "Got an event:");
+    LOG4CXX_TRACE(logger, "  cid: " << cid);
+    LOG4CXX_TRACE(logger, "  Title: " << title);
+    LOG4CXX_TRACE(logger, "  Description: " << description);
+    LOG4CXX_TRACE(logger, "  Category: " << category);
+    LOG4CXX_TRACE(logger, "  Unit: " << unit);
+    LOG4CXX_TRACE(logger, "  Position: " << latitude << ", " << longitude);
     
     Json::Value root;
     
@@ -454,10 +421,10 @@ string TigrPushReceiver::jsonForObject(__ns2__union_GetResponseType &obj) {
     root["latitude"] = latitude;
     root["longitude"] = longitude;
     
-    cout << "JSON: " << root.toStyledString() << endl;
+    LOG4CXX_DEBUG(logger, "JSON: " << root.toStyledString());
     return root.toStyledString();
   } else {
-    cout << "Not an event...  only events are supported at this time." << endl << flush;
+    LOG4CXX_ERROR(logger, "Not an event...  only events are supported at this time.");
   }
   return "";
 }
@@ -493,10 +460,10 @@ string TigrPushReceiver::createMedia(string filename, string fileReference, stri
   
   ns2__CreateResponseType response;
   
-  cout << "Sending create request (for media)..." << endl << flush;
+  LOG4CXX_INFO(logger, "Sending create request (for media)...");
   if(proxy.CreateOperation(&createBody, &response) == SOAP_OK) {
-    cout << "done." << endl << flush;
-    cout << "Response: new cid is " << response.cid << endl;
+    LOG4CXX_INFO(logger, "done.");
+    LOG4CXX_DEBUG(logger, "Response: new cid is " << response.cid);
     return response.cid;
   } else {
     proxy.soap_stream_fault(std::cerr);
@@ -573,10 +540,10 @@ bool TigrPushReceiver::createEvent(string title, string description, double lati
   
   ns2__CreateResponseType response;
   
-  cout << "Sending create request (for event)..." << endl << flush;
+  LOG4CXX_INFO(logger, "Sending create request (for event)...");
   if(proxy.CreateOperation(&createBody, &response) == SOAP_OK) {
-    cout << "done." << endl << flush;
-    cout << "Response: new cid is " << response.cid << endl;
+    LOG4CXX_INFO(logger, "done.");
+    LOG4CXX_DEBUG(logger, "Response: new cid is " << response.cid);
     return true;
   } else {
     proxy.soap_stream_fault(std::cerr);
@@ -619,45 +586,45 @@ string TigrPushReceiver::uploadMedia(char *data, long length, string filename, s
   if(curl) {
     res = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer);
     if(res != CURLE_OK) {
-      cerr << "Failed to set error buffer." << endl << flush;
+      LOG4CXX_ERROR(logger, "Failed to set error buffer.");
       return "";
     }
     
     res = curl_easy_setopt(curl, CURLOPT_URL, (config->getTigrBaseAddress() + "/WebServices/MediaFilePostHandler.ashx").c_str());
     if(res != CURLE_OK) {
-      cerr << "Failed to set URL: " << errorBuffer << endl << flush;
+      LOG4CXX_ERROR(logger, "Failed to set URL: " << errorBuffer);
       return "";
     }
     
     res = curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
     if(res != CURLE_OK) {
-      cerr << "Failed to set post data: " << errorBuffer << endl << flush;
+      LOG4CXX_ERROR(logger, "Failed to set post data: " << errorBuffer);
       return "";
     }
     
     string returnedData = "";
     res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
     if(res != CURLE_OK) {
-      cerr << "Failed to set writer: " << errorBuffer << endl << flush;
+      LOG4CXX_ERROR(logger, "Failed to set writer: " << errorBuffer);
       return "";
     }
     
     res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &returnedData);
     if(res != CURLE_OK) {
-      cerr << "Failed to set write data: " << errorBuffer << endl << flush;
+      LOG4CXX_ERROR(logger, "Failed to set write data: " << errorBuffer);
       return "";
     }
     
     res = curl_easy_perform(curl);
     
     if(res != CURLE_OK) {
-      cerr << "Failed to POST data: " << errorBuffer << endl << flush;
+      LOG4CXX_ERROR(logger, "Failed to POST data: " << errorBuffer);
       returnedData = "";
     }
     curl_easy_cleanup(curl);
     curl_formfree(formpost);
     
-    cout << "Returned data from POST: " << returnedData << endl << flush;
+    LOG4CXX_DEBUG(logger, "Returned data from POST: " << returnedData);
     return returnedData;
   }
 }
