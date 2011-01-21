@@ -6,6 +6,9 @@
 #include "ace/SOCK_Stream.h"
 #include "protocol/AmmoMessages.pb.h"
 #include <vector>
+#include <queue>
+
+class AndroidMessageProcessor;
 
 class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>, public GatewayConnectorDelegate, public DataPushReceiverListener, public PullResponseReceiverListener {
 public:
@@ -13,8 +16,13 @@ public:
   int open(void *ptr = 0);
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   
-  void sendData(ammo::protocol::MessageWrapper &msg);
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
+  
+  void sendMessage(ammo::protocol::MessageWrapper *msg);
+  ammo::protocol::MessageWrapper *getNextMessageToSend();
+  
+  ammo::protocol::MessageWrapper *getNextReceivedMessage();
+  void addReceivedMessage(ammo::protocol::MessageWrapper *msg);
   
   //GatewayConnectorDelegate methods
   virtual void onConnect(GatewayConnector *sender);
@@ -49,6 +57,13 @@ protected:
   unsigned int position;
   
   std::string deviceId; //not validated; just for pretty logging
+  
+  AndroidMessageProcessor *messageProcessor;
+  ACE_Thread_Mutex sendQueueMutex;
+  ACE_Thread_Mutex receiveQueueMutex;
+  
+  std::queue<ammo::protocol::MessageWrapper *> sendQueue;
+  std::queue<ammo::protocol::MessageWrapper *> receiveQueue;
   
   GatewayConnector *gatewayConnector;
 };

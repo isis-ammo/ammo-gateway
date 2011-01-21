@@ -12,7 +12,11 @@ using namespace std;
 extern std::string gatewayAddress;
 extern int gatewayPort;
 
-AndroidServiceHandler::AndroidServiceHandler() : gatewayConnector(NULL) {
+AndroidServiceHandler::AndroidServiceHandler() : 
+gatewayConnector(NULL),
+messageProcessor(NULL),
+sendQueueMutex(), 
+receiveQueueMutex(){
 
 }
 
@@ -127,55 +131,16 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
   }
   
   //checksum is valid; parse the data
-  ammo::protocol::MessageWrapper msg;
-  bool result = msg.ParseFromArray(data, messageSize);
+  ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper();
+  bool result = msg->ParseFromArray(data, messageSize);
   if(result == false) {
     LOG_ERROR("MessageWrapper could not be deserialized.");
     LOG_ERROR("Client must have sent something that isn't a protocol buffer (or the wrong type).");
+    delete msg;
     return -1;
   }
-  LOG_TRACE("Message Received: " << msg.DebugString());
+  addReceivedMessage(msg);
   
-  if(msg.type() == ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE) {
-    LOG_DEBUG("Received Authentication Message...");
-    if(gatewayConnector != NULL) {
-      ammo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
-      gatewayConnector->associateDevice(authMessage.device_id(), authMessage.user_id(), authMessage.user_key());
-      deviceId = authMessage.device_id();
-    }
-  } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE) {
-    LOG_DEBUG("Received Data Message...");
-    if(gatewayConnector != NULL) {
-      ammo::protocol::DataMessage dataMessage = msg.data_message();
-      gatewayConnector->pushData(dataMessage.uri(), dataMessage.mime_type(), dataMessage.data());
-      ammo::protocol::MessageWrapper ackMsg;
-      ammo::protocol::PushAcknowledgement *ack = ackMsg.mutable_push_acknowledgement();
-      ack->set_uri(dataMessage.uri());
-      ackMsg.set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
-      LOG_DEBUG("Sending push acknowledgement to connected device...");
-      this->sendData(ackMsg);
-      
-    }
-  } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
-    LOG_DEBUG("Received Subscribe Message...");
-    if(gatewayConnector != NULL) {
-      ammo::protocol::SubscribeMessage subscribeMessage = msg.subscribe_message();
-      gatewayConnector->registerDataInterest(subscribeMessage.mime_type(), this);
-    }
-  } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
-    LOG_DEBUG("Received Pull Request Message...");
-    if(gatewayConnector != NULL) {
-      ammo::protocol::PullRequest pullRequest = msg.pull_request();
-      // register for pull response - 
-      gatewayConnector->registerPullResponseInterest(pullRequest.mime_type(), this);
-      // now send request
-      gatewayConnector->pullRequest( pullRequest.request_uid(), pullRequest.plugin_id(), pullRequest.mime_type(), pullRequest.query(),
-				     pullRequest.projection(), pullRequest.max_results(), pullRequest.start_from_count(), pullRequest.live_query() );
-
-    }
-  }
-  
-
   return 0;
 }
 
