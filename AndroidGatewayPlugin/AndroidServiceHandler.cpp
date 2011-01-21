@@ -13,10 +13,10 @@ extern std::string gatewayAddress;
 extern int gatewayPort;
 
 AndroidServiceHandler::AndroidServiceHandler() : 
-gatewayConnector(NULL),
 messageProcessor(NULL),
 sendQueueMutex(), 
-receiveQueueMutex(){
+receiveQueueMutex()
+{
 
 }
 
@@ -30,8 +30,6 @@ int AndroidServiceHandler::open(void *ptr) {
   checksum = 0;
   collectedData = NULL;
   position = 0;
-  
-  gatewayConnector = new GatewayConnector(this);
 }
 
 int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
@@ -87,7 +85,7 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
   return 0;
 }
 
-void AndroidServiceHandler::sendData(ammo::protocol::MessageWrapper &msg) {
+//void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg) {
   /*Fixme: potential deadlock here
   unsigned int messageSize = msg.ByteSize();
   char *messageToSend = new char[messageSize];
@@ -108,7 +106,7 @@ void AndroidServiceHandler::sendData(ammo::protocol::MessageWrapper &msg) {
   
   this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);*/
   
-  unsigned int messageSize = msg.ByteSize();
+  /*unsigned int messageSize = msg.ByteSize();
   char *messageToSend = new char[messageSize];
   if(msg.IsInitialized()) {
     msg.SerializeToArray(messageToSend, messageSize);
@@ -119,8 +117,8 @@ void AndroidServiceHandler::sendData(ammo::protocol::MessageWrapper &msg) {
     this->peer().send_n(messageToSend, messageSize);
   } else {
     LOG_ERROR("SEND ERROR:  Message is missing a required element.");
-  }
-}
+  }*/
+//}
 
 int AndroidServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
   //Validate checksum
@@ -144,62 +142,41 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
   return 0;
 }
 
-void AndroidServiceHandler::onConnect(GatewayConnector *sender) {
+void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg) {
+  sendQueueMutex.acquire();
+  sendQueue.push(msg);
+  sendQueueMutex.release();
 }
 
-void AndroidServiceHandler::onDisconnect(GatewayConnector *sender) {
+ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextMessageToSend() {
+  ammo::protocol::MessageWrapper *msg = NULL;
+  sendQueueMutex.acquire();
+  if(!sendQueue.empty()) {
+    msg = sendQueue.front();
+    sendQueue.pop();
+  }
+  sendQueueMutex.release();
   
+  return msg;
 }
 
-void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
-  LOG_DEBUG("Sending subscribed data to device...");
-  LOG_DEBUG("   URI: " << uri << ", Type: " << mimeType);
+ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextReceivedMessage() {
+  ammo::protocol::MessageWrapper *msg = NULL;
+  receiveQueueMutex.acquire();
+  if(!receiveQueue.empty()) {
+    msg = receiveQueue.front();
+    receiveQueue.pop();
+  }
+  receiveQueueMutex.release();
   
-  std::string dataString(data.begin(), data.end());
-  ammo::protocol::MessageWrapper msg;
-  ammo::protocol::DataMessage *dataMsg = msg.mutable_data_message();
-  dataMsg->set_uri(uri);
-  dataMsg->set_mime_type(mimeType);
-  dataMsg->set_data(dataString);
-  
-  msg.set_type(ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
-  
-  LOG_DEBUG("Sending Data Push message to connected device");
-  this->sendData(msg);
+  return msg;
 }
 
-void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::vector<char> &data) {
-  LOG_DEBUG("Sending pull response to device...");
-  LOG_DEBUG("   URI: " << uri << ", Type: " << mimeType);
-  
-  std::string dataString(data.begin(), data.end());
-  ammo::protocol::MessageWrapper msg;
-  ammo::protocol::PullResponse *pullMsg = msg.mutable_pull_response();
-
-  pullMsg->set_request_uid(requestUid);
-  pullMsg->set_plugin_id(pluginId);
-  pullMsg->set_mime_type(mimeType);
-  pullMsg->set_uri(uri);
-  pullMsg->set_data(dataString);
-  
-  msg.set_type(ammo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);
-  
-  LOG_DEBUG("Sending Pull Response message to connected device");
-  this->sendData(msg);
-}
-
-
-
-void AndroidServiceHandler::onAuthenticationResponse(GatewayConnector *sender, bool result) {
-  LOG_DEBUG("Delegate: onAuthenticationResponse");
-  ammo::protocol::MessageWrapper newMsg;
-  newMsg.set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
-  newMsg.mutable_authentication_result()->set_result(result ? ammo::protocol::AuthenticationResult_Status_SUCCESS : ammo::protocol::AuthenticationResult_Status_SUCCESS);
-  this->sendData(newMsg);
+void AndroidServiceHandler::addReceivedMessage(ammo::protocol::MessageWrapper *msg) {
+  receiveQueueMutex.acquire();
+  receiveQueue.push(msg);
+  receiveQueueMutex.release();
 }
 
 AndroidServiceHandler::~AndroidServiceHandler() {
-  if(gatewayConnector) {
-    delete gatewayConnector;
-  }
 }

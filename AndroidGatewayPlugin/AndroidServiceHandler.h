@@ -10,7 +10,7 @@
 
 class AndroidMessageProcessor;
 
-class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>, public GatewayConnectorDelegate, public DataPushReceiverListener, public PullResponseReceiverListener {
+class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>{
 public:
   AndroidServiceHandler();
   int open(void *ptr = 0);
@@ -23,21 +23,6 @@ public:
   
   ammo::protocol::MessageWrapper *getNextReceivedMessage();
   void addReceivedMessage(ammo::protocol::MessageWrapper *msg);
-  
-  //GatewayConnectorDelegate methods
-  virtual void onConnect(GatewayConnector *sender);
-  virtual void onDisconnect(GatewayConnector *sender);
-  virtual void onAuthenticationResponse(GatewayConnector *sender, bool result);
-  
-  //DataPushReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
-
-  //PullResponseReceiverListener method
-  virtual void onDataReceived(GatewayConnector *sender, 
-			      std::string requestUid, std::string pluginId, std::string mimeType,
-			      std::string uri, std::vector<char> &data);
-
-
   
   ~AndroidServiceHandler();
   
@@ -64,8 +49,6 @@ protected:
   
   std::queue<ammo::protocol::MessageWrapper *> sendQueue;
   std::queue<ammo::protocol::MessageWrapper *> receiveQueue;
-  
-  GatewayConnector *gatewayConnector;
 };
 
 #endif        //  #ifndef ANDROID_SERVICE_HANDLER_H

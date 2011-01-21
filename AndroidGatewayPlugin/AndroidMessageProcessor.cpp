@@ -1,4 +1,5 @@
 #include "AndroidMessageProcessor.h"
+#include "AndroidServiceHandler.h"
 
 #include "log.h"
 
@@ -6,17 +7,21 @@ AndroidMessageProcessor::AndroidMessageProcessor(AndroidServiceHandler *serviceH
 closeMutex(),
 newMessageMutex(),
 newMessageAvailable(newMessageMutex),
-commsHandler(serviceHandler)
+commsHandler(serviceHandler),
+gatewayConnector(NULL)
 {
   
 }
 
 AndroidMessageProcessor::~AndroidMessageProcessor() {
-  
+  if(gatewayConnector) {
+    delete gatewayConnector;
+  }
 }
 
 int AndroidMessageProcessor::open(void *args) {
   closed = false;
+  gatewayConnector = new GatewayConnector(this);
   return 0;
 }
 
@@ -68,19 +73,19 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     if(gatewayConnector != NULL) {
       ammo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
       gatewayConnector->associateDevice(authMessage.device_id(), authMessage.user_id(), authMessage.user_key());
-      deviceId = authMessage.device_id();
+      //deviceId = authMessage.device_id();
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE) {
     LOG_DEBUG("Received Data Message...");
     if(gatewayConnector != NULL) {
       ammo::protocol::DataMessage dataMessage = msg.data_message();
       gatewayConnector->pushData(dataMessage.uri(), dataMessage.mime_type(), dataMessage.data());
-      ammo::protocol::MessageWrapper ackMsg;
-      ammo::protocol::PushAcknowledgement *ack = ackMsg.mutable_push_acknowledgement();
+      ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
+      ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
       ack->set_uri(dataMessage.uri());
-      ackMsg.set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
+      ackMsg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
       LOG_DEBUG("Sending push acknowledgement to connected device...");
-      this->sendData(ackMsg);
+      commsHandler->sendMessage(ackMsg);
       
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
@@ -101,4 +106,59 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
 
     }
   }
+}
+
+
+void AndroidMessageProcessor::onConnect(GatewayConnector *sender) {
+}
+
+void AndroidMessageProcessor::onDisconnect(GatewayConnector *sender) {
+  
+}
+
+void AndroidMessageProcessor::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
+  LOG_DEBUG("Sending subscribed data to device...");
+  LOG_DEBUG("   URI: " << uri << ", Type: " << mimeType);
+  
+  std::string dataString(data.begin(), data.end());
+  ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
+  ammo::protocol::DataMessage *dataMsg = msg->mutable_data_message();
+  dataMsg->set_uri(uri);
+  dataMsg->set_mime_type(mimeType);
+  dataMsg->set_data(dataString);
+  
+  msg->set_type(ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
+  
+  LOG_DEBUG("Sending Data Push message to connected device");
+  commsHandler->sendMessage(msg);
+}
+
+void AndroidMessageProcessor::onDataReceived(GatewayConnector *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::vector<char> &data) {
+  LOG_DEBUG("Sending pull response to device...");
+  LOG_DEBUG("   URI: " << uri << ", Type: " << mimeType);
+  
+  std::string dataString(data.begin(), data.end());
+  ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper();
+  ammo::protocol::PullResponse *pullMsg = msg->mutable_pull_response();
+
+  pullMsg->set_request_uid(requestUid);
+  pullMsg->set_plugin_id(pluginId);
+  pullMsg->set_mime_type(mimeType);
+  pullMsg->set_uri(uri);
+  pullMsg->set_data(dataString);
+  
+  msg->set_type(ammo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);
+  
+  LOG_DEBUG("Sending Pull Response message to connected device");
+  commsHandler->sendMessage(msg);
+}
+
+
+
+void AndroidMessageProcessor::onAuthenticationResponse(GatewayConnector *sender, bool result) {
+  LOG_DEBUG("Delegate: onAuthenticationResponse");
+  ammo::protocol::MessageWrapper *newMsg = new ammo::protocol::MessageWrapper();
+  newMsg->set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
+  newMsg->mutable_authentication_result()->set_result(result ? ammo::protocol::AuthenticationResult_Status_SUCCESS : ammo::protocol::AuthenticationResult_Status_SUCCESS);
+  commsHandler->sendMessage(newMsg);
 }
