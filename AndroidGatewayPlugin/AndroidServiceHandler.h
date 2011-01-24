@@ -13,8 +13,13 @@ class AndroidMessageProcessor;
 class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>{
 public:
   AndroidServiceHandler();
+  
   int open(void *ptr = 0);
+  int close(unsigned long flags);
+  
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
+  
+  int handle_output(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
   
@@ -40,6 +45,10 @@ protected:
   unsigned int checksum;
   char *collectedData;
   unsigned int position;
+  
+  char *dataToSend;
+  unsigned int sendPosition;
+  unsigned int sendBufferSize;
   
   std::string deviceId; //not validated; just for pretty logging
   

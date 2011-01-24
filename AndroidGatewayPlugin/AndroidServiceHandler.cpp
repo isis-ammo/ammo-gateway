@@ -1,5 +1,6 @@
 #include "AndroidServiceHandler.h"
 #include "protocol/AmmoMessages.pb.h"
+#include "AndroidMessageProcessor.h"
 
 #include <iostream>
 
@@ -30,10 +31,21 @@ int AndroidServiceHandler::open(void *ptr) {
   checksum = 0;
   collectedData = NULL;
   position = 0;
+  
+  dataToSend = NULL;
+  position = 0;
+  
+  messageProcessor = new AndroidMessageProcessor(this);
+  messageProcessor->activate();
+}
+
+int AndroidServiceHandler::close(unsigned long flags) {
+  messageProcessor->close(0);
+  messageProcessor->wait();
 }
 
 int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
-  //LOG_TRACE("In handle_input");
+  LOG_TRACE("In handle_input");
   int count = 0;
   
   if(state == READING_SIZE) {
@@ -82,6 +94,59 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
     return -1;
   }
   //LOG_TRACE("Leaving handle_input()");
+  return 0;
+}
+
+int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
+  int count = 0;
+  
+  do {
+    if(dataToSend == NULL) {
+      ammo::protocol::MessageWrapper *msg = getNextMessageToSend();
+      if(msg != NULL) {
+        unsigned int messageSize = msg->ByteSize();
+        sendBufferSize = messageSize + 2*sizeof(unsigned int);
+        dataToSend = new char[sendBufferSize];
+        unsigned int *size = (unsigned int *) dataToSend;
+        unsigned int *messageChecksum = (unsigned int *) (dataToSend + sizeof(unsigned int));
+        char *protobufSerializedMessage = dataToSend + 2*sizeof(unsigned int);
+        
+        *size = messageSize;
+        msg->SerializeToArray(protobufSerializedMessage, messageSize);
+        *messageChecksum = ACE::crc32(protobufSerializedMessage, messageSize);
+        
+        sendPosition = 0;
+        
+        delete msg;
+      } else {
+        //don't wake up the reactor when there's no data that needs to be sent
+        //(wake-up will be rescheduled when data becomes available in sendMessage
+        //below)
+        this->reactor()->cancel_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+        return 0;
+      }
+    }
+      
+    count = this->peer().send(dataToSend, sendBufferSize - sendPosition);
+    if(count >= 0) {
+      sendPosition += count;
+    }
+    
+    if(sendPosition >= sendBufferSize) {
+      delete dataToSend;
+      dataToSend = NULL;
+      sendBufferSize = 0;
+      sendPosition = 0;
+    }
+  } while(count != -1);
+  
+  if(count == -1 && ACE_OS::last_error () == EWOULDBLOCK) {
+    this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+  } else {
+    LOG_ERROR("Socket error occurred. (" << ACE_OS::last_error() << ")");
+    return -1;
+  }
+  
   return 0;
 }
 
@@ -138,13 +203,17 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
     return -1;
   }
   addReceivedMessage(msg);
+  messageProcessor->signalNewMessageAvailable();
   
   return 0;
 }
 
 void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg) {
+  
   sendQueueMutex.acquire();
   sendQueue.push(msg);
+  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+  LOG_TRACE("Queued a message to send.  " << sendQueue.size() << " messages in queue.");
   sendQueueMutex.release();
 }
 
@@ -156,7 +225,7 @@ ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextMessageToSend() {
     sendQueue.pop();
   }
   sendQueueMutex.release();
-  
+  LOG_TRACE("Dequeued a message to send.  " << sendQueue.size() << " messages remain in queue.");
   return msg;
 }
 
@@ -179,4 +248,5 @@ void AndroidServiceHandler::addReceivedMessage(ammo::protocol::MessageWrapper *m
 }
 
 AndroidServiceHandler::~AndroidServiceHandler() {
+  delete messageProcessor;
 }

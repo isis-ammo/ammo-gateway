@@ -10,7 +10,9 @@ newMessageAvailable(newMessageMutex),
 commsHandler(serviceHandler),
 gatewayConnector(NULL)
 {
-  
+  //need to initialize GatewayConnector in the main thread; the constructor always
+  //happens in the main thread
+  gatewayConnector = new GatewayConnector(this);
 }
 
 AndroidMessageProcessor::~AndroidMessageProcessor() {
@@ -21,7 +23,6 @@ AndroidMessageProcessor::~AndroidMessageProcessor() {
 
 int AndroidMessageProcessor::open(void *args) {
   closed = false;
-  gatewayConnector = new GatewayConnector(this);
   return 0;
 }
 
