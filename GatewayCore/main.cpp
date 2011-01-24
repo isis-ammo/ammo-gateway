@@ -20,7 +20,7 @@ using namespace std;
 using namespace log4cxx;
 using namespace log4cxx::helpers;
 
-LoggerPtr logger(Logger::getLogger("edu.vu.isis.ammo.gateway.Core"));
+LoggerPtr logger(Logger::getLogger("ammo.gateway.GatewayCore"));
 
 int main(int argc, char **argv) {  
   NDC::push("main");

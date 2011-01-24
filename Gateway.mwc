@@ -5,6 +5,7 @@ workspace(AndroidGatewayPlugin) {
   GatewayCore/
   AndroidGatewayPlugin/
   SamplePushReceiverGatewayPlugin/
+  SamplePushTestDriverPlugin/
   LocationStoreGatewayPlugin/
   LDAPPlugin/
   TigrGatewayPlugin/

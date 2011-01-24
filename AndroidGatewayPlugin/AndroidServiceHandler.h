@@ -48,6 +48,8 @@ protected:
   char *collectedData;
   unsigned int position;
   
+  std::string deviceId; //not validated; just for pretty logging
+  
   GatewayConnector *gatewayConnector;
 };
 

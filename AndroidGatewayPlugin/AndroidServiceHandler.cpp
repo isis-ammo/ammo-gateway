@@ -5,11 +5,15 @@
 
 #include "ace/OS_NS_errno.h"
 
+#include "log.h"
+
+using namespace std;
+
 extern std::string gatewayAddress;
 extern int gatewayPort;
 
 AndroidServiceHandler::AndroidServiceHandler() : gatewayConnector(NULL) {
-  
+
 }
 
 int AndroidServiceHandler::open(void *ptr) {
@@ -27,20 +31,20 @@ int AndroidServiceHandler::open(void *ptr) {
 }
 
 int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
-  //std::cout << "In handle_input" << std::endl << std::flush;
+  //LOG_TRACE("In handle_input");
   int count = 0;
   
   if(state == READING_SIZE) {
     count = this->peer().recv_n(&dataSize, sizeof(dataSize));
-    //std::cout << "SIZE Read " << count << " bytes" << std::endl << std::flush;
+    //LOG_TRACE("SIZE Read " << count << " bytes");
   } else if(state == READING_CHECKSUM) {
     count = this->peer().recv_n(&checksum, sizeof(checksum));
-    //std::cout << "SUM Read " << count << " bytes" << std::endl << std::flush;
+    //LOG_TRACE("SUM Read " << count << " bytes");
   } else if(state == READING_DATA) {
     count = this->peer().recv(collectedData + position, dataSize - position);
-    //std::cout << "DATA Read " << count << " bytes" << std::endl << std::flush;
+    //LOG_TRACE("DATA Read " << count << " bytes");
   } else {
-    std::cout << "Invalid state!" << std::endl << std::flush;
+    LOG_ERROR("Invalid state!");
   }
   
   
@@ -49,18 +53,18 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
     if(state == READING_SIZE) {
       collectedData = new char[dataSize];
       position = 0;
-      //std::cout << "Got data size (" << dataSize << ")" << std::endl << std::flush;
+      //LOG_TRACE("Got data size (" << dataSize << ")");
       state = READING_CHECKSUM;
     } else if(state == READING_CHECKSUM) {
-      //std::cout << "Got data checksum (" << checksum << ")" << std::endl << std::flush;
+      //LOG_TRACE("Got data checksum (" << checksum << ")");
       state = READING_DATA;
     } else if(state == READING_DATA) {
-      //std::cout << "Got some data..." << std::endl << std::flush;
+      //LOG_TRACE("Got some data...");
       position += count;
       if(position == dataSize) {
-        //std::cout << "Got all the data... processing" << std::endl << std::flush;
+        //LOG_TRACE("Got all the data... processing");
         processData(collectedData, dataSize, checksum);
-        //std::cout << "Processsing complete.  Deleting buffer." << std::endl << std::flush;
+        //LOG_TRACE("Processsing complete.  Deleting buffer.");
         delete[] collectedData;
         collectedData = NULL;
         dataSize = 0;
@@ -69,13 +73,13 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
       }
     }
   } else if(count == 0) {
-    std::cout << "Connection closed." << std::endl << std::flush;
+    LOG_INFO("Connection closed.");
     return -1;
   } else if(count == -1 && ACE_OS::last_error () != EWOULDBLOCK) {
-    std::cout << "Socket error occurred. (" << ACE_OS::last_error() << ")" << std::endl << std::flush;
+    LOG_ERROR("Socket error occurred. (" << ACE_OS::last_error() << ")");
     return -1;
   }
-  //std::cout << "Leaving handle_input()" << std::endl << std::flush;
+  //LOG_TRACE("Leaving handle_input()");
   return 0;
 }
 
@@ -110,7 +114,7 @@ void AndroidServiceHandler::sendData(ammo::protocol::MessageWrapper &msg) {
     this->peer().send_n(&messageChecksum, sizeof(messageChecksum));
     this->peer().send_n(messageToSend, messageSize);
   } else {
-    std::cout << "SEND ERROR:  Message is missing a required element." << std::endl << std::flush;
+    LOG_ERROR("SEND ERROR:  Message is missing a required element.");
   }
 }
 
@@ -118,7 +122,7 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if(calculatedChecksum != messageChecksum) {
-    std::cout << "Invalid checksum--  we've been sent bad data (perhaps a message size mismatch?)" << std::endl << std::flush;
+    LOG_ERROR("Invalid checksum--  we've been sent bad data (perhaps a message size mismatch?)");
     return -1;
   }
   
@@ -126,20 +130,21 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
   ammo::protocol::MessageWrapper msg;
   bool result = msg.ParseFromArray(data, messageSize);
   if(result == false) {
-    std::cout << "MessageWrapper could not be deserialized." << std::endl;
-    std::cout << "Client must have sent something that isn't a protocol buffer (or the wrong type)." << std::endl << std::flush;
+    LOG_ERROR("MessageWrapper could not be deserialized.");
+    LOG_ERROR("Client must have sent something that isn't a protocol buffer (or the wrong type).");
     return -1;
   }
-  std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
+  LOG_TRACE("Message Received: " << msg.DebugString());
   
   if(msg.type() == ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE) {
-    std::cout << "Received Authentication Message..." << std::endl << std::flush;
+    LOG_DEBUG("Received Authentication Message...");
     if(gatewayConnector != NULL) {
       ammo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
       gatewayConnector->associateDevice(authMessage.device_id(), authMessage.user_id(), authMessage.user_key());
+      deviceId = authMessage.device_id();
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE) {
-    std::cout << "Received Data Message..." << std::endl << std::flush;
+    LOG_DEBUG("Received Data Message...");
     if(gatewayConnector != NULL) {
       ammo::protocol::DataMessage dataMessage = msg.data_message();
       gatewayConnector->pushData(dataMessage.uri(), dataMessage.mime_type(), dataMessage.data());
@@ -147,18 +152,18 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
       ammo::protocol::PushAcknowledgement *ack = ackMsg.mutable_push_acknowledgement();
       ack->set_uri(dataMessage.uri());
       ackMsg.set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
-      std::cout << "Sending push acknowledgement to connected device..." << std::endl << std::flush;
+      LOG_DEBUG("Sending push acknowledgement to connected device...");
       this->sendData(ackMsg);
       
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
-    std::cout << "Received Subscribe Message..." << std::endl << std::flush;
+    LOG_DEBUG("Received Subscribe Message...");
     if(gatewayConnector != NULL) {
       ammo::protocol::SubscribeMessage subscribeMessage = msg.subscribe_message();
       gatewayConnector->registerDataInterest(subscribeMessage.mime_type(), this);
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
-    std::cout << "Received Pull Request Message..." << std::endl << std::flush;
+    LOG_DEBUG("Received Pull Request Message...");
     if(gatewayConnector != NULL) {
       ammo::protocol::PullRequest pullRequest = msg.pull_request();
       // register for pull response - 
@@ -182,8 +187,8 @@ void AndroidServiceHandler::onDisconnect(GatewayConnector *sender) {
 }
 
 void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
-  std::cout << "Sending subscribed data to device..." << std::endl;
-  std::cout << "   URI: " << uri << ", Type: " << mimeType << std::endl << std::flush;;
+  LOG_DEBUG("Sending subscribed data to device...");
+  LOG_DEBUG("   URI: " << uri << ", Type: " << mimeType);
   
   std::string dataString(data.begin(), data.end());
   ammo::protocol::MessageWrapper msg;
@@ -194,13 +199,13 @@ void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string
   
   msg.set_type(ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
   
-  std::cout << "Sending Data Push message to connected device" << std::endl << std::flush;
+  LOG_DEBUG("Sending Data Push message to connected device");
   this->sendData(msg);
 }
 
 void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::vector<char> &data) {
-  std::cout << "Sending pull response to device..." << std::endl;
-  std::cout << "   URI: " << uri << ", Type: " << mimeType << std::endl << std::flush;;
+  LOG_DEBUG("Sending pull response to device...");
+  LOG_DEBUG("   URI: " << uri << ", Type: " << mimeType);
   
   std::string dataString(data.begin(), data.end());
   ammo::protocol::MessageWrapper msg;
@@ -214,14 +219,14 @@ void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string
   
   msg.set_type(ammo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);
   
-  std::cout << "Sending Pull Response message to connected device" << std::endl << std::flush;
+  LOG_DEBUG("Sending Pull Response message to connected device");
   this->sendData(msg);
 }
 
 
 
 void AndroidServiceHandler::onAuthenticationResponse(GatewayConnector *sender, bool result) {
-  std::cout << "Delegate: onAuthenticationResponse" << std::endl << std::flush;
+  LOG_DEBUG("Delegate: onAuthenticationResponse");
   ammo::protocol::MessageWrapper newMsg;
   newMsg.set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
   newMsg.mutable_authentication_result()->set_result(result ? ammo::protocol::AuthenticationResult_Status_SUCCESS : ammo::protocol::AuthenticationResult_Status_SUCCESS);
