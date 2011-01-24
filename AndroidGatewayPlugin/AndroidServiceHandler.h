@@ -15,7 +15,8 @@ public:
   AndroidServiceHandler();
   
   int open(void *ptr = 0);
-  int close(unsigned long flags);
+  
+  int handle_close(ACE_HANDLE fd = ACE_INVALID_HANDLE, ACE_Reactor_Mask=ACE_Event_Handler::ALL_EVENTS_MASK);
   
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   

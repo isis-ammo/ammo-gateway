@@ -4,6 +4,7 @@
 #include "log.h"
 
 AndroidMessageProcessor::AndroidMessageProcessor(AndroidServiceHandler *serviceHandler) :
+closed(false),
 closeMutex(),
 newMessageMutex(),
 newMessageAvailable(newMessageMutex),
@@ -16,6 +17,7 @@ gatewayConnector(NULL)
 }
 
 AndroidMessageProcessor::~AndroidMessageProcessor() {
+  LOG_TRACE("In ~AndroidMessageProcessor()");
   if(gatewayConnector) {
     delete gatewayConnector;
   }
@@ -27,6 +29,7 @@ int AndroidMessageProcessor::open(void *args) {
 }
 
 int AndroidMessageProcessor::close(unsigned long flags) {
+  LOG_TRACE("Closing MessageProcessor (in AndroidMessageProcessor.close())");
   closeMutex.acquire();
   closed = true;
   closeMutex.release();

@@ -39,9 +39,13 @@ int AndroidServiceHandler::open(void *ptr) {
   messageProcessor->activate();
 }
 
-int AndroidServiceHandler::close(unsigned long flags) {
+int AndroidServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
+  LOG_TRACE("Closing Message Processor");
   messageProcessor->close(0);
+  LOG_TRACE("Waiting for message processor thread to finish...");
   messageProcessor->wait();
+  LOG_TRACE("Message processor finished.");
+  super::handle_close(fd, m);
 }
 
 int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
@@ -132,8 +136,8 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
       sendPosition += count;
     }
     
-    if(sendPosition >= sendBufferSize) {
-      delete dataToSend;
+    if(sendPosition >= (sendBufferSize - 1)) {
+      delete[] dataToSend;
       dataToSend = NULL;
       sendBufferSize = 0;
       sendPosition = 0;
@@ -248,5 +252,6 @@ void AndroidServiceHandler::addReceivedMessage(ammo::protocol::MessageWrapper *m
 }
 
 AndroidServiceHandler::~AndroidServiceHandler() {
+  LOG_TRACE("In ~AndroidServiceHandler");
   delete messageProcessor;
 }
