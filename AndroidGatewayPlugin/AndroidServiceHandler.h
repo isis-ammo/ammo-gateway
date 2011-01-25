@@ -6,30 +6,29 @@
 #include "ace/SOCK_Stream.h"
 #include "protocol/AmmoMessages.pb.h"
 #include <vector>
+#include <queue>
 
-class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>, public GatewayConnectorDelegate, public DataPushReceiverListener, public PullResponseReceiverListener {
+class AndroidMessageProcessor;
+
+class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>{
 public:
   AndroidServiceHandler();
+  
   int open(void *ptr = 0);
+  
+  int handle_close(ACE_HANDLE fd = ACE_INVALID_HANDLE, ACE_Reactor_Mask=ACE_Event_Handler::ALL_EVENTS_MASK);
+  
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   
-  void sendData(ammo::protocol::MessageWrapper &msg);
+  int handle_output(ACE_HANDLE fd = ACE_INVALID_HANDLE);
+  
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
   
-  //GatewayConnectorDelegate methods
-  virtual void onConnect(GatewayConnector *sender);
-  virtual void onDisconnect(GatewayConnector *sender);
-  virtual void onAuthenticationResponse(GatewayConnector *sender, bool result);
+  void sendMessage(ammo::protocol::MessageWrapper *msg);
+  ammo::protocol::MessageWrapper *getNextMessageToSend();
   
-  //DataPushReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
-
-  //PullResponseReceiverListener method
-  virtual void onDataReceived(GatewayConnector *sender, 
-			      std::string requestUid, std::string pluginId, std::string mimeType,
-			      std::string uri, std::vector<char> &data);
-
-
+  ammo::protocol::MessageWrapper *getNextReceivedMessage();
+  void addReceivedMessage(ammo::protocol::MessageWrapper *msg);
   
   ~AndroidServiceHandler();
   
@@ -48,9 +47,18 @@ protected:
   char *collectedData;
   unsigned int position;
   
+  char *dataToSend;
+  unsigned int sendPosition;
+  unsigned int sendBufferSize;
+  
   std::string deviceId; //not validated; just for pretty logging
   
-  GatewayConnector *gatewayConnector;
+  AndroidMessageProcessor *messageProcessor;
+  ACE_Thread_Mutex sendQueueMutex;
+  ACE_Thread_Mutex receiveQueueMutex;
+  
+  std::queue<ammo::protocol::MessageWrapper *> sendQueue;
+  std::queue<ammo::protocol::MessageWrapper *> receiveQueue;
 };
 
 #endif        //  #ifndef ANDROID_SERVICE_HANDLER_H
