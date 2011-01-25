@@ -40,7 +40,6 @@ public:
   * @param delegate A GatewayConnectorDelegate object to be used by this
   *                 GatewayConnector instance.  May be NULL (no delegate methods
   *                 will be called).
-  * @param loggerName The logger name that should be used by this GatewayConnector.
   */
   GatewayConnector(GatewayConnectorDelegate *delegate);
   
