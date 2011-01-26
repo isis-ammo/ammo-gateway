@@ -5,7 +5,7 @@ project(PassGatewayPlugin) : aceexe, protobuf, gatewayplugin, gatewaycommon {
   
   libs+=gsoap++ gsoap curl
   libs+=gsoapssl++ 
-  libs+=ssl crypto z log4cxx
+  libs+=ssl crypto z
   includes+=/usr/local/share/gsoap/plugin
   includes+=./soap
   includes+=/opt/gsoap/gsoap-2.7/gsoap/

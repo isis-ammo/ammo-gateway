@@ -26,7 +26,6 @@ gnome-terminal --title="Android Plugin" \
   --window-with-profile="Android Plugin" \
   --working-directory="${RELEASE_DIR}" \
   --command="${RELEASE_DIR}/AndroidGatewayPlugin --listenPort 33289 
-# --loggerConfig ${RELEASE_DIR}/Android.log4cxx"  
 }
 
 function start_tigr_plugin() {
