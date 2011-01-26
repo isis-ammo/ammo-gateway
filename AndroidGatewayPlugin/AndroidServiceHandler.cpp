@@ -154,41 +154,6 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
   return 0;
 }
 
-//void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg) {
-  /*Fixme: potential deadlock here
-  unsigned int messageSize = msg.ByteSize();
-  char *messageToSend = new char[messageSize];
-  msg.SerializeToArray(messageToSend, messageSize);
-  unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
-  
-  ACE_Message_Block *messageSizeBlock = new ACE_Message_Block(sizeof(messageSize));
-  messageSizeBlock->copy((char *) &messageSize, sizeof(messageSize));
-  this->putq(messageSizeBlock);
-  
-  ACE_Message_Block *messageChecksumBlock = new ACE_Message_Block(sizeof(messageChecksum));
-  messageChecksumBlock->copy((char *) &messageChecksum, sizeof(messageChecksum));
-  this->putq(messageChecksumBlock);
-  
-  ACE_Message_Block *messageToSendBlock = new ACE_Message_Block(messageSize);
-  messageToSendBlock->copy(messageToSend, messageSize);
-  this->putq(messageToSendBlock);
-  
-  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);*/
-  
-  /*unsigned int messageSize = msg.ByteSize();
-  char *messageToSend = new char[messageSize];
-  if(msg.IsInitialized()) {
-    msg.SerializeToArray(messageToSend, messageSize);
-    unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
-    
-    this->peer().send_n(&messageSize, sizeof(messageSize));
-    this->peer().send_n(&messageChecksum, sizeof(messageChecksum));
-    this->peer().send_n(messageToSend, messageSize);
-  } else {
-    LOG_ERROR("SEND ERROR:  Message is missing a required element.");
-  }*/
-//}
-
 int AndroidServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
