@@ -13,6 +13,15 @@ public:
   
   //DataPushReceiverListener methods
   virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
+
+
+  //PullRequestReceiverListener methods
+  virtual void onDataReceived(GatewayConnector *sender, 
+			      std::string requestUid, std::string pluginId,
+			      std::string mimeType, std::string query,
+			      std::string projection, unsigned int maxResults,
+			      unsigned int startFromCount, bool liveQuery);
+
 };
 
 class SpotReport {
@@ -20,7 +29,7 @@ public:
   std::string content_guid;
   long report_time;
   std::string reporting_unit;
-  std::string size;
+  int size;
   std::string activity;
   std::string location_utm;
   std::string enemy_unit;
@@ -29,7 +38,7 @@ public:
   std::string equipment;
   std::string assessment;
   std::string narrative;
-  std::string authenitication;
+  std::string authentication;
 
 };
 

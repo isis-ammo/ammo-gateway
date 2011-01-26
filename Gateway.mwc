@@ -10,4 +10,5 @@ workspace(AndroidGatewayPlugin) {
   LDAPPlugin/
   TigrGatewayPlugin/
   PassGatewayPlugin/
+  SpotPushReceiverGatewayPlugin/
 }
