@@ -6,7 +6,7 @@ project(GatewayCore) : aceexe, protobuf, gatewaycommon {
   includes += $(GATEWAY_ROOT)/LibJSON
   
   libpaths += $(GATEWAY_ROOT)/build/lib
-  libs += json log4cxx
+  libs += json
   
   Protobuf_Files {
     protocol/GatewayPrivateMessages.proto

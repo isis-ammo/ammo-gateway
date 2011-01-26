@@ -5,7 +5,7 @@ project(TigrGatewayPlugin) : aceexe, protobuf, gatewayplugin, gatewaycommon {
   
   libs+=gsoap++ gsoap curl
   libs+=gsoapssl++ 
-  libs+=ssl crypto z geotrans-mgrs log4cxx
+  libs+=ssl crypto z geotrans-mgrs
   includes+=/usr/local/share/gsoap/plugin
   includes+=./soap
   includes+=.

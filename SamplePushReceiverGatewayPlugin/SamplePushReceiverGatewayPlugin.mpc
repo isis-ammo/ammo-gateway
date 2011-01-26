@@ -2,8 +2,6 @@ project(SamplePushReceiverGatewayPlugin) : aceexe, protobuf, gatewaycommon, gate
   after += LibGatewayConnector  
 
   exename=SamplePushReceiverGatewayPlugin
-  
-  libs += log4cxx
 
   Source_Files {
     main.cpp

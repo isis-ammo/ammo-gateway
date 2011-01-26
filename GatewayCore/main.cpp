@@ -10,21 +10,14 @@
 #include "ace/Acceptor.h"
 #include "ace/Reactor.h"
 
-#include <log4cxx/logger.h>
-#include <log4cxx/ndc.h>
+#include "log.h"
 
 #include "GatewayServiceHandler.h"
 #include "GatewayConfigurationManager.h"
 
 using namespace std;
-using namespace log4cxx;
-using namespace log4cxx::helpers;
-
-LoggerPtr logger(Logger::getLogger("ammo.gateway.GatewayCore"));
-
-int main(int argc, char **argv) {  
-  NDC::push("main");
-  LOG4CXX_INFO(logger, "GatewayCore starting");
+int main(int argc, char **argv) {
+  LOG_INFO("GatewayCore starting");
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
   {
@@ -38,12 +31,12 @@ int main(int argc, char **argv) {
   
   GatewayConfigurationManager *config = GatewayConfigurationManager::getInstance();
   
-  LOG4CXX_DEBUG(logger, "Creating acceptor...");
+  LOG_DEBUG("Creating acceptor...");
   
   //TODO: make interface and port number specifiable on the command line
   ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayInterface().c_str());
   
-  LOG4CXX_INFO(logger, "Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr());
+  LOG_INFO("Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr());
   
   //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor
   //for accept events
@@ -51,7 +44,6 @@ int main(int argc, char **argv) {
   
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();
-  LOG4CXX_DEBUG(logger, "Starting event loop...");
+  LOG_DEBUG("Starting event loop...");
   reactor->run_reactor_event_loop();
-  NDC::pop();
 }
