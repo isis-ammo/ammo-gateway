@@ -1,7 +1,16 @@
 project(SpotPushReceiverGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
-  after += LibGatewayConnector  
+  after += LibGatewayConnector LibGeotransMgrs LibJSON
 
   exename=SpotPushReceiverGatewayPlugin
+
+
+  libs+=curl
+  libs+=ssl geotrans-mgrs log4cxx
+  includes+=.
+  includes+=$(GATEWAY_ROOT)/LibJSON
+  includes+=$(GATEWAY_ROOT)/LibGeotransMgrs
+  
+
 
   Source_Files {
     main.cpp
