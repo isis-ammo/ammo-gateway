@@ -5,7 +5,7 @@ project(SpotPushReceiverGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewa
 
 
   libs+=curl
-  libs+=ssl geotrans-mgrs log4cxx
+  libs+=ssl geotrans-mgrs
   includes+=.
   includes+=$(GATEWAY_ROOT)/LibJSON
   includes+=$(GATEWAY_ROOT)/LibGeotransMgrs
