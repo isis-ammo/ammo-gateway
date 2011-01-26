@@ -10,3 +10,4 @@ LocationStoreGatewayPlugin
 LdapGatewayPlugin
 TigrGatewayPlugin
 PassGatewayPlugin
+SpotPushReceiverGatewayPlugin
