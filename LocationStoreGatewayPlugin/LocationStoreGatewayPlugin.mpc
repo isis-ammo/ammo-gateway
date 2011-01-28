@@ -1,5 +1,12 @@
 project(LocationStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
-  after += LibGatewayConnector  
+  after += LibGatewayConnector
+
+// Added for MacOS, which comes with SQLite already installed.
+// This directory is apparently not in the default system lib path,
+// although it is in the include path.
+//  libpaths += /usr/lib
+
+  libs += sqlite3
 
   exename = LocationStoreGatewayPlugin
 
