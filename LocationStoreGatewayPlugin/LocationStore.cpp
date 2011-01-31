@@ -14,6 +14,7 @@ LocationStoreReceiver::LocationStoreReceiver (void)
 	"CREATE TABLE IF NOT EXISTS the_table ("
 	"uri TEXT,"
 	"mime_type TEXT,"
+	"origin_user TEXT,"
 	"tv_sec INTEGER NOT NULL,"
 	"tv_usec INTEGER,"
 	"data BLOB)";
@@ -47,14 +48,15 @@ void LocationStoreReceiver::onDisconnect (GatewayConnector * /* sender */)
 void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 										    std::string uri,
 										    std::string mimeType,
-										    std::vector<char> & data)
+										    std::vector<char> & data,
+										    std::string originUser)
 {
   ACE_Time_Value tv (ACE_OS::gettimeofday ());
   sqlite3_stmt *stmt;
 	
   int status =
 	sqlite3_prepare (this->db_,
-					 "insert into the_table values (?,?,?,?,?)",
+					 "insert into the_table values (?,?,?,?,?,?)",
 					 -1,
 					 &stmt,
 					 0);
@@ -98,8 +100,23 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	}
 	
   status =
+	sqlite3_bind_text (stmt,
+					   3,
+					   originUser.c_str (),
+					   originUser.length (),
+					   SQLITE_STATIC);
+	
+  if (status != SQLITE_OK)
+    {
+		cerr << this->err_prefix_ << "origin user bind failed: "
+		<< this->ec_to_string (status) << endl << flush;
+		
+		return;
+	}
+	
+  status =
 	sqlite3_bind_int (stmt,
-					  3,
+					  4,
 					  tv.sec ());
 	
   if (status != SQLITE_OK)
@@ -112,7 +129,7 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   status =
 	sqlite3_bind_int (stmt,
-					  4,
+					  5,
 					  tv.usec ());
 	
   if (status != SQLITE_OK)
@@ -125,7 +142,7 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   status =
 	sqlite3_bind_blob (stmt,
-					   5,
+					   6,
 					   data.get_allocator ().address (*data.begin ()),
 					   data.size (),
 					   SQLITE_STATIC);

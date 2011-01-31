@@ -1,4 +1,4 @@
-package ammmo.gateway.protocol;
+package ammo.gateway.protocol;
 
 message AssociateDevice {
   required string device = 1;
@@ -19,6 +19,7 @@ message PushData {
   required string uri = 1;
   optional string mime_type = 2;
   optional bytes data = 3;
+  optional string origin_user = 4;
 }
 
 message PullRequest {

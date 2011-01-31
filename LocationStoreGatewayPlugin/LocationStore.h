@@ -20,7 +20,8 @@ public:
   virtual void onDataReceived (GatewayConnector *sender,
 							   std::string uri,
 							   std::string mimeType,
-							   std::vector<char> &data);
+							   std::vector<char> &data,
+							   std::string originUser);
 	
 private:
   // For debugging, maps SQLITE error codes to informative strings.

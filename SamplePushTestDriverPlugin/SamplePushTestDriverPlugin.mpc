@@ -1,0 +1,9 @@
+project(SamplePushTestDriverPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
+  after += LibGatewayConnector  
+
+  exename=SamplePushTestDriverPlugin
+
+  Source_Files {
+    main.cpp
+  }
+}

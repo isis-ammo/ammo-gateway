@@ -17,11 +17,12 @@ int main(int argc, char **argv) {
   
 #if DEBUG
 	
-  char *uri = const_cast<char *> ("http://battalion/company/platoon/squad.mil");
-  char *mime_t = const_cast<char *> ("text/plain");
+  string uri ("http://battalion/company/platoon/squad.mil");
+  string mime_t ("text/plain");
+  string origin_user ("gi.joe@usarmy.mil");
   std::vector<char> data (128, 'x');
 	
-  pushReceiver->onDataReceived (0, uri, mime_t, data);
+  pushReceiver->onDataReceived (0, uri, mime_t, data, origin_user);
 	
   delete pushReceiver;
   return 0;

@@ -1,6 +1,6 @@
-package ammmo.protocol;
+package ammo.protocol;
 
-option java_package = "edu.vu.isis.ammmo.coreapplication.pb";
+option java_package = "edu.vu.isis.ammo.coreapplication.pb";
 
 message DataMessage {
   required string uri = 1;

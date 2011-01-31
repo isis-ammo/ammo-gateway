@@ -1,0 +1,6 @@
+Makefile*
+*.o
+.depend*
+SamplePushReceiverGatewayPlugin
+SamplePushReceiverGatewayPlugin.exe
+Debug\

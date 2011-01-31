@@ -4,3 +4,4 @@ protobuf-compiler
 libcurl4-openssl-dev
 bison
 flex
+libboost-dev

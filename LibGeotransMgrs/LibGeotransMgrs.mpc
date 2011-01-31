@@ -1,0 +1,11 @@
+project(LibGeotransMgrs) : aceexe, gatewaycommon {
+  sharedname = geotrans-mgrs
+  
+  Source_Files {
+    mgrs.c
+    polarst.c
+    tranmerc.c
+    ups.c
+    utm.c
+  }
+}

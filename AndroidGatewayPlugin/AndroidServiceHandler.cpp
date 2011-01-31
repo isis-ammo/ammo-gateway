@@ -1,12 +1,25 @@
 #include "AndroidServiceHandler.h"
-#include "protocol/AmmmoMessages.pb.h"
+#include "protocol/AmmoMessages.pb.h"
+#include "AndroidMessageProcessor.h"
 
 #include <iostream>
 
 #include "ace/OS_NS_errno.h"
 
+#include "log.h"
+
+using namespace std;
+
 extern std::string gatewayAddress;
 extern int gatewayPort;
+
+AndroidServiceHandler::AndroidServiceHandler() : 
+messageProcessor(NULL),
+sendQueueMutex(), 
+receiveQueueMutex()
+{
+
+}
 
 int AndroidServiceHandler::open(void *ptr) {
   if(super::open(ptr) == -1) {
@@ -19,24 +32,37 @@ int AndroidServiceHandler::open(void *ptr) {
   collectedData = NULL;
   position = 0;
   
-  gatewayConnector = new GatewayConnector(this);
+  dataToSend = NULL;
+  position = 0;
+  
+  messageProcessor = new AndroidMessageProcessor(this);
+  messageProcessor->activate();
+}
+
+int AndroidServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
+  LOG_TRACE("Closing Message Processor");
+  messageProcessor->close(0);
+  LOG_TRACE("Waiting for message processor thread to finish...");
+  messageProcessor->wait();
+  LOG_TRACE("Message processor finished.");
+  super::handle_close(fd, m);
 }
 
 int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
-  //std::cout << "In handle_input" << std::endl << std::flush;
+  LOG_TRACE("In handle_input");
   int count = 0;
   
   if(state == READING_SIZE) {
     count = this->peer().recv_n(&dataSize, sizeof(dataSize));
-    //std::cout << "SIZE Read " << count << " bytes" << std::endl << std::flush;
+    //LOG_TRACE("SIZE Read " << count << " bytes");
   } else if(state == READING_CHECKSUM) {
     count = this->peer().recv_n(&checksum, sizeof(checksum));
-    //std::cout << "SUM Read " << count << " bytes" << std::endl << std::flush;
+    //LOG_TRACE("SUM Read " << count << " bytes");
   } else if(state == READING_DATA) {
     count = this->peer().recv(collectedData + position, dataSize - position);
-    //std::cout << "DATA Read " << count << " bytes" << std::endl << std::flush;
+    //LOG_TRACE("DATA Read " << count << " bytes");
   } else {
-    std::cout << "Invalid state!" << std::endl << std::flush;
+    LOG_ERROR("Invalid state!");
   }
   
   
@@ -45,18 +71,18 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
     if(state == READING_SIZE) {
       collectedData = new char[dataSize];
       position = 0;
-      //std::cout << "Got data size (" << dataSize << ")" << std::endl << std::flush;
+      //LOG_TRACE("Got data size (" << dataSize << ")");
       state = READING_CHECKSUM;
     } else if(state == READING_CHECKSUM) {
-      //std::cout << "Got data checksum (" << checksum << ")" << std::endl << std::flush;
+      //LOG_TRACE("Got data checksum (" << checksum << ")");
       state = READING_DATA;
     } else if(state == READING_DATA) {
-      //std::cout << "Got some data..." << std::endl << std::flush;
+      //LOG_TRACE("Got some data...");
       position += count;
       if(position == dataSize) {
-        //std::cout << "Got all the data... processing" << std::endl << std::flush;
+        //LOG_TRACE("Got all the data... processing");
         processData(collectedData, dataSize, checksum);
-        //std::cout << "Processsing complete.  Deleting buffer." << std::endl << std::flush;
+        //LOG_TRACE("Processsing complete.  Deleting buffer.");
         delete[] collectedData;
         collectedData = NULL;
         dataSize = 0;
@@ -65,165 +91,132 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
       }
     }
   } else if(count == 0) {
-    std::cout << "Connection closed." << std::endl << std::flush;
+    LOG_INFO("Connection closed.");
     return -1;
   } else if(count == -1 && ACE_OS::last_error () != EWOULDBLOCK) {
-    std::cout << "Socket error occurred. (" << ACE_OS::last_error() << ")" << std::endl << std::flush;
+    LOG_ERROR("Socket error occurred. (" << ACE_OS::last_error() << ")");
     return -1;
   }
-  //std::cout << "Leaving handle_input()" << std::endl << std::flush;
+  //LOG_TRACE("Leaving handle_input()");
   return 0;
 }
 
-void AndroidServiceHandler::sendData(ammmo::protocol::MessageWrapper &msg) {
-  /*Fixme: potential deadlock here
-  unsigned int messageSize = msg.ByteSize();
-  char *messageToSend = new char[messageSize];
-  msg.SerializeToArray(messageToSend, messageSize);
-  unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
+int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
+  int count = 0;
   
-  ACE_Message_Block *messageSizeBlock = new ACE_Message_Block(sizeof(messageSize));
-  messageSizeBlock->copy((char *) &messageSize, sizeof(messageSize));
-  this->putq(messageSizeBlock);
-  
-  ACE_Message_Block *messageChecksumBlock = new ACE_Message_Block(sizeof(messageChecksum));
-  messageChecksumBlock->copy((char *) &messageChecksum, sizeof(messageChecksum));
-  this->putq(messageChecksumBlock);
-  
-  ACE_Message_Block *messageToSendBlock = new ACE_Message_Block(messageSize);
-  messageToSendBlock->copy(messageToSend, messageSize);
-  this->putq(messageToSendBlock);
-  
-  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);*/
-  
-  unsigned int messageSize = msg.ByteSize();
-  char *messageToSend = new char[messageSize];
-  if(msg.IsInitialized()) {
-    msg.SerializeToArray(messageToSend, messageSize);
-    unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
+  do {
+    if(dataToSend == NULL) {
+      ammo::protocol::MessageWrapper *msg = getNextMessageToSend();
+      if(msg != NULL) {
+        unsigned int messageSize = msg->ByteSize();
+        sendBufferSize = messageSize + 2*sizeof(unsigned int);
+        dataToSend = new char[sendBufferSize];
+        unsigned int *size = (unsigned int *) dataToSend;
+        unsigned int *messageChecksum = (unsigned int *) (dataToSend + sizeof(unsigned int));
+        char *protobufSerializedMessage = dataToSend + 2*sizeof(unsigned int);
+        
+        *size = messageSize;
+        msg->SerializeToArray(protobufSerializedMessage, messageSize);
+        *messageChecksum = ACE::crc32(protobufSerializedMessage, messageSize);
+        
+        sendPosition = 0;
+        
+        delete msg;
+      } else {
+        //don't wake up the reactor when there's no data that needs to be sent
+        //(wake-up will be rescheduled when data becomes available in sendMessage
+        //below)
+        this->reactor()->cancel_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+        return 0;
+      }
+    }
+      
+    count = this->peer().send(dataToSend, sendBufferSize - sendPosition);
+    if(count >= 0) {
+      sendPosition += count;
+    }
     
-    this->peer().send_n(&messageSize, sizeof(messageSize));
-    this->peer().send_n(&messageChecksum, sizeof(messageChecksum));
-    this->peer().send_n(messageToSend, messageSize);
+    if(sendPosition >= (sendBufferSize - 1)) {
+      delete[] dataToSend;
+      dataToSend = NULL;
+      sendBufferSize = 0;
+      sendPosition = 0;
+    }
+  } while(count != -1);
+  
+  if(count == -1 && ACE_OS::last_error () == EWOULDBLOCK) {
+    this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
   } else {
-    std::cout << "SEND ERROR:  Message is missing a required element." << std::endl << std::flush;
+    LOG_ERROR("Socket error occurred. (" << ACE_OS::last_error() << ")");
+    return -1;
   }
+  
+  return 0;
 }
 
 int AndroidServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if(calculatedChecksum != messageChecksum) {
-    std::cout << "Invalid checksum--  we've been sent bad data (perhaps a message size mismatch?)" << std::endl << std::flush;
+    LOG_ERROR("Invalid checksum--  we've been sent bad data (perhaps a message size mismatch?)");
     return -1;
   }
   
   //checksum is valid; parse the data
-  ammmo::protocol::MessageWrapper msg;
-  bool result = msg.ParseFromArray(data, messageSize);
+  ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper();
+  bool result = msg->ParseFromArray(data, messageSize);
   if(result == false) {
-    std::cout << "MessageWrapper could not be deserialized." << std::endl;
-    std::cout << "Client must have sent something that isn't a protocol buffer (or the wrong type)." << std::endl << std::flush;
+    LOG_ERROR("MessageWrapper could not be deserialized.");
+    LOG_ERROR("Client must have sent something that isn't a protocol buffer (or the wrong type).");
+    delete msg;
     return -1;
   }
-  std::cout << "Message Received: " << msg.DebugString() << std::endl << std::flush;
+  addReceivedMessage(msg);
+  messageProcessor->signalNewMessageAvailable();
   
-  if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE) {
-    std::cout << "Received Authentication Message..." << std::endl << std::flush;
-    if(gatewayConnector != NULL) {
-      ammmo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
-      gatewayConnector->associateDevice(authMessage.device_id(), authMessage.user_id(), authMessage.user_key());
-    }
-  } else if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_DATA_MESSAGE) {
-    std::cout << "Received Data Message..." << std::endl << std::flush;
-    if(gatewayConnector != NULL) {
-      ammmo::protocol::DataMessage dataMessage = msg.data_message();
-      gatewayConnector->pushData(dataMessage.uri(), dataMessage.mime_type(), dataMessage.data());
-      ammmo::protocol::MessageWrapper ackMsg;
-      ammmo::protocol::PushAcknowledgement *ack = ackMsg.mutable_push_acknowledgement();
-      ack->set_uri(dataMessage.uri());
-      ackMsg.set_type(ammmo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
-      std::cout << "Sending push acknowledgement to connected device..." << std::endl << std::flush;
-      this->sendData(ackMsg);
-      
-    }
-  } else if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
-    std::cout << "Received Subscribe Message..." << std::endl << std::flush;
-    if(gatewayConnector != NULL) {
-      ammmo::protocol::SubscribeMessage subscribeMessage = msg.subscribe_message();
-      gatewayConnector->registerDataInterest(subscribeMessage.mime_type(), this);
-    }
-  } else if(msg.type() == ammmo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
-    std::cout << "Received Pull Request Message..." << std::endl << std::flush;
-    if(gatewayConnector != NULL) {
-      ammmo::protocol::PullRequest pullRequest = msg.pull_request();
-      // register for pull response - 
-      gatewayConnector->registerPullResponseInterest(pullRequest.mime_type(), this);
-      // now send request
-      gatewayConnector->pullRequest( pullRequest.request_uid(), pullRequest.plugin_id(), pullRequest.mime_type(), pullRequest.query(),
-				     pullRequest.projection(), pullRequest.max_results(), pullRequest.start_from_count(), pullRequest.live_query() );
-
-    }
-  }
-  
-
   return 0;
 }
 
-void AndroidServiceHandler::onConnect(GatewayConnector *sender) {
+void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg) {
+  
+  sendQueueMutex.acquire();
+  sendQueue.push(msg);
+  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+  LOG_TRACE("Queued a message to send.  " << sendQueue.size() << " messages in queue.");
+  sendQueueMutex.release();
 }
 
-void AndroidServiceHandler::onDisconnect(GatewayConnector *sender) {
-  
+ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextMessageToSend() {
+  ammo::protocol::MessageWrapper *msg = NULL;
+  sendQueueMutex.acquire();
+  if(!sendQueue.empty()) {
+    msg = sendQueue.front();
+    sendQueue.pop();
+  }
+  sendQueueMutex.release();
+  LOG_TRACE("Dequeued a message to send.  " << sendQueue.size() << " messages remain in queue.");
+  return msg;
 }
 
-void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data) {
-  std::cout << "Sending subscribed data to device..." << std::endl;
-  std::cout << "   URI: " << uri << ", Type: " << mimeType << std::endl << std::flush;;
+ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextReceivedMessage() {
+  ammo::protocol::MessageWrapper *msg = NULL;
+  receiveQueueMutex.acquire();
+  if(!receiveQueue.empty()) {
+    msg = receiveQueue.front();
+    receiveQueue.pop();
+  }
+  receiveQueueMutex.release();
   
-  std::string dataString(data.begin(), data.end());
-  ammmo::protocol::MessageWrapper msg;
-  ammmo::protocol::DataMessage *dataMsg = msg.mutable_data_message();
-  dataMsg->set_uri(uri);
-  dataMsg->set_mime_type(mimeType);
-  dataMsg->set_data(dataString);
-  
-  msg.set_type(ammmo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
-  
-  std::cout << "Sending Data Push message to connected device" << std::endl << std::flush;
-  this->sendData(msg);
+  return msg;
 }
 
-void AndroidServiceHandler::onDataReceived(GatewayConnector *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::vector<char> &data) {
-  std::cout << "Sending pull response to device..." << std::endl;
-  std::cout << "   URI: " << uri << ", Type: " << mimeType << std::endl << std::flush;;
-  
-  std::string dataString(data.begin(), data.end());
-  ammmo::protocol::MessageWrapper msg;
-  ammmo::protocol::PullResponse *pullMsg = msg.mutable_pull_response();
-
-  pullMsg->set_request_uid(requestUid);
-  pullMsg->set_plugin_id(pluginId);
-  pullMsg->set_mime_type(mimeType);
-  pullMsg->set_uri(uri);
-  pullMsg->set_data(dataString);
-  
-  msg.set_type(ammmo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);
-  
-  std::cout << "Sending Pull Response message to connected device" << std::endl << std::flush;
-  this->sendData(msg);
-}
-
-
-
-void AndroidServiceHandler::onAuthenticationResponse(GatewayConnector *sender, bool result) {
-  std::cout << "Delegate: onAuthenticationResponse" << std::endl << std::flush;
-  ammmo::protocol::MessageWrapper newMsg;
-  newMsg.set_type(ammmo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
-  newMsg.mutable_authentication_result()->set_result(result ? ammmo::protocol::AuthenticationResult_Status_SUCCESS : ammmo::protocol::AuthenticationResult_Status_SUCCESS);
-  this->sendData(newMsg);
+void AndroidServiceHandler::addReceivedMessage(ammo::protocol::MessageWrapper *msg) {
+  receiveQueueMutex.acquire();
+  receiveQueue.push(msg);
+  receiveQueueMutex.release();
 }
 
 AndroidServiceHandler::~AndroidServiceHandler() {
-  delete gatewayConnector;
+  LOG_TRACE("In ~AndroidServiceHandler");
+  delete messageProcessor;
 }

@@ -14,10 +14,10 @@ public:
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   int handle_output(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   
-  void sendData(ammmo::gateway::protocol::GatewayWrapper &msg);
+  void sendData(ammo::gateway::protocol::GatewayWrapper &msg);
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
   
-  bool sendPushedData(std::string uri, std::string mimeType, const std::string &data);
+  bool sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser);
   bool sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
 		       unsigned int maxResults, unsigned int startFromCount, bool liveQuery);
   bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string& data);
@@ -36,6 +36,9 @@ protected:
   unsigned int checksum;
   char *collectedData;
   unsigned int position;
+  
+  std::string username;
+  bool usernameAuthenticated;
   
   std::vector<std::string> registeredHandlers;
   std::vector<std::string> registeredPullRequestHandlers;

@@ -3,6 +3,8 @@
 #include "json/reader.h"
 #include "json/value.h"
 
+#include "log.h"
+
 #include <iostream>
 #include <fstream>
 
@@ -13,7 +15,7 @@ using namespace std;
 GatewayConfigurationManager *GatewayConfigurationManager::sharedInstance = NULL;
 
 GatewayConfigurationManager::GatewayConfigurationManager() : gatewayAddress("127.0.0.1"), gatewayInterface("0.0.0.0"), gatewayPort(12475) {
-  //cout << "Parsing config file..." << endl << flush;
+  LOG_DEBUG("Parsing config file...");
   ifstream configFile(CONFIG_FILE);
   if(configFile) {
     Json::Value root;
@@ -25,34 +27,32 @@ GatewayConfigurationManager::GatewayConfigurationManager() : gatewayAddress("127
       if(root["GatewayInterface"].isString()) {
         gatewayInterface = root["GatewayInterface"].asString();
       } else {
-        cout << "Error: GatewayInterface is missing or wrong type (should be string)" << endl << flush;
+        LOG_ERROR("GatewayInterface is missing or wrong type (should be string)");
       }
       
       if(root["GatewayAddress"].isString()) {
         gatewayAddress = root["GatewayAddress"].asString();
       } else {
-        cout << "Error: GatewayAddress is missing or wrong type (should be string)" << endl << flush;
+        LOG_ERROR("GatewayAddress is missing or wrong type (should be string)");
       }
       
       if(root["GatewayPort"].isInt()) {
         gatewayPort = root["GatewayPort"].asInt();
       } else {
-        cout << "Error: GatewayPort is missing or wrong type (should be integer)" << endl << flush;
+        LOG_ERROR("GatewayPort is missing or wrong type (should be integer)");
       }
     } else {
-      cout << "JSON parsing error in config file '" << CONFIG_FILE << "'.  Using defaults." << endl << flush;
+      LOG_ERROR("JSON parsing error in config file '" << CONFIG_FILE << "'.  Using defaults.");
     }
     configFile.close();
   } else {
-    cout << "Could not read from config file '" << CONFIG_FILE << "'.  Using defaults." << endl << flush;
+    LOG_WARN("Could not read from config file '" << CONFIG_FILE << "'.  Using defaults.");
   }
   
-  cout << endl;
-  cout << "Gateway Configuration: " << endl;
-  cout << "  Interface: " << gatewayInterface << endl;
-  cout << "  Address: " << gatewayAddress << endl;
-  cout << "  Port: " << gatewayPort << endl << flush;
-  cout << endl;
+  LOG_INFO("Gateway Configuration: ");
+  LOG_INFO("  Interface: " << gatewayInterface);
+  LOG_INFO("  Address: " << gatewayAddress);
+  LOG_INFO("  Port: " << gatewayPort);
 }
 
 std::string GatewayConfigurationManager::getGatewayAddress() {

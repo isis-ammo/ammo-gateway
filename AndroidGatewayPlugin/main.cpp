@@ -8,17 +8,31 @@
 #include "ace/SOCK_Acceptor.h"
 
 #include "ace/Acceptor.h"
-
 #include "ace/Reactor.h"
 
 #include "AndroidServiceHandler.h"
+
+#include "log.h"
+
+using namespace std;
 
 using namespace std;
 
 string gatewayAddress;
 int gatewayPort;
 
-int main(int argc, char **argv) {  
+int main(int argc, char **argv) {
+  // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
+  // during write)
+  {
+    struct sigaction sa;
+    sigemptyset(&sa.sa_mask);
+
+    // Register the handler for SIGINT
+    sa.sa_handler = SIG_IGN;
+    sigaction(SIGPIPE, &sa, 0);
+  }
+  
   string androidAddress = "0.0.0.0";
   int androidPort = 32869;
   
@@ -40,22 +54,21 @@ int main(int argc, char **argv) {
       argumentQueue.pop();
       androidAddress = param;
     } else {
-      cout << "Usage: AndroidGatewayPlguin [--listenPort port] [--listenAddress address]" << endl;
-      cout << endl;
-      cout << "  --listenPort port        Sets the listening port for the Android " << endl;
-      cout << "                           interface (default 32869)" << endl;
-      cout << "  --listenAddress address  Sets the listening address for the Android" << endl;
-      cout << "                           interface (default 0.0.0.0, or all interfaces)" << endl << flush;
+      LOG_FATAL("Usage: AndroidGatewayPlguin [--listenPort port] [--listenAddress address]");
+      LOG_FATAL("  --listenPort port        Sets the listening port for the Android ");
+      LOG_FATAL("                           interface (default 32869)");
+      LOG_FATAL("  --listenAddress address  Sets the listening address for the Android");
+      LOG_FATAL("                           interface (default 0.0.0.0, or all interfaces)");
       return 1;
     }
   }
   
-  cout << "Creating acceptor..." << endl;
+  LOG_DEBUG("Creating acceptor...");
   
   //TODO: make interface and port number specifiable on the command line
   ACE_INET_Addr serverAddress(androidPort, androidAddress.c_str());
   
-  cout << "Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr() << endl;
+  LOG_INFO("Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr());
   
   //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor
   //for accept events
@@ -63,6 +76,6 @@ int main(int argc, char **argv) {
   
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();
-  cout << "Starting event loop..." << endl << flush;
+  LOG_DEBUG("Starting event loop...");
   reactor->run_reactor_event_loop();
 }

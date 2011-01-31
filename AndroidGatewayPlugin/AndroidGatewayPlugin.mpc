@@ -4,11 +4,12 @@ project(AndroidGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
   exename=AndroidGatewayPlugin
   
   Protobuf_Files {
-    protocol/AmmmoMessages.proto
+    protocol/AmmoMessages.proto
   }
   
   Source_Files {
     main.cpp
     AndroidServiceHandler.cpp
+    AndroidMessageProcessor.cpp
   }
 }
