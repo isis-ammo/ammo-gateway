@@ -5,7 +5,7 @@ Build prerequisites (tested version):
   * Gsoap (2.7.17)
   * Boost C++ Libraries (1.42)
   * libcurl (OpenSSL) (7.2.1)
-  
+   
 Building on Linux:
 ==================
   1) Install build dependencies using your distribution's package manager.  See
