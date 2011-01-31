@@ -54,11 +54,15 @@ int AndroidMessageProcessor::svc() {
     newMessageAvailable.wait();
     newMessageMutex.release();
     
-    ammo::protocol::MessageWrapper *msg = commsHandler->getNextReceivedMessage();
-    if(msg) {
-      processMessage(*msg);
-      delete msg;
-    }
+    ammo::protocol::MessageWrapper *msg = NULL;
+    
+    do {
+      msg = commsHandler->getNextReceivedMessage();
+      if(msg) {
+        processMessage(*msg);
+        delete msg;
+      }
+    } while (msg != NULL);
   }
   return 0;
 }
