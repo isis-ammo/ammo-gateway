@@ -233,7 +233,7 @@ private:
   
   bool connected;
   
-  friend class GatewayServiceHandler;
+  friend class GatewayMessageProcessor;
 };
 
 /**
