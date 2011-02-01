@@ -34,6 +34,9 @@ int GatewayServiceHandler::open(void *ptr) {
   collectedData = NULL;
   position = 0;
   
+  dataToSend = NULL;
+  position = 0;
+  
   messageProcessor = new GatewayMessageProcessor(this);
   messageProcessor->activate();
   
