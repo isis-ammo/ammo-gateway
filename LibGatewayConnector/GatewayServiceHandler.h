@@ -50,6 +50,8 @@ protected:
   unsigned int sendPosition;
   unsigned int sendBufferSize;
   
+  bool connectionClosing;
+  
   GatewayConnector *parent;
   GatewayMessageProcessor *messageProcessor;
   

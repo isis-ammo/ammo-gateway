@@ -37,6 +37,8 @@ int GatewayServiceHandler::open(void *ptr) {
   dataToSend = NULL;
   position = 0;
   
+  connectionClosing = false;
+  
   messageProcessor = new GatewayMessageProcessor(this);
   messageProcessor->activate();
   
@@ -44,6 +46,7 @@ int GatewayServiceHandler::open(void *ptr) {
 }
 
 int GatewayServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
+  connectionClosing = true;
   LOG_TRACE("Closing Message Processor");
   messageProcessor->close();
   LOG_TRACE("Waiting for message processor thread to finish...");
@@ -182,11 +185,12 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
 }
 
 void GatewayServiceHandler::sendMessage(ammo::gateway::protocol::GatewayWrapper *msg) {
-  
   sendQueueMutex.acquire();
-  sendQueue.push(msg);
-  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
-  LOG_TRACE("Queued a message to send.  " << sendQueue.size() << " messages in queue.");
+  if(!connectionClosing) {
+    sendQueue.push(msg);
+    this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+    LOG_TRACE("Queued a message to send.  " << sendQueue.size() << " messages in queue.");
+  }
   sendQueueMutex.release();
 }
 
