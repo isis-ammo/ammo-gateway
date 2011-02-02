@@ -51,6 +51,8 @@ protected:
   unsigned int sendPosition;
   unsigned int sendBufferSize;
   
+  bool connectionClosing;
+  
   std::string deviceId; //not validated; just for pretty logging
   
   AndroidMessageProcessor *messageProcessor;
