@@ -35,11 +35,14 @@ int AndroidServiceHandler::open(void *ptr) {
   dataToSend = NULL;
   position = 0;
   
+  connectionClosing = false;
+  
   messageProcessor = new AndroidMessageProcessor(this);
   messageProcessor->activate();
 }
 
 int AndroidServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
+  connectionClosing = true;
   LOG_TRACE("Closing Message Processor");
   messageProcessor->close(0);
   LOG_TRACE("Waiting for message processor thread to finish...");
@@ -178,11 +181,12 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
 }
 
 void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg) {
-  
   sendQueueMutex.acquire();
-  sendQueue.push(msg);
-  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
-  LOG_TRACE("Queued a message to send.  " << sendQueue.size() << " messages in queue.");
+  if(!connectionClosing) {
+    sendQueue.push(msg);
+    this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+    LOG_TRACE("Queued a message to send.  " << sendQueue.size() << " messages in queue.");
+  }
   sendQueueMutex.release();
 }
 

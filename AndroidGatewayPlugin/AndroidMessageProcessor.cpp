@@ -116,7 +116,6 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
   }
 }
 
-
 void AndroidMessageProcessor::onConnect(GatewayConnector *sender) {
 }
 
