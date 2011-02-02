@@ -1,0 +1,10 @@
+project(AtsGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
+  after += LibGatewayConnector  
+
+  exename=AtsGatewayPlugin
+
+  Source_Files {
+    main.cpp
+    AtsHandler.cpp
+  }
+}
