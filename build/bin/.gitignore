@@ -11,3 +11,4 @@ LdapGatewayPlugin
 TigrGatewayPlugin
 PassGatewayPlugin
 SpotPushReceiverGatewayPlugin
+AtsGatewayPlugin
