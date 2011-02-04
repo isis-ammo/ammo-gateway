@@ -168,7 +168,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   LdapConfigurationManager *config = LdapConfigurationManager::getInstance();
 
   LDAPMessage *results;
-  std::string filter = "(& (objectClass=x-Military) (objectClass=inetOrgPerson) ";
+  std::string filter = "(& (objectClass=x-MilitaryPerson) (objectClass=inetOrgPerson) ";
 
   
   // build the filter based on query expression
