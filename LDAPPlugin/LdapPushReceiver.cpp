@@ -220,7 +220,6 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   // </NEW_NON_BOOST>
 
   filter += " )";
-  std::cout << "**** FILTER = " << filter << std::endl;
 
   //changed the timeout to 5 sec from 1 ... since jpeg files are taking long
   struct timeval timeout = { 5, 0 }; 
