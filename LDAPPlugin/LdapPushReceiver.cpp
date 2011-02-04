@@ -8,9 +8,6 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
-#include <boost/tokenizer.hpp>
-#include <boost/foreach.hpp>
-#include <boost/algorithm/string.hpp>
 
 #include <ldap.h>
 #include "decode.h"
@@ -176,6 +173,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   
   // build the filter based on query expression
   // query = comma-separated field-name / value pairs
+#ifdef OLD_BOOST_CODE
   boost::char_separator<char> sep("|");
   boost::tokenizer< boost::char_separator<char> > tokens(query, sep);
 
@@ -193,6 +191,51 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
       filter += ( string("(") +  attr + string("=") + val + string(") ") );
     }
   }
+#endif // OLD_BOOST_CODE
+
+  // <NEW_NON_BOOST>
+  {
+    // Divide the query string into tokens (separated by '|')
+    char separator = '|';
+    std::vector<std::string> results;
+
+    std::string::size_type pos1 = 0;
+    std::string::size_type pos2 = 0;
+    while (pos2 != std::string::npos)
+      {
+	pos2 = query.find_first_of(separator, pos1);
+	std::string t;
+	if (pos2 != std::string::npos)
+	  {
+	    t = query.substr(pos1, pos2-pos1);
+	    pos1 = (pos2 + 1);
+	  }
+	else
+	  {
+	    t = query.substr(pos1);
+	  }
+	if (t.size() != 0) results.push_back(t);
+      }
+    
+    // Now divide tokens into key-value pairs (separated by '=')
+    std::vector<std::string>::iterator p;
+    for (p=results.begin(); p < results.end(); p++)
+      {
+	std::string t = (*p);
+	std::string::size_type epos = t.find('=');
+	std::string attr,val;
+	if (epos != std::string::npos)
+	  {
+	    attr = t.substr(0,epos);
+	    val = t.substr(epos+1);
+	  }
+	if (attr != "" && val != "") 
+	  {
+	    filter += ( std::string("(") +  attr + std::string("=") + val + std::string(") ") );
+	  }
+      }
+  } 
+  // </NEW_NON_BOOST>
 
   filter += " )";
 
