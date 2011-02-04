@@ -168,30 +168,12 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   LdapConfigurationManager *config = LdapConfigurationManager::getInstance();
 
   LDAPMessage *results;
-  std::string filter = "(& (objectClass=x-MilitaryPerson) (objectClass=inetOrgPerson) ";
+  //std::string filter = "(& (objectClass=x-MilitaryPerson) (objectClass=inetOrgPerson)";
+  std::string filter = "(& (objectClass=inetOrgPerson) (objectClass=x-MilitaryPerson) ";
 
   
   // build the filter based on query expression
   // query = comma-separated field-name / value pairs
-#ifdef OLD_BOOST_CODE
-  boost::char_separator<char> sep("|");
-  boost::tokenizer< boost::char_separator<char> > tokens(query, sep);
-
-  BOOST_FOREACH(string t, tokens) {
-    string::size_type epos=t.find('=');
-    string attr,val;
-    if (epos != string::npos) {
-      attr = t.substr(0,epos);
-      val = t.substr(epos+1);
-    }
-    boost::trim(attr);
-    boost::trim(val);
-
-    if (attr != "" && val != "") {
-      filter += ( string("(") +  attr + string("=") + val + string(") ") );
-    }
-  }
-#endif // OLD_BOOST_CODE
 
   // <NEW_NON_BOOST>
   {
@@ -238,6 +220,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   // </NEW_NON_BOOST>
 
   filter += " )";
+  std::cout << "**** FILTER = " << filter << std::endl;
 
   //changed the timeout to 5 sec from 1 ... since jpeg files are taking long
   struct timeval timeout = { 5, 0 }; 
@@ -248,7 +231,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   cout << "LDAP Starting Search for: " << filter << endl;
 
   int ret = ldap_search_ext_s(ldapServer,
-			      "dc=transapp,dc=darpa,dc=mil", /* LDAP search base dn (distinguished name) */
+			      "dc=transapps,dc=darpa,dc=mil", /* LDAP search base dn (distinguished name) */
 			      LDAP_SCOPE_SUBTREE, /* scope - root and all descendants */
 			      filter.c_str(), /* filter - query expression */
 			      attrs, /* requested attributes (white-space seperated list, * = ALL) */
