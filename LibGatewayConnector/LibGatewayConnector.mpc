@@ -3,7 +3,7 @@ project(LibGatewayConnector) : aceexe, protobuf, gatewaycommon {
   
   sharedname = gatewayconnector
   
-  includes += $(GATEWAY_ROOT)/LibJSON/
+  includes += $(GATEWAY_ROOT)/LibJSON
 
   libs += json
 
