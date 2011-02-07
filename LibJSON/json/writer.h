@@ -5,6 +5,7 @@
 # include <vector>
 # include <string>
 # include <iostream>
+# include "LibJSON_Export.h"
 
 namespace Json {
 
@@ -12,7 +13,7 @@ namespace Json {
 
    /** \brief Abstract class for writers.
     */
-   class JSON_API Writer
+   class LibJSON_Export JSON_API Writer
    {
    public:
       virtual ~Writer();
@@ -26,7 +27,7 @@ namespace Json {
     * but may be usefull to support feature such as RPC where bandwith is limited.
     * \sa Reader, Value
     */
-   class JSON_API FastWriter : public Writer
+   class LibJSON_Export JSON_API FastWriter : public Writer
    {
    public:
       FastWriter();
@@ -62,7 +63,7 @@ namespace Json {
     *
     * \sa Reader, Value, Value::setComment()
     */
-   class JSON_API StyledWriter: public Writer
+   class LibJSON_Export JSON_API StyledWriter: public Writer
    {
    public:
       StyledWriter();
@@ -119,7 +120,7 @@ namespace Json {
     * \param indentation Each level will be indented by this amount extra.
     * \sa Reader, Value, Value::setComment()
     */
-   class JSON_API StyledStreamWriter
+   class LibJSON_Export JSON_API StyledStreamWriter
    {
    public:
       StyledStreamWriter( std::string indentation="\t" );

@@ -4,6 +4,7 @@
 # include "forwards.h"
 # include <string>
 # include <vector>
+# include "LibJSON_Export.h"
 
 # ifndef JSON_USE_CPPTL_SMALLMAP
 #  include <map>
@@ -59,7 +60,7 @@ namespace Json {
     * object[code] = 1234;
     * \endcode
     */
-   class JSON_API StaticString
+   class LibJSON_Export JSON_API StaticString
    {
    public:
       explicit StaticString( const char *czstring )
@@ -108,7 +109,7 @@ namespace Json {
     * It is possible to iterate over the list of a #objectValue values using 
     * the getMemberNames() method.
     */
-   class JSON_API Value 
+   class LibJSON_Export JSON_API Value 
    {
       friend class ValueIteratorBase;
 # ifdef JSON_VALUE_USE_INTERNAL_MAP
@@ -448,7 +449,7 @@ namespace Json {
 
    /** \brief Experimental and untested: represents an element of the "path" to access a node.
     */
-   class PathArgument
+   class LibJSON_Export PathArgument
    {
    public:
       friend class Path;
@@ -481,7 +482,7 @@ namespace Json {
     * - ".%" => member name is provided as parameter
     * - ".[%]" => index is provied as parameter
     */
-   class Path
+   class LibJSON_Export Path
    {
    public:
       Path( const std::string &path,
@@ -520,7 +521,7 @@ namespace Json {
     * - duplicateStringValue() and releaseStringValue() are called similarly to
     *   duplicate and free a Json::stringValue value.
     */
-   class ValueAllocator
+   class LibJSON_Export ValueAllocator
    {
    public:
       enum { unknown = (unsigned)-1 };
@@ -595,7 +596,7 @@ namespace Json {
    /** \brief ValueInternalMap hash-map bucket chain link (for internal use only).
     * \internal previous_ & next_ allows for bidirectional traversal.
     */
-   class JSON_API ValueInternalLink
+   class LibJSON_Export JSON_API ValueInternalLink
    {
    public:
       enum { itemPerLink = 6 };  // sizeof(ValueInternalLink) = 128 on 32 bits architecture.
@@ -627,7 +628,7 @@ namespace Json {
     * Only the last link of a bucket may contains 'available' item. The last link always
     * contains at least one element unless is it the bucket one very first link.
     */
-   class JSON_API ValueInternalMap
+   class LibJSON_Export JSON_API ValueInternalMap
    {
       friend class ValueIteratorBase;
       friend class Value;
@@ -725,7 +726,7 @@ namespace Json {
    * Insertion is amortized constant time (only the array containing the index of pointers
    * need to be reallocated when items are appended).
    */
-   class JSON_API ValueInternalArray
+   class LibJSON_Export JSON_API ValueInternalArray
    {
       friend class Value;
       friend class ValueIteratorBase;
@@ -844,7 +845,7 @@ public: // overridden from ValueArrayAllocator
 };
       \endcode
     */ 
-   class JSON_API ValueArrayAllocator
+   class LibJSON_Export JSON_API ValueArrayAllocator
    {
    public:
       virtual ~ValueArrayAllocator();
@@ -876,7 +877,7 @@ public: // overridden from ValueArrayAllocator
    /** \brief base class for Value iterators.
     *
     */
-   class ValueIteratorBase
+   class LibJSON_Export ValueIteratorBase
    {
    public:
       typedef unsigned int size_t;
@@ -946,7 +947,7 @@ public: // overridden from ValueArrayAllocator
    /** \brief const iterator for object and array value.
     *
     */
-   class ValueConstIterator : public ValueIteratorBase
+   class LibJSON_Export ValueConstIterator : public ValueIteratorBase
    {
       friend class Value;
    public:
@@ -1004,7 +1005,7 @@ public: // overridden from ValueArrayAllocator
 
    /** \brief Iterator for object and array value.
     */
-   class ValueIterator : public ValueIteratorBase
+   class LibJSON_Export ValueIterator : public ValueIteratorBase
    {
       friend class Value;
    public:
