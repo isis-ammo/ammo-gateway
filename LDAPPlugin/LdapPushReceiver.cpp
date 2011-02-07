@@ -225,7 +225,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   struct timeval timeout = { 5, 0 }; 
 
   LDAPControl *serverctrls = NULL, *clientctrls = NULL;
-  char *attrs[] = { "*" };
+  char *attrs[] = { "*", NULL };
   
   cout << "LDAP Starting Search for: " << filter << endl;
 
@@ -257,6 +257,12 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
     jsonResults.push_back( jsonForObject(entry) );
     entry = ldap_next_entry(ldapServer, entry);
   }
+
+  if (results) {
+    // free results                                                                                                                                
+    ldap_msgfree(results);
+  }
+
 
   return true;
 }
