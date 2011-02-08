@@ -3,9 +3,15 @@ project(LibJSON) : aceexe, gatewaycommon {
   
   includes += .
   
+  Header_Files {
+    json
+  }
+
   Source_Files {
-    json/json_reader.cpp
-    json/json_writer.cpp
-    json/json_value.cpp
+    json
+  }
+
+  Inline_Files {
+    json
   }
 }
