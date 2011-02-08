@@ -53,6 +53,8 @@ int GatewayServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
   messageProcessor->wait();
   LOG_TRACE("Message processor finished.");
   super::handle_close(fd, m);
+  
+  return 0;
 }
 
 int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
