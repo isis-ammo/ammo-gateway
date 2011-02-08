@@ -39,6 +39,8 @@ int AndroidServiceHandler::open(void *ptr) {
   
   messageProcessor = new AndroidMessageProcessor(this);
   messageProcessor->activate();
+  
+  return 0;
 }
 
 int AndroidServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
@@ -49,6 +51,8 @@ int AndroidServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
   messageProcessor->wait();
   LOG_TRACE("Message processor finished.");
   super::handle_close(fd, m);
+  
+  return 0;
 }
 
 int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {

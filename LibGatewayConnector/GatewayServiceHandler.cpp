@@ -25,7 +25,7 @@ int GatewayServiceHandler::open(void *ptr) {
   collectedData = NULL;
   position = 0;
   
-  //return 0;
+  return 0;
 }
 
 int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
