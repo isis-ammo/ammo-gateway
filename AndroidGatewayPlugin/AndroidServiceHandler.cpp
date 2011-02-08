@@ -45,6 +45,7 @@ int AndroidServiceHandler::open(void *ptr) {
 
 int AndroidServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
   connectionClosing = true;
+  //messageProcessor->gatewayConnector->close();
   LOG_TRACE("Closing Message Processor");
   messageProcessor->close(0);
   LOG_TRACE("Waiting for message processor thread to finish...");

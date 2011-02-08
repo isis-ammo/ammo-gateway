@@ -9,7 +9,7 @@
 
 using namespace std;
 
-GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : delegate(delegate), handler(NULL), connected(false) {
+GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : delegate(delegate), handler(NULL), connected(false), connectionClosed(false) {
   GatewayConfigurationManager *config = GatewayConfigurationManager::getInstance();
   
   ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayAddress().c_str());
@@ -20,8 +20,10 @@ GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : delegat
     LOG_ERROR("errno: " << errno);
     LOG_ERROR("error: " << strerror(errno));
     connected = false;
+    connectionClosed = true;
   } else {
     connected = true;
+    connectionClosed = false;
     handler->setParentConnector(this);
   }
   if(handler == NULL) {
@@ -33,11 +35,20 @@ GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : delegat
 
 GatewayConnector::~GatewayConnector() {
   //LOG_DEBUG("Deleting GatewayConnector()");
-  if(connected) {
+  if(connected && !connectionClosed) {
     handler->close();
     connector->close();
   }
   delete connector;
+}
+
+void GatewayConnector::close() {
+  if(connected && !connectionClosed) {
+    connectionClosed = true;
+    connected = false;
+    handler->close();
+    connector->close();
+  }
 }
   
 bool GatewayConnector::associateDevice(string device, string user, string key) {

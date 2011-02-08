@@ -51,6 +51,8 @@ public:
   */
   ~GatewayConnector();
   
+  void close();
+  
   //General connection negotiation and bookkeeping
   /**
   * Associates a device with this GatewayConnector in the gateway core.  This
@@ -234,6 +236,7 @@ private:
   GatewayServiceHandler *handler;
   
   bool connected;
+  bool connectionClosed;
   
   friend class GatewayMessageProcessor;
 };
