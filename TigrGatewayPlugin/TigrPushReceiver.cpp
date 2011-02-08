@@ -179,7 +179,7 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
     if(fileReference != "") {
       string imageCid = createMedia(newMedia.filename, fileReference, originUser);
       unsentEventReports[newMedia.associatedEventId].associatedMediaCids.push_back(imageCid);
-      if(unsentEventReports[newMedia.associatedEventId].associatedMediaCids.size() == unsentEventReports[newMedia.associatedEventId].mediaCount) {
+      if(unsentEventReports[newMedia.associatedEventId].associatedMediaCids.size() == (unsigned int) unsentEventReports[newMedia.associatedEventId].mediaCount) {
         sendEventReport(unsentEventReports[newMedia.associatedEventId]);
         unsentEventReports.erase(newMedia.associatedEventId);
       }
@@ -371,7 +371,7 @@ string TigrPushReceiver::jsonForObject(__ns2__union_GetResponseType &obj) {
           string coords = obj.union_GetResponseType.Event->locationList->__union_LocationListType->__union_LocationListType.ns3__Point->coordinates;
           //LOG_INFO("Coords: " << coords);
           //find the space separator
-          int sep = coords.find(" ");
+          unsigned int sep = coords.find(" ");
           if(sep != string::npos) {
             string latString = coords.substr(0, sep);
             string longString = coords.substr(sep);
@@ -458,7 +458,7 @@ string TigrPushReceiver::createMedia(string filename, string fileReference, stri
 }
 
 bool TigrPushReceiver::sendEventReport(EventReport &report) {
-  createEvent(report.title, report.description, report.latitude, report.longitude, report.timeSeconds, report.categoryId, report.associatedMediaCids, report.username);
+  return createEvent(report.title, report.description, report.latitude, report.longitude, report.timeSeconds, report.categoryId, report.associatedMediaCids, report.username);
 }
 
 bool TigrPushReceiver::createEvent(string title, string description, double latitude, double longitude, time_t timeSeconds, string categoryId, vector<string> mediaCids, string username) {
@@ -613,6 +613,7 @@ string TigrPushReceiver::uploadMedia(char *data, long length, string filename, s
     LOG_DEBUG("Returned data from POST: " << returnedData);
     return returnedData;
   }
+  return "";
 }
 
 static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData) {

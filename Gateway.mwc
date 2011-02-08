@@ -11,4 +11,5 @@ workspace(AndroidGatewayPlugin) {
   TigrGatewayPlugin/
   PassGatewayPlugin/
   SpotPushReceiverGatewayPlugin/
+  AtsGatewayPlugin/
 }

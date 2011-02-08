@@ -49,11 +49,7 @@ bool AndroidMessageProcessor::isClosed() {
 }
 
 int AndroidMessageProcessor::svc() {
-  while(!isClosed()) {
-    newMessageMutex.acquire();
-    newMessageAvailable.wait();
-    newMessageMutex.release();
-    
+  while(!isClosed()) {    
     ammo::protocol::MessageWrapper *msg = NULL;
     
     do {
@@ -63,6 +59,9 @@ int AndroidMessageProcessor::svc() {
         delete msg;
       }
     } while (msg != NULL);
+    newMessageMutex.acquire();
+    newMessageAvailable.wait();
+    newMessageMutex.release();
   }
   return 0;
 }

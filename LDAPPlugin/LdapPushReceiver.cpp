@@ -8,9 +8,6 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
-#include <boost/tokenizer.hpp>
-#include <boost/foreach.hpp>
-#include <boost/algorithm/string.hpp>
 
 #include <ldap.h>
 #include "decode.h"
@@ -171,28 +168,56 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   LdapConfigurationManager *config = LdapConfigurationManager::getInstance();
 
   LDAPMessage *results;
-  std::string filter = "(& (objectClass=x-Military) (objectClass=inetOrgPerson) ";
+  //std::string filter = "(& (objectClass=x-MilitaryPerson) (objectClass=inetOrgPerson)";
+  std::string filter = "(& (objectClass=inetOrgPerson) (objectClass=x-MilitaryPerson) ";
 
   
   // build the filter based on query expression
   // query = comma-separated field-name / value pairs
-  boost::char_separator<char> sep("|");
-  boost::tokenizer< boost::char_separator<char> > tokens(query, sep);
 
-  BOOST_FOREACH(string t, tokens) {
-    string::size_type epos=t.find('=');
-    string attr,val;
-    if (epos != string::npos) {
-      attr = t.substr(0,epos);
-      val = t.substr(epos+1);
-    }
-    boost::trim(attr);
-    boost::trim(val);
+  // <NEW_NON_BOOST>
+  {
+    // Divide the query string into tokens (separated by '|')
+    char separator = '|';
+    std::vector<std::string> results;
 
-    if (attr != "" && val != "") {
-      filter += ( string("(") +  attr + string("=") + val + string(") ") );
-    }
-  }
+    std::string::size_type pos1 = 0;
+    std::string::size_type pos2 = 0;
+    while (pos2 != std::string::npos)
+      {
+	pos2 = query.find_first_of(separator, pos1);
+	std::string t;
+	if (pos2 != std::string::npos)
+	  {
+	    t = query.substr(pos1, pos2-pos1);
+	    pos1 = (pos2 + 1);
+	  }
+	else
+	  {
+	    t = query.substr(pos1);
+	  }
+	if (t.size() != 0) results.push_back(t);
+      }
+    
+    // Now divide tokens into key-value pairs (separated by '=')
+    std::vector<std::string>::iterator p;
+    for (p=results.begin(); p < results.end(); p++)
+      {
+	std::string t = (*p);
+	std::string::size_type epos = t.find('=');
+	std::string attr,val;
+	if (epos != std::string::npos)
+	  {
+	    attr = t.substr(0,epos);
+	    val = t.substr(epos+1);
+	  }
+	if (attr != "" && val != "") 
+	  {
+	    filter += ( std::string("(") +  attr + std::string("=") + val + std::string(") ") );
+	  }
+      }
+  } 
+  // </NEW_NON_BOOST>
 
   filter += " )";
 
@@ -200,12 +225,12 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   struct timeval timeout = { 5, 0 }; 
 
   LDAPControl *serverctrls = NULL, *clientctrls = NULL;
-  char *attrs[] = { "*" };
+  char *attrs[] = { "*", NULL };
   
   cout << "LDAP Starting Search for: " << filter << endl;
 
   int ret = ldap_search_ext_s(ldapServer,
-			      "dc=transapp,dc=darpa,dc=mil", /* LDAP search base dn (distinguished name) */
+			      "dc=transapps,dc=darpa,dc=mil", /* LDAP search base dn (distinguished name) */
 			      LDAP_SCOPE_SUBTREE, /* scope - root and all descendants */
 			      filter.c_str(), /* filter - query expression */
 			      attrs, /* requested attributes (white-space seperated list, * = ALL) */
@@ -232,6 +257,12 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
     jsonResults.push_back( jsonForObject(entry) );
     entry = ldap_next_entry(ldapServer, entry);
   }
+
+  if (results) {
+    // free results                                                                                                                                
+    ldap_msgfree(results);
+  }
+
 
   return true;
 }

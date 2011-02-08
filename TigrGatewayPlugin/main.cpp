@@ -21,6 +21,10 @@ const string MEDIA_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.collector.media
 const string EVENT_PULL_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.map.object";
 const string REPORT_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.report.report_base";
 
+/**
+  Data Interest is expressed when the service subscribes to messages of a type.
+  Pull Interest expresses the ability to service pull requests.
+*/
 int main(int argc, char **argv) {  
   TigrConfigurationManager *config = TigrConfigurationManager::getInstance();
   

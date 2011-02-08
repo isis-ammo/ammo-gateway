@@ -16,6 +16,8 @@
 #include "ace/Connector.h"
 #include "ace/SOCK_Connector.h"
 
+#include "LibGatewayConnector_Export.h"
+
 #include "GatewayServiceHandler.h"
 
 class GatewayConnectorDelegate;
@@ -31,7 +33,7 @@ class PullResponseReceiverListener;
 * for each connected device; this aids in tracking requests and subscriptions
 * for multiple devices).
 */
-class GatewayConnector {
+class LibGatewayConnector_Export GatewayConnector {
 public:
   /**
   * Creates a new GatewayConnector with the given GatewayConnectorDelegate and
@@ -241,7 +243,7 @@ private:
 * this class to implement behaviors associated with lifecycle events of the
 * gateway connector, such as connection and disconnection.
 */
-class GatewayConnectorDelegate {
+class LibGatewayConnector_Export GatewayConnectorDelegate {
 public:
   /**
   * Called when the GatewayConnector connects to the gateway core.
@@ -274,7 +276,7 @@ public:
 * Listener class for pushed data.  Plugins subclass this class to receive data
 * pushed with pushData.
 */
-class DataPushReceiverListener {
+class LibGatewayConnector_Export DataPushReceiverListener {
 public:
   virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUsername) = 0;
 };
@@ -283,7 +285,7 @@ public:
 * Listener class for pull requests.  Plugins subclass this class to receive
 * pull requests sent with pullRequest.
 */
-class PullRequestReceiverListener {
+class LibGatewayConnector_Export PullRequestReceiverListener {
 public:
   /**
   * Called when a pull request is received by the gateway for the registered
@@ -301,7 +303,7 @@ public:
 * Listener class for pull responses.  Plugins subclass this class to receive
 * responses from pull requests.
 */
-class PullResponseReceiverListener {
+class LibGatewayConnector_Export PullResponseReceiverListener {
 public:
   virtual void onDataReceived(GatewayConnector *sender, 
 			      std::string requestUid, std::string pluginId, std::string mimeType,

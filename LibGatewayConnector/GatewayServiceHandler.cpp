@@ -35,7 +35,6 @@ int GatewayServiceHandler::open(void *ptr) {
   position = 0;
   
   dataToSend = NULL;
-  position = 0;
   
   connectionClosing = false;
   
@@ -43,6 +42,7 @@ int GatewayServiceHandler::open(void *ptr) {
   messageProcessor->activate();
   
   //return 0;
+  return 0;
 }
 
 int GatewayServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {

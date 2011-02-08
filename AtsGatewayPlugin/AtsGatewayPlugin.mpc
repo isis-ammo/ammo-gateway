@@ -1,0 +1,16 @@
+project(AtsGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
+  after += LibGatewayConnector LibJSON
+
+  libs+=curl
+
+  includes+=.
+  includes+=$(GATEWAY_ROOT)/LibJSON
+
+  exename=AtsGatewayPlugin
+
+  Source_Files {
+    main.cpp
+    AtsHandler.cpp
+    AtsConfigMgr.cpp
+  }
+}

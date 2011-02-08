@@ -1,5 +1,5 @@
-#ifndef SAMPLE_PUSH_RECEIVER_H
-#define SAMPLE_PUSH_RECEIVER_H
+#ifndef TIGR_PUSH_RECEIVER_H
+#define TIGR_PUSH_RECEIVER_H
 
 #include "GatewayConnector.h"
 #include <ctime>
@@ -86,4 +86,4 @@ private:
 
 static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData);
 
-#endif        //  #ifndef SAMPLE_PUSH_RECEIVER_H
+#endif        //  #ifndef TIGR_PUSH_RECEIVER_H

@@ -9,7 +9,7 @@
 
 using namespace std;
 
-GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : connected(false), handler(NULL), delegate(delegate) {
+GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : delegate(delegate), handler(NULL), connected(false) {
   GatewayConfigurationManager *config = GatewayConfigurationManager::getInstance();
   
   ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayAddress().c_str());

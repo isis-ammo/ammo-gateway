@@ -16,8 +16,6 @@
 
 using namespace std;
 
-using namespace std;
-
 string gatewayAddress;
 int gatewayPort;
 

@@ -25,7 +25,6 @@ int main(int argc, char **argv) {
   pushReceiver->onDataReceived (0, uri, mime_t, data, origin_user);
 	
   delete pushReceiver;
-  return 0;
 	
 #else
 	
@@ -39,4 +38,6 @@ int main(int argc, char **argv) {
   reactor->run_reactor_event_loop();
 	
 #endif
+
+  return 0;
 }

@@ -7,13 +7,14 @@
 # include <stack>
 # include <string>
 # include <iostream>
+# include  "LibJSON_Export.h"
 
 namespace Json {
 
    /** \brief Unserialize a <a HREF="http://www.json.org">JSON</a> document into a Value.
     *
     */
-   class JSON_API Reader
+   class LibJSON_Export JSON_API Reader
    {
    public:
       typedef char Char;
