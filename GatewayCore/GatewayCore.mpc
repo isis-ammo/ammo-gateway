@@ -8,6 +8,10 @@ project(GatewayCore) : aceexe, protobuf, gatewaycommon {
   libpaths += $(GATEWAY_ROOT)/build/lib
   libs += json
   
+  specific(prop:windows) {
+    macros += JSON_DLL_BUILD
+  }
+  
   Protobuf_Files {
     protocol/GatewayPrivateMessages.proto
   }

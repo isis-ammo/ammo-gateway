@@ -3,6 +3,10 @@ project(LibJSON) : aceexe, gatewaycommon {
   
   includes += .
   
+  specific(prop:windows) {
+    macros += JSON_DLL_BUILD
+  }
+  
   Header_Files {
     json
   }

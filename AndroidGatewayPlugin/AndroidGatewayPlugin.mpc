@@ -3,6 +3,10 @@ project(AndroidGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
 
   exename=AndroidGatewayPlugin
   
+  specific(prop:windows) {
+    macros += JSON_DLL
+  }
+  
   Protobuf_Files {
     protocol/AmmoMessages.proto
   }
