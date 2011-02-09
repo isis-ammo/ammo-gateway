@@ -3,9 +3,19 @@ project(LibJSON) : aceexe, gatewaycommon {
   
   includes += .
   
+  specific(prop:windows) {
+    macros += JSON_DLL_BUILD
+  }
+  
+  Header_Files {
+    json
+  }
+
   Source_Files {
-    json/json_reader.cpp
-    json/json_writer.cpp
-    json/json_value.cpp
+    json
+  }
+
+  Inline_Files {
+    json
   }
 }

@@ -2,4 +2,8 @@ project {
   includes += $(GATEWAY_ROOT)/LibGatewayConnector
   libs += gatewayconnector json
   libpaths += $(GATEWAY_ROOT)/build/lib
+  
+  specific(prop:windows) {
+    macros += JSON_DLL_BUILD
+  }
 }
