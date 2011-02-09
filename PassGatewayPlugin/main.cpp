@@ -66,4 +66,5 @@ int main(int argc, char **argv) {
   subscriber.close(0);
   cout << "Waiting for subscription server to unsubscribe..." << endl << flush;
   subscriber.wait();
+  return 0;
 }
