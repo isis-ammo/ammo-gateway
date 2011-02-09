@@ -2,6 +2,7 @@
 #define ANDROID_MESSAGE_PROCESSOR_FACTORY_H
 
 #include <string>
+#include <map>
 
 class AndroidMessageProcessor;
 
@@ -15,6 +16,9 @@ public:
   AndroidMessageProcessor *getTemporaryMessageProcessor();
   
 private:
+  static AndroidMessageProcessorFactory *sharedInstance;
+  
+  std::map<std::string, AndroidMessageProcessor *> messageProcessors;
 };
 
 #endif //ANDROID_MESSAGE_PROCESSOR_FACTORY_H
