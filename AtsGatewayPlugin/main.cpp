@@ -36,11 +36,16 @@ int main(int argc, char **argv) {
   GatewayConnector* gwc = new GatewayConnector(dataHandler);
   
   setRegisterPullInterest(gwc, RTC_PEOPLE_LIST_NS, dataHandler);
-  setRegisterPullInterest(gwc, RTC_CHANNEL_CREATE_NS, dataHandler);
+
+  setRegisterDataInterest(gwc, RTC_CHANNEL_CREATE_NS, dataHandler);
+
   setRegisterPullInterest(gwc, RTC_CHANNEL_LIST_NS, dataHandler);
+
   setRegisterPullInterest(gwc, RTC_CHANNEL_ACTIVATE_NS, dataHandler);
   setRegisterPullInterest(gwc, RTC_CHANNEL_PASSIVATE_NS, dataHandler);
+
   setRegisterDataInterest(gwc, RTC_CHANNEL_MEDIA_UPLOAD_NS, dataHandler);
+
   setRegisterPullInterest(gwc, RTC_CHANNEL_MEDIA_LIST_NS, dataHandler);
   setRegisterPullInterest(gwc, RTC_CHANNEL_MEDIA_FILE_NS, dataHandler);
   setRegisterPullInterest(gwc, RTC_CHANNEL_MEDIA_CLIP_NS, dataHandler);
