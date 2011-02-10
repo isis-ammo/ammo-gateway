@@ -12,7 +12,7 @@ using namespace std;
 
 LdapConfigurationManager *LdapConfigurationManager::sharedInstance = NULL;
 
-LdapConfigurationManager::LdapConfigurationManager() : ldapBaseAddress("localhost"), ldapUsername("cn=Manager,dc=transapp,dc=darpa,dc=mil"), ldapPassword("ammmo") {
+LdapConfigurationManager::LdapConfigurationManager() : ldapBaseAddress("localhost"), ldapUsername("cn=Manager,dc=transapps,dc=darpa,dc=mil"), ldapPassword("ammmo") {
   //cout << "Parsing config file..." << endl << flush;
   ifstream configFile(LDAP_CONFIG_FILE);
   if(configFile) {
