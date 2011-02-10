@@ -31,10 +31,15 @@ int main(int argc, char **argv) {
   AtsConfigMgr* config = AtsConfigMgr::getInstance(); // load the configuration file
 
   LOG_DEBUG("Creating gateway connector...");
+  LOG_INFO(" host: "+ config->getHost());
+  LOG_INFO(" dir:  "+ config->getBaseDir());
+  LOG_INFO(" url:  "+ config->getUrl());
   
   AtsHandler* dataHandler = new AtsHandler();
   
-  GatewayConnector* gwc = new GatewayConnector(dataHandler, config->getGatewayConfig());
+  GatewayConnector* gwc = (config->hasGatewayConfig())
+         ? new GatewayConnector(dataHandler, config->getGatewayConfig())
+         : new GatewayConnector(dataHandler);
   
   setRegisterPullInterest(gwc, RTC_PEOPLE_LIST_NS, dataHandler);
   setRegisterPullInterest(gwc, RTC_CHANNEL_LIST_NS, dataHandler);

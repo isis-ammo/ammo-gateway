@@ -43,11 +43,11 @@ GatewayConfigurationManager::GatewayConfigurationManager(const char* configFileN
         LOG_ERROR("Error: GatewayPort is missing or wrong type (should be integer)");
       }
     } else {
-      LOG_ERROR("JSON parsing error in config file '" << CONFIG_FILE << "'.  Using defaults.");
+      LOG_ERROR("JSON parsing error in config file '" << configFileName << "'.  Using defaults.");
     }
     configFile.close();
   } else {
-    LOG_WARN("Could not read from config file '" << CONFIG_FILE << "'.  Using defaults.");
+    LOG_WARN("Could not read from config file '" << configFileName << "'.  Using defaults.");
   }
   
   LOG_INFO("Gateway Configuration: ");

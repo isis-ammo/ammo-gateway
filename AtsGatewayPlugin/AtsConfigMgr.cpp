@@ -28,13 +28,6 @@ AtsConfigMgr::AtsConfigMgr() : parsingSuccessful(false)
      return;
   }
   configFile.close();
-  
-  // LOG_INFO(" Connector Configuration: ");
-  // LOG_INFO("  Host:      " << root->getAtsHost());
-  // LOG_INFO("  Port:      " << root->getAtsPort());
-  // LOG_INFO("  Base Dir:  " << root->getAtsBaseDir());
-  // LOG_INFO("  Address:   " << root->getAtsUsername());
-  // LOG_INFO("  Password:  " << root->getAtsPassword());
 }
 
 AtsConfigMgr* AtsConfigMgr::getInstance() {
@@ -44,42 +37,47 @@ AtsConfigMgr* AtsConfigMgr::getInstance() {
   return sharedInstance;
 }
 
+bool AtsConfigMgr::hasGatewayConfig() const {
+    if(! parsingSuccessful) return false;
+    return root["GatewayConfig"].isString();
+}
+
 std::string AtsConfigMgr::getGatewayConfig() const {
     if(! parsingSuccessful) return "";
     if(! root["GatewayConfig"].isString()) {
-        LOG_ERROR("Error: GatewayConfig is missing or wrong type (should be string)");
         return "";
     }
+    LOG_WARN("Warn: GatewayConfig is being overridden " + root["GatewayConfig"].asString());
     return root["GatewayConfig"].asString();
 }
 
 std::string AtsConfigMgr::getHost() const {
     if(! parsingSuccessful) return "flagon.aterrasys.com";
-    if(! root["AtsHost"].isString()) {
-        LOG_ERROR("Error: AtsHost is missing or wrong type (should be string)");
+    if(! root["Host"].isString()) {
+        LOG_WARN("Error: Host is missing or wrong type (should be string)");
         return "localhost";
     }
-    return root["AtsHost"].asString();
+    return root["Host"].asString();
 }
 
 
 int AtsConfigMgr::getPort() const {
     if(! parsingSuccessful) return 80;
-    if(! root["AtsPort"].isInt()) {
-      LOG_ERROR("Error: AtsPort is missing or wrong type (should be integer)");
+    if(! root["Port"].isInt()) {
+      LOG_WARN("Error: Port is missing or wrong type (should be integer)");
       return 80;
     } 
-    return root["AtsPort"].asInt();
+    return root["Port"].asInt();
 }
 
 
 std::string AtsConfigMgr::getBaseDir() const {
     if(! parsingSuccessful) return "nevada/api/";
-    if(! root["AtsBaseDir"].isString()) {
-      LOG_ERROR("Error: AtsBaseDir is missing or wrong type (should be string)");
+    if(! root["BaseDir"].isString()) {
+      LOG_WARN("Error: BaseDir is missing or wrong type (should be string)");
       return "nevada/api/";
     } 
-    return root["AtsBaseDir"].asString();
+    return root["BaseDir"].asString();
 }
 
 std::string AtsConfigMgr::getUrl() const {
@@ -94,8 +92,8 @@ std::string AtsConfigMgr::getUrl(std::string suffix) const {
 
 std::string AtsConfigMgr::getUsername() const {
     if(! parsingSuccessful) return "guest";
-    if(! root["AtsUserName"].isString()) {
-      LOG_ERROR("Error: AtsUserName is missing or wrong type (should be string)");
+    if(! root["UserName"].isString()) {
+      LOG_WARN("Error: AtsUserName is missing or wrong type (should be string)");
       return "guest";
     } 
     return root["AtsUserName"].asString();
@@ -103,8 +101,8 @@ std::string AtsConfigMgr::getUsername() const {
 
 std::string AtsConfigMgr::getPassword() const {
     if(! parsingSuccessful) return "secret";
-    if(! root["AtsPassword"].isString()) {
-      LOG_ERROR("Error: AtsPassword is missing or wrong type (should be string)");
+    if(! root["Password"].isString()) {
+      LOG_WARN("Error: AtsPassword is missing or wrong type (should be string)");
       return "secret";
     } 
     return root["AtsPassword"].asString();

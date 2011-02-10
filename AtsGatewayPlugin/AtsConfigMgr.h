@@ -10,6 +10,7 @@ class AtsConfigMgr {
 public:
   static AtsConfigMgr* getInstance();
   
+  bool hasGatewayConfig() const;
   std::string getGatewayConfig() const;
 
   std::string getHost() const;
