@@ -1,5 +1,5 @@
-#ifndef LDAP_RECEIVER_H
-#define LDAP_RECEIVER_H
+#ifndef LDAP_PUSH_RECEIVER_H
+#define LDAP_PUSH_RECEIVER_H
 
 #include "GatewayConnector.h"
 #include <ctime>
@@ -51,5 +51,5 @@ private:
 
 static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData);
 
-#endif        //  #ifndef SAMPLE_PUSH_RECEIVER_H
+#endif        //  #ifndef LDAP_PUSH_RECEIVER_H
 

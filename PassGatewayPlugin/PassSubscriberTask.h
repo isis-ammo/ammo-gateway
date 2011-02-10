@@ -1,3 +1,6 @@
+#ifndef PASS_SUBSCRIBER_TASK_H
+#define PASS_SUBSCRIBER_TASK_H
+
 #include "ace/Task.h"
 
 class PassSubscriberTask : public ACE_Task <ACE_MT_SYNCH> {
@@ -16,3 +19,5 @@ private:
   int subscribe();
   int unsubscribe();
 };
+
+#endif // PASS_SUBSCRIBER_TASK_H

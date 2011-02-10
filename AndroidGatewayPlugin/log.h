@@ -10,4 +10,4 @@
 #define LOG_ERROR(msg) std::cout << "ERROR " << msg << std::endl << std::flush
 #define LOG_FATAL(msg) std::cout << "FATAL " << msg << std::endl << std::flush
 
-#endif
+#endif // LOG_H
