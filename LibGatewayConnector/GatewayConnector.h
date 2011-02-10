@@ -18,6 +18,7 @@
 
 #include "LibGatewayConnector_Export.h"
 
+#include "GatewayConfigurationManager.h"
 #include "GatewayServiceHandler.h"
 
 class GatewayConnectorDelegate;
@@ -42,10 +43,12 @@ public:
   * @param delegate A GatewayConnectorDelegate object to be used by this
   *                 GatewayConnector instance.  May be NULL (no delegate methods
   *                 will be called).
+  * @param configfile The optional configuration file path
   * @param loggerName The logger name that should be used by this GatewayConnector.
   */
   GatewayConnector(GatewayConnectorDelegate *delegate);
-  
+  GatewayConnector(GatewayConnectorDelegate *delegate, std::string configfile);
+
   /**
   * Destroys a GatewayConnector.
   */
@@ -220,6 +223,8 @@ public:
   bool unregisterPullResponseInterest(std::string mime_type);
   
 private:
+  void init(GatewayConnectorDelegate *delegate, GatewayConfigurationManager *config); 
+
   void onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg);
   void onPushDataReceived(const ammo::gateway::protocol::PushData &msg);
   void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg);

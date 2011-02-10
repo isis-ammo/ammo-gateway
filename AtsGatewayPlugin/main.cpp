@@ -28,28 +28,26 @@ int setRegisterPullInterest(GatewayConnector* gwc, std::string interest, AtsHand
 }
 
 int main(int argc, char **argv) {  
-  std::cout << "Creating gateway connector..." << std::endl <<std:: flush;
+  AtsConfigMgr* config = AtsConfigMgr::getInstance(); // load the configuration file
+
   LOG_DEBUG("Creating gateway connector...");
   
   AtsHandler* dataHandler = new AtsHandler();
   
-  GatewayConnector* gwc = new GatewayConnector(dataHandler);
+  GatewayConnector* gwc = new GatewayConnector(dataHandler, config->getGatewayConfig());
   
   setRegisterPullInterest(gwc, RTC_PEOPLE_LIST_NS, dataHandler);
-
-  setRegisterDataInterest(gwc, RTC_CHANNEL_CREATE_NS, dataHandler);
-
   setRegisterPullInterest(gwc, RTC_CHANNEL_LIST_NS, dataHandler);
-
   setRegisterPullInterest(gwc, RTC_CHANNEL_ACTIVATE_NS, dataHandler);
   setRegisterPullInterest(gwc, RTC_CHANNEL_PASSIVATE_NS, dataHandler);
-
-  setRegisterDataInterest(gwc, RTC_CHANNEL_MEDIA_UPLOAD_NS, dataHandler);
 
   setRegisterPullInterest(gwc, RTC_CHANNEL_MEDIA_LIST_NS, dataHandler);
   setRegisterPullInterest(gwc, RTC_CHANNEL_MEDIA_FILE_NS, dataHandler);
   setRegisterPullInterest(gwc, RTC_CHANNEL_MEDIA_CLIP_NS, dataHandler);
   setRegisterPullInterest(gwc, RTC_CHANNEL_AGGREGATE_NS, dataHandler);
+
+  setRegisterDataInterest(gwc, RTC_CHANNEL_CREATE_NS, dataHandler);
+  setRegisterDataInterest(gwc, RTC_CHANNEL_MEDIA_UPLOAD_NS, dataHandler);
 
   setRegisterDataInterest(gwc, RTC_INVITE_NS, dataHandler);
   setRegisterDataInterest(gwc, RTC_SHARE_GPS_NS, dataHandler);

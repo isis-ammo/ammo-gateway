@@ -1,0 +1,14 @@
+{
+  "GatewayInterface": "0.0.0.0", //Interface that Gateway will listen on (default to all interfaces if not specified)
+
+  "GatewayHost": "127.0.0.1", //Remote address to connect to Gateway (defaults to localhost if not specified)
+  "GatewayPort": 12475,           //Port that Gateway will listen on (default to 12475 if not specified)
+
+  "AtsHost":  "flagon.aterrasys.com",  //Host name for the Aterrasys Server
+  "AtsPort":  8080,  //Port on the Aterrasys Server
+
+  "AtsUsername":  "guest",  // user name for the Aterrasys Server
+  "AtsPassword":  "secret"  // password for the user name on the Aterrasys Server
+}
+
+//:mode=javascript: (jEdit modeline for syntax highlighting)

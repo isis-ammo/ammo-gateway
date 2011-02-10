@@ -1,87 +1,113 @@
-#include "AtsConfigMgr.h"
 
-#include "log.h"
 
 #include <iostream>
+#include <sstream>
 #include <fstream>
+
+#include "log.h"
+#include "AtsConfigMgr.h"
 
 const char *ATS_CONFIG_FILE = "AtsPluginConfig.json";
 
-using namespace std;
-
 AtsConfigMgr *AtsConfigMgr::sharedInstance = NULL;
 
-AtsConfigMgr::AtsConfigMgr() : atsBaseAddress("http://ats/"), 
-   atsUsername("ats_admin"), atsPassword("ats_pass"), atsBaseDir("") 
+AtsConfigMgr::AtsConfigMgr() : parsingSuccessful(false) 
 {
   //LOG_TRACE("Parsing config file...");
-  ifstream configFile(ATS_CONFIG_FILE);
-  if(configFile) {
-    Json::Reader reader;
+  std::ifstream configFile(ATS_CONFIG_FILE);
+  if(! configFile) {
+       LOG_WARN("Could not read from config file '" << ATS_CONFIG_FILE << "'.  Using defaults.");
+       return;
+  } 
+  Json::Reader reader;
     
-    bool parsingSuccessful = reader.parse(configFile, root);
+  parsingSuccessful = reader.parse(configFile, root);
     
-    if(parsingSuccessful) {
-      if(root["BaseAddress"].isString()) {
-        atsBaseAddress = root["BaseAddress"].asString();
-      } else {
-        LOG_ERROR("Error: BaseAddress is missing or wrong type (should be string)");
-      }
-      
-      if(root["Username"].isString()) {
-        atsUsername = root["Username"].asString();
-      } else {
-        LOG_ERROR("Error: Username is missing or wrong type (should be string)");
-      }
-      
-      if(root["BaseDir"].isString()) {
-        atsBaseDir = root["BaseDir"].asString();
-      } else {
-        LOG_ERROR("Error: BaseDir is missing or wrong type (should be string)");
-      }
-      
-      if(root["Password"].isString()) {
-        atsPassword = root["Password"].asString();
-      } else {
-        LOG_ERROR("Error: Password is missing or wrong type (should be integer)");
-      }
-    } else {
-      LOG_ERROR("JSON parsing error in config file '" << ATS_CONFIG_FILE << "'.  Using defaults.");
-    }
-    configFile.close();
-  } else {
-    LOG_WARN("Could not read from config file '" << ATS_CONFIG_FILE << "'.  Using defaults.");
+  if(! parsingSuccessful) {
+     LOG_ERROR("JSON parsing error in config file '" << ATS_CONFIG_FILE << "'.  Using defaults.");
+     return;
   }
+  configFile.close();
   
-  LOG_INFO(" Connector Configuration: ");
-  LOG_INFO("  Base Address: " << atsBaseAddress);
-  LOG_INFO("  Address: " << atsUsername);
-  LOG_INFO("  Password: " << atsPassword);
-  LOG_INFO("  Base Path: " << atsBaseDir);
+  // LOG_INFO(" Connector Configuration: ");
+  // LOG_INFO("  Host:      " << root->getAtsHost());
+  // LOG_INFO("  Port:      " << root->getAtsPort());
+  // LOG_INFO("  Base Dir:  " << root->getAtsBaseDir());
+  // LOG_INFO("  Address:   " << root->getAtsUsername());
+  // LOG_INFO("  Password:  " << root->getAtsPassword());
 }
 
-std::string AtsConfigMgr::getBaseAddress() {
-  return atsBaseAddress;
+AtsConfigMgr* AtsConfigMgr::getInstance() {
+  if(sharedInstance == NULL) {
+    sharedInstance = new AtsConfigMgr();
+  }
+  return sharedInstance;
 }
 
-std::string AtsConfigMgr::getBaseDir() {
-  return atsBaseDir;
+std::string AtsConfigMgr::getGatewayConfig() const {
+    if(! parsingSuccessful) return "";
+    if(! root["GatewayConfig"].isString()) {
+        LOG_ERROR("Error: GatewayConfig is missing or wrong type (should be string)");
+        return "";
+    }
+    return root["GatewayConfig"].asString();
 }
 
-std::string AtsConfigMgr::getBasePath() {
-  return atsBaseAddress + atsBaseDir;
+std::string AtsConfigMgr::getHost() const {
+    if(! parsingSuccessful) return "flagon.aterrasys.com";
+    if(! root["AtsHost"].isString()) {
+        LOG_ERROR("Error: AtsHost is missing or wrong type (should be string)");
+        return "localhost";
+    }
+    return root["AtsHost"].asString();
 }
 
-std::string AtsConfigMgr::getPath(std::string suffix) const {
-  return atsBaseAddress + atsBaseDir + suffix;
+
+int AtsConfigMgr::getPort() const {
+    if(! parsingSuccessful) return 80;
+    if(! root["AtsPort"].isInt()) {
+      LOG_ERROR("Error: AtsPort is missing or wrong type (should be integer)");
+      return 80;
+    } 
+    return root["AtsPort"].asInt();
 }
 
-std::string AtsConfigMgr::getUsername() {
-  return atsUsername;
+
+std::string AtsConfigMgr::getBaseDir() const {
+    if(! parsingSuccessful) return "nevada/api/";
+    if(! root["AtsBaseDir"].isString()) {
+      LOG_ERROR("Error: AtsBaseDir is missing or wrong type (should be string)");
+      return "nevada/api/";
+    } 
+    return root["AtsBaseDir"].asString();
 }
 
-std::string AtsConfigMgr::getPassword() {
-  return atsPassword;
+std::string AtsConfigMgr::getUrl() const {
+  std::ostringstream url;  
+  url << "http://" << getHost() << ":" << getPort() << "/" << getBaseDir();
+  return url.str();
+}
+
+std::string AtsConfigMgr::getUrl(std::string suffix) const {
+  return getUrl() + "/" + suffix;
+}
+
+std::string AtsConfigMgr::getUsername() const {
+    if(! parsingSuccessful) return "guest";
+    if(! root["AtsUserName"].isString()) {
+      LOG_ERROR("Error: AtsUserName is missing or wrong type (should be string)");
+      return "guest";
+    } 
+    return root["AtsUserName"].asString();
+}
+
+std::string AtsConfigMgr::getPassword() const {
+    if(! parsingSuccessful) return "secret";
+    if(! root["AtsPassword"].isString()) {
+      LOG_ERROR("Error: AtsPassword is missing or wrong type (should be string)");
+      return "secret";
+    } 
+    return root["AtsPassword"].asString();
 }
 
 std::pair<std::string, std::string> AtsConfigMgr::getCredentialsForUser(std::string username) {
@@ -90,7 +116,7 @@ std::pair<std::string, std::string> AtsConfigMgr::getCredentialsForUser(std::str
   newCredentials.first = getUsername();
   newCredentials.second = getPassword();
   
-  if(username != "") {
+  if( getUsername() != "") {
     if (root["UsernameMap"].isObject() 
      && root["UsernameMap"][username].isObject() 
      && root["UsernameMap"][username]["Username"].isString() 
@@ -103,9 +129,3 @@ std::pair<std::string, std::string> AtsConfigMgr::getCredentialsForUser(std::str
   return newCredentials;
 }
 
-AtsConfigMgr* AtsConfigMgr::getInstance() {
-  if(sharedInstance == NULL) {
-    sharedInstance = new AtsConfigMgr();
-  }
-  return sharedInstance;
-}

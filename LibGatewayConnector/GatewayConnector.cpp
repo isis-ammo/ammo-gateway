@@ -10,8 +10,14 @@
 using namespace std;
 
 GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : delegate(delegate), handler(NULL), connected(false) {
-  GatewayConfigurationManager *config = GatewayConfigurationManager::getInstance();
-  
+  init(delegate, GatewayConfigurationManager::getInstance());
+}
+
+GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate, std::string configFile) : delegate(delegate), handler(NULL), connected(false) {
+  init(delegate, GatewayConfigurationManager::getInstance(configFile.c_str()));
+}
+
+void GatewayConnector::init(GatewayConnectorDelegate *delegate, GatewayConfigurationManager *config) { 
   ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayAddress().c_str());
   connector = new ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector>();
   int status = connector->connect(handler, serverAddress);
