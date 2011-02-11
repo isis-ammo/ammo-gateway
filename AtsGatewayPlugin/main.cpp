@@ -41,18 +41,18 @@ int main(int argc, char **argv) {
          ? new GatewayConnector(dataHandler, config->getGatewayConfig())
          : new GatewayConnector(dataHandler);
   
-  setRegisterPullInterest(gwc, RTC_PEOPLE_LIST_NS, dataHandler);
-  setRegisterPullInterest(gwc, RTC_CHANNEL_LIST_NS, dataHandler);
-  setRegisterPullInterest(gwc, RTC_CHANNEL_ACTIVATE_NS, dataHandler);
-  setRegisterPullInterest(gwc, RTC_CHANNEL_PASSIVATE_NS, dataHandler);
+  setRegisterPullInterest(gwc, RTC_LIST_PEOPLE_NS, dataHandler);
+  setRegisterPullInterest(gwc, RTC_LIST_CHANNEL_NS, dataHandler);
+  setRegisterPullInterest(gwc, RTC_ACTIVATE_CHANNEL_NS, dataHandler);
+  setRegisterPullInterest(gwc, RTC_PASSIVATE_CHANNEL_NS, dataHandler);
 
-  setRegisterPullInterest(gwc, RTC_CHANNEL_MEDIA_LIST_NS, dataHandler);
-  setRegisterPullInterest(gwc, RTC_CHANNEL_MEDIA_FILE_NS, dataHandler);
-  setRegisterPullInterest(gwc, RTC_CHANNEL_MEDIA_CLIP_NS, dataHandler);
-  setRegisterPullInterest(gwc, RTC_CHANNEL_AGGREGATE_NS, dataHandler);
+  setRegisterPullInterest(gwc, RTC_LIST_CHANNEL_MEDIA_NS, dataHandler);
+  setRegisterPullInterest(gwc, RTC_GET_CHANNEL_MEDIA_FILE_NS, dataHandler);
+  setRegisterPullInterest(gwc, RTC_GET_CHANNEL_MEDIA_CLIP_NS, dataHandler);
+  setRegisterPullInterest(gwc, RTC_AGGREGATE_CHANNEL_NS, dataHandler);
 
-  setRegisterDataInterest(gwc, RTC_CHANNEL_CREATE_NS, dataHandler);
-  setRegisterDataInterest(gwc, RTC_CHANNEL_MEDIA_UPLOAD_NS, dataHandler);
+  setRegisterDataInterest(gwc, RTC_CREATE_CHANNEL_NS, dataHandler);
+  setRegisterDataInterest(gwc, RTC_UPLOAD_CHANNEL_MEDIA_NS, dataHandler);
 
   setRegisterDataInterest(gwc, RTC_INVITE_NS, dataHandler);
   setRegisterDataInterest(gwc, RTC_SHARE_GPS_NS, dataHandler);
