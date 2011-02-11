@@ -302,3 +302,17 @@ GatewayServiceHandler::~GatewayServiceHandler() {
     GatewayCore::getInstance()->unregisterPullInterest(*it, this);
   }
 }
+
+std::ostream& operator<< (std::ostream& out, const GatewayServiceHandler& handler) {
+    out << &handler;
+    return out;
+}
+
+std::ostream& operator<< (std::ostream& out, const GatewayServiceHandler* handler) {
+    // Since operator<< is a friend of the GatewayServiceHandler class, 
+    // we can access handler's members directly.
+    out << "(" << reinterpret_cast<void const *>(handler) << " " << handler->state << ", " << handler->username << ")";
+    return out;
+}
+
+

@@ -8,10 +8,10 @@
 
   "Host":  "flagon.aterrasys.com",  //Host name for the Aterrasys Server
   "Port":  8080,   //Port on the Aterrasys Server
-  "BaseDir":  "",  //base path on the Aterrasys Server
+  "BaseDir":  "nevada/api",  //base path on the Aterrasys Server
 
-  "Username":  "guest",  // user name for the Aterrasys Server
-  "Password":  "secret"  // password for the user name on the Aterrasys Server
+  "UserName":  "api@aterrasys.com",  // user name for the Aterrasys Server
+  "Password":  "api"  // password for the user name on the Aterrasys Server
 }
 
 //:mode=javascript: (jEdit modeline for syntax highlighting)

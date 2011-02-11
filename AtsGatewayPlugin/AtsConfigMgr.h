@@ -20,6 +20,7 @@ public:
   std::string getUrl(std::string suffix) const;
   std::string getUsername() const;
   std::string getPassword() const;
+  std::string getHttpAuth() const;
   
   std::pair<std::string, std::string> getCredentialsForUser(std::string username);
 

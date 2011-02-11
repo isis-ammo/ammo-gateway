@@ -93,19 +93,24 @@ std::string AtsConfigMgr::getUrl(std::string suffix) const {
 std::string AtsConfigMgr::getUsername() const {
     if(! parsingSuccessful) return "guest";
     if(! root["UserName"].isString()) {
-      LOG_WARN("Error: AtsUserName is missing or wrong type (should be string)");
+      LOG_WARN("Error: UserName is missing or wrong type (should be string)");
       return "guest";
     } 
-    return root["AtsUserName"].asString();
+    return root["UserName"].asString();
 }
 
 std::string AtsConfigMgr::getPassword() const {
     if(! parsingSuccessful) return "secret";
     if(! root["Password"].isString()) {
-      LOG_WARN("Error: AtsPassword is missing or wrong type (should be string)");
+      LOG_WARN("Error: Password is missing or wrong type (should be string)");
       return "secret";
     } 
-    return root["AtsPassword"].asString();
+    return root["Password"].asString();
+}
+
+std::string AtsConfigMgr::getHttpAuth() const {
+    if(! parsingSuccessful) return ":";
+    return getUsername()+":"+getPassword();
 }
 
 std::pair<std::string, std::string> AtsConfigMgr::getCredentialsForUser(std::string username) {
