@@ -7,7 +7,7 @@ import socket
 import struct
 import zlib
 
-import DataMessage_pb2
+import AmmoMessages_pb2
 
 class GatewayTestClient:
   def __init__(self, host, port):
@@ -32,7 +32,7 @@ class GatewayTestClient:
     if calculatedChecksum != checksum:
       print "Checksum error!"
       return None
-    msg = DataMessage_pb2.MessageWrapper()
+    msg = AmmoMessages_pb2.MessageWrapper()
     msg.ParseFromString(protobufMsg)
     return msg
 
@@ -52,8 +52,8 @@ if __name__ == "__main__":
   print "Creating client"
   client = GatewayTestClient(sys.argv[1], sys.argv[2])
   print "Generating message"
-  m = DataMessage_pb2.MessageWrapper()
-  m.type = DataMessage_pb2.MessageWrapper.AUTHENTICATION_MESSAGE
+  m = AmmoMessages_pb2.MessageWrapper()
+  m.type = AmmoMessages_pb2.MessageWrapper.AUTHENTICATION_MESSAGE
   m.authentication_message.device_id = "device:test/device1"
   m.authentication_message.user_id = "user:test/user1"
   m.authentication_message.user_key = "dummy"
@@ -63,10 +63,10 @@ if __name__ == "__main__":
   if(sys.argv[3] == "push"):
     #wait for auth response, then send a data push message
     response = client.receiveMessage()
-    if response.authentication_result.result != DataMessage_pb2.AuthenticationResult.SUCCESS:
+    if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
       print "Authentication failed..."
-    m = DataMessage_pb2.MessageWrapper()
-    m.type = DataMessage_pb2.MessageWrapper.DATA_MESSAGE
+    m = AmmoMessages_pb2.MessageWrapper()
+    m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
     m.data_message.mime_type = "text/plain"
     m.data_message.data = "This is some text being pushed out to the gateway."
@@ -75,20 +75,20 @@ if __name__ == "__main__":
   elif sys.argv[3] == "subscribe": 
     #wait for auth response, then send a data push message
     response = client.receiveMessage()
-    if response.authentication_result.result != DataMessage_pb2.AuthenticationResult.SUCCESS:
+    if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
       print "Authentication failed..."
-    m = DataMessage_pb2.MessageWrapper()
-    m.type = DataMessage_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
+    m = AmmoMessages_pb2.MessageWrapper()
+    m.type = AmmoMessages_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
     m.subscribe_message.mime_type = "application/vnd.edu.vu.isis.ammo.battlespace.gcm"
     print "Sending subscription request..."
     client.sendMessageWrapper(m)
   elif sys.argv[3] == "pull": 
     #wait for auth response, then send a data push message
     response = client.receiveMessage()
-    if response.authentication_result.result != DataMessage_pb2.AuthenticationResult.SUCCESS:
+    if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
       print "Authentication failed..."
-    m = DataMessage_pb2.MessageWrapper()
-    m.type = DataMessage_pb2.MessageWrapper.PULL_REQUEST
+    m = AmmoMessages_pb2.MessageWrapper()
+    m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
     m.pull_request.request_uid = "contact-req-1"
     m.pull_request.plugin_id = "android-plugin-test"
     #m.pull_request.query = "x-Callsign = Hawk*"
