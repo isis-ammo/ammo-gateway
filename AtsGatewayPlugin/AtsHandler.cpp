@@ -93,18 +93,19 @@ void AtsHandler::onDataReceived(GatewayConnector *sender,
                               unsigned int startFromCount,
                               bool liveQuery)
 {
-  std::cout << "Got pull request data." << std::endl;
-  std::cout << "  ReqId: " << requestUid << std::endl;
-  std::cout << "  Plugin: " << pluginId << std::endl;
-  std::cout << "  Data type: " << dataType << std::endl;
-  std::cout << "  Query: " << query << std::endl;
-  std::cout << "  Projection: " << projection << std::endl;
-  std::cout << "  Start Count: " << startFromCount << std::endl;
-  std::cout << "  Live: " << liveQuery << std::endl;
+  LOG_INFO("Got pull request data.");
+  LOG_INFO( "  ReqId: " << requestUid);
+  LOG_INFO( "  Plugin: " << pluginId);
+  LOG_INFO( "  Data type: " << dataType);
+  LOG_INFO( "  Query: " << query);
+  LOG_INFO( "  Projection: " << projection);
+  LOG_INFO( "  Start Count: " << startFromCount);
+  LOG_INFO( "  Live: " << liveQuery);
   if (dataType == RTC_LIST_PEOPLE_NS) {
      std::vector<char> data = listPeople(dataType, query);
+     LOG_INFO( "pull " << dataType << " result: " << std::string(data.begin(), data.begin()+128));
      sender->pullResponse(requestUid, pluginId, dataType, query, data);
-     std::cout << " Pull " << dataType << " result: " << std::string(data.begin(), data.begin()+128) << std::endl;
+     LOG_INFO( "send response: " << requestUid);
      return;
   }
   if (dataType == RTC_LIST_CHANNEL_NS) {
@@ -196,13 +197,16 @@ static int parse_payload(std::vector<char>& payload, Json::Value& meta, std::vec
 /**
   There really shouldn't be any media.
 */
-static int parse_query(std::string query, Json::Value& meta) {
-   return parse_query(std::string(query.begin(),query.end()), meta);
-}
-
 static int parse_query(std::vector<char> query, Json::Value& meta) {
+   LOG_TRACE("parse query <vector(char)>");
    std::vector< NamedBlob > media;
    return parse_payload(query, meta, media);
+}
+
+static int parse_query(std::string query, Json::Value& meta) {
+   LOG_TRACE("parse query <string>");
+   std::vector<char> reform(query.begin(),query.end());
+   return parse_query(reform, meta);
 }
 
 /**
@@ -393,10 +397,11 @@ std::string AtsHandler::inviteChat( std::string mediaType, std::vector< char > &
 
 std::vector<char> AtsHandler::listPeople(std::string dataType, std::string query ) 
 {
+   LOG_INFO( "list people ");
    // parse the serialized packet
    Json::Value meta;
    int rc = parse_query(query, meta);
-   if (rc < 0) return std::vector<char>();
+   LOG_DEBUG("parse query: "<<rc);
 
    std::vector<char> nullRetval;
     
@@ -405,6 +410,7 @@ std::vector<char> AtsHandler::listPeople(std::string dataType, std::string query
  
    res = curl_global_init(CURL_GLOBAL_ALL);
 
+   // if (rc < 0) return std::vector<char>();
    // struct curl_httppost* formpost=NULL;
    // struct curl_httppost* lastptr=NULL;
 
@@ -421,13 +427,16 @@ std::vector<char> AtsHandler::listPeople(std::string dataType, std::string query
 
    res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth().c_str());
    if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return nullRetval; }
+   LOG_DEBUG("set user pass");
 
    std::string returnedData = "";
    res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
    if(res != CURLE_OK) { LOG_ERROR("Failed to set writer: " << curlErrorBuffer); return nullRetval; }
+   LOG_DEBUG("set write callback");
 
    res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &returnedData);
    if(res != CURLE_OK) { LOG_ERROR("Failed to set write data: " << curlErrorBuffer); return nullRetval; }
+   LOG_DEBUG("set place to put message");
 
    res = curl_easy_perform(curl);
    if(res != CURLE_OK) { 
@@ -435,6 +444,7 @@ std::vector<char> AtsHandler::listPeople(std::string dataType, std::string query
      curl_easy_cleanup(curl);
      return nullRetval;
    }
+   LOG_DEBUG("sent message");
 
    curl_easy_cleanup(curl);
    // curl_formfree(formpost);
