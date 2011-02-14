@@ -1,5 +1,5 @@
-#ifndef GATEWAY_CONFIGURATION_MANAGER_H
-#define GATEWAY_CONFIGURATION_MANAGER_H
+#ifndef LDAP_CONFIGURATION_MANAGER_H
+#define LDAP_CONFIGURATION_MANAGER_H
 
 #include <string>
 
@@ -19,4 +19,4 @@ private:
   std::string ldapPassword;
 };
 
-#endif //GATEWAY_CONFIGURATION_MANAGER_H
+#endif //LDAP_CONFIGURATION_MANAGER_H

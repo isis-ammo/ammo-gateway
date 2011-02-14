@@ -3,6 +3,6 @@ project {
   libout=$(GATEWAY_ROOT)/build/lib
   libpaths+=$(GATEWAY_ROOT)/build/lib
   verbatim(make, bottom) {
-    CPPFLAGS+=-O0 -g
+    CPPFLAGS+=-O0 -g -Wall
   }
 }

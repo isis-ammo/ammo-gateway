@@ -3,6 +3,8 @@ project(LibGatewayConnector) : aceexe, protobuf, gatewaycommon {
   
   sharedname = gatewayconnector
   
+  dynamicflags += LIBGATEWAYCONNECTOR_BUILD_DLL
+  
   includes += $(GATEWAY_ROOT)/LibJSON
 
   libs += json

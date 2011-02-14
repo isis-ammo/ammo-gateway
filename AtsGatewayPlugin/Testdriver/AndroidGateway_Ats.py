@@ -7,7 +7,7 @@ import socket
 import struct
 import zlib
 
-import DataMessage_pb2
+import AmmoMessages_pb2
 
 class GatewayTestClient:
   def __init__(self, host, port):
@@ -32,72 +32,71 @@ class GatewayTestClient:
     if calculatedChecksum != checksum:
       print "Checksum error!"
       return None
-    msg = DataMessage_pb2.MessageWrapper()
+    msg = AmmoMessages_pb2.MessageWrapper()
     msg.ParseFromString(protobufMsg)
     return msg
 
 if __name__ == "__main__":
-  print "Android Gateway Tester"
+  print "Android Gateway Aterrasys Message"
   if len(sys.argv) != 4:
     print "Usage:", sys.argv[0], "host port message-type"
     print '''
   where message-type is one of:"
     authenticate : always run, this a dummy actually anything would work.
-    subscribe : subscribe to type:edu.vanderbilt.isis.ammo.Test.
-    pull : search for type:edu.vu.isis.ammo.launhcer.contact_pull.
-    push : send a data message of topic type:edu.vanderbilt.isis.ammo.Test.
+    subscribe : subscribe to type:urn:aterrasys.com:/api/chat/msg
+    pull : pull type:urn:aterrasys.com:/api/rtc/people/list
+    push : send a data message of topic type:urn:aterrasys.com:/api/chat/invite
 '''
     exit(-1)
   
   print "Creating client"
   client = GatewayTestClient(sys.argv[1], sys.argv[2])
   print "Generating message"
-  m = DataMessage_pb2.MessageWrapper()
-  m.type = DataMessage_pb2.MessageWrapper.AUTHENTICATION_MESSAGE
-  m.authentication_message.device_id = "device:test/device1"
-  m.authentication_message.user_id = "user:test/user1"
-  m.authentication_message.user_key = "dummy"
+  m = AmmoMessages_pb2.MessageWrapper()
+  m.type = AmmoMessages_pb2.MessageWrapper.AUTHENTICATION_MESSAGE
+  m.authentication_message.device_id = "device:test/ats"
+  m.authentication_message.user_id = "user:test/atsPlugin"
+  m.authentication_message.user_key = "secret"
   print "Sending message"
   client.sendMessageWrapper(m)
   
   if(sys.argv[3] == "push"):
     #wait for auth response, then send a data push message
     response = client.receiveMessage()
-    if response.authentication_result.result != DataMessage_pb2.AuthenticationResult.SUCCESS:
+    if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
       print "Authentication failed..."
-    m = DataMessage_pb2.MessageWrapper()
-    m.type = DataMessage_pb2.MessageWrapper.DATA_MESSAGE
-    m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
-    m.data_message.mime_type = "text/plain"
-    m.data_message.data = "This is some text being pushed out to the gateway."
-    print "Sending data message"
+    m = AmmoMessages_pb2.MessageWrapper()
+    m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
+    m.data_message.uri = "type:urn:aterrasys.com:/api/chat/invite"
+    m.data_message.mime_type = "urn:aterrasys.com:/api/chat/invite"
+    m.data_message.data = "This is a message intended for the Aterrasys service."
+    print "Sending data message", m.data_message.data
     client.sendMessageWrapper(m)
   elif sys.argv[3] == "subscribe": 
     #wait for auth response, then send a data push message
     response = client.receiveMessage()
-    if response.authentication_result.result != DataMessage_pb2.AuthenticationResult.SUCCESS:
+    if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
       print "Authentication failed..."
-    m = DataMessage_pb2.MessageWrapper()
-    m.type = DataMessage_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
-    m.subscribe_message.mime_type = "application/vnd.edu.vu.isis.ammo.battlespace.gcm"
+    m = AmmoMessages_pb2.MessageWrapper()
+    m.type = AmmoMessages_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
+    m.subscribe_message.mime_type = "urn:aterrasys.com:/api/rtc/people/add"
     print "Sending subscription request..."
     client.sendMessageWrapper(m)
-  elif sys.argv[3] == "pull": 
+  elif sys.argv[3] == "pull":
     #wait for auth response, then send a data push message
     response = client.receiveMessage()
-    if response.authentication_result.result != DataMessage_pb2.AuthenticationResult.SUCCESS:
+    if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
       print "Authentication failed..."
-    m = DataMessage_pb2.MessageWrapper()
-    m.type = DataMessage_pb2.MessageWrapper.PULL_REQUEST
-    m.pull_request.request_uid = "contact-req-1"
-    m.pull_request.plugin_id = "android-plugin-test"
+    m = AmmoMessages_pb2.MessageWrapper()
+    m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
+    m.pull_request.request_uid = "ats-people-req-1"
+    m.pull_request.plugin_id = "aterrasys-plugin-test"
     #m.pull_request.query = "x-Callsign = Hawk*"
-    m.pull_request.query = ""
-    m.pull_request.mime_type = "application/vnd.edu.vu.isis.ammo.launcher.contact_pull"
+    m.pull_request.query = """{ "selection":"*" }"""
+    m.pull_request.mime_type = "urn:aterrasys.com:/api/rtc/people/list"
     print "Sending pull request..."
     client.sendMessageWrapper(m)
-    
-  
+
   while True:
     msg = client.receiveMessage()
     print msg

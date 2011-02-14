@@ -97,8 +97,6 @@ void SpotPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
     // convert MGRS to Lat/Lon
 
     double cLat, cLon;
-    char cMgrs[45];
-    long convStatus;
     Convert_MGRS_To_Geodetic((char *)sr.location_utm.c_str(), &cLat, &cLon);
     cLat *= 180.00 / M_PI;
     cLon *= 180.00 / M_PI;

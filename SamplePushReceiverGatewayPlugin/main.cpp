@@ -25,4 +25,6 @@ int main(int argc, char **argv) {
   ACE_Reactor *reactor = ACE_Reactor::instance();
   cout << "Starting event loop..." << endl << flush;
   reactor->run_reactor_event_loop();
+  
+  return 0;
 }

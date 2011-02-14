@@ -28,7 +28,7 @@ int GatewayServiceHandler::open(void *ptr) {
   username = "";
   usernameAuthenticated = false;
   
-  //return 0;
+  return 0;
 }
 
 int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
@@ -195,20 +195,20 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     }
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
-    bool result = GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), this->username);
+    GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), this->username);
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG("Received Pull Request...");
     LOG_TRACE("  " << msg.DebugString());
     
     ammo::gateway::protocol::PullRequest pullMsg = msg.pull_request();
-    bool result = GatewayCore::getInstance()->pullRequest(pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
+    GatewayCore::getInstance()->pullRequest(pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
       pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), this);
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
     LOG_DEBUG("Received Pull Response...");
     LOG_TRACE("  " << msg.DebugString());
     
     ammo::gateway::protocol::PullResponse pullRsp = msg.pull_response();
-    bool result = GatewayCore::getInstance()->pullResponse( pullRsp.request_uid(), pullRsp.plugin_id(), pullRsp.mime_type(), pullRsp.uri(), pullRsp.data() );
+    GatewayCore::getInstance()->pullResponse( pullRsp.request_uid(), pullRsp.plugin_id(), pullRsp.mime_type(), pullRsp.uri(), pullRsp.data() );
   }else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST) {
     LOG_DEBUG("Received Register Pull Interest...");
     std::string mime_type = msg.register_pull_interest().mime_type();
@@ -302,3 +302,17 @@ GatewayServiceHandler::~GatewayServiceHandler() {
     GatewayCore::getInstance()->unregisterPullInterest(*it, this);
   }
 }
+
+std::ostream& operator<< (std::ostream& out, const GatewayServiceHandler& handler) {
+    out << &handler;
+    return out;
+}
+
+std::ostream& operator<< (std::ostream& out, const GatewayServiceHandler* handler) {
+    // Since operator<< is a friend of the GatewayServiceHandler class, 
+    // we can access handler's members directly.
+    out << "(" << reinterpret_cast<void const *>(handler) << " " << handler->state << ", " << handler->username << ")";
+    return out;
+}
+
+

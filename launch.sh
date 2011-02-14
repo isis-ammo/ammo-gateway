@@ -25,7 +25,7 @@ function start_android_plugin() {
 gnome-terminal --title="Android Plugin" \
   --window-with-profile="Android Plugin" \
   --working-directory="${RELEASE_DIR}" \
-  --command="${RELEASE_DIR}/AndroidGatewayPlugin --listenPort 33289 
+  --command="${RELEASE_DIR}/AndroidGatewayPlugin --listenPort 33289" 
 }
 
 function start_tigr_plugin() {
@@ -33,6 +33,13 @@ gnome-terminal --title="TIGR Plugin" \
   --window-with-profile="TIGR Plugin" \
   --working-directory="${RELEASE_DIR}" \
   --command="${RELEASE_DIR}/TigrGatewayPlugin"  
+}
+
+function start_ats_plugin() {
+gnome-terminal --title="ATS Plugin" \
+  --window-with-profile="ATS Plugin" \
+  --working-directory="${RELEASE_DIR}" \
+  --command="${RELEASE_DIR}/AtsGatewayPlugin"  
 }
 
 pushd ./build/bin
@@ -44,7 +51,7 @@ select action in 'EXIT' 'start' 'stop'; do
     'start')  
       select subaction in 'EXIT' 'All' 'LDAP' 'Gateway' \
            'LDAP Plugin' 'Android Plugin' 'Tigr Plugin' \
-           'PASS Plugin'
+           'PASS Plugin' 'Ats Plugin'
       do
         case ${subaction} in
         'EXIT') break;;
@@ -53,6 +60,7 @@ select action in 'EXIT' 'start' 'stop'; do
                start_ldap_plugin
                start_pass_plugin
                start_tigr_plugin
+               start_ats_plugin
         ;;
         'LDAP') start_ldap ;;
         'Gateway') start_gateway ;;
@@ -60,12 +68,13 @@ select action in 'EXIT' 'start' 'stop'; do
         'Android Plugin') start_android_plugin ;;
         'Tigr Plugin') start_tigr_plugin ;;
         'PASS Plugin') start_pass_plugin ;;
+        'Ats Plugin') start_ats_plugin ;;
         esac
       done;;
     'stop')  
       select subaction in 'EXIT' 'All' 'LDAP' 'Gateway' \
            'LDAP Plugin' 'Android Plugin' 'Tigr Plugin' \
-           'PASS Plugin'
+           'PASS Plugin' 'Ats Plugin'
       do
         case ${subaction} in
         'EXIT') break;;

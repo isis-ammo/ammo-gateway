@@ -1,5 +1,5 @@
-#ifndef GATEWAY_CONFIGURATION_MANAGER_H
-#define GATEWAY_CONFIGURATION_MANAGER_H
+#ifndef PASS_CONFIGURATION_MANAGER_H
+#define PASS_CONFIGURATION_MANAGER_H
 
 #include <string>
 
@@ -25,4 +25,4 @@ private:
   std::string passSubscriberAddress;
 };
 
-#endif //GATEWAY_CONFIGURATION_MANAGER_H
+#endif //PASS_CONFIGURATION_MANAGER_H

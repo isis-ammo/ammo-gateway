@@ -1,3 +1,6 @@
+#ifndef PASS_AMMO_PUBLISHER_H
+#define PASS_AMMO_PUBLISHER_H
+
 #include <string>
 #include <map>
 
@@ -23,3 +26,5 @@ public:
 };
 
 double latLongDistance(double startLatitude, double startLongitude, double endLatitude, double endLongitude, double &outAzimuth);
+
+#endif // PASS_AMMO_PUBLISHER_H

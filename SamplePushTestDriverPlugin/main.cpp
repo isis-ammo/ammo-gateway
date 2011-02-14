@@ -22,4 +22,5 @@ int main(int argc, char **argv) {
   reactor->run_reactor_event_loop();
 #endif
 
+  return 0;
 }

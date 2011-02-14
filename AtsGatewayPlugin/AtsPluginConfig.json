@@ -1,0 +1,17 @@
+{
+  "GatewayInterface": "0.0.0.0", //Interface that Gateway will listen on (default to all interfaces if not specified)
+
+  "GatewayAddress": "127.0.0.1", //Remote address to connect to Gateway (defaults to localhost if not specified)
+  "GatewayPort": 12456,           //Port that Gateway will listen on (default to 12475 if not specified)
+
+  "AGatewayConfig": "AtsPluginConfig.json", //a single configuration file
+
+  "Host":  "flagon.aterrasys.com",  //Host name for the Aterrasys Server
+  "Port":  8080,   //Port on the Aterrasys Server
+  "BaseDir":  "nevada/api",  //base path on the Aterrasys Server
+
+  "UserName":  "api@aterrasys.com",  // user name for the Aterrasys Server
+  "Password":  "api"  // password for the user name on the Aterrasys Server
+}
+
+//:mode=javascript: (jEdit modeline for syntax highlighting)

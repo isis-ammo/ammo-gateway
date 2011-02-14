@@ -9,15 +9,15 @@
 
 #include "log.h"
 
-const char *CONFIG_FILE = "GatewayConfig.json";
-
 using namespace std;
+
+const char *CONFIG_FILE = "GatewayConfig.json";
 
 GatewayConfigurationManager *GatewayConfigurationManager::sharedInstance = NULL;
 
-GatewayConfigurationManager::GatewayConfigurationManager() : gatewayAddress("127.0.0.1"), gatewayInterface("0.0.0.0"), gatewayPort(12475) {
+GatewayConfigurationManager::GatewayConfigurationManager(const char* configFileName) : gatewayAddress("127.0.0.1"), gatewayInterface("0.0.0.0"), gatewayPort(12475) {
   //LOG_INFO("Parsing config file...");
-  ifstream configFile(CONFIG_FILE);
+  ifstream configFile(configFileName);
   if(configFile) {
     Json::Value root;
     Json::Reader reader;
@@ -43,11 +43,11 @@ GatewayConfigurationManager::GatewayConfigurationManager() : gatewayAddress("127
         LOG_ERROR("Error: GatewayPort is missing or wrong type (should be integer)");
       }
     } else {
-      LOG_ERROR("JSON parsing error in config file '" << CONFIG_FILE << "'.  Using defaults.");
+      LOG_ERROR("JSON parsing error in config file '" << configFileName << "'.  Using defaults.");
     }
     configFile.close();
   } else {
-    LOG_WARN("Could not read from config file '" << CONFIG_FILE << "'.  Using defaults.");
+    LOG_WARN("Could not read from config file '" << configFileName << "'.  Using defaults.");
   }
   
   LOG_INFO("Gateway Configuration: ");
@@ -70,7 +70,13 @@ int GatewayConfigurationManager::getGatewayPort() {
 
 GatewayConfigurationManager* GatewayConfigurationManager::getInstance() {
   if(sharedInstance == NULL) {
-    sharedInstance = new GatewayConfigurationManager();
+    sharedInstance = new GatewayConfigurationManager(CONFIG_FILE);
+  }
+  return sharedInstance;
+}
+GatewayConfigurationManager* GatewayConfigurationManager::getInstance(std::string configfile) {
+  if(sharedInstance == NULL) {
+    sharedInstance = new GatewayConfigurationManager(configfile.c_str());
   }
   return sharedInstance;
 }

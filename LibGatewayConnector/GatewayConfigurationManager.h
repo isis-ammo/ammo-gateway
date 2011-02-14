@@ -3,15 +3,17 @@
 
 #include <string>
 
+
 class GatewayConfigurationManager {
 public:
   static GatewayConfigurationManager* getInstance();
+  static GatewayConfigurationManager* getInstance(std::string configfile);
   
   std::string getGatewayAddress();
   std::string getGatewayInterface();
   int getGatewayPort();
 private:
-  GatewayConfigurationManager();
+  GatewayConfigurationManager(const char *configfile);
   static GatewayConfigurationManager *sharedInstance;
   
   std::string gatewayAddress;

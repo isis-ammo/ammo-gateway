@@ -3,6 +3,7 @@
 
 #include "GatewayConnector.h"
 #include "AtsMessageTypes.h"
+#include "AtsConfigMgr.h"
 
 class AtsHandler : 
   public DataPushReceiverListener, 
@@ -11,6 +12,7 @@ class AtsHandler :
   public GatewayConnectorDelegate 
 {
 public:
+  AtsHandler(); 
   //GatewayConnectorDelegate methods
   virtual void onConnect(GatewayConnector *sender);
   virtual void onDisconnect(GatewayConnector *sender);
@@ -40,6 +42,20 @@ public:
                                std::string mimeType, 
                                std::string uri,
                                std::vector< char > &data);
+private:
+  char* baseServerAddr;
+  AtsConfigMgr* config;
+  std::pair<std::string, std::string> credentials;
+
+  std::string uploadMedia( std::string mediaType, std::vector< char >& payload ); 
+  std::string inviteChat( std::string mediaType, std::vector< char >& payload ); 
+  std::vector<char> listChannels( std::string dataType, std::string query );
+
+  std::vector<char> listPeople( std::string dataType, std::string query ); 
+  std::vector<char> listPeople( std::string dataType, std::vector<char>& query ); 
+  std::string channelCreate( std::string dataType, std::vector< char >& payload ); 
+
+  std::string centerMap(std::string dataType, std::vector< char > &query ); 
 };
 
 #endif        //  #ifndef ATS_HANDLER_H
