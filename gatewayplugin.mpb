@@ -1,4 +1,7 @@
 project {
+  after += LibGatewayConnector
+  after += LibJSON  
+
   includes += $(GATEWAY_ROOT)/LibGatewayConnector
   libs += gatewayconnector json
   libpaths += $(GATEWAY_ROOT)/build/lib
