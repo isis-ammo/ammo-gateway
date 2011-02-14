@@ -2,6 +2,9 @@ project {
   exeout=$(GATEWAY_ROOT)/build/bin
   libout=$(GATEWAY_ROOT)/build/lib
   libpaths+=$(GATEWAY_ROOT)/build/lib
+  
+  includes+=$(GATEWAY_ROOT)/common
+  
   verbatim(make, bottom) {
     CPPFLAGS+=-O0 -g -Wall
   }
