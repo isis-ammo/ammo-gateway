@@ -1,10 +1,15 @@
 {
-  "GatewayInterface": "0.0.0.0", //Interface that Gateway will listen on (default to all interfaces if not specified)
+  "GatewayInterface": "127.0.0.1", //Interface that Gateway will listen on (default to loopback interface if not specified)
 
   "GatewayAddress": "127.0.0.1", //Remote address to connect to Gateway (defaults to localhost if not specified)
   "GatewayPort": 12456,           //Port that Gateway will listen on (default to 12475 if not specified)
 
-  "AGatewayConfig": "AtsPluginConfig.json", //a single configuration file
+  // Uncomment to use gateway configuration defined in this configuration file.
+  // This isn't the default because the plugin should use GatewayConfig.json 
+  // (the configuration file shared between LibGatewayConnector and GatewayCore)
+  // in normal operation so that address and port settings are synchronized
+  // between all running plugins.
+  //"AGatewayConfig": "AtsPluginConfig.json", //a single configuration file
 
   "Host":  "flagon.aterrasys.com",  //Host name for the Aterrasys Server
   "Port":  8080,   //Port on the Aterrasys Server
