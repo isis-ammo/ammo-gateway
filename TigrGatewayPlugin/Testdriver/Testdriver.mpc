@@ -1,7 +1,0 @@
-project(Testdriver) : protobuf {
-
-  Protobuf_Files {
-    ../../protocol/AmmoMessages.proto
-  }
-  
-}
