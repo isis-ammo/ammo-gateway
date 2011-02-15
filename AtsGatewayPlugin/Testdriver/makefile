@@ -1,5 +1,5 @@
 
-PB_DIR:=./../../protocol
+PB_DIR:=./../../common/protocol
 SRC_DIR:=.
 DST_DIR:=.
 
