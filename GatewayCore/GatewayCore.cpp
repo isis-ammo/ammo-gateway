@@ -1,6 +1,7 @@
 #include "GatewayCore.h"
 
 #include "GatewayServiceHandler.h"
+#include "CrossGatewayServiceHandler.h"
 
 #include "log.h"
 
@@ -106,5 +107,24 @@ bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std
     (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uri, data);
   }
   return true;
+}
+
+void GatewayCore::initCrossGateway() {
+  
+}
+  
+bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGatewayServiceHandler *handler) {
+  return false;
+}
+
+bool GatewayCore::subscribeCrossGateway(std::string mimeType, std::string originHandlerId) {
+  return false;
+}
+bool GatewayCore::unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId) {
+  return false;
+}
+
+bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const std::string &data, std::string originUser, std::string originHandlerId) {
+  return false;
 }
 
