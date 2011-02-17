@@ -1,6 +1,8 @@
 #ifndef ATS_HANDLER_H
 #define ATS_HANDLER_H
 
+#include <curl/curl.h>
+
 #include "GatewayConnector.h"
 #include "AtsMessageTypes.h"
 #include "AtsConfigMgr.h"
