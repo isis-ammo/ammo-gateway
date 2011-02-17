@@ -56,6 +56,7 @@ select action in 'EXIT' 'start' 'stop'; do
         case ${subaction} in
         'EXIT') break;;
         'All') start_gateway
+               sleep 2
                start_android_plugin
                start_ldap_plugin
                start_pass_plugin
