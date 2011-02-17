@@ -47,15 +47,15 @@ private:
   AtsConfigMgr* config;
   std::pair<std::string, std::string> credentials;
 
-  std::string uploadMedia( std::string mediaType, std::vector< char >& payload ); 
-  std::string inviteChat( std::string mediaType, std::vector< char >& payload ); 
-  std::vector<char> listChannels( std::string dataType, std::string query );
+  std::string uploadMedia(CURL *curl, std::string mediaType, std::vector< char >& payload ); 
+  std::string inviteChat(CURL *curl, std::string mediaType, std::vector< char >& payload ); 
+  std::vector<char> listChannels(CURL *curl, std::string dataType, std::string query );
 
-  std::vector<char> listPeople( std::string dataType, std::string query ); 
-  std::vector<char> listPeople( std::string dataType, std::vector<char>& query ); 
-  std::string channelCreate( std::string dataType, std::vector< char >& payload ); 
+  std::vector<char> listPeople(CURL *curl, std::string dataType, std::string query ); 
+  std::vector<char> listPeople(CURL *curl, std::string dataType, std::vector<char>& query ); 
+  std::string channelCreate(CURL *curl, std::string dataType, std::vector< char >& payload ); 
 
-  std::string centerMap(std::string dataType, std::vector< char > &query ); 
+  std::string centerMap(CURL *curl, std::string dataType, std::vector< char > &query ); 
 };
 
 #endif        //  #ifndef ATS_HANDLER_H

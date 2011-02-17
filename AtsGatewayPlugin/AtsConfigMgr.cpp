@@ -108,27 +108,44 @@ std::string AtsConfigMgr::getPassword() const {
     return root["Password"].asString();
 }
 
+std::string AtsConfigMgr::getUsername(std::string alias) const {
+    if(! parsingSuccessful) return "guest";
+    std::pair<std::string, std::string> credentials = getUserCredentials(alias);
+    return credentials.first;
+}
+
+std::string AtsConfigMgr::getPassword(std::string alias) const {
+    if(! parsingSuccessful) return "secret";
+    std::pair<std::string, std::string> credentials = getUserCredentials(alias);
+    return credentials.second;
+}
+
 std::string AtsConfigMgr::getHttpAuth() const {
     if(! parsingSuccessful) return ":";
     return getUsername()+":"+getPassword();
 }
 
-std::pair<std::string, std::string> AtsConfigMgr::getCredentialsForUser(std::string username) {
-  std::pair<std::string, std::string> newCredentials;
-  //default username in case of error or missing credentials
-  newCredentials.first = getUsername();
-  newCredentials.second = getPassword();
+std::string AtsConfigMgr::getHttpAuth(std::string alias) const {
+    if(! parsingSuccessful) return ":";
+    std::pair<std::string, std::string> credentials = getUserCredentials(alias);
+    return credentials.first+":"+credentials.second;
+}
+
+
+std::pair<std::string, std::string> AtsConfigMgr::getUserCredentials(std::string alias) const {
+  std::pair<std::string, std::string> credentials;
+  //default alias in case of error or missing credentials
+  credentials.first = getUsername();
+  credentials.second = getPassword();
   
-  if( getUsername() != "") {
-    if (root["UsernameMap"].isObject() 
-     && root["UsernameMap"][username].isObject() 
-     && root["UsernameMap"][username]["Username"].isString() 
-     && root["UsernameMap"][username]["Password"].isString()) 
-    {
-      newCredentials.first = root["UsernameMap"][username]["Username"].asString();
-      newCredentials.second = root["UsernameMap"][username]["Password"].asString();
-    }
-  }
-  return newCredentials;
+  if( credentials.first == "") return credentials;
+
+  if (! root["UsernameMap"].isObject()) return credentials; 
+  if (! root["UsernameMap"][alias].isObject()) return credentials; 
+  if (! root["UsernameMap"][alias]["Username"].isString()) return credentials; 
+      credentials.first = root["UsernameMap"][alias]["Username"].asString();
+  if (! root["UsernameMap"][alias]["Password"].isString()) return credentials; 
+      credentials.second = root["UsernameMap"][alias]["Password"].asString();
+  return credentials;
 }
 
