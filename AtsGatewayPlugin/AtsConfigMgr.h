@@ -17,12 +17,16 @@ public:
   int getPort() const;
   std::string getBaseDir() const;
   std::string getUrl() const;
-  std::string getUrl(std::string suffix) const;
+  std::string getUrl(const std::string suffix) const;
   std::string getUsername() const;
   std::string getPassword() const;
   std::string getHttpAuth() const;
   
-  std::pair<std::string, std::string> getCredentialsForUser(std::string username);
+  std::string getUsername(const std::string alias) const;
+  std::string getPassword(const std::string alias) const;
+  std::string getHttpAuth(const std::string alias) const;
+
+  std::pair<std::string, std::string> getUserCredentials(std::string username) const;
 
 private:
   AtsConfigMgr();

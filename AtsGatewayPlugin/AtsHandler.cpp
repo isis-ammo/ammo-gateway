@@ -20,10 +20,14 @@ typedef std::pair<std::string, CharSpan > NamedBlob;
 static char curlErrorBuffer[CURL_ERROR_SIZE]; //libcurl variable for error string
 
 AtsHandler::AtsHandler() {
- assert(sizeof(uint32_t) == 4); 
+   assert(sizeof(uint32_t) == 4); 
 
- config = AtsConfigMgr::getInstance();
- // credentials = config->getCredentialsForUser(username);
+   config = AtsConfigMgr::getInstance();
+   CURLcode res = curl_global_init(CURL_GLOBAL_ALL);
+   if(res != CURLE_OK) { 
+     LOG_ERROR("Failed to configure curl.");
+     return ;
+   }
 }
 
 
@@ -46,31 +50,42 @@ void AtsHandler::onDataReceived(GatewayConnector *sender,
                                 std::vector< char >& payload,
                                 std::string originUsername)
 {
-  std::cout << "Got push data." << std::endl;
-  std::cout << "  URI: " << uri << std::endl;
-  std::cout << "  Data type: " << dataType << std::endl;
-  std::vector<char>::iterator endIt =  (payload.size() < 128) ? payload.end() : payload.begin()+128;
-  std::cout << "  Data: " << std::string(payload.begin(), endIt) << std::endl;
-  std::cout << "  Origin User Name: " << originUsername << std::endl;
+   CURLcode res; 
+   LOG_INFO( "Got push data.");
+   LOG_INFO( "  URI: " << uri);
+   LOG_INFO( "  Data type: " << dataType);
+   std::vector<char>::iterator endIt =  (payload.size() < 128) ? payload.end() : payload.begin()+128;
+   LOG_INFO( "  Data: " << std::string(payload.begin(), endIt));
+   LOG_INFO( "  Origin User Name: " << originUsername);
+   LOG_DEBUG("  User: " << config->getUsername(originUsername));
 
-  if (dataType == RTC_UPLOAD_CHANNEL_MEDIA_NS) {
-     std::string result = uploadMedia(dataType, payload);
-     std::cout << " Push " << dataType << " result: " << result << std::endl;
-     return;
-  }
-  if (dataType == RTC_INVITE_NS) {
-     std::string result = inviteChat(dataType, payload);
-     std::cout << " Push "<< dataType << " result: " << result << std::endl;
-     return;
-  }
-  if (dataType == RTC_CREATE_CHANNEL_NS) {
-     std::string data = channelCreate(dataType, payload);
-     sender->pushData(uri, dataType, data);
-     std::cout << " Push " << dataType << " result: " << data.substr(0,128) << std::endl;
-     return;
-  }
-  if (dataType == RTC_SHARE_GPS_NS) {
-  }
+   CURL *curl = curl_easy_init();
+   if (curl == 0) { LOG_ERROR("Failed to initialize curl."); return; }
+
+   res = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorBuffer);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set error buffer."); return; }
+
+   res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth(originUsername).c_str());
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return; }
+
+   if (dataType == RTC_UPLOAD_CHANNEL_MEDIA_NS) {
+      std::string result = uploadMedia(curl, dataType, payload);
+      LOG_INFO(" Push " << dataType << " result: " << result);
+      return;
+   }
+   if (dataType == RTC_INVITE_NS) {
+      std::string result = inviteChat(curl, dataType, payload);
+      LOG_INFO(" Push "<< dataType << " result: " << result);
+      return;
+   }
+   if (dataType == RTC_CREATE_CHANNEL_NS) {
+      std::string data = channelCreate(curl, dataType, payload);
+      sender->pushData(uri, dataType, data);
+      LOG_INFO(" Push " << dataType << " result: " << data.substr(0,128));
+      return;
+   }
+   if (dataType == RTC_SHARE_GPS_NS) {
+   }
 }
  
 
@@ -93,27 +108,38 @@ void AtsHandler::onDataReceived(GatewayConnector *sender,
                               unsigned int startFromCount,
                               bool liveQuery)
 {
-  LOG_INFO("Got pull request data.");
-  LOG_INFO( "  ReqId: " << requestUid);
-  LOG_INFO( "  Plugin: " << pluginId);
-  LOG_INFO( "  Data type: " << dataType);
-  LOG_INFO( "  Query: " << query);
-  LOG_INFO( "  Projection: " << projection);
-  LOG_INFO( "  Start Count: " << startFromCount);
-  LOG_INFO( "  Live: " << liveQuery);
-  if (dataType == RTC_LIST_PEOPLE_NS) {
-     std::vector<char> data = listPeople(dataType, query);
-     LOG_INFO( "pull " << dataType << " result: " << std::string(data.begin(), data.begin()+128));
-     sender->pullResponse(requestUid, pluginId, dataType, query, data);
-     LOG_INFO( "send response: " << requestUid);
-     return;
-  }
-  if (dataType == RTC_LIST_CHANNEL_NS) {
-     std::vector<char> data = listChannels(dataType, query);
-     sender->pullResponse(requestUid, pluginId, dataType, query, data);
-     std::cout << " Pull " << dataType << " result: " << std::string(data.begin(), data.begin()+128) << std::endl;
-     return;
-  }
+   CURLcode res; 
+   LOG_INFO("Got pull request data.");
+   LOG_INFO( "  ReqId: " << requestUid);
+   LOG_INFO( "  Plugin: " << pluginId);
+   LOG_INFO( "  Data type: " << dataType);
+   LOG_INFO( "  Query: " << query);
+   LOG_INFO( "  Projection: " << projection);
+   LOG_INFO( "  Start Count: " << startFromCount);
+   LOG_INFO( "  Live: " << liveQuery);
+
+   CURL *curl = curl_easy_init();
+   if (curl == 0) { LOG_ERROR("Failed to initialize curl."); return; }
+
+   res = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorBuffer);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set error buffer."); return; }
+
+   res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth().c_str());
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return; }
+
+   if (dataType == RTC_LIST_PEOPLE_NS) {
+      std::vector<char> data = listPeople(curl, dataType, query);
+      LOG_INFO( "pull " << dataType << " result: " << std::string(data.begin(), data.begin()+128));
+      sender->pullResponse(requestUid, pluginId, dataType, query, data);
+      LOG_INFO( "send response: " << requestUid);
+      return;
+   }
+   if (dataType == RTC_LIST_CHANNEL_NS) {
+      std::vector<char> data = listChannels(curl, dataType, query);
+      sender->pullResponse(requestUid, pluginId, dataType, query, data);
+      LOG_INFO(" Pull " << dataType << " result: " << std::string(data.begin(), data.begin()+128));
+      return;
+   }
 }
 
   // PullResponseReceiverListener
@@ -124,12 +150,23 @@ void AtsHandler::onDataReceived (GatewayConnector *sender,
                                std::string uri,
                                std::vector< char > &data)
 {
-  std::cout << "Got pull response data." << std::endl;
-  std::cout << "  ReqId: " << requestUid << std::endl;
-  std::cout << "  Plugin: " << pluginId << std::endl;
-  std::cout << "  Data type: " << dataType << std::endl;
-  std::cout << "  Uri: " << uri << std::endl;
-  std::cout << "  Data: " << std::string(data.begin(), data.end()) << std::endl;
+   CURLcode res; 
+   LOG_INFO( "Got pull response data." );
+   LOG_INFO( "  ReqId: " << requestUid );
+   LOG_INFO( "  Plugin: " << pluginId );
+   LOG_INFO( "  Data type: " << dataType );
+   LOG_INFO( "  Uri: " << uri );
+   LOG_INFO( "  Data: " << std::string(data.begin(), data.end()) );
+
+   CURL *curl = curl_easy_init();
+   if (curl == 0) { LOG_ERROR("Failed to initialize curl."); return; }
+
+   res = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorBuffer);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set error buffer."); return; }
+
+   res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth().c_str());
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return; }
+
 }
 
 /**
@@ -144,54 +181,54 @@ void AtsHandler::onDataReceived (GatewayConnector *sender,
 
 static int parse_payload(std::vector<char>& payload, Json::Value& meta, std::vector<NamedBlob>& media ) {
 
-  LOG_DEBUG("Extracting JSON metadata...");
+   LOG_DEBUG("Extracting JSON metadata...");
+ 
+   std::vector<char>::iterator begin = payload.begin();
+   std::vector<char>::iterator end = std::find(begin, payload.end(), '\0');
+   std::string json(begin, end);
+ 
+   LOG_DEBUG("JSON string: " << json);
+ 
+   Json::Reader jsonReader;
+   bool parseSuccess = jsonReader.parse(json, meta);
+   if(!parseSuccess) {
+      LOG_ERROR("JSON parsing error:");
+      LOG_ERROR(jsonReader.getFormatedErrorMessages());
+      return -1;
+   }
+   LOG_DEBUG("Parsed JSON: " << meta.toStyledString());
+     
+   begin = ++end;
+   while(end != payload.end()) { // more media?
+     LOG_DEBUG("Process BLOB: ");
+     // get the name of the blob 
+     end = std::find(begin, payload.end(), 0);
+     // check the end value for success
+     if (end == payload.end()) break;
+     std::string blobName(begin, end);
+     LOG_DEBUG("Process BLOB: "+blobName);
+ 
+     begin = ++end;
+     unsigned char mediaSizeBuff[4];
+     std::copy(begin, begin+4, mediaSizeBuff);
+     uint32_t mediaSize = ntohl( *(reinterpret_cast<uint32_t*>(mediaSizeBuff)) );
+     LOG_DEBUG("Media Data Size:" << mediaSize);
+ 
+     unsigned int bytesRemaining = payload.size() - (begin-payload.begin()) - 8;
+     LOG_DEBUG("Maximum valid data size: " << bytesRemaining);
+  
+     if(mediaSize > bytesRemaining) {
+       LOG_ERROR("Error:  data size is larger than available data.");
+       return -2;
+     }
+     
+     CharSpan cs(begin+4, begin+4+mediaSize);
+     NamedBlob nb(blobName, cs);
+     media.push_back(nb);
 
-  std::vector<char>::iterator begin = payload.begin();
-  std::vector<char>::iterator end = std::find(begin, payload.end(), '\0');
-  std::string json(begin, end);
-
-  LOG_DEBUG("JSON string: " << json);
-
-  Json::Reader jsonReader;
-  bool parseSuccess = jsonReader.parse(json, meta);
-  if(!parseSuccess) {
-     LOG_ERROR("JSON parsing error:");
-     LOG_ERROR(jsonReader.getFormatedErrorMessages());
-     return -1;
-  }
-  LOG_DEBUG("Parsed JSON: " << meta.toStyledString());
-    
-  begin = ++end;
-  while(end != payload.end()) { // more media?
-    LOG_DEBUG("Process BLOB: ");
-    // get the name of the blob 
-    end = std::find(begin, payload.end(), 0);
-    // check the end value for success
-    if (end == payload.end()) break;
-    std::string blobName(begin, end);
-    LOG_DEBUG("Process BLOB: "+blobName);
-
-    begin = ++end;
-    unsigned char mediaSizeBuff[4];
-    std::copy(begin, begin+4, mediaSizeBuff);
-    uint32_t mediaSize = ntohl( *(reinterpret_cast<uint32_t*>(mediaSizeBuff)) );
-    LOG_DEBUG("Media Data Size:" << mediaSize);
-
-    unsigned int bytesRemaining = payload.size() - (begin-payload.begin()) - 8;
-    LOG_DEBUG("Maximum valid data size: " << bytesRemaining);
-
-    if(mediaSize > bytesRemaining) {
-      LOG_ERROR("Error:  data size is larger than available data.");
-      return -2;
-    }
-    
-    CharSpan cs(begin+4, begin+4+mediaSize);
-    NamedBlob nb(blobName, cs);
-    media.push_back(nb);
-
-    begin += 4 + mediaSize + 8;
-  }
-  return 0; 
+     begin += 4 + mediaSize + 8;
+   }
+   return 0; 
 }
 
 /**
@@ -243,18 +280,19 @@ static int write_callback(char *data, size_t size, size_t nmemb, std::string *wr
 reduced size version of the full file, so the server can hand back smaller files if requested by a
 client. How the reduced size version is created is client specific.
 */
-std::string AtsHandler::uploadMedia( std::string mediaType, std::vector< char > &payload ) 
+std::string AtsHandler::uploadMedia(CURL *curl, std::string mediaType, std::vector< char > &payload ) 
 {
+   CURLcode res;
    // parse the serialized packet
    Json::Value meta;
    std::vector<NamedBlob> media;
    int rc = parse_payload(payload, meta, media);
    if (rc < 0) return ""; // the parsing of the payload failed.
     
-   CURL *curl;
-   CURLcode res;
- 
-   res = curl_global_init(CURL_GLOBAL_ALL);
+   std::string url = config->getUrl(RTC_UPLOAD_CHANNEL_MEDIA);
+   LOG_DEBUG("url: "+ url);
+   res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return ""; }
 
    struct curl_httppost* formpost=NULL;
    struct curl_httppost* lastptr=NULL;
@@ -290,31 +328,17 @@ std::string AtsHandler::uploadMedia( std::string mediaType, std::vector< char > 
 
    std::vector<NamedBlob>::iterator clipIt = std::find_if(media.begin(), media.end(), isClipBlob);
    if (clipIt != media.end()) {
-     NamedBlob clipBlob = *clipIt; 
-     char clipBuff[clipBlob.second.second - clipBlob.second.first];
-     std::copy(clipBlob.second.first, clipBlob.second.second, clipBuff);
-     curl_formadd(&formpost, &lastptr,
-                CURLFORM_COPYNAME, "clip",
-                CURLFORM_BUFFER, clipBlob.first.c_str(),
-                CURLFORM_BUFFERPTR, clipBuff,
-                CURLFORM_BUFFERLENGTH, sizeof(clipBuff),
-                CURLFORM_CONTENTTYPE, mediaType.c_str(),
-                CURLFORM_END);
+      NamedBlob clipBlob = *clipIt; 
+      char clipBuff[clipBlob.second.second - clipBlob.second.first];
+      std::copy(clipBlob.second.first, clipBlob.second.second, clipBuff);
+      curl_formadd(&formpost, &lastptr,
+                   CURLFORM_COPYNAME, "clip",
+                   CURLFORM_BUFFER, clipBlob.first.c_str(),
+                   CURLFORM_BUFFERPTR, clipBuff,
+                   CURLFORM_BUFFERLENGTH, sizeof(clipBuff),
+                   CURLFORM_CONTENTTYPE, mediaType.c_str(),
+                   CURLFORM_END);
    }
-
-   curl = curl_easy_init();
-   if (curl == 0) return "";
-
-   res = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorBuffer);
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set error buffer."); return ""; }
-
-   LOG_DEBUG("url: "+ config->getUrl(RTC_UPLOAD_CHANNEL_MEDIA)+ " who: "+config->getHttpAuth());
-
-   res = curl_easy_setopt(curl, CURLOPT_URL, config->getUrl(RTC_UPLOAD_CHANNEL_MEDIA).c_str());
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return ""; }
-
-   res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth().c_str());
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return ""; }
 
    res = curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
    if(res != CURLE_OK) { LOG_ERROR("Failed to set post data: " << curlErrorBuffer); return ""; }
@@ -336,18 +360,19 @@ std::string AtsHandler::uploadMedia( std::string mediaType, std::vector< char > 
    return returnedData;
 }
 
-std::string AtsHandler::inviteChat( std::string mediaType, std::vector< char > &payload ) 
+std::string AtsHandler::inviteChat(CURL *curl, std::string mediaType, std::vector< char > &payload ) 
 {
+   CURLcode res;
    // parse the serialized packet
    Json::Value meta;
    std::vector<NamedBlob> media;
    int rc = parse_payload(payload, meta, media);
    if (rc < 0) return "";
     
-   CURL *curl;
-   CURLcode res;
- 
-   res = curl_global_init(CURL_GLOBAL_ALL);
+   std::string url = config->getUrl(RTC_INVITE);
+   LOG_DEBUG("url: "+ url);
+   res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return ""; }
 
    struct curl_httppost* formpost=NULL;
    struct curl_httppost* lastptr=NULL;
@@ -356,20 +381,6 @@ std::string AtsHandler::inviteChat( std::string mediaType, std::vector< char > &
                 CURLFORM_COPYNAME, "displayName",
                 CURLFORM_COPYCONTENTS, meta["displayName"].asString().c_str(),
                 CURLFORM_END);
-
-   curl = curl_easy_init();
-   if (curl == 0) return "";
-
-   res = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorBuffer);
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set error buffer."); return ""; }
-
-   LOG_DEBUG("url: "+ config->getUrl(RTC_INVITE_NS)+ " who: "+config->getHttpAuth());
-
-   res = curl_easy_setopt(curl, CURLOPT_URL, config->getUrl(RTC_INVITE).c_str());
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return ""; }
-
-   res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth().c_str());
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return ""; }
 
    res = curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
    if(res != CURLE_OK) { LOG_ERROR("Failed to set post data: " << curlErrorBuffer); return ""; }
@@ -395,8 +406,10 @@ std::string AtsHandler::inviteChat( std::string mediaType, std::vector< char > &
    return returnedData;
 }
 
-std::vector<char> AtsHandler::listPeople(std::string dataType, std::string query ) 
+std::vector<char> AtsHandler::listPeople(CURL *curl, std::string dataType, std::string query ) 
 {
+   CURLcode res;
+   // if (rc < 0) return std::vector<char>();
    LOG_INFO( "list people ");
    // parse the serialized packet
    Json::Value meta;
@@ -405,29 +418,13 @@ std::vector<char> AtsHandler::listPeople(std::string dataType, std::string query
 
    std::vector<char> nullRetval;
     
-   CURL *curl;
-   CURLcode res;
- 
-   res = curl_global_init(CURL_GLOBAL_ALL);
-
-   // if (rc < 0) return std::vector<char>();
    // struct curl_httppost* formpost=NULL;
    // struct curl_httppost* lastptr=NULL;
 
-   curl = curl_easy_init();
-   if (curl == 0) return nullRetval;
-
-   res = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorBuffer);
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set error buffer."); return nullRetval; }
-
-   LOG_DEBUG("url: "+ config->getUrl(RTC_LIST_PEOPLE)+ " who: "+config->getHttpAuth());
-
-   res = curl_easy_setopt(curl, CURLOPT_URL, config->getUrl(RTC_LIST_PEOPLE).c_str());
+   std::string url = config->getUrl(RTC_LIST_PEOPLE);
+   LOG_DEBUG("url: "+ url);
+   res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
    if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return nullRetval; }
-
-   res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth().c_str());
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return nullRetval; }
-   LOG_DEBUG("set user pass");
 
    std::string returnedData = "";
    res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
@@ -454,8 +451,9 @@ std::vector<char> AtsHandler::listPeople(std::string dataType, std::string query
    return retval;
 }
 
-std::vector<char> AtsHandler::listChannels(std::string dataType, std::string query ) 
+std::vector<char> AtsHandler::listChannels(CURL *curl, std::string dataType, std::string query ) 
 {
+   CURLcode res;
    // parse the serialized packet
    Json::Value meta;
    std::vector<NamedBlob> media;
@@ -467,27 +465,13 @@ std::vector<char> AtsHandler::listChannels(std::string dataType, std::string que
    std::string emptyRetval("");
    std::vector<char> nullRetval(emptyRetval.begin(),emptyRetval.end());
     
-   CURL *curl;
-   CURLcode res;
- 
-   res = curl_global_init(CURL_GLOBAL_ALL);
-
    //struct curl_httppost* formpost=NULL;
    //struct curl_httppost* lastptr=NULL;
 
-   curl = curl_easy_init();
-   if (curl == 0) return nullRetval;
-
-   res = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorBuffer);
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set error buffer."); return nullRetval; }
-
-   LOG_DEBUG("url: "+ config->getUrl(RTC_LIST_CHANNEL)+ " who: "+config->getHttpAuth());
-
-   res = curl_easy_setopt(curl, CURLOPT_URL, config->getUrl(RTC_LIST_CHANNEL).c_str());
+   std::string url = config->getUrl(RTC_LIST_CHANNEL);
+   LOG_DEBUG("url: "+ url);
+   res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
    if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return nullRetval; }
-
-   res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth().c_str());
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return nullRetval; }
 
    // res = curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
    // if(res != CURLE_OK) { LOG_ERROR("Failed to set post data: " << curlErrorBuffer); return nullRetval; }
@@ -515,36 +499,22 @@ std::vector<char> AtsHandler::listChannels(std::string dataType, std::string que
 }
 
 
-std::string AtsHandler::channelCreate(std::string dataType, std::vector< char > &payload ) 
+std::string AtsHandler::channelCreate(CURL *curl, std::string dataType, std::vector< char > &payload ) 
 {
+   CURLcode res;
    // parse the serialized packet
    Json::Value meta;
    std::vector<NamedBlob> media;
    int rc = parse_payload(payload, meta, media);
    if (rc < 0) return ""; // the parsing of the payload failed.
     
-   CURL *curl;
-   CURLcode res;
- 
-   res = curl_global_init(CURL_GLOBAL_ALL);
-
    struct curl_httppost* formpost=NULL;
    struct curl_httppost* lastptr=NULL;
 
-   curl = curl_easy_init();
-   if (curl == 0) return "";
-
-   res = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorBuffer);
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set error buffer."); return "";
-   }
-
-   LOG_DEBUG("url: "+ config->getUrl(RTC_CREATE_CHANNEL)+ " who: "+config->getHttpAuth());
-
-   res = curl_easy_setopt(curl, CURLOPT_URL, config->getUrl(RTC_CREATE_CHANNEL).c_str());
+   std::string url = config->getUrl(RTC_CREATE_CHANNEL);
+   LOG_DEBUG("url: "+ url);
+   res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
    if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return ""; }
-
-   res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth().c_str());
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return ""; }
 
    //  name=Channel1 description="Test Channel" type=GROUP
 
@@ -590,35 +560,21 @@ std::string AtsHandler::channelCreate(std::string dataType, std::vector< char > 
  Integer lon - longitude E6
  Integer zoom - zoom level
 */
-std::string AtsHandler::centerMap(std::string dataType, std::vector< char > &query ) 
+std::string AtsHandler::centerMap(CURL *curl, std::string dataType, std::vector< char > &query ) 
 {
+   CURLcode res;
    // parse the serialized packet
    Json::Value meta;
    int rc = parse_query(query, meta);
    if (rc < 0) return ""; // the parsing of the payload failed.
     
-   CURL *curl;
-   CURLcode res;
- 
-   res = curl_global_init(CURL_GLOBAL_ALL);
-
    struct curl_httppost* formpost=NULL;
    struct curl_httppost* lastptr=NULL;
 
-   curl = curl_easy_init();
-   if (curl == 0) return "";
-
-   res = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorBuffer);
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set error buffer."); return "";
-   }
-
-   LOG_DEBUG("url: "+ config->getUrl(RTC_CENTER_MAP)+ " who: "+config->getHttpAuth());
-
-   res = curl_easy_setopt(curl, CURLOPT_URL, config->getUrl(RTC_CENTER_MAP).c_str());
+   std::string url = config->getUrl(RTC_CENTER_MAP);
+   LOG_DEBUG("url: "+ url);
+   res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
    if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return ""; }
-
-   res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth().c_str());
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return ""; }
 
    //  name=Channel1 description="Test Channel" type=GROUP
 
