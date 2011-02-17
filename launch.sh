@@ -1,7 +1,6 @@
 #!/bin/bash
 
 LOGDIR="/tmp/gatewaylogs"
-#AMMO_PRIVATE="/opt/ammmo/ammo-private"
 
 if pgrep -l slapd > /dev/null 2>&1 ; then
   echo "LDAP server: running"
@@ -42,27 +41,17 @@ xterm -bg black -fg cyan -sb -title "Android Gateway Plugin ($HOSTNAME)" -e "tai
 
 sleep 5
 
-#pushd $AMMO_PRIVATE/TigrGatewayPlugin/
-
-export LD_LIBRARY_PATH=$AMMO_PRIVATE/TigrGatewayPlugin/:$LD_LIBRARY_PATH
-
 echo "Launching TIGR Gateway Plugin..."
 echo "  Log file in $tigrpluginlog"
 ./TigrGatewayPlugin > $tigrpluginlog 2>&1 &
 xterm -bg black -fg yellow -sb -title "TIGR Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $tigrpluginlog" &
 
-#popd
-
 sleep 5
-
-#pushd $AMMO_PRIVATE/PassGatewayPlugin/
 
 echo "Launching PASS Gateway Plugin..."
 echo "  Log file in $passpluginlog"
 ./PassGatewayPlugin > $passpluginlog 2>&1 &
 xterm -bg black -fg gray -sb -title "PASS Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $passpluginlog" &
-
-#popd
 
 sleep 5
 
