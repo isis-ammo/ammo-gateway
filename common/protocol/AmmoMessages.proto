@@ -53,6 +53,10 @@ message PullResponse {
   required bytes data = 5;
 }
 
+message Heartbeat {
+  required uint64 sequence_number = 1;
+}
+
 message MessageWrapper {
   enum MessageType {
     DATA_MESSAGE = 0;
@@ -62,6 +66,7 @@ message MessageWrapper {
     PUSH_ACKNOWLEDGEMENT = 5;
     PULL_REQUEST = 6;
     PULL_RESPONSE = 7;
+    HEARTBEAT = 8;
   }
 
   required MessageType type = 1;
@@ -74,4 +79,5 @@ message MessageWrapper {
   optional PushAcknowledgement push_acknowledgement = 7;
   optional PullRequest pull_request = 8;
   optional PullResponse pull_response = 9;
+  optional Heartbeat heartbeat = 10;
 }

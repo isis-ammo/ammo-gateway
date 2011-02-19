@@ -112,6 +112,17 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
 				     pullRequest.projection(), pullRequest.max_results(), pullRequest.start_from_count(), pullRequest.live_query() );
 
     }
+  } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_HEARTBEAT) {
+    LOG_DEBUG("Received Heartbeat from device...");
+    ammo::protocol::Heartbeat heartbeat = msg.heartbeat();
+    
+    ammo::protocol::MessageWrapper *heartbeatAck = new ammo::protocol::MessageWrapper();
+    ammo::protocol::Heartbeat *ack = heartbeatAck->mutable_heartbeat();
+    ack->set_sequence_number(heartbeat.sequence_number());
+    heartbeatAck->set_type(ammo::protocol::MessageWrapper_MessageType_HEARTBEAT);
+    
+    LOG_DEBUG("Sending heartbeat acknowledgement to connected device...");
+    commsHandler->sendMessage(heartbeatAck);
   }
 }
 
