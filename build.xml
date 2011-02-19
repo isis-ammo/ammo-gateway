@@ -38,12 +38,20 @@
         </exec>
     </target>
 
+    <target name="configure"
+        description="constructing makefiles">
+        <exec executable="mwc.pl" dir="." searchpath="true">
+           <arg value="--type"/> <arg value="make"/>
+           <arg value="Gateway.mwc"/>
+        </exec>
+    </target>
+
     <target name="help">
         <echo message="Targets for ${project} are the following:" />
+        <echo message="configure - build the makefiles" />
         <echo message="build - Build the ${project}" />
         <echo message="dist  - Tar the ${project} for release into ${dist}" />
-        <echo 
-          message="clean - Clean ${build} and ${dist} dirs" />
+        <echo message="clean - Clean ${build} and ${dist} dirs" />
         <echo message="clean-dist - Clean ${dist} only" />
     </target>
 
