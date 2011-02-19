@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Gateway" default="release">
+
+    <property name="project" value="${ant.project.name}"/>
+    <property name="build" location="build"/>
+    <property name="dist" location="dist"/>
+    <property name="version" value="0" />
+
+    <description>
+        Build file for the AMMO ${project}
+    </description>
+
+    <target name="build">
+        <echo message="Building ${project}..."/>
+        <exec executable="make" dir="." searchpath="true">
+           <arg value="build"/>
+        </exec>
+    </target>
+
+    <target name="dist" depends="build">
+        <echo message="Tarring ${project} for release..."/>
+        <mkdir dir="${dist}"/>
+        <tar destfile="${dist}/${project}.${version}.tar.gz"
+             basedir="${build}"
+             compression="gzip"
+        />
+    </target>
+
+    <target name="clean-dist">
+        <echo message="Cleaning ${project} ${dist} dir..."/>
+        <delete dir="${dist}"/>
+    </target>
+
+    <target name="clean" depends="clean-dist">
+        <echo message="Cleaning ${project}"/>
+        <exec executable="make" dir="." searchpath="true">
+           <arg value="clean"/>
+        </exec>
+    </target>
+
+    <target name="help">
+        <echo message="Targets for ${project} are the following:" />
+        <echo message="build - Build the ${project}" />
+        <echo message="dist  - Tar the ${project} for release into ${dist}" />
+        <echo 
+          message="clean - Clean ${build} and ${dist} dirs" />
+        <echo message="clean-dist - Clean ${dist} only" />
+    </target>
+
+</project>
