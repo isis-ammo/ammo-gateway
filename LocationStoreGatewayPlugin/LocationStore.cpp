@@ -1,5 +1,7 @@
 #include "LocationStore.h"
 
+#include "log.h"
+
 #include <iostream>
 
 #include <sqlite3.h>
@@ -12,7 +14,7 @@ LocationStoreReceiver::LocationStoreReceiver (void)
 {
   sqlite3_open ("LocationStore_db.sql3", &this->db_);
 	
-  cout << "Opening location store database..." << endl << flush;
+  LOG_DEBUG ("Opening location store database...");
 
   const char *create_tbl_str =
 	"CREATE TABLE IF NOT EXISTS the_table ("
@@ -29,14 +31,14 @@ LocationStoreReceiver::LocationStoreReceiver (void)
 	
   if (db_err != 0)
 	{
-	  cerr << "Error creating location store database "
-		   << "table - " << db_err  << endl << flush;
+	  LOG_ERROR ("Error creating location store database table - "
+				 << db_err);
 	}
 }
 
 LocationStoreReceiver::~LocationStoreReceiver (void)
 {
-  cout << "Closing location store database..." << endl << flush;
+  LOG_DEBUG ("Closing location store database...");
 	
   sqlite3_close (this->db_);
 }
@@ -67,8 +69,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  cerr << this->err_prefix_ << "prep of sqlite statement failed: "
-		   << this->ec_to_string (status) << endl << flush;
+	  LOG_ERROR (this->err_prefix_
+				 << "prep of sqlite statement failed: "
+		         << this->ec_to_string (status));
 		
 	  return;
 	}
@@ -82,8 +85,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  cerr << this->err_prefix_ << "URI bind failed: "
-		   << this->ec_to_string (status) << endl << flush;
+	  LOG_ERROR (this->err_prefix_
+				 << "URI bind failed: "
+		         << this->ec_to_string (status));
 		
 	  return;
 	}
@@ -97,8 +101,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  cerr << this->err_prefix_ << "MIME type bind failed: "
-		   << this->ec_to_string (status) << endl << flush;
+	  LOG_ERROR (this->err_prefix_
+				 << "MIME type bind failed: "
+		         << this->ec_to_string (status));
 		
 	  return;
 	}
@@ -112,8 +117,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-		cerr << this->err_prefix_ << "origin user bind failed: "
-		<< this->ec_to_string (status) << endl << flush;
+	  LOG_ERROR (this->err_prefix_
+				 << "origin user bind failed: "
+		         << this->ec_to_string (status));
 		
 		return;
 	}
@@ -125,8 +131,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-      cerr << this->err_prefix_ << "timestamp sec bind failed: "
-		   << this->ec_to_string (status) << endl << flush;
+      LOG_ERROR (this->err_prefix_
+				 << "timestamp sec bind failed: "
+		         << this->ec_to_string (status));
 		
 	  return;
 	}
@@ -138,8 +145,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  cerr << this->err_prefix_ << "timestamp usec bind failed: "
-		   << this->ec_to_string (status) << endl << flush;
+	  LOG_ERROR (this->err_prefix_
+				 << "timestamp usec bind failed: "
+		         << this->ec_to_string (status));
 		
 	  return;
 	}
@@ -153,8 +161,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  cerr << this->err_prefix_ << "data bind failed: "
-		   << this->ec_to_string (status) << endl << flush;
+	  LOG_ERROR (this->err_prefix_
+				 << "data bind failed: "
+		         << this->ec_to_string (status));
 		
 	  return;
 	}
@@ -163,11 +172,25 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_DONE)
     {
-	  cerr << this->err_prefix_ << "insert operation failed: "
-		   << this->ec_to_string (status) << endl << flush;
+	  LOG_ERROR (this->err_prefix_
+				 << "insert operation failed: "
+		         << this->ec_to_string (status));
 		
 	  return;
     }
+}
+
+void
+LocationStoreReceiver::onDataReceived (GatewayConnector *sender, 
+					                   std::string requestUid,
+					                   std::string pluginId,
+					                   std::string mimeType,
+					                   std::string query,
+					                   std::string projection,
+					                   unsigned int maxResults,
+					                   unsigned int startFromCount,
+					                   bool liveQuery)
+{
 }
 
 const char * const
