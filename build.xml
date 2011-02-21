@@ -1,26 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Gateway" default="release">
+<project name="Gateway" default="build">
 
     <property name="project" value="${ant.project.name}"/>
     <property name="build" location="build"/>
     <property name="dist" location="dist"/>
-    <property name="version" value="0" />
 
     <description>
         Build file for the AMMO ${project}
     </description>
 
-    <target name="build">
+    <target name="build" depends="configure">
         <echo message="Building ${project}..."/>
         <exec executable="make" dir="." searchpath="true">
-           <arg value="build"/>
         </exec>
     </target>
 
     <target name="dist" depends="build">
+        <!-- versioning of tarballs includes setting the
+             version to indicate the git checkout that tags
+             the current release. This allows us to rebuild
+             from a specific branch to directly match the
+             conditions of a tarball -->
+        <exec executable="git" dir="." 
+              searchpath="true" outputproperty="version">
+          <arg value="describe" />
+          <arg value="--match=release-*" />
+        </exec>
+
         <echo message="Tarring ${project} for release..."/>
         <mkdir dir="${dist}"/>
-        <tar destfile="${dist}/${project}.${version}.tar.gz"
+        <tar destfile="${dist}/${version}.gateway.tar.gz"
              basedir="${build}"
              compression="gzip"
         />
@@ -35,6 +44,13 @@
         <echo message="Cleaning ${project}"/>
         <exec executable="make" dir="." searchpath="true">
            <arg value="clean"/>
+        </exec>
+    </target>
+    
+    <target name="realclean" depends="clean-dist">
+        <echo message="Cleaning ${project}"/>
+        <exec executable="make" dir="." searchpath="true">
+           <arg value="realclean"/>
         </exec>
     </target>
 
