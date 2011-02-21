@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Gateway" default="release">
+<project name="Gateway" default="build">
 
     <property name="project" value="${ant.project.name}"/>
     <property name="build" location="build"/>
@@ -10,10 +10,9 @@
         Build file for the AMMO ${project}
     </description>
 
-    <target name="build">
+    <target name="build" depends="configure">
         <echo message="Building ${project}..."/>
         <exec executable="make" dir="." searchpath="true">
-           <arg value="build"/>
         </exec>
     </target>
 
