@@ -114,10 +114,13 @@ void GatewayCore::initCrossGateway() {
 }
   
 bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGatewayServiceHandler *handler) {
+  LOG_DEBUG("Registering cross-gateway handler " << handlerId);
+  crossGatewayHandlers[handlerId] = handler;
   return false;
 }
 
 bool GatewayCore::subscribeCrossGateway(std::string mimeType, std::string originHandlerId) {
+  LOG_DEBUG("Got subscription to type " << mimeType << " for handler " << originHandlerId);
   return false;
 }
 bool GatewayCore::unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId) {
