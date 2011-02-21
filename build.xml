@@ -46,6 +46,13 @@
            <arg value="clean"/>
         </exec>
     </target>
+    
+    <target name="realclean" depends="clean-dist">
+        <echo message="Cleaning ${project}"/>
+        <exec executable="make" dir="." searchpath="true">
+           <arg value="realclean"/>
+        </exec>
+    </target>
 
     <target name="configure"
         description="constructing makefiles">
