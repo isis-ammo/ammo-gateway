@@ -19,7 +19,7 @@
     <target name="dist" depends="build">
         <echo message="Tarring ${project} for release..."/>
         <mkdir dir="${dist}"/>
-        <tar destfile="${dist}/${project}.${version}.tar.gz"
+        <tar destfile="${dist}/${version}.gateway.tar.gz"
              basedir="${build}"
              compression="gzip"
         />
