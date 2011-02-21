@@ -178,6 +178,8 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 		
 	  return;
     }
+	
+  LOG_DEBUG ("data store successful");
 }
 
 void
