@@ -76,6 +76,7 @@
         <echo message="dist  - Tar the ${project} for release into ${dist}" />
         <echo message="clean - Clean ${build} and ${dist} dirs" />
         <echo message="clean-dist - Clean ${dist} only" />
+        <echo message="realclean - Clean all build products and generated code" />
     </target>
 
 </project>
