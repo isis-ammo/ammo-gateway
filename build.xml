@@ -29,18 +29,24 @@
         </exec>
 
         <echo message="Tarring ${project} for release..."/>
+
+        <!-- remove any previous residue from a past dist target
+             and make the directory again -->
         <delete dir="${dist}/temp/gateway-${version}" />
         <mkdir dir="${dist}/temp/gateway-${version}"/>
         <!--Ant's cp and tar commands don't preserve Unix permissions, so we
             need to run the shell commands instead-->
+        <!--Copy over distribution template (includes launch scripts)-->
         <exec executable="sh" dir="." searchpath="true">
             <arg value="-c" />
             <arg value="cp -r ${dist_template}/* ${dist}/temp/gateway-${version}" />
         </exec>
+        <!--Copy the actual build-->
         <exec executable="sh" dir="." searchpath="true">
             <arg value="-c" />
             <arg value="cp -r ${build}/* ${dist}/temp/gateway-${version}" />
         </exec>
+        <!--And build the tarball with the resulting contents-->
         <exec executable="sh" dir="${dist}/temp" searchpath="true">
             <arg value="-c" />
             <arg value="tar -cvzf ${dist}/${version}.gateway.tar.gz ." />
