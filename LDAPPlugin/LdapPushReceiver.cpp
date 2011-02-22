@@ -320,6 +320,13 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
       ldap_value_free_len(vals);
     }
     
+    // Tigr user ID
+    vals = ldap_get_values_len(ldapServer, entry, "TigrUid");
+    if (vals) {
+      root["tigruid"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
+    
     // email
     vals = ldap_get_values_len(ldapServer, entry, "mail");
     if (vals) {
