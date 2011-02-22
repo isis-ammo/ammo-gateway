@@ -28,17 +28,32 @@
         </exec>
 
         <echo message="Tarring ${project} for release..."/>
+
+        <!-- remove any previous residue from a past dist target
+             and make the directory again -->
         <delete dir="${dist}/temp/gateway-${version}" />
         <mkdir dir="${dist}/temp/gateway-${version}"/>
+
+        <!-- Copy over the launch.sh script -->
+        <copy file="launch.sh" todir="${dist}/temp/gateway-${version}"/>
+
+        <!-- Copy the build directory into the dist/temp and exclude
+             the gitignore files -->
         <copy todir="${dist}/temp/gateway-${version}">
             <fileset dir="${build}">
                 <exclude name="**/.gitignore" />
             </fileset>
         </copy> 
+
+        <!-- Tar the new release candidate -->
         <tar destfile="${dist}/${version}.gateway.tar.gz"
              basedir="${dist}/temp"
              compression="gzip"
         />
+
+        <!-- Remove the temp directory for this version so
+             we do not end up tarring old versions into later
+             release candidates -->
         <delete dir="${dist}/temp/gateway-${version}" />
     </target>
 
