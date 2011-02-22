@@ -28,11 +28,18 @@
         </exec>
 
         <echo message="Tarring ${project} for release..."/>
-        <mkdir dir="${dist}"/>
+        <delete dir="${dist}/temp/gateway-${version}" />
+        <mkdir dir="${dist}/temp/gateway-${version}"/>
+        <copy todir="${dist}/temp/gateway-${version}">
+            <fileset dir="${build}">
+                <exclude name="**/.gitignore" />
+            </fileset>
+        </copy> 
         <tar destfile="${dist}/${version}.gateway.tar.gz"
-             basedir="${build}"
+             basedir="${dist}/temp"
              compression="gzip"
         />
+        <delete dir="${dist}/temp/gateway-${version}" />
     </target>
 
     <target name="clean-dist">
@@ -69,6 +76,7 @@
         <echo message="dist  - Tar the ${project} for release into ${dist}" />
         <echo message="clean - Clean ${build} and ${dist} dirs" />
         <echo message="clean-dist - Clean ${dist} only" />
+        <echo message="realclean - Clean all build products and generated code" />
     </target>
 
 </project>

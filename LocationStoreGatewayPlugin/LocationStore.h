@@ -6,7 +6,8 @@
 class sqlite3;
 
 class LocationStoreReceiver : public DataPushReceiverListener,
-							  public GatewayConnectorDelegate
+							  public GatewayConnectorDelegate,
+                              public PullRequestReceiverListener
 {
 public:
   LocationStoreReceiver (void);
@@ -22,6 +23,17 @@ public:
 							   std::string mimeType,
 							   std::vector<char> &data,
 							   std::string originUser);
+	
+  // PullRequestReceiverListener methods
+  virtual void onDataReceived (GatewayConnector *sender, 
+							   std::string requestUid,
+							   std::string pluginId,
+							   std::string mimeType,
+							   std::string query,
+							   std::string projection,
+							   unsigned int maxResults,
+							   unsigned int startFromCount,
+							   bool liveQuery);
 	
 private:
   // For debugging, maps SQLITE error codes to informative strings.

@@ -169,7 +169,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
 
   LDAPMessage *results;
   //std::string filter = "(& (objectClass=x-MilitaryPerson) (objectClass=inetOrgPerson)";
-  std::string filter = "(& (objectClass=inetOrgPerson) (objectClass=x-MilitaryPerson) ";
+  std::string filter = "(& (objectClass=MilitaryPerson) ";
 
   
   // build the filter based on query expression
@@ -292,31 +292,70 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
     }
 
     // rank
-    vals = ldap_get_values_len(ldapServer, entry, "x-Rank");
+    vals = ldap_get_values_len(ldapServer, entry, "Rank");
     if (vals) {
       root["rank"] = vals[0]->bv_val;
       ldap_value_free_len(vals);
     }
 
     // callsign
-    vals = ldap_get_values_len(ldapServer, entry, "x-Callsign");
+    vals = ldap_get_values_len(ldapServer, entry, "Callsign");
     if (vals) {
       root["callsign"] = vals[0]->bv_val;
       ldap_value_free_len(vals);
     }
     
     // branch
-    vals = ldap_get_values_len(ldapServer, entry, "x-Branch");
+    vals = ldap_get_values_len(ldapServer, entry, "Branch");
     if (vals) {
       root["branch"] = vals[0]->bv_val;
       ldap_value_free_len(vals);
     }
     
-    
-    // unit
-    vals = ldap_get_values_len(ldapServer, entry, "x-Unit");
+    // unit (generic)
+    vals = ldap_get_values_len(ldapServer, entry, "Unit");
     if (vals) {
       root["unit"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
+    
+    // unit (specific, separated)
+    vals = ldap_get_values_len(ldapServer, entry, "unitDivision");
+    if (vals) {
+      root["unitDivision"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
+    vals = ldap_get_values_len(ldapServer, entry, "unitBrigade");
+    if (vals) {
+      root["unitBrigade"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
+    vals = ldap_get_values_len(ldapServer, entry, "unitBattalion");
+    if (vals) {
+      root["unitBattalion"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
+    vals = ldap_get_values_len(ldapServer, entry, "unitCompany");
+    if (vals) {
+      root["unitCompany"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
+    vals = ldap_get_values_len(ldapServer, entry, "unitPlatoon");
+    if (vals) {
+      root["unitPlatoon"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
+    vals = ldap_get_values_len(ldapServer, entry, "unitSquad");
+    if (vals) {
+      root["unitSquad"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
+
+
+    // Tigr user ID
+    vals = ldap_get_values_len(ldapServer, entry, "tigrUid");
+    if (vals) {
+      root["tigruid"] = vals[0]->bv_val;
       ldap_value_free_len(vals);
     }
     
