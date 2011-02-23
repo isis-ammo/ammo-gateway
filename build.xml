@@ -12,7 +12,7 @@
 
     <target name="build" depends="configure">
         <echo message="Building ${project}..."/>
-        <exec executable="make" dir="." searchpath="true">
+        <exec executable="make" dir="." searchpath="true" failonerror="true">
         </exec>
     </target>
 
