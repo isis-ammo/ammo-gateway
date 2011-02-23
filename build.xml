@@ -27,6 +27,10 @@
           <arg value="describe" />
           <arg value="--match=release-*" />
         </exec>
+        
+        <tstamp>
+            <format property="build_time" pattern="MM/dd/yyyy hh:mm aa" />
+        </tstamp>
 
         <echo message="Tarring ${project} for release..."/>
 
@@ -46,6 +50,12 @@
             <arg value="-c" />
             <arg value="cp -r ${build}/* ${dist}/temp/gateway-${version}" />
         </exec>
+        <!--Create the buildinfo file, with versioning and OS info-->
+        <echo file="${dist}/temp/gateway-${version}/buildinfo" append="false">AMMO Gateway, version ${version}, built ${build_time}
+
+Built on ${os.arch} ${os.name} ${os.version}
+</echo>
+        
         <!--And build the tarball with the resulting contents-->
         <exec executable="sh" dir="${dist}/temp" searchpath="true">
             <arg value="-c" />
