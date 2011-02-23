@@ -49,7 +49,7 @@
         <!--And build the tarball with the resulting contents-->
         <exec executable="sh" dir="${dist}/temp" searchpath="true">
             <arg value="-c" />
-            <arg value="tar -cvzf ${dist}/${version}.gateway.tar.gz ." />
+            <arg value="tar -cvzf ../${version}.gateway.tar.gz ." />
         </exec>
         <delete dir="${dist}/temp/gateway-${version}" />
     </target>
