@@ -115,6 +115,9 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
     if(dataToSend == NULL) {
       ammo::protocol::MessageWrapper *msg = getNextMessageToSend();
       if(msg != NULL) {
+        if(!msg->IsInitialized()) {
+          LOG_WARN("Protocol Buffers message is missing a required element.");
+        }
         unsigned int messageSize = msg->ByteSize();
         sendBufferSize = messageSize + 2*sizeof(unsigned int);
         dataToSend = new char[sendBufferSize];
