@@ -4,6 +4,7 @@
     <property name="project" value="${ant.project.name}"/>
     <property name="build" location="build"/>
     <property name="dist" location="dist"/>
+    <property name="dist_template" location="${dist}/template" />
 
     <description>
         Build file for the AMMO ${project}
@@ -11,7 +12,7 @@
 
     <target name="build" depends="configure">
         <echo message="Building ${project}..."/>
-        <exec executable="make" dir="." searchpath="true">
+        <exec executable="make" dir="." searchpath="true" failonerror="true">
         </exec>
     </target>
 
@@ -26,25 +27,48 @@
           <arg value="describe" />
           <arg value="--match=release-*" />
         </exec>
+        
+        <tstamp>
+            <format property="build_time" pattern="MM/dd/yyyy hh:mm aa" />
+        </tstamp>
 
         <echo message="Tarring ${project} for release..."/>
+
+        <!-- remove any previous residue from a past dist target
+             and make the directory again -->
         <delete dir="${dist}/temp/gateway-${version}" />
         <mkdir dir="${dist}/temp/gateway-${version}"/>
-        <copy todir="${dist}/temp/gateway-${version}">
-            <fileset dir="${build}">
-                <exclude name="**/.gitignore" />
-            </fileset>
-        </copy> 
-        <tar destfile="${dist}/${version}.gateway.tar.gz"
-             basedir="${dist}/temp"
-             compression="gzip"
-        />
+        <!--Ant's cp and tar commands don't preserve Unix permissions, so we
+            need to run the shell commands instead-->
+        <!--Copy over distribution template (includes launch scripts)-->
+        <exec executable="sh" dir="." searchpath="true">
+            <arg value="-c" />
+            <arg value="cp -r ${dist_template}/* ${dist}/temp/gateway-${version}" />
+        </exec>
+        <!--Copy the actual build-->
+        <exec executable="sh" dir="." searchpath="true">
+            <arg value="-c" />
+            <arg value="cp -r ${build}/* ${dist}/temp/gateway-${version}" />
+        </exec>
+        <!--Create the buildinfo file, with versioning and OS info-->
+        <echo file="${dist}/temp/gateway-${version}/buildinfo" append="false">AMMO Gateway, version ${version}, built ${build_time}
+
+Built on ${os.arch} ${os.name} ${os.version}
+</echo>
+        
+        <!--And build the tarball with the resulting contents-->
+        <exec executable="sh" dir="${dist}/temp" searchpath="true">
+            <arg value="-c" />
+            <arg value="tar -cvzf ../${version}.gateway.tar.gz ." />
+        </exec>
         <delete dir="${dist}/temp/gateway-${version}" />
     </target>
 
     <target name="clean-dist">
         <echo message="Cleaning ${project} ${dist} dir..."/>
-        <delete dir="${dist}"/>
+        <delete>
+            <fileset dir="${dist}" includes="*.tar.gz" />
+        </delete>
     </target>
 
     <target name="clean" depends="clean-dist">
