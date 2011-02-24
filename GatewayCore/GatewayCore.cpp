@@ -121,6 +121,9 @@ bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGat
 
 bool GatewayCore::subscribeCrossGateway(std::string mimeType, std::string originHandlerId) {
   LOG_DEBUG("Got subscription to type " << mimeType << " for handler " << originHandlerId);
+  //see if there's already a subscription to this type for this handler
+
+  
   return false;
 }
 bool GatewayCore::unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId) {

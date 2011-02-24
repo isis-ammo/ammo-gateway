@@ -47,7 +47,7 @@ private:
   std::map<std::string, GatewayServiceHandler *> plugins;
   
   std::map<std::string, CrossGatewayServiceHandler *> crossGatewayHandlers;
-  std::map<std::string, SubscriptionInfo> subscriptions;
+  std::multimap<std::string, SubscriptionInfo> subscriptions;
 };
 
 #endif //#ifndef GATEWAY_CORE_H
