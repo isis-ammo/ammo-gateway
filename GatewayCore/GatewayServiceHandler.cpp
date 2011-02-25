@@ -66,7 +66,7 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
         //LOG_TRACE("Got all the data... processing");
         processData(collectedData, dataSize, checksum);
         //LOG_TRACE("Processsing complete.  Deleting buffer.");
-        delete collectedData;
+        delete[] collectedData;
         collectedData = NULL;
         dataSize = 0;
         position = 0;
@@ -187,9 +187,11 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     std::string mime_type = msg.unregister_data_interest().mime_type();
     bool result = GatewayCore::getInstance()->unregisterDataInterest(mime_type, this);
     if(result == true) {
-      for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
+      for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end();) {
         if((*it) == mime_type) {
-          registeredHandlers.erase(it);
+          it = registeredHandlers.erase(it); //erase returns the iterator to the next element
+        } else {
+          it++;
         }
       }
     }
