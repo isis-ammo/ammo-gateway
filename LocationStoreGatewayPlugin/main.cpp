@@ -2,7 +2,10 @@
 
 #include "ace/Reactor.h"
 
+#include "log.h"
+
 #include "LocationStore.h"
+#include "LocationStoreConfigManager.h"
 
 using namespace std;
 
@@ -10,10 +13,11 @@ using namespace std;
 // by hand, and normal operation.
 #define DEBUG 0
 
-int main(int argc, char **argv) {  
-  cout << "Creating location store receiver..." << endl << flush;
+int main (int argc, char **argv)
+{  
+  LOG_DEBUG ("Creating location store receiver...");
   
-  LocationStoreReceiver *pushReceiver = new LocationStoreReceiver();
+  LocationStoreReceiver *pushReceiver = new LocationStoreReceiver ();
   
 #if DEBUG
 	
@@ -28,14 +32,17 @@ int main(int argc, char **argv) {
 	
 #else
 	
-  GatewayConnector *gatewayConnector = new GatewayConnector(pushReceiver);
+  GatewayConnector *gatewayConnector = new GatewayConnector (pushReceiver);
 	
-  gatewayConnector->registerDataInterest("text/plain", pushReceiver);
+  LocationStoreConfigManager *config =
+	LocationStoreConfigManager::getInstance (pushReceiver, gatewayConnector);
+	
+  // gatewayConnector->registerDataInterest ("text/plain", pushReceiver);
 	
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
-  ACE_Reactor *reactor = ACE_Reactor::instance();
-  cout << "Starting event loop..." << endl << flush;
-  reactor->run_reactor_event_loop();
+  ACE_Reactor *reactor = ACE_Reactor::instance ();
+  LOG_DEBUG ("Starting event loop...");
+  reactor->run_reactor_event_loop ();
 	
 #endif
 
