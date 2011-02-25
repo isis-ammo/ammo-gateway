@@ -38,7 +38,7 @@ bool GatewayCore::unregisterDataInterest(std::string mime_type, GatewayServiceHa
     multimap<string,GatewayServiceHandler *>::iterator eraseIter = it++;
     
     if(handler == (*eraseIter).second) {
-      LOG_TRACE("Removing an element");
+      //LOG_TRACE("Removing an element");
       pushHandlers.erase(eraseIter);
       break;
     }
