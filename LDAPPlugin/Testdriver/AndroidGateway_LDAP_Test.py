@@ -18,32 +18,41 @@ import AmmoMessages_pb2
 #
 #==============================================
 class GatewayTestClient:
+  HEADER_MAGIC_NUMBER = 0xfeedbeef
     def __init__(self, host, port):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((host, int(port)))
-    
+      self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      self.sock.connect((host, int(port)))
+      
     def sendMessageWrapper(self, msg):
-        serializedMsg = msg.SerializeToString()
-        #little-endian byte order for now
-        self.sock.sendall(struct.pack("<I", len(serializedMsg))) 
-        self.sock.sendall(struct.pack("<i", zlib.crc32(serializedMsg)))
-        print serializedMsg
-        self.sock.sendall(serializedMsg);
-  
+      serializedMsg = msg.SerializeToString()
+      messageHeader = struct.pack("<IIi", self.HEADER_MAGIC_NUMBER, len(serializedMsg), zlib.crc32(serializedMsg))
+      self.sock.sendall(messageHeader) #little-endian byte order for now
+      self.sock.sendall(struct.pack("<i", zlib.crc32(messageHeader)))
+      print serializedMsg
+      self.sock.sendall(serializedMsg)
+      
     def receiveMessage(self):
-        (messageSize,) = struct.unpack("<I", self.sock.recv(4));
-        (checksum,) = struct.unpack("<i", self.sock.recv(4));
-        protobufMsg = ""
-        while len(protobufMsg) < messageSize:
-            receivedData = self.sock.recv(messageSize - len(protobufMsg))
-            protobufMsg += receivedData
-        calculatedChecksum = zlib.crc32(protobufMsg)
-        if calculatedChecksum != checksum:
-            sys.stderr.write("Checksum error!\n")
-            return None
-        msg = AmmoMessages_pb2.MessageWrapper()
-        msg.ParseFromString(protobufMsg)
-        return msg
+      messageHeader = self.sock.recv(3*4)
+      (magicNumber, messageSize, checksum) = struct.unpack("<IIi", messageHeader)
+      (headerChecksum,) = struct.unpack("<i", self.sock.recv(4))
+      
+      if magicNumber != self.HEADER_MAGIC_NUMBER:
+        raise IOError("Invalid magic number received from gateway: " + hex(magicNumber))
+        
+      if headerChecksum != zlib.crc32(messageHeader):
+        raise IOError("Invalid header checksum received from gateway")
+      
+      protobufMsg = ""
+      while len(protobufMsg) < messageSize:
+        receivedData = self.sock.recv(messageSize - len(protobufMsg))
+        protobufMsg += receivedData
+      calculatedChecksum = zlib.crc32(protobufMsg)
+      if calculatedChecksum != checksum:
+        print "Checksum error!"
+        return None
+      msg = AmmoMessages_pb2.MessageWrapper()
+      msg.ParseFromString(protobufMsg)
+      return msg
 
 #==============================================
 #
