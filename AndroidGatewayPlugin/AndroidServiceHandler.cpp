@@ -26,14 +26,17 @@ int AndroidServiceHandler::open(void *ptr) {
     return -1;
     
   }
-  state = READING_SIZE;
-  dataSize = 0;
-  checksum = 0;
+  state = READING_HEADER;
   collectedData = NULL;
   position = 0;
   
   dataToSend = NULL;
   position = 0;
+  
+  messageHeader.magicNumber = 0;
+  messageHeader.size = 0;
+  messageHeader.checksum = 0;
+  messageHeader.headerChecksum = 0;
   
   connectionClosing = false;
   
@@ -59,14 +62,19 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
   LOG_TRACE("In handle_input");
   int count = 0;
   
-  if(state == READING_SIZE) {
-    count = this->peer().recv_n(&dataSize, sizeof(dataSize));
-    //LOG_TRACE("SIZE Read " << count << " bytes");
-  } else if(state == READING_CHECKSUM) {
-    count = this->peer().recv_n(&checksum, sizeof(checksum));
-    //LOG_TRACE("SUM Read " << count << " bytes");
+  if(state == READING_HEADER) {
+    count = this->peer().recv_n(&messageHeader, sizeof(messageHeader));
+    //verify the message header (check its magic number and checksum)
+    if(messageHeader.magicNumber == 0xfeedbeef) {
+      unsigned int calculatedChecksum = ACE::crc32(&messageHeader, 3*sizeof(int));
+      if(calculatedChecksum != messageHeader.headerChecksum) {
+        LOG_ERROR("Invalid header checksum!");
+      }
+    } else {
+      LOG_ERROR("Invalid magic number!");
+    }
   } else if(state == READING_DATA) {
-    count = this->peer().recv(collectedData + position, dataSize - position);
+    count = this->peer().recv(collectedData + position, messageHeader.size - position);
     //LOG_TRACE("DATA Read " << count << " bytes");
   } else {
     LOG_ERROR("Invalid state!");
@@ -75,26 +83,26 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
   
   
   if(count > 0) {
-    if(state == READING_SIZE) {
-      collectedData = new char[dataSize];
+    if(state == READING_HEADER) {
+      collectedData = new char[messageHeader.size];
       position = 0;
       //LOG_TRACE("Got data size (" << dataSize << ")");
-      state = READING_CHECKSUM;
-    } else if(state == READING_CHECKSUM) {
-      //LOG_TRACE("Got data checksum (" << checksum << ")");
       state = READING_DATA;
     } else if(state == READING_DATA) {
       //LOG_TRACE("Got some data...");
       position += count;
-      if(position == dataSize) {
+      if(position == messageHeader.size) {
         //LOG_TRACE("Got all the data... processing");
-        processData(collectedData, dataSize, checksum);
+        processData(collectedData, messageHeader.size, messageHeader.checksum);
         //LOG_TRACE("Processsing complete.  Deleting buffer.");
         delete[] collectedData;
         collectedData = NULL;
-        dataSize = 0;
+        messageHeader.magicNumber = 0;
+        messageHeader.size = 0;
+        messageHeader.checksum = 0;
+        messageHeader.headerChecksum = 0;
         position = 0;
-        state = READING_SIZE;
+        state = READING_HEADER;
       }
     }
   } else if(count == 0) {
