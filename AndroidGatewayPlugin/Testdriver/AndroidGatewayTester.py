@@ -30,7 +30,7 @@ class GatewayTestClient:
     (headerChecksum,) = struct.unpack("<i", self.sock.recv(4))
     
     if magicNumber != self.HEADER_MAGIC_NUMBER:
-      raise IOError("Invalid magic number received from gateway: " + magicNumber)
+      raise IOError("Invalid magic number received from gateway: " + hex(magicNumber))
       
     if headerChecksum != zlib.crc32(messageHeader):
       raise IOError("Invalid header checksum received from gateway")
