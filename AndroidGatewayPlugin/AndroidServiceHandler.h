@@ -10,6 +10,8 @@
 
 class AndroidMessageProcessor;
 
+const unsigned int HEADER_MAGIC_NUMBER = 0xfeedbeef;
+
 typedef struct _message_header {
   unsigned int magicNumber;    //Always set to 0xfeedbeef
   unsigned int size;           //size of the data (does *not* include header)

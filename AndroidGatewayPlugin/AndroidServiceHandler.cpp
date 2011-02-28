@@ -65,7 +65,7 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
   if(state == READING_HEADER) {
     count = this->peer().recv_n(&messageHeader, sizeof(messageHeader));
     //verify the message header (check its magic number and checksum)
-    if(messageHeader.magicNumber == 0xfeedbeef) {
+    if(messageHeader.magicNumber == HEADER_MAGIC_NUMBER) {
       unsigned int calculatedChecksum = ACE::crc32(&messageHeader, 3*sizeof(int));
       if(calculatedChecksum != messageHeader.headerChecksum) {
         LOG_ERROR("Invalid header checksum!");
@@ -127,15 +127,17 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
           LOG_WARN("Protocol Buffers message is missing a required element.");
         }
         unsigned int messageSize = msg->ByteSize();
-        sendBufferSize = messageSize + 2*sizeof(unsigned int);
+        sendBufferSize = messageSize + sizeof(MessageHeader);
         dataToSend = new char[sendBufferSize];
-        unsigned int *size = (unsigned int *) dataToSend;
-        unsigned int *messageChecksum = (unsigned int *) (dataToSend + sizeof(unsigned int));
-        char *protobufSerializedMessage = dataToSend + 2*sizeof(unsigned int);
+        MessageHeader *headerToSend = (MessageHeader *) dataToSend;
+        headerToSend->magicNumber = HEADER_MAGIC_NUMBER;
+        headerToSend->size = messageSize;
         
-        *size = messageSize;
+        char *protobufSerializedMessage = dataToSend + sizeof(MessageHeader);
         msg->SerializeToArray(protobufSerializedMessage, messageSize);
-        *messageChecksum = ACE::crc32(protobufSerializedMessage, messageSize);
+        
+        headerToSend->checksum = ACE::crc32(protobufSerializedMessage, messageSize);
+        headerToSend->headerChecksum = ACE::crc32(headerToSend, 3*sizeof(int));
         
         sendPosition = 0;
         
