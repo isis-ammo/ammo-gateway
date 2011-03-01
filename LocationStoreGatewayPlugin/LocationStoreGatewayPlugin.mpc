@@ -1,5 +1,7 @@
 project(LocationStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
-  after += LibGatewayConnector
+  after += LibGatewayConnector LibJSON
+  
+  includes += $(GATEWAY_ROOT)/LibJSON
 
 // Added for MacOS, which comes with SQLite already installed.
 // This directory is apparently not in the default system lib path,
@@ -13,5 +15,6 @@ project(LocationStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewaypl
   Source_Files {
     main.cpp
     LocationStore.cpp
+	LocationStoreConfigManager.cpp
   }
 }

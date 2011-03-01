@@ -32,9 +32,16 @@ bool GatewayCore::unregisterDataInterest(std::string mime_type, GatewayServiceHa
   
   handlerIterators = pushHandlers.equal_range(mime_type);
   
-  for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
-    if(handler == (*it).second) {
-      pushHandlers.erase(it);
+  for(it = handlerIterators.first; it != handlerIterators.second;) {
+    //need to increment the iterator *before* we erase it, because erasing it
+    //invalidates the iterator (it doesn't invalidate other iterators in the list,
+    //though)
+    multimap<string,GatewayServiceHandler *>::iterator eraseIter = it++;
+    
+    if(handler == (*eraseIter).second) {
+      //LOG_TRACE("Removing an element");
+      pushHandlers.erase(eraseIter);
+      break;
     }
   }
   return true;
@@ -53,7 +60,9 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, GatewayServiceHa
   
   handlerIterators = pullHandlers.equal_range(mime_type);
   
-  for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
+  for(it = handlerIterators.first; it != handlerIterators.second;) {
+    multimap<string,GatewayServiceHandler *>::iterator eraseIter = it++;
+    
     if(handler == (*it).second) {
       pullHandlers.erase(it);
     }

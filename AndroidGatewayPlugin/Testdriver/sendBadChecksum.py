@@ -6,7 +6,6 @@ import sys
 import socket
 import struct
 import zlib
-import time
 
 import AmmoMessages_pb2
 
@@ -18,7 +17,7 @@ class GatewayTestClient:
   def sendMessageWrapper(self, msg):
     serializedMsg = msg.SerializeToString()
     self.sock.sendall(struct.pack("<I", len(serializedMsg))) #little-endian byte order for now
-    self.sock.sendall(struct.pack("<i", zlib.crc32(serializedMsg)))
+    self.sock.sendall(struct.pack("<i", zlib.crc32(serializedMsg) + 5))
     print serializedMsg
     self.sock.sendall(serializedMsg);
     
@@ -87,15 +86,6 @@ if __name__ == "__main__":
   while True:
     msg = client.receiveMessage()
     print msg
-    time.sleep(0.5)
-    if(sys.argv[3] == "push"):
-      m = AmmoMessages_pb2.MessageWrapper()
-      m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
-      m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
-      m.data_message.mime_type = "text/plain"
-      m.data_message.data = "This is some text being pushed out to the gateway."
-      print "Sending data message"
-      client.sendMessageWrapper(m)
   
   print "Closing socket"
   

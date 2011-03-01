@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
   {
     struct sigaction sa;
     sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
 
     // Register the handler for SIGINT
     sa.sa_handler = SIG_IGN;
