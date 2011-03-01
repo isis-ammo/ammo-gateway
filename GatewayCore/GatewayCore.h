@@ -8,8 +8,8 @@ class GatewayServiceHandler;
 class CrossGatewayServiceHandler;
 
 typedef struct _subscription_info {
-  std::string handlerId = "";
-  unsigned int references = 0 ;
+  std::string handlerId;
+  unsigned int references;
 } SubscriptionInfo;
 
 class GatewayCore {

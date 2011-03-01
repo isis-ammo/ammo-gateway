@@ -232,6 +232,14 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
   return 0;
 }
 
+bool CrossGatewayServiceHandler::sendSubscribeMessage(std::string mime_type) {
+  return false;
+}
+
+bool CrossGatewayServiceHandler::sendUnsubscribeMessage(std::string mime_type) {
+  return false;
+}
+
 bool CrossGatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
@@ -247,47 +255,6 @@ bool CrossGatewayServiceHandler::sendPushedData(std::string uri, std::string mim
   
   return true;
 }
-
-bool CrossGatewayServiceHandler::sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, 
-                                           std::string query, std::string projection, unsigned int maxResults, 
-                                           unsigned int startFromCount, bool liveQuery) {
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::PullRequest *pullMsg = msg.mutable_pull_request();
-  pullMsg->set_request_uid(requestUid);
-  pullMsg->set_plugin_id(pluginId);
-  pullMsg->set_mime_type(mimeType);
-  pullMsg->set_query(query);
-  pullMsg->set_projection(projection);
-  pullMsg->set_max_results(maxResults);
-  pullMsg->set_start_from_count(startFromCount);
-  pullMsg->set_live_query(liveQuery);
-  
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
-  
-  LOG_DEBUG("Sending Pull Request message to connected plugin");
-  this->sendData(msg);
-  
-  return true;
-}
-
-bool CrossGatewayServiceHandler::sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType,
-					     std::string uri, const std::string& data) {
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::PullResponse *pullRsp = msg.mutable_pull_response();
-  pullRsp->set_request_uid(requestUid);
-  pullRsp->set_plugin_id(pluginId);
-  pullRsp->set_mime_type(mimeType);
-  pullRsp->set_uri(uri);
-  pullRsp->set_data(data);
-  
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
-  
-  LOG_DEBUG("Sending Pull Response message to connected plugin");
-  this->sendData(msg);
-  
-  return true;
-}
-
 
 
 CrossGatewayServiceHandler::~CrossGatewayServiceHandler() {

@@ -125,17 +125,70 @@ void GatewayCore::initCrossGateway() {
 bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGatewayServiceHandler *handler) {
   LOG_DEBUG("Registering cross-gateway handler " << handlerId);
   crossGatewayHandlers[handlerId] = handler;
-  return false;
+  return true;
 }
 
 bool GatewayCore::subscribeCrossGateway(std::string mimeType, std::string originHandlerId) {
   LOG_DEBUG("Got subscription to type " << mimeType << " for handler " << originHandlerId);
   //see if there's already a subscription to this type for this handler
-
+  bool foundSubscription = false;
+  multimap<string, SubscriptionInfo>::iterator it;
+  pair<multimap<string, SubscriptionInfo>::iterator,multimap<string,SubscriptionInfo>::iterator> subscriptionIterators;
   
-  return false;
+  subscriptionIterators = subscriptions.equal_range(mimeType);
+  
+  for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
+    if(originHandlerId == (*it).second.handlerId) {
+      (*it).second.references++;
+      foundSubscription = true;
+    }
+  }
+  
+  if(!foundSubscription) {
+    //if we get here, we don't already have an entry for this handler in the table
+    SubscriptionInfo newSubscription;
+    newSubscription.handlerId = originHandlerId;
+    newSubscription.references = 1;
+    
+    subscriptions.insert(pair<string, SubscriptionInfo>(mimeType, newSubscription));
+  }
+  
+  //now propogate the subscription to all the other gateway nodes, except the one it came from
+  for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+    if(it->first != originHandlerId) {
+      it->second->sendSubscribeMessage(mimeType);
+    }
+  }
+  
+  return true;
 }
 bool GatewayCore::unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId) {
+  LOG_DEBUG("Handler " << originHandlerId << " unsubscribing from type " << mimeType);
+  //propogate the unsubscribe to all the other gateway nodes, except the one it came from
+  for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+    if(it->first != originHandlerId) {
+      it->second->sendUnsubscribeMessage(mimeType);
+    }
+  }
+  
+  //look for an existing subscription to this type
+  multimap<string, SubscriptionInfo>::iterator it;
+  pair<multimap<string, SubscriptionInfo>::iterator,multimap<string,SubscriptionInfo>::iterator> subscriptionIterators;
+  
+  subscriptionIterators = subscriptions.equal_range(mimeType);
+  
+  for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
+    if(originHandlerId == (*it).second.handlerId) {
+      (*it).second.references--;
+      if((*it).second.references == 0) {
+        subscriptions.erase(it);
+      }
+      return true;
+    }
+  }
+  
+  //if we get here, there wasn't a subscription to unsubscribe from
+  LOG_WARN("Tried to unsubscribe without an existing subscription");
   return false;
 }
 
