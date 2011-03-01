@@ -14,13 +14,20 @@ import AmmoMessages_pb2
 
 #==============================================
 #
-# class GatewayTestClient
+# class GatewayLdapTestClient
 #
 #==============================================
-class GatewayTestClient:
-    def __init__(self, host, port):
+class GatewayLdapTestClient:
+    def __init__(self, hostName, port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((host, int(port)))
+        try:
+            self.sock.connect((hostName, int(port)))
+        except socket.error, e:
+            sys.stderr.write("Error creating socket (%s:%s) -- %s\n"  % (hostName, port, e)  )
+            sys.exit(1)
+    
+    def __del__(self):
+        self.sock.close()
     
     def sendMessageWrapper(self, msg):
         serializedMsg = msg.SerializeToString()
@@ -44,47 +51,20 @@ class GatewayTestClient:
         msg = AmmoMessages_pb2.MessageWrapper()
         msg.ParseFromString(protobufMsg)
         return msg
-
-#==============================================
-#
-# EnforceUsage()
-#
-#==============================================
-def EnforceUsage():
-    if len(sys.argv) != 4:
-        sys.stderr.write("Usage: %s <host> <port> <message-type>\n" % sys.argv[0])
-        helpString = '''Where <message-type> is one of:
-        authenticate : always run, this a dummy actually anything would work.
-        subscribe : subscribe to type:edu.vanderbilt.isis.ammo.Test.
-        pull : search for type:edu.vu.isis.ammo.launhcer.contact_pull.
-        push : send a data message of topic type:edu.vanderbilt.isis.ammo.Test.'''
-        sys.stderr.write("\n%s\n\n" % helpString)
-        sys.exit(-1)
     
-
-#==============================================
-#
-# main()
-#
-#==============================================
-def main():
-    sys.stdout.write('Gateway LDAP plugin test\n')
-    EnforceUsage()
+    def EstablishGatewayConnection(self):
+        sys.stdout.write("Generating message\n")
+        m = AmmoMessages_pb2.MessageWrapper()
+        m.type = AmmoMessages_pb2.MessageWrapper.AUTHENTICATION_MESSAGE
+        m.authentication_message.device_id = "device:test/device1"
+        m.authentication_message.user_id = "user:test/user1"
+        m.authentication_message.user_key = "dummy"
+        sys.stdout.write("Sending message\n")
+        self.sendMessageWrapper(m)
     
-    sys.stdout.write("Creating client\n")
-    client = GatewayTestClient(sys.argv[1], sys.argv[2])
-    sys.stdout.write("Generating message\n")
-    m = AmmoMessages_pb2.MessageWrapper()
-    m.type = AmmoMessages_pb2.MessageWrapper.AUTHENTICATION_MESSAGE
-    m.authentication_message.device_id = "device:test/device1"
-    m.authentication_message.user_id = "user:test/user1"
-    m.authentication_message.user_key = "dummy"
-    sys.stdout.write("Sending message\n")
-    client.sendMessageWrapper(m)
-    
-    if(sys.argv[3] == "push"):
+    def DoPushTest(self):
         #wait for auth response, then send a data push message
-        response = client.receiveMessage()
+        response = self.receiveMessage()
         if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
             sys.stderr.write("Authentication failed...\n")
         m = AmmoMessages_pb2.MessageWrapper()
@@ -93,20 +73,11 @@ def main():
         m.data_message.mime_type = "text/plain"
         m.data_message.data = "This is some text being pushed out to the gateway."
         sys.stdout.write("Sending data message\n")
-        client.sendMessageWrapper(m)
-    elif sys.argv[3] == "subscribe":
-        #wait for auth response, then send a subscribe message
-        response = client.receiveMessage()
-        if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
-            sys.stderr.write("Authentication failed...\n")
-        m = AmmoMessages_pb2.MessageWrapper()
-        m.type = AmmoMessages_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
-        m.subscribe_message.mime_type = "application/vnd.edu.vu.isis.ammo.battlespace.gcm"
-        sys.stdout.write("Sending subscription request...\n")
-        client.sendMessageWrapper(m)
-    elif sys.argv[3] == "pull":
+        self.sendMessageWrapper(m)
+    
+    def DoPullTest(self):
         #wait for auth response, then send a data pull message
-        response = client.receiveMessage()
+        response = self.receiveMessage()
         if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
             sys.stderr.write("Authentication failed...\n")
         m = AmmoMessages_pb2.MessageWrapper()
@@ -117,8 +88,50 @@ def main():
         m.pull_request.query = ""
         m.pull_request.mime_type = "application/vnd.edu.vu.isis.ammo.launcher.contact_pull"
         sys.stdout.write("Sending pull request...\n")
-        client.sendMessageWrapper(m)
-        
+        self.sendMessageWrapper(m)
+    
+    def DoSubscribeTest(self):
+        #wait for auth response, then send a subscribe message
+        response = self.receiveMessage()
+        if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
+            sys.stderr.write("Authentication failed...\n")
+        m = AmmoMessages_pb2.MessageWrapper()
+        m.type = AmmoMessages_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
+        m.subscribe_message.mime_type = "application/vnd.edu.vu.isis.ammo.battlespace.gcm"
+        sys.stdout.write("Sending subscription request...\n")
+        self.sendMessageWrapper(m)
+
+
+#==============================================
+#
+# main()
+#
+#==============================================
+def main():
+    sys.stdout.write('Gateway LDAP plugin test\n')
+    
+    # Enforce usage
+    if len(sys.argv) != 4:
+        sys.stderr.write("Usage: %s <host> <port> <message-type>\n" % sys.argv[0])
+        helpString = '''Where <message-type> is one of:
+        authenticate : always run, this a dummy actually anything would work.
+        subscribe : subscribe to type:edu.vanderbilt.isis.ammo.Test.
+        pull : search for type:edu.vu.isis.ammo.launhcer.contact_pull.
+        push : send a data message of topic type:edu.vanderbilt.isis.ammo.Test.'''
+        sys.stderr.write("\n%s\n\n" % helpString)
+        sys.exit(-1)
+    
+    sys.stdout.write("Creating client\n")
+    client = GatewayLdapTestClient(sys.argv[1], sys.argv[2])
+    client.EstablishGatewayConnection()
+    
+    if(sys.argv[3] == "push"):
+        client.DoPushTest()
+    elif sys.argv[3] == "subscribe":
+        client.DoSubscribeTest()
+    elif sys.argv[3] == "pull":
+        client.DoPullTest()
+    
     try:
         while True:
             msg = client.receiveMessage()
@@ -129,5 +142,4 @@ def main():
 #---------------------------
 
 if (__name__ == "__main__"):
-    EnforceUsage()
     main()
