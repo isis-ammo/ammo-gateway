@@ -36,15 +36,11 @@ public:
 							   bool liveQuery);
 	
 private:
-  // For debugging, maps SQLITE error codes to informative strings.
-  const char * const ec_to_string (int error_code) const;
-	
-private:
   // Pointer to open database.
   sqlite3 *db_;
 	
-  // Common prefix to error messages from callbacks
-  // to this class.
+  // Prefix to error messages from data push callbacks
+  // to this class, used repeatedly in overridden method.
   const char * const err_prefix_;
 };
 
