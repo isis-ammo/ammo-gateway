@@ -32,6 +32,7 @@ public:
   void initCrossGateway();
   
   bool registerCrossGatewayConnection(std::string handlerId, CrossGatewayServiceHandler *handler);
+  bool unregisterCrossGatewayConnection(std::string handlerId);
   
   bool subscribeCrossGateway(std::string mimeType, std::string originHandlerId);
   bool unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId);
