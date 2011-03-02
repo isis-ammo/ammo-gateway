@@ -204,9 +204,10 @@ LocationStoreReceiver::onDataReceived (GatewayConnector *sender,
 	
   sqlite3_stmt *query_stmt = builder.query ();
 	
-  unsigned int index = 0;
+  // If the arg is 0, we want unlimited results.	
   unsigned int resultLimit =
     (maxResults == 0 ? ACE_UINT32_MAX : maxResults);
+  unsigned int index = 0;
 	
   while (sqlite3_step (query_stmt) == SQLITE_ROW
 	     && index < resultLimit)
@@ -219,24 +220,18 @@ LocationStoreReceiver::onDataReceived (GatewayConnector *sender,
 	  // For insertion, column numbers are 1-based, for extraction, 0-based.
 		
 	  // SQLite retrieves text as const unsigned char*, reinterpret_cast<>
-	  // is the only way to make it palatable for std::string assignment.
-	  std::string uri =
-		reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 0));
+	  // is the only way to convert it to const char* for std::string assignment.
+	  std::string uri (
+		reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 0)));
 		
-	  // Blobs are retrieved as void*, must convert this also.	
-	  const char *data_str =
-		reinterpret_cast<const char *> (sqlite3_column_blob (query_stmt, 5));
-		
-	  size_t len = ACE_OS::strlen (data_str);
 	  std::vector<char> data;
+	  size_t len = sqlite3_column_bytes (query_stmt, 5);
 	  data.resize (len);
 		
-	  // This will be ugly for a very large data blob, must look for a way
-	  // to assign in one shot.
-	  for (size_t i = 0; i < len; ++i)
-		{
-		  data[i] = data_str[i];
-		}
+	  // This trick seems to work for assigning to the vector in one shot.	
+	  ACE_OS::memcpy (data.get_allocator ().address (*data.begin ()),
+		              sqlite3_column_blob (query_stmt, 5),
+		              len);
 		
       bool good_response =
 		sender->pullResponse (requestUid,
