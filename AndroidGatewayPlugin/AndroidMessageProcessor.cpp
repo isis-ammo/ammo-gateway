@@ -59,9 +59,11 @@ int AndroidMessageProcessor::svc() {
         delete msg;
       }
     } while (msg != NULL);
-    newMessageMutex.acquire();
-    newMessageAvailable.wait();
-    newMessageMutex.release();
+    if(!isClosed()) {
+      newMessageMutex.acquire();
+      newMessageAvailable.wait();
+      newMessageMutex.release();
+    }
   }
   return 0;
 }
