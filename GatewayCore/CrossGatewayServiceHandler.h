@@ -40,8 +40,8 @@ protected:
   char *collectedData;
   unsigned int position;
   
-  std::string username;
-  bool usernameAuthenticated;
+  std::string gatewayId;
+  bool gatewayIdAuthenticated;
   
   std::vector<std::string> registeredHandlers;
   std::vector<std::string> registeredPullRequestHandlers;

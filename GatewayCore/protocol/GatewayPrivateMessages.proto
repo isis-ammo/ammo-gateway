@@ -6,6 +6,11 @@ message AssociateDevice {
   required string key = 3;
 }
 
+message AssociateCrossGateway {
+  required string gateway_id = 1;
+  required string key = 2;
+}
+
 message AssociateResult {
   enum Status {
     FAILED = 0;
@@ -68,6 +73,7 @@ message GatewayWrapper {
     PULL_RESPONSE = 6;
     REGISTER_PULL_INTEREST = 7;
     UNREGISTER_PULL_INTEREST = 8;
+    ASSOCIATE_CROSS_GATEWAY = 9;
   }
   
   required MessageType type = 1;
@@ -81,4 +87,5 @@ message GatewayWrapper {
   optional PullResponse pull_response = 8;
   optional RegisterPullInterest register_pull_interest = 9;
   optional UnregisterPullInterest unregister_pull_interest = 10;
+  optional AssociateCrossGateway associate_cross_gateway = 11;
 }
