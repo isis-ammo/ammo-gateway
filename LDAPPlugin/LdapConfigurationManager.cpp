@@ -14,13 +14,34 @@ LdapConfigurationManager *LdapConfigurationManager::sharedInstance = NULL;
 
 //============================================================
 //
-// LdapConfigurationManager()
+// Default constructor
 //
+// Use the default config file if none specified
 //============================================================
 LdapConfigurationManager::LdapConfigurationManager() : ldapBaseAddress("localhost"), ldapUsername("cn=Manager,dc=transapps,dc=darpa,dc=mil"), ldapPassword("ammmo")
 {
-  //cout << "Parsing config file..." << endl << flush;
-  ifstream configFile(LDAP_CONFIG_FILE);
+  configFromFile(LDAP_CONFIG_FILE);
+}
+
+//============================================================
+//
+// Constructor with filename
+//
+// Use the config file specified
+//============================================================
+LdapConfigurationManager::LdapConfigurationManager(string fileName)
+{
+  configFromFile(fileName);
+}
+
+//============================================================
+//
+// configFromFile()
+//
+//============================================================
+void LdapConfigurationManager::configFromFile(string fileName)
+{
+  ifstream configFile(fileName.c_str());
   if(configFile)
     {
       Json::Value root;
@@ -36,7 +57,7 @@ LdapConfigurationManager::LdapConfigurationManager() : ldapBaseAddress("localhos
             }
           else
             {
-              cout << "Error: LdapBaseAddress is missing or wrong type (should be string)" << endl << flush;
+              cerr << "Error: LdapBaseAddress is missing or wrong type (should be string)" << endl << flush;
             }
 
           if(root["LdapUsername"].isString())
@@ -45,7 +66,7 @@ LdapConfigurationManager::LdapConfigurationManager() : ldapBaseAddress("localhos
             }
           else
             {
-              cout << "Error: LdapUsername is missing or wrong type (should be string)" << endl << flush;
+              cerr << "Error: LdapUsername is missing or wrong type (should be string)" << endl << flush;
             }
 
           if(root["LdapPassword"].isString())
@@ -54,28 +75,22 @@ LdapConfigurationManager::LdapConfigurationManager() : ldapBaseAddress("localhos
             }
           else
             {
-              cout << "Error: LdapPassword is missing or wrong type (should be integer)" << endl << flush;
+              cerr << "Error: LdapPassword is missing or wrong type (should be integer)" << endl << flush;
             }
         }
       else
         {
-          cout << "JSON parsing error in config file '" 
-	       << LDAP_CONFIG_FILE << "'.  Using defaults." << endl << flush;
+          cerr << "JSON parsing error in config file '" 
+	       << fileName << "'.  Using defaults." << endl << flush;
         }
       configFile.close();
     }
   else
     {
       cout << "Could not read from config file '" 
-	   << LDAP_CONFIG_FILE << "'.  Using defaults." << endl << flush;
+	   << fileName << "'.  Using defaults." << endl << flush;
     }
 
-  cout << endl;
-  cout << "Ldap Connector Configuration: " << endl;
-  cout << "  Base Address: " << ldapBaseAddress << endl;
-  cout << "  Username: " << ldapUsername << endl;
-  cout << "  Password: " << ldapPassword << endl << flush;
-  cout << endl;
 }
 
 //============================================================

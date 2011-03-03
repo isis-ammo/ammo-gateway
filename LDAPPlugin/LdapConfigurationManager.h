@@ -6,6 +6,7 @@
 class LdapConfigurationManager 
 {
 public:
+  LdapConfigurationManager(std::string fileName);
   static LdapConfigurationManager* getInstance();  
 
   std::string getLdapBaseAddress();
@@ -14,6 +15,8 @@ public:
 
 private:
   LdapConfigurationManager();
+  void configFromFile(std::string fileName);
+  
   static LdapConfigurationManager *sharedInstance;
 
   std::string ldapBaseAddress;
