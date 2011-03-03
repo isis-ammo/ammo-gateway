@@ -1,6 +1,6 @@
 #include "LdapPushReceiver.h"
-
 #include "LdapConfigurationManager.h"
+#include "GatewayLdapConstants.h"
 
 #include "json/json.h"
 
@@ -12,6 +12,7 @@
 #include <ldap.h>
 #include "decode.h"
 #include <fstream>
+
 
 using namespace std;
 
@@ -109,49 +110,22 @@ void LdapPushReceiver::onDataReceived(GatewayConnector *sender,
   cout << "  URI: " << uri << endl;
   cout << "  Mime type: " << mimeType << endl;
 
-  if(mimeType == "application/vnd.edu.vu.isis.ammo.launcher.contact_edit")
+  if(mimeType == CONTACT_MIME_TYPE)
     {
-      cout << "Extracting JSON metadata..." << endl << flush;
-      unsigned int jsonEnd = 0;
-      for(vector<char>::iterator it = data.begin(); it != data.end(); it++)
+      // Extract JSON string from message payload
+      std::string json = payloadToJson(data);
+
+      // Populate contact object from data in JSON
+      LdapContact* contact = NULL;
+      contact = objectFromJson(json);
+      if (contact)
         {
-          jsonEnd++;
-          if((*it) == 0)
+          // Edit the LDAP entry for this contact
+          if (!editContact(*contact))
             {
-              break;
+              cout << "ERROR while updated LDAP for: " << contact->name << endl << flush;
             }
         }
-
-      string json(&data[0], jsonEnd);
-
-      cout << "JSON string: " << json << endl;
-
-      Json::Value jsonRoot;
-      Json::Reader jsonReader;
-
-      bool parseSuccess = jsonReader.parse(json, jsonRoot);
-
-      if(!parseSuccess)
-        {
-          cout << "JSON parsing error:" << endl;
-          cout << jsonReader.getFormatedErrorMessages() << endl;
-          return;
-        }
-
-      cout << "Parsed JSON: " << jsonRoot.toStyledString() << endl;
-
-      LdapContact contact;
-      contact.name = jsonRoot["name"].asString();
-      contact.middle_initial = jsonRoot["middle_initial"].asString();
-      contact.lastname = jsonRoot["lastname"].asString();
-      contact.rank = jsonRoot["rank"].asString();
-      contact.callsign = jsonRoot["callsign"].asString();
-      contact.branch = jsonRoot["branch"].asString();
-      contact.unit = jsonRoot["unit"].asString();
-      contact.email = jsonRoot["email"].asString();
-      contact.phone = jsonRoot["phone"].asString();
-
-      editContact(contact);
     }
   else
     {
@@ -202,7 +176,6 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   // build the filter based on query expression
   // query = comma-separated field-name / value pairs
 
-  // <NEW_NON_BOOST>
   {
     // Divide the query string into tokens (separated by '|')
     char separator = '|';
@@ -244,7 +217,6 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
           }
       }
   }
-  // </NEW_NON_BOOST>
 
   filter += " )";
 
@@ -268,11 +240,11 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
                               -1, // number of results : -1 = unlimited
                               &results);
 
-  cout << "LDAP Return From Search for: " << filter << endl;
+  //cout << "LDAP Return From Search for: " << filter << endl;
   if (ret != LDAP_SUCCESS)
     {
-      cout << "LDAP Search failed for " 
-	   << filter << ": " << hex << ret << " - " << ldap_err2string(ret) << endl;
+      cout << "LDAP search failed for " << filter << ": "
+           << hex << ret << " - " << ldap_err2string(ret) << endl;
       return false;
     }
   else
@@ -281,7 +253,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
     }
 
 
-  /* process the results */
+  // Pack the search results into JSON objects and store in a vector
   LDAPMessage *entry = ldap_first_entry(ldapServer, results);
   while(entry)
     {
@@ -289,14 +261,96 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
       entry = ldap_next_entry(ldapServer, entry);
     }
 
+  // Free the LDAP message object
   if (results)
     {
-      // free results
       ldap_msgfree(results);
     }
 
-
   return true;
+}
+
+//============================================================
+//
+// payloadToJson()
+//
+//============================================================
+std::string LdapPushReceiver::payloadToJson(std::vector<char> &data)
+{
+  //cout << "Extracting JSON metadata..." << endl << flush;
+  unsigned int jsonEnd = 0;
+  for(vector<char>::iterator it = data.begin(); it != data.end(); it++)
+    {
+      jsonEnd++;
+      if((*it) == 0) break;
+    }
+
+  std::string jsonOut(&data[0], jsonEnd);
+  cout << "JSON string: " << jsonOut << endl;
+
+  return jsonOut;
+}
+
+
+//============================================================
+//
+// objectFromJson()
+//
+//============================================================
+bool LdapPushReceiver::parseJson(std::string input, Json::Value& jsonRoot)
+{
+  Json::Reader jsonReader;
+  bool parseSuccess = jsonReader.parse(input, jsonRoot);
+
+  if(!parseSuccess)
+    {
+      cout << "JSON parsing error:" << endl;
+      cout << jsonReader.getFormatedErrorMessages() << endl;
+      return parseSuccess;
+    }
+
+  cout << "Parsed JSON: " << jsonRoot.toStyledString() << endl;
+  return parseSuccess;
+}
+
+//============================================================
+//
+// objectFromJson()
+//
+//============================================================
+LdapContact* LdapPushReceiver::objectFromJson(std::string input)
+{
+  Json::Value jsonRoot;
+  if (!parseJson(input, jsonRoot))
+    {
+      return NULL;
+    }
+
+  /*
+    LdapContact contact;
+    contact.name = jsonRoot["name"].asString();
+    contact.middle_initial = jsonRoot["middle_initial"].asString();
+    contact.lastname = jsonRoot["lastname"].asString();
+    contact.rank = jsonRoot["rank"].asString();
+    contact.callsign = jsonRoot["callsign"].asString();
+    contact.branch = jsonRoot["branch"].asString();
+    contact.unit = jsonRoot["unit"].asString();
+    contact.email = jsonRoot["email"].asString();
+    contact.phone = jsonRoot["phone"].asString();
+  */
+
+  LdapContact* contact = new LdapContact;
+  contact->name = jsonRoot["name"].asString();
+  contact->middle_initial = jsonRoot["middle_initial"].asString();
+  contact->lastname = jsonRoot["lastname"].asString();
+  contact->rank = jsonRoot["rank"].asString();
+  contact->callsign = jsonRoot["callsign"].asString();
+  contact->branch = jsonRoot["branch"].asString();
+  contact->unit = jsonRoot["unit"].asString();
+  contact->email = jsonRoot["email"].asString();
+  contact->phone = jsonRoot["phone"].asString();
+
+  return contact;
 }
 
 //============================================================
@@ -308,19 +362,20 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
   Json::Value root;
   struct berval **vals;
 
-
   // name
   vals = ldap_get_values_len(ldapServer, entry, "givenName");
-  if (vals) {
-    root["name"] = vals[0]->bv_val; // there must be only one name
-    ldap_value_free_len(vals);
-  }
+  if (vals)
+    {
+      root["name"] = vals[0]->bv_val; // there must be only one name
+      ldap_value_free_len(vals);
+    }
 
   vals = ldap_get_values_len(ldapServer, entry, "sn");
-  if (vals) {
-    root["lastname"] = vals[0]->bv_val; // there must be only one name
-    ldap_value_free_len(vals);
-  }
+  if (vals)
+    {
+      root["lastname"] = vals[0]->bv_val; // there must be only one name
+      ldap_value_free_len(vals);
+    }
 
   vals = ldap_get_values_len(ldapServer, entry, "initials");
   if (vals) {
@@ -330,63 +385,73 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
 
   // rank
   vals = ldap_get_values_len(ldapServer, entry, "Rank");
-  if (vals) {
-    root["rank"] = vals[0]->bv_val;
-    ldap_value_free_len(vals);
-  }
+  if (vals)
+    {
+      root["rank"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
 
   // callsign
   vals = ldap_get_values_len(ldapServer, entry, "Callsign");
-  if (vals) {
-    root["callsign"] = vals[0]->bv_val;
-    ldap_value_free_len(vals);
-  }
+  if (vals)
+    {
+      root["callsign"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
 
   // branch
   vals = ldap_get_values_len(ldapServer, entry, "Branch");
-  if (vals) {
-    root["branch"] = vals[0]->bv_val;
-    ldap_value_free_len(vals);
-  }
+  if (vals)
+    {
+      root["branch"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
 
   // unit (generic)
   vals = ldap_get_values_len(ldapServer, entry, "Unit");
-  if (vals) {
-    root["unit"] = vals[0]->bv_val;
-    ldap_value_free_len(vals);
-  }
+  if (vals)
+    {
+      root["unit"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
 
   // unit (specific, separated)
   vals = ldap_get_values_len(ldapServer, entry, "unitDivision");
-  if (vals) {
-    root["unitDivision"] = vals[0]->bv_val;
-    ldap_value_free_len(vals);
-  }
+  if (vals)
+    {
+      root["unitDivision"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
   vals = ldap_get_values_len(ldapServer, entry, "unitBrigade");
-  if (vals) {
-    root["unitBrigade"] = vals[0]->bv_val;
-    ldap_value_free_len(vals);
-  }
+  if (vals)
+    {
+      root["unitBrigade"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
   vals = ldap_get_values_len(ldapServer, entry, "unitBattalion");
-  if (vals) {
-    root["unitBattalion"] = vals[0]->bv_val;
-    ldap_value_free_len(vals);
-  }
+  if (vals)
+    {
+      root["unitBattalion"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
   vals = ldap_get_values_len(ldapServer, entry, "unitCompany");
-  if (vals) {
-    root["unitCompany"] = vals[0]->bv_val;
-    ldap_value_free_len(vals);
-  }
+  if (vals)
+    {
+      root["unitCompany"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
   vals = ldap_get_values_len(ldapServer, entry, "unitPlatoon");
-  if (vals) {
-    root["unitPlatoon"] = vals[0]->bv_val;
-    ldap_value_free_len(vals);
-  }
+  if (vals)
+    {
+      root["unitPlatoon"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
   vals = ldap_get_values_len(ldapServer, entry, "unitSquad");
-  if (vals) {
-    root["unitSquad"] = vals[0]->bv_val;
-    ldap_value_free_len(vals);
-  }
+  if (vals)
+    {
+      root["unitSquad"] = vals[0]->bv_val;
+      ldap_value_free_len(vals);
+    }
 
 
   // Tigr user ID
@@ -398,37 +463,38 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
 
   // email
   vals = ldap_get_values_len(ldapServer, entry, "mail");
-  if (vals) {
-    root["email"] = vals[0]->bv_val;    // use only the first mail
-    ldap_value_free_len(vals);
-  }
-
-
+  if (vals)
+    {
+      root["email"] = vals[0]->bv_val;    // use only the first mail
+      ldap_value_free_len(vals);
+    }
 
   // phone
   vals = ldap_get_values_len(ldapServer, entry, "mobile");
-  if (vals) {
-    root["phone"] = vals[0]->bv_val;    // use only the first phone
-    ldap_value_free_len(vals);
-  }
+  if (vals)
+    {
+      root["phone"] = vals[0]->bv_val;    // use only the first phone
+      ldap_value_free_len(vals);
+    }
 
 
   char *dn = ldap_get_dn(ldapServer, entry);
   char **edn = ldap_explode_dn(dn, 0);
   string unit;
-  for(int i=0; edn && edn[i]; i++) {
-    int ret = strncmp( edn[i], "ou", 2 );
-    if (ret != 0)
-      continue;
-    char *oval = strchr( edn[i], '=' );
-    if (oval)
-      oval++;
+  for(int i=0; edn && edn[i]; i++)
+    {
+      int ret = strncmp( edn[i], "ou", 2 );
+      if (ret != 0)
+        continue;
+      char *oval = strchr( edn[i], '=' );
+      if (oval)
+        oval++;
 
-    if (unit == "")
-      unit = string(oval);
-    else
-      unit = string(oval) + string("/") + unit;
-  }
+      if (unit == "")
+        unit = string(oval);
+      else
+        unit = string(oval) + string("/") + unit;
+    }
   root["unit"] = unit;
 
 
@@ -527,8 +593,11 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
 // editContact()
 //
 //============================================================
-bool LdapPushReceiver::editContact(const LdapContact&)
+bool LdapPushReceiver::editContact(const LdapContact& contact)
 {
+  cout << "LdapPushReceiver::editContact()" << endl << flush;
+  cout << contact.name << endl << flush;
+  return true;
 }
 
 //============================================================
