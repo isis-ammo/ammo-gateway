@@ -10,9 +10,7 @@ import sys
 from AmmoGatewayLdapTestClient import *
 
 #==============================================
-#
 # main()
-#
 #==============================================
 def main():
     sys.stdout.write('Gateway LDAP plugin test\n')
