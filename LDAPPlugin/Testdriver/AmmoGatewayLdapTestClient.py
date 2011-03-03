@@ -4,6 +4,7 @@ import socket
 import struct
 import zlib
 import threading
+import json
 
 import AmmoMessages_pb2
 
@@ -89,8 +90,12 @@ class AmmoGatewayLdapTestClient:
         m = AmmoMessages_pb2.MessageWrapper()
         m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
         m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
-        m.data_message.mime_type = "text/plain"
-        m.data_message.data = "This is some text being pushed out to the gateway."
+        m.data_message.mime_type = "application/vnd.edu.vu.isis.ammo.launcher.contact"
+        
+        # The .data element should be a JSON string
+        #m.data_message.data = "This is non-JSON text"
+        m.data_message.data = self.testJsonString()
+        
         sys.stdout.write("Sending data message\n")
         self.sendMessageWrapper(m)
     
@@ -122,8 +127,22 @@ class AmmoGatewayLdapTestClient:
         sys.stdout.write("Sending subscription request...\n")
         self.sendMessageWrapper(m)
     
-    def Stop(self):
-        self.Listener.Stop()
+    #def Stop(self):
+    #    self.Listener.Stop()
+    
+    def testJsonString(self):
+        contactEntry = {}
+        contactEntry['name'] = "Bob"
+        contactEntry['lastname'] = "Smith"
+        contactEntry['rank'] = "1Lt"
+        contactEntry['callsign'] = "Red Rover"
+        contactEntry['branch'] = "Army"
+        contactEntry['email'] = "bob@example.com"
+        contactEntry['phone'] = "615-555-1212"
+        contactEntry['unitDivision'] = "10MTN"
+        s = json.dumps(contactEntry)
+        sys.stdout.write("*** json-ized string is: %s\n" % s)
+        return s
 
 
 #==============================================
