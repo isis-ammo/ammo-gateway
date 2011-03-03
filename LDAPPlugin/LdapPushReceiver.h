@@ -7,7 +7,8 @@
 
 #include <ldap.h>
 
-class LdapContact {
+class LdapContact 
+{
 public:
   std::string name;
   std::string middle_initial;
@@ -22,28 +23,35 @@ public:
   std::vector<unsigned char> insignia;
 };
 
-class LdapPushReceiver : public DataPushReceiverListener, public GatewayConnectorDelegate, public PullRequestReceiverListener {
+
+class LdapPushReceiver : public DataPushReceiverListener, 
+			 public GatewayConnectorDelegate, 
+			 public PullRequestReceiverListener
+{
 public:
   LdapPushReceiver();
   //GatewayConnectorDelegate methods
   virtual void onConnect(GatewayConnector *sender);
   virtual void onDisconnect(GatewayConnector *sender);
-  
+
   //DataPushReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
-  
+  virtual void onDataReceived(GatewayConnector *sender, std::string uri, 
+			      std::string mimeType, std::vector<char> &data, 
+			      std::string originUser);
+
   bool get(std::string query, std::vector<std::string> &jsonResults);
+
   std::string jsonForObject(LDAPMessage *entry);
-  
+
   bool editContact(const LdapContact& );
-  
+
   //PullRequestReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender, 
-			      std::string requestUid, std::string pluginId,
-			      std::string mimeType, std::string query,
-			      std::string projection, unsigned int maxResults,
-			      unsigned int startFromCount, bool liveQuery);
-  
+  virtual void onDataReceived(GatewayConnector *sender,
+                              std::string requestUid, std::string pluginId,
+                              std::string mimeType, std::string query,
+                              std::string projection, unsigned int maxResults,
+                              unsigned int startFromCount, bool liveQuery);
+
 private:
   std::map<int, LdapContact> unsentContacts;
   LDAP *ldapServer;
