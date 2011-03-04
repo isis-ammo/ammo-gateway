@@ -1,0 +1,98 @@
+#----------------------------------------------------------------------------
+#       Macros
+#----------------------------------------------------------------------------
+MODULESRCDIR  = ..
+OBJDIR        = ./build/obj
+
+CC            = gcc
+CXX           = g++
+LD            = $(CXX) $(CCFLAGS) $(CPPFLAGS)
+AR            = ar
+PICFLAGS      = -fPIC
+CPPFLAGS      = $(PICFLAGS) $(GENFLAGS) -D_REENTRANT -I"$(ACE_ROOT)" -I"$(PROTOBUF_ROOT)/include" -I"$(MODULESRCDIR)/../common" -I"$(MODULESRCDIR)/../LibGatewayConnector" -I"." -I$(MODULESRCDIR) -I"$(MODULESRCDIR)/../LibJSON"
+OBJEXT        = .o
+OUTPUT_OPTION = -o "$@"
+COMPILE.c     = $(CC) $(CFLAGS) $(CCFLAGS) $(CPPFLAGS) -c
+COMPILE.cc    = $(CXX) $(CCFLAGS) $(CPPFLAGS) -c
+LDFLAGS       = -L"$(MODULESRCDIR)" -L"$(ACE_ROOT)/lib" -L"$(PROTOBUF_ROOT)/lib" -L"$(MODULESRCDIR)/../build/lib"
+CCC           = $(CXX)
+MAKEFILE      = Makefile.testLdapPushReceiver
+DEPENDENCIES  = .depend.$(MAKEFILE)
+BTARGETDIR    = ./build/bin/
+BIN           = $(BTARGETDIR)testLdapPushReceiver$(EXESUFFIX)$(EXEEXT)
+CAT           = cat
+MV            = mv -f
+RM            = rm -rf
+CP            = cp -p
+NUL           = /dev/null
+MKDIR         = mkdir -p
+TESTDIRSTART  = test -d
+TESTDIREND    = ||
+TOUCH         = touch
+EXEEXT        = 
+LIBPREFIX     = lib
+LIBSUFFIX     = 
+GENFLAGS      = -O
+LDLIBS        = -l"json$(LIBSUFFIX)" -l"ldap$(LIBSUFFIX)" -l"gatewayconnector$(LIBSUFFIX)" -l"protobuf$(LIBSUFFIX)" -l"ACE$(LIBSUFFIX)" -ldl $(subst lib,-l,$(sort $(basename $(notdir $(wildcard /usr/lib/librt.so /lib/librt.so))))) -lpthread
+OBJS          = $(OBJDIR)/testLdapPushReceiver$(OBJEXT) $(OBJDIR)/LdapConfigurationManager$(OBJEXT) $(OBJDIR)/LdapPushReceiver$(OBJEXT) $(OBJDIR)/cdecode$(OBJEXT)
+SRC           = testLdapPushReceiver.cpp LdapPushReceiver.cpp LdapConfigurationManager.cpp cdecode.c
+LINK.cc       = $(LD) $(LDFLAGS)
+STATICFLAGS   = -DACE_AS_STATIC_LIBS
+EXPORTFLAGS   = 
+
+#----------------------------------------------------------------------------
+#       Local targets
+#----------------------------------------------------------------------------
+
+all: $(BIN)
+
+$(BIN): $(OBJS)
+	@$(TESTDIRSTART) "$(BTARGETDIR)" $(TESTDIREND) $(MKDIR) "$(BTARGETDIR)"
+	$(LINK.cc) $(OBJS) $(LDLIBS) $(OUTPUT_OPTION)
+
+$(OBJS): $(GENERATED_DIRTY)
+
+SPACE           = $(should_be_unset) $(should_be_unset)
+GENERATED_DIRTY =
+
+.PRECIOUS: $(GENERATED_DIRTY)
+
+generated: $(GENERATED_DIRTY)
+	@-:
+
+$(OBJDIR)/testLdapPushReceiver$(OBJEXT): testLdapPushReceiver.cpp
+	@$(TESTDIRSTART) "$(OBJDIR)" $(TESTDIREND) $(MKDIR) "$(OBJDIR)"
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) testLdapPushReceiver.cpp
+
+$(OBJDIR)/LdapPushReceiver$(OBJEXT): $(MODULESRCDIR)/LdapPushReceiver.cpp
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) $(MODULESRCDIR)/LdapPushReceiver.cpp
+
+$(OBJDIR)/LdapConfigurationManager$(OBJEXT): $(MODULESRCDIR)/LdapConfigurationManager.cpp
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) $(MODULESRCDIR)/LdapConfigurationManager.cpp
+
+$(OBJDIR)/cdecode$(OBJEXT): $(MODULESRCDIR)/cdecode.c
+	$(COMPILE.c) $(EXPORTFLAGS) $(OUTPUT_OPTION) $(MODULESRCDIR)/cdecode.c
+
+clean:
+	-$(RM) $(OBJS)
+
+realclean: clean
+	-$(RM) $(BIN)
+	-$(RM) $(GENERATED_DIRTY)
+
+check-syntax:
+	$(COMPILE.cc) $(EXPORTFLAGS) -Wall -Wextra -pedantic -fsyntax-only $(CHK_SOURCES)
+
+#----------------------------------------------------------------------------
+#       Dependencies
+#----------------------------------------------------------------------------
+
+$(DEPENDENCIES):
+	@$(TOUCH) $(DEPENDENCIES)
+
+depend:
+	-$(MPC_ROOT)/depgen.pl  $(CFLAGS) $(CCFLAGS) $(CPPFLAGS) -f $(DEPENDENCIES) $(SRC) 2> $(NUL)
+
+include $(DEPENDENCIES)
+CPPFLAGS+=-O0 -g
+

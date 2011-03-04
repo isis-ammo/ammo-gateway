@@ -7,7 +7,10 @@
 
 #include <ldap.h>
 
-class LdapContact {
+#include "json/json.h"
+
+class LdapContact 
+{
 public:
   std::string name;
   std::string middle_initial;
@@ -22,28 +25,39 @@ public:
   std::vector<unsigned char> insignia;
 };
 
-class LdapPushReceiver : public DataPushReceiverListener, public GatewayConnectorDelegate, public PullRequestReceiverListener {
+
+class LdapPushReceiver : public DataPushReceiverListener, 
+			 public GatewayConnectorDelegate, 
+			 public PullRequestReceiverListener
+{
 public:
   LdapPushReceiver();
-  //GatewayConnectorDelegate methods
+  
+  // virtual method from GatewayConnectorDelegate
   virtual void onConnect(GatewayConnector *sender);
   virtual void onDisconnect(GatewayConnector *sender);
-  
-  //DataPushReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
-  
+
+  // virtual method from DataPushReceiverListener 
+  virtual void onDataReceived(GatewayConnector *sender, std::string uri, 
+			      std::string mimeType, std::vector<char> &data, 
+			      std::string originUser);
+
+  // virtual method from PullRequestReceiverListener
+  virtual void onDataReceived(GatewayConnector *sender,
+                              std::string requestUid, std::string pluginId,
+                              std::string mimeType, std::string query,
+                              std::string projection, unsigned int maxResults,
+                              unsigned int startFromCount, bool liveQuery);
+
+
+private:
   bool get(std::string query, std::vector<std::string> &jsonResults);
-  std::string jsonForObject(LDAPMessage *entry);
-  
   bool editContact(const LdapContact& );
-  
-  //PullRequestReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender, 
-			      std::string requestUid, std::string pluginId,
-			      std::string mimeType, std::string query,
-			      std::string projection, unsigned int maxResults,
-			      unsigned int startFromCount, bool liveQuery);
-  
+  std::string jsonForObject(LDAPMessage *entry);
+  LdapContact* objectFromJson(std::string input);
+  std::string payloadToJson(std::vector<char> &data);
+  bool parseJson(std::string input, Json::Value& jsonRoot);
+
 private:
   std::map<int, LdapContact> unsentContacts;
   LDAP *ldapServer;
@@ -51,5 +65,4 @@ private:
 
 static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData);
 
-#endif        //  #ifndef LDAP_PUSH_RECEIVER_H
-
+#endif  // LDAP_PUSH_RECEIVER_H

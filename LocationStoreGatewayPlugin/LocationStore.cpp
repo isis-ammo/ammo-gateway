@@ -1,18 +1,19 @@
-#include "LocationStore.h"
-
-#include "log.h"
-
-#include <iostream>
+#include <vector>
 
 #include <sqlite3.h>
 
-using namespace std;
+#include "ace/OS_NS_sys_time.h"
+
+#include "log.h"
+
+#include "LocationStore.h"
+#include "QueryStatementBuilder.h"
 
 LocationStoreReceiver::LocationStoreReceiver (void)
   : db_ (0),
-    err_prefix_ ("LocationStoreReceiver::onDataReceived - ")
+    err_prefix_ ("LocationStoreReceiver - data push: ")
 {
-  sqlite3_open ("LocationStore_db.sql3", &this->db_);
+  sqlite3_open ("LocationStore_db.sql3", &db_);
 	
   LOG_DEBUG ("Opening location store database...");
 
@@ -27,7 +28,7 @@ LocationStoreReceiver::LocationStoreReceiver (void)
 	
   char *db_err = 0;
 	
-  sqlite3_exec (this->db_, create_tbl_str, 0, 0, &db_err);
+  sqlite3_exec (db_, create_tbl_str, 0, 0, &db_err);
 	
   if (db_err != 0)
 	{
@@ -40,7 +41,7 @@ LocationStoreReceiver::~LocationStoreReceiver (void)
 {
   LOG_DEBUG ("Closing location store database...");
 	
-  sqlite3_close (this->db_);
+  sqlite3_close (db_);
 }
 
 void LocationStoreReceiver::onConnect (GatewayConnector * /* sender */)
@@ -61,7 +62,7 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
   sqlite3_stmt *stmt;
 	
   int status =
-	sqlite3_prepare (this->db_,
+	sqlite3_prepare (db_,
 					 "insert into the_table values (?,?,?,?,?,?)",
 					 -1,
 					 &stmt,
@@ -69,9 +70,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  LOG_ERROR (this->err_prefix_
+	  LOG_ERROR (err_prefix_
 				 << "prep of sqlite statement failed: "
-		         << this->ec_to_string (status));
+		         << sqlite3_errmsg (db_));
 		
 	  return;
 	}
@@ -85,9 +86,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  LOG_ERROR (this->err_prefix_
+	  LOG_ERROR (err_prefix_
 				 << "URI bind failed: "
-		         << this->ec_to_string (status));
+		         << sqlite3_errmsg (db_));
 		
 	  return;
 	}
@@ -101,9 +102,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  LOG_ERROR (this->err_prefix_
+	  LOG_ERROR (err_prefix_
 				 << "MIME type bind failed: "
-		         << this->ec_to_string (status));
+		         << sqlite3_errmsg (db_));
 		
 	  return;
 	}
@@ -117,9 +118,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  LOG_ERROR (this->err_prefix_
+	  LOG_ERROR (err_prefix_
 				 << "origin user bind failed: "
-		         << this->ec_to_string (status));
+		         << sqlite3_errmsg (db_));
 		
 		return;
 	}
@@ -131,9 +132,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-      LOG_ERROR (this->err_prefix_
+      LOG_ERROR (err_prefix_
 				 << "timestamp sec bind failed: "
-		         << this->ec_to_string (status));
+		         << sqlite3_errmsg (db_));
 		
 	  return;
 	}
@@ -145,9 +146,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  LOG_ERROR (this->err_prefix_
+	  LOG_ERROR (err_prefix_
 				 << "timestamp usec bind failed: "
-		         << this->ec_to_string (status));
+		         << sqlite3_errmsg (db_));
 		
 	  return;
 	}
@@ -161,9 +162,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  LOG_ERROR (this->err_prefix_
+	  LOG_ERROR (err_prefix_
 				 << "data bind failed: "
-		         << this->ec_to_string (status));
+		         << sqlite3_errmsg (db_));
 		
 	  return;
 	}
@@ -172,9 +173,9 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_DONE)
     {
-	  LOG_ERROR (this->err_prefix_
+	  LOG_ERROR (err_prefix_
 				 << "insert operation failed: "
-		         << this->ec_to_string (status));
+		         << sqlite3_errmsg (db_));
 		
 	  return;
     }
@@ -188,71 +189,62 @@ LocationStoreReceiver::onDataReceived (GatewayConnector *sender,
 					                   std::string pluginId,
 					                   std::string mimeType,
 					                   std::string query,
-					                   std::string projection,
+					                   std::string /* projection */,
 					                   unsigned int maxResults,
 					                   unsigned int startFromCount,
-					                   bool liveQuery)
+					                   bool /* liveQuery */)
 {
-}
-
-const char * const
-LocationStoreReceiver::ec_to_string (int error_code) const
-{
-  switch (error_code)
-	{
-	  case SQLITE_OK:
-		return "Successful result";
-	  case SQLITE_ERROR:
-		return "SQL error or missing database";
-	  case SQLITE_INTERNAL:
-		return "An internal logic error in SQLite";
-	  case SQLITE_PERM:
-		return "Access permission denied";
-	  case SQLITE_ABORT:
-		return "Callback routine requested an abort";
-	  case SQLITE_BUSY:
-		return "The database file is locked";
-	  case SQLITE_LOCKED:
-		return "A table in the database is locked";
-	  case SQLITE_NOMEM:
-		return "A malloc() failed";
-	  case SQLITE_READONLY:
-		return "Attempt to write a readonly database";
-	  case SQLITE_INTERRUPT:
-		return "Operation terminated by sqlite_interrupt()";
-	  case SQLITE_IOERR:
-		return "Some kind of disk I/O error occurred";
-	  case SQLITE_CORRUPT:
-		return "The database disk image is malformed";
-	  case SQLITE_NOTFOUND:
-		return "(Internal Only) Table or record not found";
-	  case SQLITE_FULL:
-		return "Insertion failed because database is full";
-	  case SQLITE_CANTOPEN:
-		return "Unable to open the database file";
-	  case SQLITE_PROTOCOL:
-		return "Database lock protocol error";
-	  case SQLITE_EMPTY:
-		return "(Internal Only) Database table is empty";
-	  case SQLITE_SCHEMA:
-		return "The database schema changed";
-	  case SQLITE_TOOBIG:
-		return "Too much data for one row of a table";
-	  case SQLITE_CONSTRAINT:
-		return "Abort due to constraint violation";
-	  case SQLITE_MISMATCH:
-		return "Data type mismatch";
-	  case SQLITE_MISUSE:
-		return "Library used incorrectly";
-	  case SQLITE_NOLFS:
-		return "Uses OS features not supported on host";
-	  case SQLITE_AUTH:
-		return "Authorization denied";
-	  case SQLITE_ROW:
-		return "sqlite_step() has another row ready";
-	  case SQLITE_DONE:
-		return "sqlite_step() has finished executing";
-	  default:
-		return "Unknown error";
+  // Finalizes (cleans up) the created SQL statement in the destructor.
+  QueryStatementBuilder builder (mimeType, query, db_);
+	
+  if (!builder.build ())
+    {
+      LOG_ERROR ("Constsruction of query statement failed");
+    }
+	
+  sqlite3_stmt *query_stmt = builder.query ();
+	
+  // If the arg is 0, we want unlimited results.	
+  unsigned int resultLimit =
+    (maxResults == 0 ? ACE_UINT32_MAX : maxResults);
+  unsigned int index = 0;
+	
+  while (sqlite3_step (query_stmt) == SQLITE_ROW
+	     && index < resultLimit)
+    {
+      if (index++ < startFromCount)
+        {
+	      continue;
+        }
+		
+	  // For insertion, column numbers are 1-based, for extraction, 0-based.
+		
+	  // SQLite retrieves text as const unsigned char*, reinterpret_cast<>
+	  // is the only way to convert it to const char* for std::string assignment.
+	  std::string uri (
+		reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 0)));
+		
+	  std::vector<char> data;
+	  size_t len = sqlite3_column_bytes (query_stmt, 5);
+	  data.resize (len);
+		
+	  // This trick seems to work for assigning to the vector in one shot.	
+	  ACE_OS::memcpy (data.get_allocator ().address (*data.begin ()),
+		              sqlite3_column_blob (query_stmt, 5),
+		              len);
+		
+      bool good_response =
+		sender->pullResponse (requestUid,
+							  pluginId,
+					          mimeType,
+							  uri,
+					          data);
+		
+	  if (!good_response)
+		{
+		  LOG_ERROR ("LocationStoreReceiver - pullrequest: "
+					 "sender->pullResponse() failed");
+		}
     }
 }
+
