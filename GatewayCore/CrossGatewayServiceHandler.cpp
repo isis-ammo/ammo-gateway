@@ -175,8 +175,14 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
     this->sendData(newMsg);
     gatewayId = msg.associate_cross_gateway().gateway_id();
     gatewayIdAuthenticated = true;
+    GatewayCore::getInstance()->registerCrossGatewayConnection(gatewayId);
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
-  
+    //if we receive this message, we must be an outgoing connection (a client of
+    //another gateway, rather than a server with another gateway connected to it.
+    //So, we register using our default name.
+    //This should be enhanced to make sure this is the "right" thing to do.
+    gatewayAuthenticated = true;
+    GatewayCore::getInstance()->registerCrossGatewayConnection(gatewayId);
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST) {
     LOG_DEBUG("Received Register Data Interest...");
     std::string mime_type = msg.register_data_interest().mime_type();
@@ -232,8 +238,10 @@ CrossGatewayServiceHandler::~CrossGatewayServiceHandler() {
   LOG_DEBUG("CrossGatewayServiceHandler being destroyed!");
   LOG_DEBUG("Unregistering data handlers...");
   for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
-    //GatewayCore::getInstance()->unregisterDataInterest(*it, this);
+    GatewayCore::getInstance()->unsubscribeCrossGateway(*it, gatewayId);
   }
+  
+  GatewayCore::getInstance()->unregisterCrossGateway(gatewayId);
   
   LOG_DEBUG("Unregistering pull request handlers...");
   for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
