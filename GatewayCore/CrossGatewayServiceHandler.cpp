@@ -175,14 +175,14 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
     this->sendData(newMsg);
     gatewayId = msg.associate_cross_gateway().gateway_id();
     gatewayIdAuthenticated = true;
-    GatewayCore::getInstance()->registerCrossGatewayConnection(gatewayId);
+    GatewayCore::getInstance()->registerCrossGatewayConnection(gatewayId, this);
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
     //if we receive this message, we must be an outgoing connection (a client of
     //another gateway, rather than a server with another gateway connected to it.
     //So, we register using our default name.
     //This should be enhanced to make sure this is the "right" thing to do.
-    gatewayAuthenticated = true;
-    GatewayCore::getInstance()->registerCrossGatewayConnection(gatewayId);
+    gatewayIdAuthenticated = true;
+    GatewayCore::getInstance()->registerCrossGatewayConnection(gatewayId, this);
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST) {
     LOG_DEBUG("Received Register Data Interest...");
     std::string mime_type = msg.register_data_interest().mime_type();
@@ -210,11 +210,29 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
 }
 
 bool CrossGatewayServiceHandler::sendSubscribeMessage(std::string mime_type) {
-  return false;
+  ammo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::RegisterDataInterest *subscribeMsg = msg.mutable_register_data_interest();
+  subscribeMsg->set_mime_type(mime_type);
+  
+  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST);
+  
+  LOG_DEBUG("Sending Subscribe message to connected gateway");
+  this->sendData(msg);
+  
+  return true;
 }
 
 bool CrossGatewayServiceHandler::sendUnsubscribeMessage(std::string mime_type) {
-  return false;
+  ammo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::UnregisterDataInterest *unsubscribeMsg = msg.mutable_unregister_data_interest();
+  unsubscribeMsg->set_mime_type(mime_type);
+  
+  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST);
+  
+  LOG_DEBUG("Sending Subscribe message to connected gateway");
+  this->sendData(msg);
+  
+  return true;
 }
 
 bool CrossGatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser) {
@@ -227,7 +245,7 @@ bool CrossGatewayServiceHandler::sendPushedData(std::string uri, std::string mim
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   
-  LOG_DEBUG("Sending Data Push message to connected plugin");
+  LOG_DEBUG("Sending Data Push message to connected gateway");
   this->sendData(msg);
   
   return true;
@@ -241,7 +259,7 @@ CrossGatewayServiceHandler::~CrossGatewayServiceHandler() {
     GatewayCore::getInstance()->unsubscribeCrossGateway(*it, gatewayId);
   }
   
-  GatewayCore::getInstance()->unregisterCrossGateway(gatewayId);
+  GatewayCore::getInstance()->unregisterCrossGatewayConnection(gatewayId);
   
   LOG_DEBUG("Unregistering pull request handlers...");
   for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
