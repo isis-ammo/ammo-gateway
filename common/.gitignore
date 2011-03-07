@@ -1,3 +1,4 @@
 *.pb.cc
 *.pb.h
 *.pb.o
+version.h
