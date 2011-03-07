@@ -1,7 +1,11 @@
 #include "GatewayCore.h"
 
+#include "GatewayConfigurationManager.h"
+
 #include "GatewayServiceHandler.h"
 #include "CrossGatewayServiceHandler.h"
+
+
 
 #include "log.h"
 
@@ -10,6 +14,10 @@
 using namespace std;
 
 GatewayCore* GatewayCore::sharedInstance = NULL;
+
+GatewayCore::GatewayCore() : parentConnector(NULL), parentHandler(NULL), crossGatewayAcceptor(NULL) {
+  
+}
 
 GatewayCore* GatewayCore::getInstance() {
   if(sharedInstance == NULL) {
@@ -134,7 +142,35 @@ bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std
 }
 
 void GatewayCore::initCrossGateway() {
+  GatewayConfigurationManager *config = GatewayConfigurationManager::getInstance();
   
+  LOG_INFO("Initializing cross-gateway connection...");
+  LOG_DEBUG("Creating acceptor for incoming connections");
+  //TODO: make interface and port number specifiable on the command line
+  ACE_INET_Addr serverAddress(config->getCrossGatewayServerPort(), config->getCrossGatewayServerInterface().c_str());
+  
+  LOG_DEBUG("(CG) Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr());
+  
+  //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor
+  //for accept events
+  crossGatewayAcceptor = new ACE_Acceptor<CrossGatewayServiceHandler, ACE_SOCK_Acceptor>(serverAddress);
+  
+  //We connect to a parent gateway if the parent address isn't blank; if it is
+  //blank, this gateway must be the root (of our tree)
+  if(config->getCrossGatewayParentAddress() != "") {
+    ACE_INET_Addr parentAddress(config->getCrossGatewayParentPort(), config->getCrossGatewayParentAddress().c_str());
+    parentConnector = new ACE_Connector<CrossGatewayServiceHandler, ACE_SOCK_Connector>();
+    int status = parentConnector->connect(parentHandler, parentAddress);
+    if(status == -1) {
+      LOG_ERROR("connection failed");
+      LOG_ERROR("errno: " << errno);
+      LOG_ERROR("error: " << strerror(errno));
+    } else {
+      LOG_INFO("Connected to parent gateway node.");
+    }
+  } else {
+    LOG_INFO("Acting as cross-gateway root node.");
+  }
 }
   
 bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGatewayServiceHandler *handler) {

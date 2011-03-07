@@ -4,8 +4,17 @@
 #include <map>
 #include <string>
 
+#include "ace/INET_Addr.h"
+#include "ace/SOCK_Connector.h"
+#include "ace/SOCK_Stream.h"
+#include "ace/SOCK_Acceptor.h"
+
+#include "ace/Acceptor.h"
+#include "ace/Connector.h"
+#include "ace/Reactor.h"
+#include "CrossGatewayServiceHandler.h"
+
 class GatewayServiceHandler;
-class CrossGatewayServiceHandler;
 
 typedef struct _subscription_info {
   std::string handlerId;
@@ -14,6 +23,8 @@ typedef struct _subscription_info {
 
 class GatewayCore {
 public:
+  GatewayCore();
+  
   static GatewayCore* getInstance();
   
   bool registerDataInterest(std::string mime_type, GatewayServiceHandler *handler);
@@ -49,6 +60,11 @@ private:
   
   std::map<std::string, CrossGatewayServiceHandler *> crossGatewayHandlers;
   std::multimap<std::string, SubscriptionInfo> subscriptions;
+  
+  ACE_Connector<CrossGatewayServiceHandler, ACE_SOCK_Connector> *parentConnector;
+  CrossGatewayServiceHandler *parentHandler;
+  
+  ACE_Acceptor<CrossGatewayServiceHandler, ACE_SOCK_Acceptor> *crossGatewayAcceptor;
 };
 
 #endif //#ifndef GATEWAY_CORE_H

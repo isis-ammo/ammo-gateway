@@ -1,5 +1,6 @@
 #include "CrossGatewayServiceHandler.h"
 #include "GatewayCore.h"
+#include "GatewayConfigurationManager.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
 
 #include <iostream>
@@ -27,6 +28,14 @@ int CrossGatewayServiceHandler::open(void *ptr) {
   position = 0;
   gatewayId = "";
   gatewayIdAuthenticated = false;
+  
+  //send an authentication message to the other gateway
+  ammo::gateway::protocol::GatewayWrapper newMsg;
+  newMsg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_CROSS_GATEWAY);
+  newMsg.mutable_associate_cross_gateway()->set_gateway_id(GatewayConfigurationManager::getInstance()->getCrossGatewayId());
+  newMsg.mutable_associate_cross_gateway()->set_key(GatewayConfigurationManager::getInstance()->getCrossGatewayId());
+  LOG_DEBUG("Sending associate message to connected gateway...");
+  this->sendData(newMsg);
   
   return 0;
 }
@@ -177,12 +186,7 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
     gatewayIdAuthenticated = true;
     GatewayCore::getInstance()->registerCrossGatewayConnection(gatewayId, this);
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
-    //if we receive this message, we must be an outgoing connection (a client of
-    //another gateway, rather than a server with another gateway connected to it.
-    //So, we register using our default name.
-    //This should be enhanced to make sure this is the "right" thing to do.
-    gatewayIdAuthenticated = true;
-    GatewayCore::getInstance()->registerCrossGatewayConnection(gatewayId, this);
+    
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST) {
     LOG_DEBUG("Received Register Data Interest...");
     std::string mime_type = msg.register_data_interest().mime_type();
