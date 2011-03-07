@@ -190,14 +190,14 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST) {
     LOG_DEBUG("Received Register Data Interest...");
     std::string mime_type = msg.register_data_interest().mime_type();
-    //bool result = GatewayCore::getInstance()->registerDataInterest(mime_type, this);
+    bool result = GatewayCore::getInstance()->subscribeCrossGateway(mime_type, gatewayId);
     if(result == true) {
       registeredHandlers.push_back(mime_type);
     }
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST) {
     LOG_DEBUG("Received Unregister Data Interest...");
     std::string mime_type = msg.unregister_data_interest().mime_type();
-    //bool result = GatewayCore::getInstance()->unregisterDataInterest(mime_type, this);
+    bool result = GatewayCore::getInstance()->unsubscribeCrossGateway(mime_type, gatewayId);
     if(result == true) {
       for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
         if((*it) == mime_type) {
@@ -207,7 +207,7 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
     }
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
-    GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), msg.push_data().origin_user());
+    GatewayCore::getInstance()->pushCrossGateway(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), msg.push_data().origin_user(), gatewayId);
   }
   
   return 0;

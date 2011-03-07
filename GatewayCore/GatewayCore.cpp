@@ -101,8 +101,16 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::str
   }
   
   //now propogate the subscription to all the other gateway nodes
-  for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
-    it->second->sendPushedData(uri, mimeType, data, originUser);
+  {
+    multimap<string, SubscriptionInfo>::iterator it;
+    pair<multimap<string, SubscriptionInfo>::iterator,multimap<string,SubscriptionInfo>::iterator> subscriptionIterators;
+    
+    subscriptionIterators = subscriptions.equal_range(mimeType);
+    
+    for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
+      LOG_TRACE("Sending cross-gateway data");
+      crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, data, originUser);
+    }
   }
   return true;
 }
@@ -262,6 +270,7 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const 
     handlerIterators = pushHandlers.equal_range(mimeType);
     
     for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
+      LOG_TRACE("Sending push data");
       (*it).second->sendPushedData(uri, mimeType, data, originUser);
     }
   }
@@ -275,6 +284,7 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const 
     
     for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
       if(originHandlerId != (*it).second.handlerId) {
+        LOG_TRACE("Sending cross-gateway data");
         crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, data, originUser);
       }
     }
