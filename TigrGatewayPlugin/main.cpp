@@ -4,6 +4,7 @@
 #include <ctime>
 
 #include "log.h"
+#include "version.h"
 
 #include "ace/Reactor.h"
 
@@ -26,6 +27,8 @@ const string REPORT_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.report.report_
   Pull Interest expresses the ability to service pull requests.
 */
 int main(int argc, char **argv) {  
+  LOG_INFO("AMMO TIGR Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  
   TigrConfigurationManager *config = TigrConfigurationManager::getInstance();
   
   LOG_DEBUG("Creating gateway connector...");

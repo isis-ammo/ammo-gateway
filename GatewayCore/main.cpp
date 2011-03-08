@@ -18,8 +18,7 @@
 
 using namespace std;
 int main(int argc, char **argv) {
-  LOG_INFO("AMMO Gateway Core");
-  LOG_INFO("Version " << VERSION << " built on " << __DATE__);
+  LOG_INFO("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
   {

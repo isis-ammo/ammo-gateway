@@ -13,6 +13,7 @@
 #include "AndroidServiceHandler.h"
 
 #include "log.h"
+#include "version.h"
 
 using namespace std;
 
@@ -20,6 +21,7 @@ string gatewayAddress;
 int gatewayPort;
 
 int main(int argc, char **argv) {
+  LOG_INFO("AMMO Android Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
   {
