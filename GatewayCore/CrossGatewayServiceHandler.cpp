@@ -202,6 +202,7 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
       for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
         if((*it) == mime_type) {
           registeredHandlers.erase(it);
+          break;
         }
       }
     }
