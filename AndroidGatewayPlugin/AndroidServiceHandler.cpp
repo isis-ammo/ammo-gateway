@@ -61,13 +61,13 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
   
   if(state == READING_SIZE) {
     count = this->peer().recv_n(&dataSize, sizeof(dataSize));
-    //LOG_TRACE("SIZE Read " << count << " bytes");
+    LOG_TRACE("SIZE Read " << count << " bytes");
   } else if(state == READING_CHECKSUM) {
     count = this->peer().recv_n(&checksum, sizeof(checksum));
-    //LOG_TRACE("SUM Read " << count << " bytes");
+    LOG_TRACE("SUM Read " << count << " bytes");
   } else if(state == READING_DATA) {
     count = this->peer().recv(collectedData + position, dataSize - position);
-    //LOG_TRACE("DATA Read " << count << " bytes");
+    LOG_TRACE("DATA Read " << count << " bytes");
   } else {
     LOG_ERROR("Invalid state!");
   }
@@ -78,18 +78,18 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
     if(state == READING_SIZE) {
       collectedData = new char[dataSize];
       position = 0;
-      //LOG_TRACE("Got data size (" << dataSize << ")");
+      LOG_TRACE("Got data size (" << dataSize << ")");
       state = READING_CHECKSUM;
     } else if(state == READING_CHECKSUM) {
-      //LOG_TRACE("Got data checksum (" << checksum << ")");
+      LOG_TRACE("Got data checksum (" << checksum << ")");
       state = READING_DATA;
     } else if(state == READING_DATA) {
-      //LOG_TRACE("Got some data...");
+      LOG_TRACE("Got some data...");
       position += count;
       if(position == dataSize) {
-        //LOG_TRACE("Got all the data... processing");
+        LOG_TRACE("Got all the data... processing");
         processData(collectedData, dataSize, checksum);
-        //LOG_TRACE("Processsing complete.  Deleting buffer.");
+        LOG_TRACE("Processsing complete.  Deleting buffer.");
         delete[] collectedData;
         collectedData = NULL;
         dataSize = 0;
@@ -104,7 +104,7 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
     LOG_ERROR("Socket error occurred. (" << ACE_OS::last_error() << ")");
     return -1;
   }
-  //LOG_TRACE("Leaving handle_input()");
+  LOG_TRACE("Leaving handle_input()");
   return 0;
 }
 
@@ -168,7 +168,8 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if(calculatedChecksum != messageChecksum) {
-    LOG_ERROR("Invalid checksum--  we've been sent bad data (perhaps a message size mismatch?)");
+    LOG_ERROR("Mismatched checksum " << std::hex << calculatedChecksum << " : " << messageChecksum);
+    LOG_ERROR("size " << std::dec << messageSize ); // << " payload: " < );
     return -1;
   }
   
