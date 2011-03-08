@@ -5,10 +5,41 @@
     <property name="build" location="build"/>
     <property name="dist" location="dist"/>
     <property name="dist_template" location="${dist}/template" />
+    <property name="gatewayversion.file" value=".build-version" />
+    <property name="gatewayversion.template" value="common/version.h.in" />
+    <property name="gatewayversion.out" value="common/version.h" />
 
     <description>
         Build file for the AMMO ${project}
     </description>
+    
+    <target name="-clean-gatewayversion">
+        <delete>
+          <fileset file="${gatewayversion.file}" />
+          <fileset file="${gatewayversion.out}" />
+        </delete>
+    </target>
+
+    <target name="-init-gatewayversion" unless="gatewayversion">
+        <exec executable="git" dir="." 
+              searchpath="true" 
+              outputproperty="gatewayversion">
+          <arg value="describe" />
+          <arg value="--match" />
+          <arg value="release-*" />
+        </exec>
+
+        <loadfile property="gateway-reversion" srcFile="${gatewayversion.file}" failonerror="false"/>
+        <condition  property="is.new.gatewayversion" >
+           <equals arg1="${gatewayversion}" arg2="${gateway-reversion}"/>
+        </condition>        
+    </target>
+
+    <target name="-update-gatewayversion" depends="-init-gatewayversion" unless="is.new.gatewayversion">
+        <echo message="${gatewayversion}" file="${gatewayversion.file}"/>
+        <copy file="${gatewayversion.template}" tofile="${gatewayversion.out}"/>
+        <replace file="${gatewayversion.out}" token="&lt;VERSION&gt;" value="${gatewayversion}"/>
+    </target>
 
     <target name="build" depends="configure">
         <echo message="Building ${project}..."/>
@@ -71,14 +102,14 @@ Built on ${os.arch} ${os.name} ${os.version}
         </delete>
     </target>
 
-    <target name="clean" depends="clean-dist">
+    <target name="clean" depends="-clean-gatewayversion,clean-dist">
         <echo message="Cleaning ${project}"/>
         <exec executable="make" dir="." searchpath="true">
            <arg value="clean"/>
         </exec>
     </target>
     
-    <target name="realclean" depends="clean-dist">
+    <target name="realclean" depends="-clean-gatewayversion,clean-dist">
         <echo message="Cleaning ${project}"/>
         <exec executable="make" dir="." searchpath="true">
            <arg value="realclean"/>
@@ -86,7 +117,7 @@ Built on ${os.arch} ${os.name} ${os.version}
     </target>
 
     <target name="configure"
-        description="constructing makefiles">
+        description="constructing makefiles" depends="-update-gatewayversion">
         <exec executable="mwc.pl" dir="." searchpath="true">
            <arg value="--type"/> <arg value="make"/>
            <arg value="Gateway.mwc"/>

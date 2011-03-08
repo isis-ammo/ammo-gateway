@@ -8,3 +8,4 @@ bin/
 *.vcproj
 *.vcproj.*
 Makefile*
+.build-version

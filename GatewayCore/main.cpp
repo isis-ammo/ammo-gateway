@@ -11,6 +11,7 @@
 #include "ace/Reactor.h"
 
 #include "log.h"
+#include "version.h"
 
 #include "GatewayServiceHandler.h"
 #include "GatewayConfigurationManager.h"
@@ -18,7 +19,8 @@
 
 using namespace std;
 int main(int argc, char **argv) {
-  LOG_INFO("GatewayCore starting");
+  LOG_INFO("AMMO Gateway Core");
+  LOG_INFO("Version " << VERSION << " built on " << __DATE__);
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
   {
