@@ -1,6 +1,6 @@
 #ifndef VERSION_H
 #define VERSION_H
 
-const char* VERSION="<VERSION>";
+#define VERSION "<VERSION>"
 
 #endif //VERSION_H
