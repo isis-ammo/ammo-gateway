@@ -54,7 +54,7 @@
              from a specific branch to directly match the
              conditions of a tarball -->
         <exec executable="git" dir="." 
-              searchpath="true" outputproperty="version">
+              searchpath="true" outputproperty="gwversion">
           <arg value="describe" />
           <arg value="--match=release-*" />
         </exec>
@@ -67,22 +67,22 @@
 
         <!-- remove any previous residue from a past dist target
              and make the directory again -->
-        <delete dir="${dist}/temp/gateway-${version}" />
-        <mkdir dir="${dist}/temp/gateway-${version}"/>
+        <delete dir="${dist}/temp/gateway-${gwversion}" />
+        <mkdir dir="${dist}/temp/gateway-${gwversion}"/>
         <!--Ant's cp and tar commands don't preserve Unix permissions, so we
             need to run the shell commands instead-->
         <!--Copy over distribution template (includes launch scripts)-->
         <exec executable="sh" dir="." searchpath="true">
             <arg value="-c" />
-            <arg value="cp -r ${dist_template}/* ${dist}/temp/gateway-${version}" />
+            <arg value="cp -r ${dist_template}/* ${dist}/temp/gateway-${gwversion}" />
         </exec>
         <!--Copy the actual build-->
         <exec executable="sh" dir="." searchpath="true">
             <arg value="-c" />
-            <arg value="cp -r ${build}/* ${dist}/temp/gateway-${version}" />
+            <arg value="cp -r ${build}/* ${dist}/temp/gateway-${gwversion}" />
         </exec>
         <!--Create the buildinfo file, with versioning and OS info-->
-        <echo file="${dist}/temp/gateway-${version}/buildinfo" append="false">AMMO Gateway, version ${version}, built ${build_time}
+        <echo file="${dist}/temp/gateway-${gwversion}/buildinfo" append="false">AMMO Gateway, version ${gwversion}, built ${build_time}
 
 Built on ${os.arch} ${os.name} ${os.version}
 </echo>
@@ -90,9 +90,9 @@ Built on ${os.arch} ${os.name} ${os.version}
         <!--And build the tarball with the resulting contents-->
         <exec executable="sh" dir="${dist}/temp" searchpath="true">
             <arg value="-c" />
-            <arg value="tar -cvzf ../${version}.gateway.tar.gz ." />
+            <arg value="tar -cvzf ../${gwversion}.gateway.tar.gz ." />
         </exec>
-        <delete dir="${dist}/temp/gateway-${version}" />
+        <delete dir="${dist}/temp/gateway-${gwversion}" />
     </target>
 
     <target name="clean-dist">
