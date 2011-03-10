@@ -6,6 +6,11 @@
 
 class GatewayServiceHandler;
 
+typedef struct _local_subscription_info {
+  GatewayServiceHandler *handler;
+  unsigned int references;
+} LocalSubscriptionInfo;
+
 class GatewayCore {
 public:
   static GatewayCore* getInstance();
@@ -25,7 +30,7 @@ public:
 private:
   static GatewayCore* sharedInstance;
   
-  std::multimap<std::string, GatewayServiceHandler *> pushHandlers;
+  std::multimap<std::string, LocalSubscriptionInfo> pushHandlers;
   std::multimap<std::string, GatewayServiceHandler *> pullHandlers;
   
   std::map<std::string, GatewayServiceHandler *> plugins;

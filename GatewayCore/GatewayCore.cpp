@@ -20,14 +20,35 @@ GatewayCore* GatewayCore::getInstance() {
 
 bool GatewayCore::registerDataInterest(std::string mime_type, GatewayServiceHandler *handler) {
   LOG_INFO("Registering interest in " << mime_type << " by handler " << handler);
-  pushHandlers.insert(pair<string, GatewayServiceHandler *>(mime_type, handler));
+  
+  //see if there's already a subscription to this type for this handler
+  bool foundSubscription = false;
+  multimap<string, LocalSubscriptionInfo>::iterator it;
+  pair<multimap<string, LocalSubscriptionInfo>::iterator, multimap<string, LocalSubscriptionInfo>::iterator> subscriptionIterators;
+  
+  subscriptionIterators = pushHandlers.equal_range(mime_type);
+  
+  for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
+    if(handler == it->second.handler) {
+      it->second.references++;
+      foundSubscription = true;
+      break; //found a subscription; there should only be one per handler
+    }
+  }
+  
+  if(!foundSubscription) {
+    LocalSubscriptionInfo newSubscription;
+    newSubscription.handler = handler;
+    newSubscription.references = 1;
+    pushHandlers.insert(pair<string, LocalSubscriptionInfo>(mime_type, newSubscription));
+  }
   return true;
 }
 
 bool GatewayCore::unregisterDataInterest(std::string mime_type, GatewayServiceHandler *handler) {
   LOG_INFO("Unregistering interest in " << mime_type << " by handler " << handler);
-  multimap<string,GatewayServiceHandler *>::iterator it;
-  pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
+  multimap<string, LocalSubscriptionInfo>::iterator it;
+  pair<multimap<string, LocalSubscriptionInfo>::iterator,multimap<string, LocalSubscriptionInfo>::iterator> handlerIterators;
   
   handlerIterators = pushHandlers.equal_range(mime_type);
   
@@ -35,15 +56,20 @@ bool GatewayCore::unregisterDataInterest(std::string mime_type, GatewayServiceHa
     //need to increment the iterator *before* we erase it, because erasing it
     //invalidates the iterator (it doesn't invalidate other iterators in the list,
     //though)
-    multimap<string,GatewayServiceHandler *>::iterator eraseIter = it++;
+    multimap<string, LocalSubscriptionInfo>::iterator eraseIter = it++;
     
-    if(handler == (*eraseIter).second) {
+    if(handler == (*eraseIter).second.handler) {
       //LOG_TRACE("Removing an element");
-      pushHandlers.erase(eraseIter);
-      break;
+      it->second.references--;
+      if(it->second.references == 0) {
+        pushHandlers.erase(eraseIter);
+      }
+      return true;
     }
   }
-  return true;
+  
+  LOG_WARN("Tried to unsubscribe without an existing subscription");
+  return false;
 }
 
 bool GatewayCore::registerPullInterest(std::string mime_type, GatewayServiceHandler *handler) {
@@ -72,13 +98,13 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, GatewayServiceHa
 bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser) {
   LOG_DEBUG("  Pushing data with uri: " << uri);
   LOG_DEBUG("                    type: " << mimeType);
-  multimap<string,GatewayServiceHandler *>::iterator it;
-  pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
+  multimap<string, LocalSubscriptionInfo>::iterator it;
+  pair<multimap<string, LocalSubscriptionInfo>::iterator,multimap<string, LocalSubscriptionInfo>::iterator> handlerIterators;
   
   handlerIterators = pushHandlers.equal_range(mimeType);
   
   for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
-    (*it).second->sendPushedData(uri, mimeType, data, originUser);
+    (*it).second.handler->sendPushedData(uri, mimeType, data, originUser);
   }
   return true;
 }
