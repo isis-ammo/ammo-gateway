@@ -62,6 +62,7 @@ bool GatewayCore::unregisterDataInterest(std::string mime_type, GatewayServiceHa
       //LOG_TRACE("Removing an element");
       it->second.references--;
       if(it->second.references == 0) {
+        LOG_TRACE("Removed last reference to this subscription for this handler.");
         pushHandlers.erase(eraseIter);
       }
       return true;
