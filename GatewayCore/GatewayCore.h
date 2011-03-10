@@ -6,10 +6,10 @@
 
 class GatewayServiceHandler;
 
-typedef struct _local_subscription_info {
+struct LocalSubscriptionInfo {
   GatewayServiceHandler *handler;
   unsigned int references;
-} LocalSubscriptionInfo;
+};
 
 class GatewayCore {
 public:
