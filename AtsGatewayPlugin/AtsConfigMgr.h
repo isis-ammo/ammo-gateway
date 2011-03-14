@@ -30,6 +30,9 @@ public:
 
 private:
   AtsConfigMgr();
+  
+  std::string findConfigFile();
+  
   int parsingSuccessful;
   Json::Value root;
 

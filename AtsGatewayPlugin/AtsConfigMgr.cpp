@@ -7,6 +7,11 @@
 #include "log.h"
 #include "AtsConfigMgr.h"
 
+#include <ace/OS_NS_sys_stat.h>
+
+using namespace std;
+
+const char *CONFIG_DIRECTORY = "ammo-gateway";
 const char *ATS_CONFIG_FILE = "AtsPluginConfig.json";
 
 AtsConfigMgr *AtsConfigMgr::sharedInstance = NULL;
@@ -14,20 +19,25 @@ AtsConfigMgr *AtsConfigMgr::sharedInstance = NULL;
 AtsConfigMgr::AtsConfigMgr() : parsingSuccessful(false) 
 {
   //LOG_TRACE("Parsing config file...");
-  std::ifstream configFile(ATS_CONFIG_FILE);
-  if(! configFile) {
-       LOG_WARN("Could not read from config file '" << ATS_CONFIG_FILE << "'.  Using defaults.");
+  string filename = findConfigFile();
+  if(filename != "") {
+    std::ifstream configFile(filename.c_str());
+    if(! configFile) {
+         LOG_WARN("Could not read from config file '" << ATS_CONFIG_FILE << "'.  Using defaults.");
+         return;
+    } 
+    Json::Reader reader;
+      
+    parsingSuccessful = reader.parse(configFile, root);
+      
+    if(! parsingSuccessful) {
+       LOG_ERROR("JSON parsing error in config file '" << ATS_CONFIG_FILE << "'.  Using defaults.");
        return;
-  } 
-  Json::Reader reader;
-    
-  parsingSuccessful = reader.parse(configFile, root);
-    
-  if(! parsingSuccessful) {
-     LOG_ERROR("JSON parsing error in config file '" << ATS_CONFIG_FILE << "'.  Using defaults.");
-     return;
+    }
+    configFile.close();
+  } else {
+    LOG_WARN("Using default configuration.");
   }
-  configFile.close();
 }
 
 AtsConfigMgr* AtsConfigMgr::getInstance() {
@@ -149,3 +159,32 @@ std::pair<std::string, std::string> AtsConfigMgr::getUserCredentials(std::string
   return credentials;
 }
 
+std::string AtsConfigMgr::findConfigFile() {
+  std::string filePath;
+  ACE_stat statStruct;
+  
+  filePath = ATS_CONFIG_FILE;
+  //stat returns 0 if the file exists
+  if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+    filePath = string(ACE_OS::getenv("HOME")) + "/" + "." + CONFIG_DIRECTORY + "/" + ATS_CONFIG_FILE;
+    if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+      filePath = string("/etc/") + CONFIG_DIRECTORY + "/" + ATS_CONFIG_FILE;
+      if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+        filePath = string(ACE_OS::getenv("GATEWAY_ROOT")) + "/etc/" + ATS_CONFIG_FILE;
+        if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+          filePath = string(ACE_OS::getenv("GATEWAY_ROOT")) + "/build/etc/" + ATS_CONFIG_FILE;
+          if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+            filePath = string("../etc/") + ATS_CONFIG_FILE;
+            if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+              LOG_ERROR("No config file found.");
+              return "";
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  LOG_INFO("Using config file: " << filePath);
+  return filePath;
+}
