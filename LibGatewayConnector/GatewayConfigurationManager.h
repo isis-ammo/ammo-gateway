@@ -14,6 +14,9 @@ public:
   int getGatewayPort();
 private:
   GatewayConfigurationManager(const char *configfile);
+  
+  std::string findConfigFile(std::string defaultConfigFile);
+  
   static GatewayConfigurationManager *sharedInstance;
   
   std::string gatewayAddress;
