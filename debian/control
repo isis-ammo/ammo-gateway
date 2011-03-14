@@ -1,0 +1,14 @@
+Source: ammo-gateway
+Section: misc
+Priority: optional
+Maintainer: John Williams <johnwilliams@isis.vanderbilt.edu>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.3
+Vcs-Git: http://ammo.isis.vanderbilt.edu/ammo.git
+Vcs-browser: http://ammo.isis.vanderbilt.edu/viewgit/?a=summary&p=AMMO
+Homepage: http://ammo.isis.vanderbilt.edu
+
+Package: ammo-gateway
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Android Middleware Server
