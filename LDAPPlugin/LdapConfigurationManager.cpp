@@ -107,16 +107,32 @@ string LdapConfigurationManager::findConfigFile(std::string defaultConfigFile) {
   string filePath;
   ACE_stat statStruct;
   
+  string home, gatewayRoot;
+  
+  char *homeC = ACE_OS::getenv("HOME");
+  if(homeC == NULL) {
+    home = "";
+  } else {
+    home = homeC;
+  }
+  
+  char *gatewayRootC = ACE_OS::getenv("GATEWAY_ROOT");
+  if(gatewayRootC == NULL) {
+    gatewayRoot = "";
+  } else {
+    gatewayRoot = gatewayRootC;
+  }
+  
   filePath = defaultConfigFile;
   //stat returns 0 if the file exists
   if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-    filePath = string(ACE_OS::getenv("HOME")) + "/" + "." + CONFIG_DIRECTORY + "/" + LDAP_CONFIG_FILE;
+    filePath = home + "/" + "." + CONFIG_DIRECTORY + "/" + LDAP_CONFIG_FILE;
     if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
       filePath = string("/etc/") + CONFIG_DIRECTORY + "/" + LDAP_CONFIG_FILE;
       if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-        filePath = string(ACE_OS::getenv("GATEWAY_ROOT")) + "/etc/" + LDAP_CONFIG_FILE;
+        filePath = gatewayRoot + "/etc/" + LDAP_CONFIG_FILE;
         if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-          filePath = string(ACE_OS::getenv("GATEWAY_ROOT")) + "/build/etc/" + LDAP_CONFIG_FILE;
+          filePath = gatewayRoot + "/build/etc/" + LDAP_CONFIG_FILE;
           if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
             filePath = string("../etc/") + LDAP_CONFIG_FILE;
             if(ACE_OS::stat(filePath.c_str(), &statStruct)) {

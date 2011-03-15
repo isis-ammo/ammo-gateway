@@ -119,16 +119,32 @@ string PassConfigurationManager::findConfigFile() {
   string filePath;
   ACE_stat statStruct;
   
+  string home, gatewayRoot;
+  
+  char *homeC = ACE_OS::getenv("HOME");
+  if(homeC == NULL) {
+    home = "";
+  } else {
+    home = homeC;
+  }
+  
+  char *gatewayRootC = ACE_OS::getenv("GATEWAY_ROOT");
+  if(gatewayRootC == NULL) {
+    gatewayRoot = "";
+  } else {
+    gatewayRoot = gatewayRootC;
+  }
+  
   filePath = PASS_CONFIG_FILE;
   //stat returns 0 if the file exists
   if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-    filePath = string(ACE_OS::getenv("HOME")) + "/" + "." + CONFIG_DIRECTORY + "/" + PASS_CONFIG_FILE;
+    filePath = home + "/" + "." + CONFIG_DIRECTORY + "/" + PASS_CONFIG_FILE;
     if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
       filePath = string("/etc/") + CONFIG_DIRECTORY + "/" + PASS_CONFIG_FILE;
       if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-        filePath = string(ACE_OS::getenv("GATEWAY_ROOT")) + "/etc/" + PASS_CONFIG_FILE;
+        filePath = gatewayRoot + "/etc/" + PASS_CONFIG_FILE;
         if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-          filePath = string(ACE_OS::getenv("GATEWAY_ROOT")) + "/build/etc/" + PASS_CONFIG_FILE;
+          filePath = gatewayRoot + "/build/etc/" + PASS_CONFIG_FILE;
           if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
             filePath = string("../etc/") + PASS_CONFIG_FILE;
             if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
