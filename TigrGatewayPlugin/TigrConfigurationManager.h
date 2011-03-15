@@ -19,6 +19,9 @@ private:
   TigrConfigurationManager();
   std::string getTigrUsername();
   std::string getTigrPassword();
+  
+  std::string findConfigFile();
+  
   static TigrConfigurationManager *sharedInstance;
   
   std::string tigrBaseAddress;
