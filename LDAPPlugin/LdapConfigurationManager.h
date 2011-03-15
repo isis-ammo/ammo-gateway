@@ -18,6 +18,8 @@ private:
   void configFromFile(std::string fileName);
   
   static LdapConfigurationManager *sharedInstance;
+  
+  std::string findConfigFile(std::string defaultConfigFile);
 
   std::string ldapBaseAddress;
   std::string ldapUsername;

@@ -6,6 +6,10 @@
 #include <iostream>
 #include <fstream>
 
+#include <ace/OS_NS_sys_stat.h>
+#include "log.h"
+
+const char *CONFIG_DIRECTORY = "ammo-gateway";
 const char *PASS_CONFIG_FILE = "PassPluginConfig.json";
 
 using namespace std;
@@ -20,55 +24,60 @@ passSubscriberInterface("0.0.0.0"),
 passSubscriberPort(8045),
 passSubscriberAddress("http:/192.168.5.2:8045") {
   //cout << "Parsing config file..." << endl << flush;
-  ifstream configFile(PASS_CONFIG_FILE);
-  if(configFile) {
-    Json::Value root;
-    Json::Reader reader;
-    
-    bool parsingSuccessful = reader.parse(configFile, root);
-    
-    if(parsingSuccessful) {
-      if(root["PassServerAddress"].isString()) {
-        passServerAddress = root["PassServerAddress"].asString();
-      } else {
-        cout << "Error: PassServerAddress is missing or wrong type (should be string)" << endl << flush;
-      }
+  string configFilename = findConfigFile();
+  if(configFilename != "") {
+    ifstream configFile(configFilename.c_str());
+    if(configFile) {
+      Json::Value root;
+      Json::Reader reader;
       
-      if(root["PassTopic"].isString()) {
-        passTopic = root["PassTopic"].asString();
-      } else {
-        cout << "Error: PassTopic is missing or wrong type (should be string)" << endl << flush;
-      }
+      bool parsingSuccessful = reader.parse(configFile, root);
       
-      if(root["PassSubscriberId"].isString()) {
-        passSubscriberId = root["PassSubscriberId"].asString();
+      if(parsingSuccessful) {
+        if(root["PassServerAddress"].isString()) {
+          passServerAddress = root["PassServerAddress"].asString();
+        } else {
+          cout << "Error: PassServerAddress is missing or wrong type (should be string)" << endl << flush;
+        }
+        
+        if(root["PassTopic"].isString()) {
+          passTopic = root["PassTopic"].asString();
+        } else {
+          cout << "Error: PassTopic is missing or wrong type (should be string)" << endl << flush;
+        }
+        
+        if(root["PassSubscriberId"].isString()) {
+          passSubscriberId = root["PassSubscriberId"].asString();
+        } else {
+          cout << "Error: PassSubscriberId is missing or wrong type (should be string)" << endl << flush;
+        }
+        
+        if(root["PassSubscriberInterface"].isString()) {
+          passSubscriberInterface = root["PassSubscriberInterface"].asString();
+        } else {
+          cout << "Error: PassSubscriberInterface is missing or wrong type (should be string)" << endl << flush;
+        }
+        
+        if(root["PassSubscriberPort"].isInt()) {
+          passSubscriberPort = root["PassSubscriberPort"].asInt();
+        } else {
+          cout << "Error: PassSubscriberPort is missing or wrong type (should be integer)" << endl << flush;
+        }
+        
+        if(root["PassSubscriberAddress"].isString()) {
+          passSubscriberAddress = root["PassSubscriberAddress"].asString();
+        } else {
+          cout << "Error: PassSubscriberAddress is missing or wrong type (should be string)" << endl << flush;
+        }
       } else {
-        cout << "Error: PassSubscriberId is missing or wrong type (should be string)" << endl << flush;
+        cout << "JSON parsing error in config file '" << PASS_CONFIG_FILE << "'.  Using defaults." << endl << flush;
       }
-      
-      if(root["PassSubscriberInterface"].isString()) {
-        passSubscriberInterface = root["PassSubscriberInterface"].asString();
-      } else {
-        cout << "Error: PassSubscriberInterface is missing or wrong type (should be string)" << endl << flush;
-      }
-      
-      if(root["PassSubscriberPort"].isInt()) {
-        passSubscriberPort = root["PassSubscriberPort"].asInt();
-      } else {
-        cout << "Error: PassSubscriberPort is missing or wrong type (should be integer)" << endl << flush;
-      }
-      
-      if(root["PassSubscriberAddress"].isString()) {
-        passSubscriberAddress = root["PassSubscriberAddress"].asString();
-      } else {
-        cout << "Error: PassSubscriberAddress is missing or wrong type (should be string)" << endl << flush;
-      }
+      configFile.close();
     } else {
-      cout << "JSON parsing error in config file '" << PASS_CONFIG_FILE << "'.  Using defaults." << endl << flush;
+      cout << "Could not read from config file '" << PASS_CONFIG_FILE << "'.  Using defaults." << endl << flush;
     }
-    configFile.close();
   } else {
-    cout << "Could not read from config file '" << PASS_CONFIG_FILE << "'.  Using defaults." << endl << flush;
+    LOG_WARN("Using default configuration.");
   }
   
   cout << endl;
@@ -104,6 +113,36 @@ int PassConfigurationManager::getPassSubscriberPort() {
 
 std::string PassConfigurationManager::getPassSubscriberAddress() {
   return passSubscriberAddress;
+}
+
+string PassConfigurationManager::findConfigFile() {
+  string filePath;
+  ACE_stat statStruct;
+  
+  filePath = PASS_CONFIG_FILE;
+  //stat returns 0 if the file exists
+  if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+    filePath = string(ACE_OS::getenv("HOME")) + "/" + "." + CONFIG_DIRECTORY + "/" + PASS_CONFIG_FILE;
+    if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+      filePath = string("/etc/") + CONFIG_DIRECTORY + "/" + PASS_CONFIG_FILE;
+      if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+        filePath = string(ACE_OS::getenv("GATEWAY_ROOT")) + "/etc/" + PASS_CONFIG_FILE;
+        if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+          filePath = string(ACE_OS::getenv("GATEWAY_ROOT")) + "/build/etc/" + PASS_CONFIG_FILE;
+          if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+            filePath = string("../etc/") + PASS_CONFIG_FILE;
+            if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+              LOG_ERROR("No config file found.");
+              return "";
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  LOG_INFO("Using config file: " << filePath);
+  return filePath;
 }
 
 PassConfigurationManager* PassConfigurationManager::getInstance() {
