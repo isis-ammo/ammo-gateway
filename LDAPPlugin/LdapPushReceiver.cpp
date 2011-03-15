@@ -321,11 +321,8 @@ bool LdapPushReceiver::parseJson(std::string input, Json::Value& jsonRoot)
 LdapContact* LdapPushReceiver::objectFromJson(std::string input)
 {
   Json::Value jsonRoot;
-  if (!parseJson(input, jsonRoot))
-    {
-      return NULL;
-    }
-
+  if (!parseJson(input, jsonRoot)) return NULL;
+  
   /*
     LdapContact contact;
     contact.name = jsonRoot["name"].asString();
