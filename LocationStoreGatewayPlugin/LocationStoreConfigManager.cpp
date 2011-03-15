@@ -6,6 +6,9 @@
 #include <iostream>
 #include <fstream>
 
+#include <ace/OS_NS_sys_stat.h>
+
+const char *CONFIG_DIRECTORY = "ammo-gateway";
 const char *LOC_STORE_CONFIG_FILE = "LocationStorePluginConfig.json";
 
 using namespace std;
@@ -20,34 +23,40 @@ LocationStoreConfigManager::LocationStoreConfigManager (
 {
   LOG_TRACE ("Parsing config file...");
 	
-  ifstream configFile (LOC_STORE_CONFIG_FILE);
+  string configFilename = findConfigFile();
+  
+  if(configFilename != "") {
+  ifstream configFile (configFilename.c_str());
 	
-  if (configFile)
-    {
-	  Json::Reader reader;
-		
-	  bool parsingSuccessful = reader.parse (configFile, root);
-		
-	  if (parsingSuccessful)
-	    {
-	      if (root["MimeTypes"].isArray ())
-		    {
-			  for (Json::Value::iterator i = root["MimeTypes"].begin ();
-				   i != root["MimeTypes"].end ();
-				   ++i)
-			    {
-				  string mime_type = (*i).asString ();
-				  LOG_DEBUG ("Registering interest in " << mime_type.c_str ());
-				  connector->registerDataInterest (mime_type.c_str (), receiver);
-			    }
-		    }
-		}
-	  else
-	    {
-		  LOG_ERROR ("JSON parsing error in config file '"
-					 << LOC_STORE_CONFIG_FILE
-					 << "'.");
-		}
+    if (configFile)
+      {
+      Json::Reader reader;
+      
+      bool parsingSuccessful = reader.parse (configFile, root);
+      
+      if (parsingSuccessful)
+        {
+          if (root["MimeTypes"].isArray ())
+          {
+          for (Json::Value::iterator i = root["MimeTypes"].begin ();
+             i != root["MimeTypes"].end ();
+             ++i)
+            {
+            string mime_type = (*i).asString ();
+            LOG_DEBUG ("Registering interest in " << mime_type.c_str ());
+            connector->registerDataInterest (mime_type.c_str (), receiver);
+            }
+          }
+      }
+      else
+        {
+        LOG_ERROR ("JSON parsing error in config file '"
+             << LOC_STORE_CONFIG_FILE
+             << "'.");
+        }
+      } else {
+        LOG_WARN("Using default configuration.");
+      }
 		
 	  configFile.close ();
 	}
@@ -57,6 +66,36 @@ LocationStoreConfigManager::LocationStoreConfigManager (
 				<< LOC_STORE_CONFIG_FILE
 				<< "'.  Using defaults.");
 	}
+}
+
+string LocationStoreConfigManager::findConfigFile() {
+  string filePath;
+  ACE_stat statStruct;
+  
+  filePath = LOC_STORE_CONFIG_FILE;
+  //stat returns 0 if the file exists
+  if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+    filePath = string(ACE_OS::getenv("HOME")) + "/" + "." + CONFIG_DIRECTORY + "/" + LOC_STORE_CONFIG_FILE;
+    if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+      filePath = string("/etc/") + CONFIG_DIRECTORY + "/" + LOC_STORE_CONFIG_FILE;
+      if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+        filePath = string(ACE_OS::getenv("GATEWAY_ROOT")) + "/etc/" + LOC_STORE_CONFIG_FILE;
+        if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+          filePath = string(ACE_OS::getenv("GATEWAY_ROOT")) + "/build/etc/" + LOC_STORE_CONFIG_FILE;
+          if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+            filePath = string("../etc/") + LOC_STORE_CONFIG_FILE;
+            if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+              LOG_ERROR("No config file found.");
+              return "";
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  LOG_INFO("Using config file: " << filePath);
+  return filePath;
 }
 
 LocationStoreConfigManager *

@@ -20,6 +20,8 @@ private:
 	LocationStoreReceiver *push_receiver,
 	GatewayConnector *connector);
 	
+	std::string findConfigFile();
+	
   static LocationStoreConfigManager *sharedInstance;
 	
   Json::Value root;
