@@ -3,11 +3,14 @@ from twisted.internet import reactor
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
+from datetime import datetime
+
 import sys
 import struct
 import zlib
 import time
 import threading
+import Queue
 
 import AmmoMessages_pb2
 
@@ -24,7 +27,7 @@ class AndroidProtocol(stateful.StatefulProtocol):
   '''
   _messageSize = 0
   _checksum = 0
-  _onConnectCallback = None
+  _onMessageAvailableCallback = None
   
   def getInitialState(self):
     return (self.receiveHeader, 8) #initial state receives the header
@@ -42,7 +45,10 @@ class AndroidProtocol(stateful.StatefulProtocol):
       print "Checksum error!"
     msg = AmmoMessages_pb2.MessageWrapper()
     msg.ParseFromString(data)
-    print msg
+    
+    if self._onMessageAvailableCallback != None:
+      self._onMessageAvailableCallback(msg)
+    
     return (self.receiveHeader, 8)
     
   def sendMessageWrapper(self, msg):
@@ -53,51 +59,65 @@ class AndroidProtocol(stateful.StatefulProtocol):
   def connectionMade(self):
     print "connectionMade"
     
-  def setOnConnectCallback(self, callback):
-    print "setOnConnectCallback"
-    self._onConnectCallback = callback
-    
+  def setOnMessageAvailableCallback(self, callback):
+    self._onMessageAvailableCallback = callback
     
 class AndroidConnector(threading.Thread):
   _address = ""
   _port = 0
+  _deviceId = ""
+  _userId = ""
+  _userKey = ""
+  
   _protocol = None
   
   _authenticated = False
   _authCondition = None
   
-  def __init__(self, address, port):
+  _messageQueue = None
+  
+  def __init__(self, address, port, deviceId, userId, userKey):
     threading.Thread.__init__(self)
     self._address = address
     self._port = port
+    self._deviceId = deviceId
+    self._userId = userId
+    self._userKey = userKey
+    
     self._authenticated = False
     self._authCondition = threading.Condition()
     
-  def gotProtocol(self, p):
+    self._messageQueue = Queue.Queue()
+    
+  def _gotProtocol(self, p):
     print "gotProtocol"
     self._protocol = p
-    p.setOnConnectCallback(self.onConnect)
-    self.onConnect()
+    self._onConnect()
     
   def run(self):
     factory = Factory()
     factory.protocol = AndroidProtocol
     point = TCP4ClientEndpoint(reactor, self._address, self._port)
     d = point.connect(factory)
-    d.addCallback(self.gotProtocol)
+    d.addCallback(self._gotProtocol)
     print "Running reactor"
     reactor.run(False)
     print "Reactor stopped"
     
-  def onConnect(self):
-    self.sendAuthMessage()
+  def _onConnect(self):
+    self._protocol.setOnMessageAvailableCallback(self._onMessageAvailable)
+    self._sendAuthMessage()
     
-  def sendAuthMessage(self):
+  def _onMessageAvailable(self, msg):
+    time = datetime.now()
+    self._messageQueue.put((msg, time))
+    
+  def _sendAuthMessage(self):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.AUTHENTICATION_MESSAGE
-    m.authentication_message.device_id = "device:test/device1"
-    m.authentication_message.user_id = "user:test/user1"
-    m.authentication_message.user_key = "dummy"
+    m.authentication_message.device_id = self._deviceId
+    m.authentication_message.user_id = self._userId
+    m.authentication_message.user_key = self._userKey
     print "Sending auth message"
     self._protocol.sendMessageWrapper(m)
     self._authCondition.acquire()
@@ -105,19 +125,34 @@ class AndroidConnector(threading.Thread):
     self._authCondition.notifyAll()
     self._authCondition.release()
     
+  #Dequeues a message from the message queue and returns it.  Returns 'none' if
+  #the queue is empty; otherwise, it returns a pair (message, timeReceived)
+  def dequeueMessage(self):
+    item = None
+    try:
+      item = self._messageQueue.get(False) #don't block if queue is empty; raises Empty exception instead
+    except Queue.Empty:
+      item = None
+      pass
+    
+    return item
+    
+  def isDataAvailable(self):
+    return not self._messageQueue.empty()
+    
   def push(self, uri, mimeType, data):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.data_message.uri = uri
     m.data_message.mime_type = mimeType
     m.data_message.data = data
-    self._protocol.sendMessageWrapper(m)
+    reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
   def subscribe(self, mimeType):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
     m.subscribe_message.mime_type = mimeType
-    self._protocol.sendMessageWrapper(m)
+    reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
   def waitForAuthentication(self):
     self._authCondition.acquire()
@@ -125,9 +160,12 @@ class AndroidConnector(threading.Thread):
       self._authCondition.wait()
     self._authCondition.release()
     
+# Main method for this class (not run when it's imported).
+# This is a usage example for the AndroidConnector--  it subscribes to a data
+# type, then prints out any data that it receives with that type.
 if __name__ == "__main__":
   print "Android Gateway Tester"
-  connector = AndroidConnector("localhost", 32869)
+  connector = AndroidConnector("localhost", 32869, "device:test/pythonTestDrvier1", "user:user/testPythonUser1", "")
   
   try:
     connector.start()
@@ -138,10 +176,20 @@ if __name__ == "__main__":
     connector.subscribe("text/plain")
   
     while True:
+      while(connector.isDataAvailable()):
+        result = connector.dequeueMessage()
+        if(result != None):
+          (msg, receivedTime) = result
+          print "Message received at:", receivedTime
+          print msg
       time.sleep(0.5)
-  #except KeyboardInterrupt:
-  #  print "Closing"
-  #  reactor.callFromThread(reactor.stop)
+      
+  except KeyboardInterrupt:
+    print "Got ^C...  Closing"
+    reactor.callFromThread(reactor.stop)
+    # re-raising the exception so we get a traceback (useful for debugging.
+    # occasionally).  Real "applications"/testdrivers shouldn't do this.
+    raise 
   except:
     print "Unexpected error...  dying."
     reactor.callFromThread(reactor.stop)
