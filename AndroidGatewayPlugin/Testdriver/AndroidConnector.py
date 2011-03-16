@@ -62,6 +62,9 @@ class AndroidProtocol(stateful.StatefulProtocol):
   def setOnMessageAvailableCallback(self, callback):
     self._onMessageAvailableCallback = callback
     
+class AuthenticationFailure(Exception):
+  pass
+    
 class AndroidConnector(threading.Thread):
   _address = ""
   _port = 0
@@ -113,6 +116,18 @@ class AndroidConnector(threading.Thread):
     self._sendAuthMessage()
     
   def _onMessageAvailable(self, msg):
+    if self._authenticated == False:
+      if msg.type == AmmoMessages_pb2.MessageWrapper.AUTHENTICATION_RESULT:
+        if msg.authentication_result.result == AmmoMessages_pb2.AuthenticationResult.SUCCESS:
+          print "Authentication succeeded."
+          self._authCondition.acquire()
+          self._authenticated = True
+          self._authCondition.notifyAll()
+          self._authCondition.release()
+        else:
+          print "Authentication failed."
+          raise AuthenticationFailure("Auth failed: " + msg.authentication_result.message)
+    
     time = datetime.now()
     if self._messageCallback != None:
       self._messageCallback(self, msg)
@@ -128,10 +143,7 @@ class AndroidConnector(threading.Thread):
     m.authentication_message.user_key = self._userKey
     print "Sending auth message"
     self._protocol.sendMessageWrapper(m)
-    self._authCondition.acquire()
-    self._authenticated = True
-    self._authCondition.notifyAll()
-    self._authCondition.release()
+    
     
   #Dequeues a message from the message queue and returns it.  Returns 'none' if
   #the queue is empty; otherwise, it returns a pair (message, timeReceived)
