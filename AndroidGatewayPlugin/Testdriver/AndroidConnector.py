@@ -74,7 +74,9 @@ class AndroidConnector(threading.Thread):
   _authenticated = False
   _authCondition = None
   
+  _messageQueueEnabled = True
   _messageQueue = None
+  _messageCallback = None
   
   def __init__(self, address, port, deviceId, userId, userKey):
     threading.Thread.__init__(self)
@@ -87,7 +89,9 @@ class AndroidConnector(threading.Thread):
     self._authenticated = False
     self._authCondition = threading.Condition()
     
+    self._messageQueueEnabled = True
     self._messageQueue = Queue.Queue()
+    self._messageCallback = None
     
   def _gotProtocol(self, p):
     print "gotProtocol"
@@ -110,7 +114,11 @@ class AndroidConnector(threading.Thread):
     
   def _onMessageAvailable(self, msg):
     time = datetime.now()
-    self._messageQueue.put((msg, time))
+    if self._messageCallback != None:
+      self._messageCallback(self, msg)
+    
+    if self._messageQueueEnabled:
+      self._messageQueue.put((msg, time))
     
   def _sendAuthMessage(self):
     m = AmmoMessages_pb2.MessageWrapper()
@@ -159,6 +167,23 @@ class AndroidConnector(threading.Thread):
     if self._authenticated == False:
       self._authCondition.wait()
     self._authCondition.release()
+    
+  def registerMessageCallback(self, callback):
+    '''
+    Registers a callback method to be called when a message is received.  Note
+    that this callback is called on the *event loop's* thread--  which may not
+    be the thread where the caller (of this method) is running.  The caller is
+    expected to handle any synchronization issues which might result.
+    
+    Also note that registering this callback does not disable the message queue--
+    the consumer of AndroidConnector will want to either drain this queue or 
+    disable it with AndroidConnector.setMessageQueueEnabled(False) to avoid 
+    memory leaks.
+    '''
+    self._messageCallback = callback
+    
+  def setMessageQueueEnabled(self, enabled):
+    self._messageQueueEnabled = enabled
     
 # Main method for this class (not run when it's imported).
 # This is a usage example for the AndroidConnector--  it subscribes to a data
