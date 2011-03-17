@@ -64,12 +64,12 @@ xterm -bg black -fg green -sb -title "LDAP Gateway Plugin ($HOSTNAME)" -e "tail 
 echo "Terminating gateway applications..."
 
 echo "Terminating Gateway Core..."
-kill %./Gatewa
+kill %Gatewa
 echo "Terminating Android Gateway Plugin..."
-kill %./AndroidGat
+kill %AndroidGat
 echo "Terminating TIGR Gateway Plugin..."
-kill %./TigrGat
+kill %TigrGat
 echo "Terminating PASS Gateway Plugin..."
-kill %./PassGat
+kill %PassGat
 echo "Terminating LDAP Gateway Plugin..."
-kill %./LdapGat
+kill %LdapGat
