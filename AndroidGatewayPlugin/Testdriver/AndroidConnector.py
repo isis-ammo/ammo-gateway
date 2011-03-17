@@ -102,15 +102,24 @@ class AndroidConnector(threading.Thread):
     self._protocol = p
     self._onConnect()
     
-  def run(self):
+  def _connect(self):
     factory = Factory()
     factory.protocol = AndroidProtocol
     point = TCP4ClientEndpoint(reactor, self._address, self._port)
     d = point.connect(factory)
     d.addCallback(self._gotProtocol)
-    print "Running reactor"
-    reactor.run(False)
-    print "Reactor stopped"
+    
+  def run(self):
+    if reactor.running == False:
+      self._connect()
+      print "Running reactor"
+      reactor.run(False) #Argument False tells the reactor that it's not on the
+                         #main thread, so it doesn't attempt to register signal
+                         #handlers (which doesn't work on other threads)
+      print "Reactor stopped"
+    else:
+      reactor.callFromThread(self._connect)
+      print "Reactor is already running...  this background thread will exit."
     
   def _onConnect(self):
     self._protocol.setOnMessageAvailableCallback(self._onMessageAvailable)
@@ -266,7 +275,7 @@ if __name__ == "__main__":
     
     print "Subscribing to type text/plain"
     connector.subscribe("text/plain")
-  
+    
     while True:
       while(connector.isDataAvailable()):
         result = connector.dequeueMessage()
