@@ -11,6 +11,7 @@ import zlib
 import time
 import threading
 import Queue
+import uuid
 
 import AmmoMessages_pb2
 
@@ -174,6 +175,19 @@ class AndroidConnector(threading.Thread):
     m.subscribe_message.mime_type = mimeType
     reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
+  def pullRequest(mimeType, query, projection, maxResults, startFromCount, liveQuery):
+    m = AmmoMessages_pb2.MessageWrapper()
+    m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
+    m.pull_request.request_uid = uuid.uuid1().hex
+    m.pull_request.plugin_id = self._deviceId
+    m.pull_request.mime_type = mimeType
+    m.pull_request.query = query
+    m.pull_request.projection = projection
+    m.pull_request.max_results = maxResults
+    m.pull_request.start_from_count = startFromCount
+    m.pull_request.live_query = liveQuery
+    reactor.callFromThread(self._protocol.sendMessageWrapper, m)
+    
   def waitForAuthentication(self):
     self._authCondition.acquire()
     if self._authenticated == False:
@@ -195,6 +209,15 @@ class AndroidConnector(threading.Thread):
     self._messageCallback = callback
     
   def setMessageQueueEnabled(self, enabled):
+    '''
+    Enables or disables the message queue.  The message queue is enabled by
+    default; you might want to disable it if, for example, you only want to
+    print messages as they are received in a callback.
+    
+    setMessageQueueEnabled(false) should almost always be used in conjunction
+    with registerMessageCallback, or you will lose any messages received while
+    the message queue is disabled.
+    '''
     self._messageQueueEnabled = enabled
     
 # Main method for this class (not run when it's imported).
@@ -202,7 +225,7 @@ class AndroidConnector(threading.Thread):
 # type, then prints out any data that it receives with that type.
 if __name__ == "__main__":
   print "Android Gateway Tester"
-  connector = AndroidConnector("localhost", 32869, "device:test/pythonTestDrvier1", "user:user/testPythonUser1", "")
+  connector = AndroidConnector("localhost", 32869, "device:test/pythonTestDriver1", "user:user/testPythonUser1", "")
   
   try:
     connector.start()
@@ -224,7 +247,7 @@ if __name__ == "__main__":
   except KeyboardInterrupt:
     print "Got ^C...  Closing"
     reactor.callFromThread(reactor.stop)
-    # re-raising the exception so we get a traceback (useful for debugging.
+    # re-raising the exception so we get a traceback (useful for debugging,
     # occasionally).  Real "applications"/testdrivers shouldn't do this.
     raise 
   except:
