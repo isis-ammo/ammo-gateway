@@ -39,9 +39,9 @@ install: all
 	install -o root -m 644 build/lib/libgeotrans-mgrs.so $(INSTALL_DIR)/lib
 	install -o root -m 644 build/lib/libjson.so $(INSTALL_DIR)/lib
 	echo "Installing scripts ..."
-	install -o root -m 755 dist/template/launch_gateway_headless.sh $(INSTALL_DIR)/bin
-	install -o root -m 755 dist/template/launch.sh $(INSTALL_DIR)/bin
-	install -o root -m 755 dist/template/kill_all_gateway.sh $(INSTALL_DIR)/bin
+	install -o root -m 755 dist/template/bin/launch_ammo_gateway_headless.sh $(INSTALL_DIR)/bin
+	install -o root -m 755 dist/template/bin/launch_ammo_gateway.sh $(INSTALL_DIR)/bin
+	install -o root -m 755 dist/template/bin/kill_all_gateway.sh $(INSTALL_DIR)/bin
 	echo "Installing config files ..."
 	install -o root -m 644 build/etc/AtsPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -o root -m 644 build/etc/GatewayConfig.json $(DESTDIR)/etc/ammo-gateway
