@@ -145,10 +145,11 @@ class AndroidConnector(threading.Thread):
     print "Sending auth message"
     self._protocol.sendMessageWrapper(m)
     
-    
-  #Dequeues a message from the message queue and returns it.  Returns 'none' if
-  #the queue is empty; otherwise, it returns a pair (message, timeReceived)
   def dequeueMessage(self):
+    '''
+    Dequeues a message from the message queue and returns it.  Returns 'none' if
+    the queue is empty; otherwise, it returns a pair (message, timeReceived).
+    '''
     item = None
     try:
       item = self._messageQueue.get(False) #don't block if queue is empty; raises Empty exception instead
@@ -159,9 +160,19 @@ class AndroidConnector(threading.Thread):
     return item
     
   def isDataAvailable(self):
+    '''
+    Checks to see if data is available in the message queue.  Note that, since
+    the message queue is filled from a background thread (and could be emptied
+    from a background thread), this method returning true/false does not
+    necessarily mean that a message will or will not be present when
+    dequeueMessage() is called.
+    '''
     return not self._messageQueue.empty()
     
   def push(self, uri, mimeType, data):
+    '''
+    Sends a push message with the specified URI and MIME type to the gateway.
+    '''
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.data_message.uri = uri
@@ -170,12 +181,25 @@ class AndroidConnector(threading.Thread):
     reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
   def subscribe(self, mimeType):
+    '''
+    Subscribes to push data with the specified MIME type.
+    
+    By default, data received will be placed in the message queue.  The caller
+    should periodically call dequeueMessage to receive the push messages that
+    it subscribed to.
+    '''
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
     m.subscribe_message.mime_type = mimeType
     reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
   def pullRequest(mimeType, query, projection, maxResults, startFromCount, liveQuery):
+    '''
+    Sends a pull request with the specified parameters.  Note that the request
+    UID and device ID are automatically set to the correct values (request UID
+    is a generated UUID, and device ID is the device ID passed to the
+    constructor of this AndroidConnector object).
+    '''
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
     m.pull_request.request_uid = uuid.uuid1().hex
@@ -189,6 +213,14 @@ class AndroidConnector(threading.Thread):
     reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
   def waitForAuthentication(self):
+    '''
+    Waits for the AndroidConnector to connect to the Android Gateway Plugin, and
+    waits for successful authentication.
+    
+    This method MUST be called after the AndroidConnector's background thread
+    is started.  Attempting to call any other member methods of this class
+    before authentication is complete has undefined behavior.
+    '''
     self._authCondition.acquire()
     if self._authenticated == False:
       self._authCondition.wait()
