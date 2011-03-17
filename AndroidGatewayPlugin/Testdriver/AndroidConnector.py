@@ -58,7 +58,7 @@ class AndroidProtocol(stateful.StatefulProtocol):
     self.transport.write(serializedMsg);
     
   def connectionMade(self):
-    print "connectionMade"
+    pass
     
   def setOnMessageAvailableCallback(self, callback):
     self._onMessageAvailableCallback = callback
@@ -98,7 +98,6 @@ class AndroidConnector(threading.Thread):
     self._messageCallback = None
     
   def _gotProtocol(self, p):
-    print "gotProtocol"
     self._protocol = p
     self._onConnect()
     
