@@ -26,41 +26,37 @@ tigrpluginlog="$LOGDIR/TigrGatewayPlugin.log.$datesuffix"
 passpluginlog="$LOGDIR/PassGatewayPlugin.log.$datesuffix"
 ldappluginlog="$LOGDIR/LdapGatewayPlugin.log.$datesuffix"
 
-. ~/.bashrc
-
-cd $GATEWAY_ROOT/bin
-
 echo "Launching Gateway Core..."
 echo "  Log file in $gatewaycorelog"
-./GatewayCore > $gatewaycorelog 2>&1 &
+GatewayCore > $gatewaycorelog 2>&1 &
 xterm -bg black -fg orange -sb -title "Gateway Core ($HOSTNAME)" -e "tail -n+0 -f $gatewaycorelog" &
 
 sleep 5
 
 echo "Launching Android Gateway Plugin..."
 echo "  Log file in $androidpluginlog"
-./AndroidGatewayPlugin --listenPort 33289 > $androidpluginlog 2>&1 &
+AndroidGatewayPlugin --listenPort 33289 > $androidpluginlog 2>&1 &
 xterm -bg black -fg cyan -sb -title "Android Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $androidpluginlog" &
 
 sleep 5
 
 echo "Launching TIGR Gateway Plugin..."
 echo "  Log file in $tigrpluginlog"
-./TigrGatewayPlugin > $tigrpluginlog 2>&1 &
+TigrGatewayPlugin > $tigrpluginlog 2>&1 &
 xterm -bg black -fg yellow -sb -title "TIGR Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $tigrpluginlog" &
 
 sleep 5
 
 echo "Launching PASS Gateway Plugin..."
 echo "  Log file in $passpluginlog"
-./PassGatewayPlugin > $passpluginlog 2>&1 &
+PassGatewayPlugin > $passpluginlog 2>&1 &
 xterm -bg black -fg gray -sb -title "PASS Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $passpluginlog" &
 
 sleep 5
 
 echo "Launching LDAP Gateway Plugin..."
 echo "  Log file in $ldappluginlog"
-./LdapGatewayPlugin > $ldappluginlog 2>&1 &
+LdapGatewayPlugin > $ldappluginlog 2>&1 &
 echo ""
 echo "Type Control+C to exit."
 xterm -bg black -fg green -sb -title "LDAP Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $ldappluginlog"
