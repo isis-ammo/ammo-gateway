@@ -195,7 +195,9 @@ void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg) {
     LOG_TRACE("Queued a message to send.  " << sendQueue.size() << " messages in queue.");
   }
   sendQueueMutex.release();
-  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+  if(!connectionClosing) {
+    this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+  }
 }
 
 ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextMessageToSend() {
