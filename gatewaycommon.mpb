@@ -5,7 +5,7 @@ project {
   
   includes+=$(GATEWAY_ROOT)/common
   
-  //verbatim(make, bottom) {
-  //  CPPFLAGS+=-O0 -g -Wall
-  //}
+  verbatim(make, bottom) {
+    CPPFLAGS+=-O0 -g -Wall
+  }
 }
