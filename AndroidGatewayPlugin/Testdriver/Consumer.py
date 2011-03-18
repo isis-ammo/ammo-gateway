@@ -9,14 +9,11 @@ from twisted.internet import reactor
 
 def onDataReceived(connector, msg):
   receivedTime = time.time()
-  messageType = AmmoMessages_pb2._MESSAGEWRAPPER_MESSAGETYPE.values_by_number[msg.type].name
-  print messageType, receivedTime,
   if msg.type == AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE:
+    sequenceNumber = int(msg.data_message.data.split("/")[0])
     sentTime = float(msg.data_message.data.split("/")[1])
     timeDifference = receivedTime - sentTime
-    print "::", msg.data_message.data, "::", timeDifference
-  else:
-    print ""
+    print "{0},{1:.9f}".format(sequenceNumber, timeDifference)
 
 if __name__ == "__main__":
   print "Android Gateway Tester"
