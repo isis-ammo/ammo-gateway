@@ -32,9 +32,10 @@ if __name__ == "__main__":
     sequenceNumber = 0
     
     while True:
-      postTime = datetime.datetime.now()
-      connector.push("item:" + str(sequenceNumber), "application/vnd.edu.vu.isis.ammo.test.TestData", str(sequenceNumber) + " " + str(postTime))
-      print "Pushed sequence number", sequenceNumber, "at", datetime.datetime.now()
+      postTime = time.time()
+      formattedTime = "{0:.6f}".format(postTime)
+      connector.push("item:" + str(sequenceNumber), "application/vnd.edu.vu.isis.ammo.test.TestData", str(sequenceNumber) + "/" + formattedTime)
+      print "Pushed sequence number", sequenceNumber, "at", "{0:.6f}".format(time.time())
       sequenceNumber = sequenceNumber + 1
       time.sleep(float(sys.argv[3]))
       

@@ -8,10 +8,13 @@ import AmmoMessages_pb2
 from twisted.internet import reactor
 
 def onDataReceived(connector, msg):
+  receivedTime = time.time()
   messageType = AmmoMessages_pb2._MESSAGEWRAPPER_MESSAGETYPE.values_by_number[msg.type].name
-  print messageType, datetime.datetime.now(),
+  print messageType, receivedTime,
   if msg.type == AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE:
-    print "::", msg.data_message.data
+    sentTime = float(msg.data_message.data.split("/")[1])
+    timeDifference = receivedTime - sentTime
+    print "::", msg.data_message.data, "::", timeDifference
   else:
     print ""
 
