@@ -6,9 +6,13 @@
 //#include "SamplePushReceiver.h"
 #include "GatewayConnector.h"
 
+#include "version.h"
+#include "log.h"
+
 using namespace std;
 
 int main(int argc, char **argv) {  
+  LOG_INFO("AMMO Sample Push Testdriver Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   cout << "Creating gateway connector..." << endl << flush;
     
   GatewayConnector *gatewayConnector = new GatewayConnector(NULL);

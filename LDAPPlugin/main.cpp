@@ -10,10 +10,15 @@
 
 #include "GatewayLdapConstants.h"
 
+#include "log.h"
+#include "version.h"
+
 using namespace std;
 
 int main(int argc, char **argv) 
 {
+  LOG_INFO("AMMO LDAP Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  
   // Create important objects:
   LdapConfigurationManager::getInstance();
   cout << "Creating gateway connector..." << endl << flush;

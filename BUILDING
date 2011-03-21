@@ -65,12 +65,9 @@ Building on Linux:
         cd $ACE_ROOT
         make
         
-  9) Generate Gateway workspace:
-        mwc.pl --type make Gateway.mwc
-        
- 10) Build the gateway:
-        make
-        
+  9) Build the gateway: (from $GATEWAY_ROOT)
+        ant
+  
   Linux build notes:
    * Compiled executables can be found in $GATEWAY_ROOT/build/bin/; note that
      executables should also be run from this directory so that they can find

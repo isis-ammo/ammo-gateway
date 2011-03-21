@@ -12,6 +12,9 @@
 #include "PassAmmmoPublisher.h"
 #include "PassConfigurationManager.h"
 
+#include "log.h"
+#include "version.h"
+
 
 using namespace std;
 
@@ -26,6 +29,8 @@ static void signal_handler(int signum)
 }
 
 int main(int argc, char **argv) {  
+  LOG_INFO("AMMO PASS Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  
   // Set signal handler
   {
     struct sigaction sa;

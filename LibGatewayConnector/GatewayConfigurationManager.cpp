@@ -11,13 +11,18 @@
 
 using namespace std;
 
+const char *CONFIG_DIRECTORY = "ammo-gateway";
 const char *CONFIG_FILE = "GatewayConfig.json";
 
 GatewayConfigurationManager *GatewayConfigurationManager::sharedInstance = NULL;
 
 GatewayConfigurationManager::GatewayConfigurationManager(const char* configFileName) : gatewayAddress("127.0.0.1"), gatewayInterface("0.0.0.0"), gatewayPort(12475) {
   //LOG_INFO("Parsing config file...");
-  ifstream configFile(configFileName);
+  
+  string filename = findConfigFile(configFileName);
+  
+  if(filename != "") {
+  ifstream configFile(filename.c_str());
   if(configFile) {
     Json::Value root;
     Json::Reader reader;
@@ -49,6 +54,9 @@ GatewayConfigurationManager::GatewayConfigurationManager(const char* configFileN
   } else {
     LOG_WARN("Could not read from config file '" << configFileName << "'.  Using defaults.");
   }
+  } else {
+    LOG_WARN("Using default configuration");
+  }
   
   LOG_INFO("Gateway Configuration: ");
   LOG_INFO("  Interface: " << gatewayInterface);
@@ -66,6 +74,52 @@ std::string GatewayConfigurationManager::getGatewayInterface() {
 
 int GatewayConfigurationManager::getGatewayPort() {
   return gatewayPort;
+}
+
+string GatewayConfigurationManager::findConfigFile(std::string defaultConfigFile) {
+  string filePath;
+  ACE_stat statStruct;
+  
+  string home, gatewayRoot;
+  
+  char *homeC = ACE_OS::getenv("HOME");
+  if(homeC == NULL) {
+    home = "";
+  } else {
+    home = homeC;
+  }
+  
+  char *gatewayRootC = ACE_OS::getenv("GATEWAY_ROOT");
+  if(gatewayRootC == NULL) {
+    gatewayRoot = "";
+  } else {
+    gatewayRoot = gatewayRootC;
+  }
+  
+  filePath = defaultConfigFile;
+  //stat returns 0 if the file exists
+  if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+    filePath = home + "/" + "." + CONFIG_DIRECTORY + "/" + CONFIG_FILE;
+    if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+      filePath = string("/etc/") + CONFIG_DIRECTORY + "/" + CONFIG_FILE;
+      if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+        filePath = gatewayRoot + "/etc/" + CONFIG_FILE;
+        if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+          filePath = gatewayRoot + "/build/etc/" + CONFIG_FILE;
+          if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+            filePath = string("../etc/") + CONFIG_FILE;
+            if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+              LOG_ERROR("No config file found.");
+              return "";
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  LOG_INFO("Using config file: " << filePath);
+  return filePath;
 }
 
 GatewayConfigurationManager* GatewayConfigurationManager::getInstance() {

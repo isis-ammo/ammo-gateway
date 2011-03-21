@@ -9,3 +9,4 @@ bin/
 *.vcproj.*
 Makefile*
 .build-version
+*_db.sql3

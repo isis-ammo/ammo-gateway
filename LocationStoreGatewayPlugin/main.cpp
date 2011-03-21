@@ -3,6 +3,7 @@
 #include "ace/Reactor.h"
 
 #include "log.h"
+#include "version.h"
 
 #include "LocationStore.h"
 #include "LocationStoreConfigManager.h"
@@ -15,6 +16,8 @@ using namespace std;
 
 int main (int argc, char **argv)
 {  
+  LOG_INFO("AMMO Location Store Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  
   LOG_DEBUG ("Creating location store receiver...");
   
   LocationStoreReceiver *pushReceiver = new LocationStoreReceiver ();

@@ -17,6 +17,8 @@ private:
   PassConfigurationManager();
   static PassConfigurationManager *sharedInstance;
   
+  std::string findConfigFile();
+  
   std::string passServerAddress;
   std::string passTopic;
   std::string passSubscriberId;

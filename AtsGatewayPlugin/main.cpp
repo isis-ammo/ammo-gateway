@@ -4,6 +4,8 @@
 #include <string>
 
 #include "log.h"
+#include "version.h"
+
 #include "ace/Reactor.h"
 
 #include "AtsHandler.h"
@@ -28,6 +30,7 @@ int setRegisterPullInterest(GatewayConnector* gwc, std::string interest, AtsHand
 }
 
 int main(int argc, char **argv) {  
+  LOG_INFO("AMMO Ats Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   AtsConfigMgr* config = AtsConfigMgr::getInstance(); // load the configuration file
 
   LOG_DEBUG("Creating gateway connector...");

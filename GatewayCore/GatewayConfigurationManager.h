@@ -18,6 +18,9 @@ public:
   
 private:
   GatewayConfigurationManager();
+  
+  std::string findConfigFile();
+  
   static GatewayConfigurationManager *sharedInstance;
   
   std::string gatewayAddress;
