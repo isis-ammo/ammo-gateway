@@ -16,57 +16,61 @@ using namespace std;
 LocationStoreConfigManager *LocationStoreConfigManager::sharedInstance = 0;
 
 LocationStoreConfigManager::LocationStoreConfigManager (
-      LocationStoreReceiver *push_receiver,
-      GatewayConnector *the_connector)
-  : receiver (push_receiver),
-    connector (the_connector)
+      LocationStoreReceiver *receiver,
+      GatewayConnector *connector)
+  : receiver_ (receiver),
+    connector_ (connector)
 {
   LOG_TRACE ("Parsing config file...");
 	
-  string configFilename = findConfigFile();
+  string configFilename = findConfigFile ();
   
-  if(configFilename != "") {
-    ifstream configFile (configFilename.c_str());
+  if (configFilename != "")
+    {
+      ifstream configFile (configFilename.c_str ());
 	
-    if (configFile)
-      {
-      Json::Reader reader;
-      
-      bool parsingSuccessful = reader.parse (configFile, root);
-      
-      if (parsingSuccessful)
+      if (configFile)
         {
-          if (root["MimeTypes"].isArray ())
-          {
-          for (Json::Value::iterator i = root["MimeTypes"].begin ();
-             i != root["MimeTypes"].end ();
-             ++i)
+          Json::Reader reader;
+        
+          bool parsingSuccessful = reader.parse (configFile, root_);
+      
+          if (parsingSuccessful)
             {
-            string mime_type = (*i).asString ();
-            LOG_DEBUG ("Registering interest in " << mime_type.c_str ());
-            connector->registerDataInterest (mime_type.c_str (), receiver);
+              if (root_["MimeTypes"].isArray ())
+                {
+		          for (Json::Value::iterator i = root_["MimeTypes"].begin ();
+                       i != root_["MimeTypes"].end ();
+                       ++i)
+                    {
+                      const char *mime_type = (*i).asString ().c_str ();
+                      LOG_DEBUG ("Registering interest in " << mime_type);
+                      connector_->registerDataInterest (mime_type, receiver_);
+			          connector_->registerPullInterest (mime_type, receiver_);
+				    }
+                }
             }
-          }
-      }
-      else
-        {
-        LOG_ERROR ("JSON parsing error in config file '"
-             << LOC_STORE_CONFIG_FILE
-             << "'.");
-        }
+          else
+            {
+              LOG_ERROR ("JSON parsing error in config file '"
+                         << LOC_STORE_CONFIG_FILE
+                         << "'.");
+            }
       
 		
-      configFile.close ();
+          configFile.close ();
+        }
+      else
+        {
+          LOG_WARN ("Could not read from config file '"
+                    << LOC_STORE_CONFIG_FILE
+                    << "'.  Using defaults.");
+        }
+	}
+  else
+    {
+      LOG_WARN ("Using default configuration.");
     }
-    else
-      {
-      LOG_WARN ("Could not read from config file '"
-          << LOC_STORE_CONFIG_FILE
-          << "'.  Using defaults.");
-      }
-	} else {
-    LOG_WARN("Using default configuration.");
-  }
 }
 
 string LocationStoreConfigManager::findConfigFile() {
@@ -117,13 +121,13 @@ string LocationStoreConfigManager::findConfigFile() {
 
 LocationStoreConfigManager *
 LocationStoreConfigManager::getInstance (
-  LocationStoreReceiver *push_receiver,
-  GatewayConnector *the_connector)
+  LocationStoreReceiver *receiver,
+  GatewayConnector *connector)
 {
   if (sharedInstance == 0)
     {
 	  sharedInstance =
-		new LocationStoreConfigManager (push_receiver, the_connector);
+		new LocationStoreConfigManager (receiver, connector);
 	}
 	
   return sharedInstance;

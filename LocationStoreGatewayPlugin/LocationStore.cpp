@@ -194,6 +194,8 @@ LocationStoreReceiver::onDataReceived (GatewayConnector *sender,
 					                   unsigned int startFromCount,
 					                   bool /* liveQuery */)
 {
+  LOG_DEBUG ("pull request received");
+	
   // Finalizes (cleans up) the created SQL statement in the destructor.
   QueryStatementBuilder builder (mimeType, query, db_);
 	
@@ -232,6 +234,8 @@ LocationStoreReceiver::onDataReceived (GatewayConnector *sender,
 	  ACE_OS::memcpy (data.get_allocator ().address (*data.begin ()),
 		              sqlite3_column_blob (query_stmt, 5),
 		              len);
+		
+      LOG_DEBUG ("sending response");
 		
       bool good_response =
 		sender->pullResponse (requestUid,

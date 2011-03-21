@@ -40,8 +40,6 @@ int main (int argc, char **argv)
   LocationStoreConfigManager *config =
 	LocationStoreConfigManager::getInstance (pushReceiver, gatewayConnector);
 	
-  // gatewayConnector->registerDataInterest ("text/plain", pushReceiver);
-	
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance ();
   LOG_DEBUG ("Starting event loop...");
