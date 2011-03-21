@@ -48,7 +48,9 @@ int AndroidServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
   LOG_TRACE(this << " Closing Message Processor");
   messageProcessor->close(0);
   LOG_TRACE(this << " Waiting for message processor thread to finish...");
+  this->reactor()->lock().release(); //release the lock, or we'll hang if other threads try to do stuff with the reactor while we're waiting
   messageProcessor->wait();
+  this->reactor()->lock().acquire(); //and put it back like it was
   LOG_TRACE(this << " Message processor finished.");
   super::handle_close(fd, m);
   
@@ -207,8 +209,11 @@ ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextMessageToSend() {
     msg = sendQueue.front();
     sendQueue.pop();
   }
+  int size = sendQueue.size();
   sendQueueMutex.release();
-  LOG_TRACE(this << " Dequeued a message to send.  " << sendQueue.size() << " messages remain in queue.");
+  if(size > 0) {
+    LOG_TRACE(this << " Dequeued a message to send.  " << size << " messages remain in queue.");
+  }
   return msg;
 }
 
