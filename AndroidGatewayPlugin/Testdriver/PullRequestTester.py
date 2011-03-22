@@ -60,7 +60,9 @@ if __name__ == "__main__":
     print "Authentication failed..."
   n = 1
   
-  # Use this for the time_start slot in the query string.
+  # Plug this value into the time_start slot in the query string. The value comes
+  # from the underlying Unix gettimeofday(), which is also used by the ACE version
+  # that stores the timestamp in the database.
   start = int(time.time())
   
   # Send 5 data pushes, each one numbered.
