@@ -46,6 +46,7 @@ if __name__ == "__main__":
     authenticate : always run, this a dummy actually anything would work.
     subscribe : subscribe to type:edu.vanderbilt.isis.ammo.Test.
     push : send a data message of topic type:edu.vanderbilt.isis.ammo.Test.
+	pull : send a pull request to the archiving plugin
 '''
     exit(-1)
   
