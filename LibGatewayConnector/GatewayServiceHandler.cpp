@@ -14,6 +14,10 @@
   
 } */
 
+GatewayServiceHandler::GatewayServiceHandler() : opened(false) {
+  
+}
+
 int GatewayServiceHandler::open(void *ptr) {
   if(super::open(ptr) == -1) {
     return -1;
@@ -25,7 +29,20 @@ int GatewayServiceHandler::open(void *ptr) {
   collectedData = NULL;
   position = 0;
   
+  opened = true;
+  
+  LOG_DEBUG("GatewayServiceHandler::open() called");
+  
   return 0;
+}
+
+int GatewayServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask mask) {
+  LOG_DEBUG("GatewayServiceHandler::close() called");
+  if(opened) {
+    parent->onDisconnect();
+  }
+  
+  return super::handle_close(fd, mask);
 }
 
 int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {

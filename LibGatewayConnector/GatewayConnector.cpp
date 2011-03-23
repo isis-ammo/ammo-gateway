@@ -42,6 +42,15 @@ void GatewayConnector::onConnect(ACE_Connector<GatewayServiceHandler, ACE_SOCK_C
   }
 }
 
+void GatewayConnector::onDisconnect() {
+  LOG_DEBUG("GatewayConnector got onDisconnect");
+  connected = false;
+  this->connector = NULL;
+  this->handler = NULL;
+  LOG_DEBUG("Restarting reconnection loop...");
+  connectionManager->activate();
+}
+
 GatewayConnector::~GatewayConnector() {
   //LOG_DEBUG("Deleting GatewayConnector()");
   if(connected) {

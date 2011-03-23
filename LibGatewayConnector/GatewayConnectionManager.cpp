@@ -26,9 +26,7 @@ int GatewayConnectionManager::svc() {
     connector = new ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector>();
     int status = connector->connect(handler, serverAddress);
     if(status == -1) {
-      LOG_ERROR("connection to gateway failed");
-      LOG_ERROR("errno: " << errno);
-      LOG_ERROR("error: " << strerror(errno));
+      LOG_ERROR("Connection to gateway failed (" << errno << ": " << strerror(errno) << ")" );
       connectionAttempt++;
       connected = false;
       delete connector;

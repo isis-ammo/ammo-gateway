@@ -233,6 +233,7 @@ private:
   void onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg);
   
   void onConnect(ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector> *connector, GatewayServiceHandler *handler);
+  void onDisconnect();
   
   void sendMessage(ammo::gateway::protocol::GatewayWrapper &msg);
   
