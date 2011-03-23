@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <queue>
 #include "ace/Connector.h"
 #include "ace/SOCK_Connector.h"
 
@@ -22,6 +23,7 @@
 #include "GatewayServiceHandler.h"
 
 class GatewayConnectorDelegate;
+class GatewayConnectionManager;
 class DataPushReceiverListener;
 class PullRequestReceiverListener;
 class PullResponseReceiverListener;
@@ -230,6 +232,10 @@ private:
   void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg);
   void onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg);
   
+  void onConnect(ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector> *connector, GatewayServiceHandler *handler);
+  
+  void sendMessage(ammo::gateway::protocol::GatewayWrapper &msg);
+  
   GatewayConnectorDelegate *delegate;
   std::map<std::string, DataPushReceiverListener *> receiverListeners;
   std::map<std::string, PullRequestReceiverListener *> pullRequestListeners;
@@ -238,9 +244,13 @@ private:
   ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector> *connector;
   GatewayServiceHandler *handler;
   
+  std::queue<ammo::gateway::protocol::GatewayWrapper> messageQueue;
+  
   bool connected;
+  GatewayConnectionManager *connectionManager;
   
   friend class GatewayServiceHandler;
+  friend class GatewayConnectionManager;
 };
 
 /**

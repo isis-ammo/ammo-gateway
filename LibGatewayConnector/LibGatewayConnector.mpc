@@ -17,5 +17,6 @@ project(LibGatewayConnector) : aceexe, protobuf, gatewaycommon {
     GatewayConnector.cpp
     GatewayServiceHandler.cpp
     GatewayConfigurationManager.cpp
+    GatewayConnectionManager.cpp
   }
 }

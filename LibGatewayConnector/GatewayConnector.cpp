@@ -1,5 +1,6 @@
 #include "GatewayConnector.h"
 #include "GatewayConfigurationManager.h"
+#include "GatewayConnectionManager.h"
 #include "ace/Connector.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
 #include <string>
@@ -9,32 +10,23 @@
 
 using namespace std;
 
-GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : delegate(delegate), handler(NULL), connected(false) {
+GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : delegate(delegate), handler(NULL), connected(false), connectionManager(NULL) {
   init(delegate, GatewayConfigurationManager::getInstance());
 }
 
-GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate, std::string configFile) : delegate(delegate), handler(NULL), connected(false) {
+GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate, std::string configFile) : delegate(delegate), handler(NULL), connected(false), connectionManager(NULL) {
   init(delegate, GatewayConfigurationManager::getInstance(configFile.c_str()));
 }
 
 void GatewayConnector::init(GatewayConnectorDelegate *delegate, GatewayConfigurationManager *config) { 
-  ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayAddress().c_str());
-  connector = new ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector>();
-  int status = connector->connect(handler, serverAddress);
-  if(status == -1) {
-    LOG_ERROR("connection failed");
-    LOG_ERROR("errno: " << errno);
-    LOG_ERROR("error: " << strerror(errno));
-    connected = false;
-  } else {
-    connected = true;
-    handler->setParentConnector(this);
-  }
-  if(handler == NULL) {
-    LOG_ERROR("Handler not created by ACE_Connector");
-  } else {
-    LOG_DEBUG("Gateway service handler created by ACE_Connector");
-  }
+  connectionManager = new GatewayConnectionManager(this);
+  connectionManager->activate();
+}
+
+void GatewayConnector::onConnect(ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector> *connector, GatewayServiceHandler *handler) {
+  LOG_DEBUG("GatewayConnector got onConnect");
+  connected = true;
+  this->connector = connector;
 }
 
 GatewayConnector::~GatewayConnector() {
@@ -44,6 +36,15 @@ GatewayConnector::~GatewayConnector() {
     connector->close();
   }
   delete connector;
+}
+
+void GatewayConnector::sendMessage(ammo::gateway::protocol::GatewayWrapper &msg) {
+  if(connected) {
+    handler->sendData(msg);
+  } else {
+    LOG_DEBUG("No connection...  queueing message");
+    messageQueue.push(msg);
+  }
 }
   
 bool GatewayConnector::associateDevice(string device, string user, string key) {
