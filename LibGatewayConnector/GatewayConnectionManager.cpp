@@ -7,6 +7,8 @@
 #include <ace/Connector.h>
 #include <ace/Reactor.h>
 
+const int SLEEP_TIME = 3;
+
 GatewayConnectionManager::GatewayConnectionManager(GatewayConnector *connector) : gatewayConnector(connector), connector(NULL), handler(NULL) {
   
 }
@@ -29,6 +31,10 @@ int GatewayConnectionManager::svc() {
       LOG_ERROR("error: " << strerror(errno));
       connectionAttempt++;
       connected = false;
+      delete connector;
+      connector = NULL;
+      handler = NULL;
+      ACE_OS::sleep(SLEEP_TIME);
     } else {
       LOG_INFO("Connection to gateway established.");
       connected = true;
