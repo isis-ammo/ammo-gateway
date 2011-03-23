@@ -19,6 +19,10 @@ GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate, std::stri
 }
 
 void GatewayConnector::init(GatewayConnectorDelegate *delegate, GatewayConfigurationManager *config) { 
+  ACE_Reactor::instance(); //we get the singleton reactor here to make sure that
+                           //it's been created before the connectionManager thread
+                           //starts (you can get sleep_hook error messages if
+                           //it isn't, probably as a result of some timing issue)
   connectionManager = new GatewayConnectionManager(this);
   connectionManager->activate();
 }
@@ -27,6 +31,15 @@ void GatewayConnector::onConnect(ACE_Connector<GatewayServiceHandler, ACE_SOCK_C
   LOG_DEBUG("GatewayConnector got onConnect");
   connected = true;
   this->connector = connector;
+  this->handler = handler;
+  
+  LOG_DEBUG("Sending queued messages");
+  
+  while(connected && !messageQueue.empty()) {
+    ammo::gateway::protocol::GatewayWrapper msg = messageQueue.front();
+    handler->sendData(msg);
+    messageQueue.pop();
+  }
 }
 
 GatewayConnector::~GatewayConnector() {
@@ -57,13 +70,8 @@ bool GatewayConnector::associateDevice(string device, string user, string key) {
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE);
   
   LOG_DEBUG("Sending Associate Device message to gateway core");
-  if(connected) {
-    handler->sendData(msg);
-    return true;
-  } else {
-    LOG_ERROR("Not connected to gateway; can't send data");
-    return false;
-  }
+  sendMessage(msg);
+  return true;
 }
 
 bool GatewayConnector::pushData(string uri, string mimeType, const string &data) {
@@ -76,13 +84,8 @@ bool GatewayConnector::pushData(string uri, string mimeType, const string &data)
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   
   LOG_DEBUG("Sending Data Push message to gateway core");
-  if(connected) {
-    handler->sendData(msg);
-    return true;
-  } else {
-    LOG_ERROR("Not connected to gateway; can't send data");
-    return false;
-  }
+  sendMessage(msg);
+  return true;
 }
 
 bool GatewayConnector::pullRequest(std::string requestUid, std::string pluginId,
@@ -104,13 +107,8 @@ bool GatewayConnector::pullRequest(std::string requestUid, std::string pluginId,
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
   
   LOG_DEBUG("Sending Pull Request message to gateway core");
-  if(connected) {
-    handler->sendData(msg);
-    return true;
-  } else {
-    LOG_ERROR("Not connected to gateway; can't send data");
-    return false;
-  }
+  sendMessage(msg);
+  return true;
 }
 
 bool GatewayConnector::pullResponse(std::string requestUid, std::string pluginId,
@@ -128,13 +126,8 @@ bool GatewayConnector::pullResponse(std::string requestUid, std::string pluginId
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
   
   LOG_DEBUG("Sending Pull Response message to gateway core");
-  if(connected) {
-    handler->sendData(msg);
-    return true;
-  } else {
-    LOG_ERROR("Not connected to gateway; can't send data");
-    return false;
-  }
+  sendMessage(msg);
+  return true;
 }
 
 
@@ -148,15 +141,9 @@ bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverLi
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST);
   
   LOG_DEBUG("Sending RegisterDataInterest message to gateway core");
-  if(connected) {
-    handler->sendData(msg);
-    receiverListeners[mime_type] = listener;
-    return true;
-  } else {
-    LOG_ERROR("Not connected to gateway; can't send data");
-    LOG_ERROR("Receiver listener was not registered; it won't receive any data.");
-    return false;
-  }
+  sendMessage(msg);
+  receiverListeners[mime_type] = listener;
+  return true;
 }
 
 bool GatewayConnector::unregisterDataInterest(string mime_type) {
@@ -167,14 +154,9 @@ bool GatewayConnector::unregisterDataInterest(string mime_type) {
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST);
   
   LOG_DEBUG("Sending UnregisterDataInterest message to gateway core");
-  if(connected) {
-    handler->sendData(msg);
-    receiverListeners.erase(mime_type);
-    return true;
-  } else {
-    LOG_ERROR("Not connected to gateway; can't send data");
-    return false;
-  }
+  sendMessage(msg);
+  receiverListeners.erase(mime_type);
+  return true;
 }
 
 
@@ -186,15 +168,9 @@ bool GatewayConnector::registerPullInterest(string mime_type, PullRequestReceive
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST);
   
   LOG_DEBUG("Sending RegisterPullInterest message to gateway core");
-  if(connected) {
-    handler->sendData(msg);
-    pullRequestListeners[mime_type] = listener;
-    return true;
-  } else {
-    LOG_ERROR("Not connected to gateway; can't send data");
-    LOG_ERROR("Pull Request listener was not registered; it won't receive any data.");
-    return false;
-  }
+  sendMessage(msg);
+  pullRequestListeners[mime_type] = listener;
+  return true;
 }
 
 bool GatewayConnector::unregisterPullInterest(string mime_type) {
@@ -205,14 +181,9 @@ bool GatewayConnector::unregisterPullInterest(string mime_type) {
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST);
   
   LOG_DEBUG("Sending UnregisterPullInterest message to gateway core");
-  if(connected) {
-    handler->sendData(msg);
-    pullRequestListeners.erase(mime_type);
-    return true;
-  } else {
-    LOG_ERROR("Not connected to gateway; can't send pull");
-    return false;
-  }
+  sendMessage(msg);
+  pullRequestListeners.erase(mime_type);
+  return true;
 }
 
 bool GatewayConnector::registerPullResponseInterest(string mime_type, PullResponseReceiverListener *listener) {

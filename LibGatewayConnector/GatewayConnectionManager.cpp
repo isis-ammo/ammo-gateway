@@ -24,13 +24,13 @@ int GatewayConnectionManager::svc() {
     connector = new ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector>();
     int status = connector->connect(handler, serverAddress);
     if(status == -1) {
-      LOG_ERROR("connection failed");
+      LOG_ERROR("connection to gateway failed");
       LOG_ERROR("errno: " << errno);
       LOG_ERROR("error: " << strerror(errno));
       connectionAttempt++;
       connected = false;
     } else {
-      LOG_INFO("Connection established.");
+      LOG_INFO("Connection to gateway established.");
       connected = true;
       ACE_Reactor *reactor = ACE_Reactor::instance();
       reactor->notify(this, ACE_Event_Handler::READ_MASK);
