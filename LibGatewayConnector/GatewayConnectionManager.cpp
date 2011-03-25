@@ -9,7 +9,7 @@
 
 const int SLEEP_TIME = 3;
 
-GatewayConnectionManager::GatewayConnectionManager(GatewayConnector *connector) : gatewayConnector(connector), connector(NULL), handler(NULL) {
+GatewayConnectionManager::GatewayConnectionManager(GatewayConnector *connector) : gatewayConnector(connector), connector(NULL), handler(NULL), cancelMutex(), cancelled(false) {
   
 }
   
@@ -20,7 +20,7 @@ int GatewayConnectionManager::svc() {
   int connectionAttempt = 1;
   handler = NULL;
   
-  while(!connected) {
+  while(!connected && !isCancelled()) {
     LOG_INFO("Attempting connection...  attempt " << connectionAttempt);
     ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayAddress().c_str());
     connector = new ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector>();
@@ -47,4 +47,17 @@ int GatewayConnectionManager::handle_input(ACE_HANDLE fd) {
   handler->setParentConnector(gatewayConnector);
   gatewayConnector->onConnect(connector, handler);
   return 0;
+}
+
+void GatewayConnectionManager::cancel() {
+  cancelMutex.acquire();
+  cancelled = true;
+  cancelMutex.release();
+}
+
+bool GatewayConnectionManager::isCancelled() {
+  cancelMutex.acquire();
+  volatile bool ret = cancelled;
+  cancelMutex.release();
+  return ret;
 }
