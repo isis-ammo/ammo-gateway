@@ -60,6 +60,8 @@ void GatewayConnector::onDisconnect() {
 
 GatewayConnector::~GatewayConnector() {
   //LOG_DEBUG("Deleting GatewayConnector()");
+  
+  
   if(connected) {
     if(handler != NULL) {
       handler->close();
@@ -75,6 +77,9 @@ GatewayConnector::~GatewayConnector() {
   if(handler) {
     delete connector;
   }
+  connectionManager->cancel();
+  connectionManager->wait();
+  delete connectionManager;
 }
 
 void GatewayConnector::sendMessage(ammo::gateway::protocol::GatewayWrapper &msg) {
