@@ -40,6 +40,10 @@ void GatewayConnector::onConnect(ACE_Connector<GatewayServiceHandler, ACE_SOCK_C
     handler->sendData(msg);
     messageQueue.pop();
   }
+  
+  if(delegate) {
+    delegate->onConnect(this);
+  }
 }
 
 void GatewayConnector::onDisconnect() {
@@ -47,6 +51,9 @@ void GatewayConnector::onDisconnect() {
   connected = false;
   this->connector = NULL;
   this->handler = NULL;
+  if(delegate) {
+    delegate->onDisconnect(this);
+  }
   LOG_DEBUG("Restarting reconnection loop...");
   connectionManager->activate();
 }
