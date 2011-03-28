@@ -46,6 +46,7 @@ if __name__ == "__main__":
     authenticate : always run, this a dummy actually anything would work.
     subscribe : subscribe to type:edu.vanderbilt.isis.ammo.Test.
     push : send a data message of topic type:edu.vanderbilt.isis.ammo.Test.
+	pull : send a pull request to the archiving plugin
 '''
     exit(-1)
   
@@ -85,7 +86,20 @@ if __name__ == "__main__":
     m.subscribe_message.mime_type = "text/plain"
     print "Sending subscription request..."
     client.sendMessageWrapper(m)
-    
+  elif sys.argv[3] == "pull":
+    #wait for auth response, then send a pull request message
+    response = client.receiveMessage()
+    if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
+      print "Authentication failed..."    
+    m = AmmoMessages_pb2.MessageWrapper()
+    m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
+    m.pull_request.mime_type = "text/plain"
+    m.pull_request.request_uid = "AGT_pull_request"
+    m.pull_request.plugin_id = "AndroidGatewayTester"
+    m.pull_request.max_results = 0
+    m.pull_request.query = ",,1298478000,1300000000"
+    print "Sending pull request..."
+    client.sendMessageWrapper(m)
   
   while True:
     msg = client.receiveMessage()
