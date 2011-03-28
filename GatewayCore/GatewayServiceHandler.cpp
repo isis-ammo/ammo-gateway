@@ -190,6 +190,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end();) {
         if((*it) == mime_type) {
           it = registeredHandlers.erase(it); //erase returns the iterator to the next element
+          break;
         } else {
           it++;
         }
@@ -226,6 +227,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
         if((*it) == mime_type) {
           registeredPullRequestHandlers.erase(it);
+          break;
         }
       }
     }

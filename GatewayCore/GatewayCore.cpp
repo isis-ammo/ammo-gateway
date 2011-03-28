@@ -62,8 +62,9 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, GatewayServiceHa
   for(it = handlerIterators.first; it != handlerIterators.second;) {
     multimap<string,GatewayServiceHandler *>::iterator eraseIter = it++;
     
-    if(handler == (*it).second) {
-      pullHandlers.erase(it);
+    if(handler == (*eraseIter).second) {
+      pullHandlers.erase(eraseIter);
+      break;
     }
   }
   return true;
