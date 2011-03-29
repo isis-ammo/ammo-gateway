@@ -1,6 +1,6 @@
 Build prerequisites (tested version):
   * Google Protocol Buffers (2.3.0)
-  * ACE (5.8.3)
+  * ACE (6.0.1)
   * Perl (Linux: 5.10.1, Windows 5.12.1)
   * Gsoap (2.7.17)
   * Boost C++ Libraries (1.42)
@@ -39,7 +39,7 @@ Building on Linux:
   4) Download and extract ACE+TAO+CIAO to a location of your choice.
         http://download.dre.vanderbilt.edu/
         e.g.
-        http://download.dre.vanderbilt.edu/previous_versions/ACE+TAO+CIAO-5.8.3.tar.bz2
+        http://download.dre.vanderbilt.edu/previous_versions/ACE+TAO+CIAO-6.0.1.tar.bz2
   
   5) Set environment variables (in .bashrc or similar):
         export ACE_ROOT=(ACE_wrappers directory)
