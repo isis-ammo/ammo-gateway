@@ -2,6 +2,7 @@
 #define GATEWAY_CORE_H
 
 #include <map>
+#include <set>
 #include <string>
 
 class GatewayServiceHandler;
@@ -23,6 +24,8 @@ public:
   bool pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string &data);
   
 private:
+  std::set<GatewayServiceHandler *> getPushHandlersForType(std::string mimeType);
+  
   static GatewayCore* sharedInstance;
   
   std::multimap<std::string, GatewayServiceHandler *> pushHandlers;
