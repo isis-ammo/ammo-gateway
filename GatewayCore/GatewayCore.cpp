@@ -73,13 +73,12 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, GatewayServiceHa
 bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser) {
   LOG_DEBUG("  Pushing data with uri: " << uri);
   LOG_DEBUG("                    type: " << mimeType);
-  multimap<string,GatewayServiceHandler *>::iterator it;
-  pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
+  set<GatewayServiceHandler *>::iterator it;
   
-  handlerIterators = pushHandlers.equal_range(mimeType);
+  set<GatewayServiceHandler *> handlers = getPushHandlersForType(mimeType);
   
-  for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
-    (*it).second->sendPushedData(uri, mimeType, data, originUser);
+  for(it = handlers.begin(); it != handlers.end(); ++it) {
+    (*it)->sendPushedData(uri, mimeType, data, originUser);
   }
   return true;
 }
@@ -118,3 +117,12 @@ bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std
   return true;
 }
 
+std::set<GatewayServiceHandler *> GatewayCore::getPushHandlersForType(std::string mimeType) {
+  set<GatewayServiceHandler *> matchingHandlers;
+  for(multimap<string, GatewayServiceHandler *>::iterator it = pushHandlers.begin(); it!= pushHandlers.end(); it++) {
+    if(mimeType.find(it->first) == 0) { //looking for subscribers which are a prefix of mimeType
+      matchingHandlers.insert(it->second);
+    }
+  }
+  return matchingHandlers;
+}
