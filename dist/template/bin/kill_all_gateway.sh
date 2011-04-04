@@ -9,6 +9,7 @@ killall AndroidGatewayPlugin
 killall TigrGatewayPlugin
 killall PassGatewayPlugin
 killall LdapGatewayPlugin
+killall LocationStoreGatewayPlugin
 
 echo "Waiting $WAIT_TIME seconds to see if processes will exit cleanly..."
 sleep $WAIT_TIME
@@ -19,3 +20,4 @@ killall -9 AndroidGatewayPlugin
 killall -9 TigrGatewayPlugin
 killall -9 PassGatewayPlugin
 killall -9 LdapGatewayPlugin
+killall -9 LocationStoreGatewayPlugin
