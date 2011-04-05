@@ -13,6 +13,7 @@ QueryParamParser::parse (const std::string &params)
   tokenize (user_, params);
   tokenize (time_begin_, params);
   tokenize (time_end_, params);
+  tokenize (directed_user_, params);
 }
 
 const std::string &
@@ -37,6 +38,12 @@ const std::string &
 QueryParamParser::time_end (void) const
 {
   return time_end_;
+}
+
+const std::string &
+QueryParamParser::directed_user (void) const
+{
+  return directed_user_;
 }
 
 void

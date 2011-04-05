@@ -15,6 +15,7 @@ public:
   const std::string &user (void) const;
   const std::string &time_begin (void) const;
   const std::string &time_end (void) const;
+  const std::string &directed_user (void) const;
 
 private:
   void tokenize (std::string &token,
@@ -25,6 +26,7 @@ private:
   std::string user_;
   std::string time_begin_;
   std::string time_end_;
+  std::string directed_user_;
   size_t start_index_;
   size_t end_index_;
 };
