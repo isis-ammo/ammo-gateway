@@ -238,7 +238,11 @@ void GatewayConnector::onPushDataReceived(const ammo::gateway::protocol::PushDat
   vector<char> data(msg.data().begin(), msg.data().end());
   string originUser = msg.origin_user();
   
-  receiverListeners[mimeType]->onDataReceived(this, uri, mimeType, data, originUser);
+  for(map<string, DataPushReceiverListener *>::iterator it = receiverListeners.begin(); it != receiverListeners.end(); it++) {
+    if(mimeType.find(it->first) == 0) {
+      it->second->onDataReceived(this, uri, mimeType, data, originUser);
+    }
+  }
 }
 
 void GatewayConnector::onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg) {

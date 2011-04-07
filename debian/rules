@@ -24,6 +24,9 @@ override_dh_auto_build: Makefile
 override_dh_auto_clean: Makefile
 	dh_auto_clean
 	rm -f Makefile
+	
+override_dh_strip:
+	echo "Leaving debug symbols in package binaries"
 
 %:
 	dh  $@

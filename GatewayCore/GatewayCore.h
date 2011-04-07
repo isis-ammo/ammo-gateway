@@ -2,6 +2,7 @@
 #define GATEWAY_CORE_H
 
 #include <map>
+#include <set>
 #include <string>
 
 #include "ace/INET_Addr.h"
@@ -51,6 +52,8 @@ public:
   bool pushCrossGateway(std::string uri, std::string mimeType, const std::string &data, std::string originUser, std::string originHandlerId);
   
 private:
+  std::set<GatewayServiceHandler *> getPushHandlersForType(std::string mimeType);
+  
   static GatewayCore* sharedInstance;
   
   std::multimap<std::string, GatewayServiceHandler *> pushHandlers;

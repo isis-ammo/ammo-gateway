@@ -20,7 +20,7 @@ datesuffix=`date "+%Y.%M.%d.%H.%M.%S"`
 gatewaycorelog="$LOGDIR/GatewayCore.log.$datesuffix"
 androidpluginlog="$LOGDIR/AndroidGatewayPlugin.log.$datesuffix"
 tigrpluginlog="$LOGDIR/TigrGatewayPlugin.log.$datesuffix"
-passpluginlog="$LOGDIR/PassGatewayPlugin.log.$datesuffix"
+locationstorepluginlog="$LOGDIR/PassGatewayPlugin.log.$datesuffix"
 ldappluginlog="$LOGDIR/LdapGatewayPlugin.log.$datesuffix"
 
 echo "Launching Gateway Core..."
@@ -42,8 +42,8 @@ TigrGatewayPlugin > $tigrpluginlog 2>&1 &
 sleep 5
 
 echo "Launching PASS Gateway Plugin..."
-echo "  Log file in $passpluginlog"
-PassGatewayPlugin > $passpluginlog 2>&1 &
+echo "  Log file in $locationstorepluginlog"
+LocationStoreGatewayPlugin > $locationstorepluginlog 2>&1 &
 
 sleep 5
 

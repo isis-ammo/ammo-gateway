@@ -97,7 +97,7 @@ if __name__ == "__main__":
     m.pull_request.request_uid = "AGT_pull_request"
     m.pull_request.plugin_id = "AndroidGatewayTester"
     m.pull_request.max_results = 0
-    m.pull_request.query = ",,1298478000,1300000000"
+    m.pull_request.query = ",,1300000000,1310000000"
     print "Sending pull request..."
     client.sendMessageWrapper(m)
   

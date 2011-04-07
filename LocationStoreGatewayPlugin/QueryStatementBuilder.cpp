@@ -39,9 +39,16 @@ QueryStatementBuilder::build (void)
       LOG_ERROR ("Addition of URI filter failed");
       return false;
     }
-
-  good_add =
-    addFilter (mime_type_, "mime_type", false);
+  
+  //this appends the last query parameter (the user that a message was directed
+  //to) to the MIME type, in accordance with the way SMS messages are constructed.
+  if (parser_.directed_user () != "") {
+    good_add =
+      addFilter (mime_type_ + "_" + parser_.directed_user (), "mime_type", false);
+  } else {
+    good_add =
+      addFilter (mime_type_, "mime_type", false);
+  }
 
   if (!good_add)
     {

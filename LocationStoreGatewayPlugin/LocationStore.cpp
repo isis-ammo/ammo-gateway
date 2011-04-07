@@ -58,6 +58,8 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 										    std::vector<char> & data,
 										    std::string originUser)
 {
+  LOG_DEBUG("Received type:" << mimeType);
+  LOG_DEBUG("  uri: " << uri);
   ACE_Time_Value tv (ACE_OS::gettimeofday ());
   sqlite3_stmt *stmt;
 	
@@ -235,7 +237,9 @@ LocationStoreReceiver::onDataReceived (GatewayConnector *sender,
 		              sqlite3_column_blob (query_stmt, 5),
 		              len);
 		
-      LOG_DEBUG ("sending response");
+      LOG_DEBUG("Sending response to " << pluginId);
+      LOG_DEBUG("  type: " << mimeType);
+      LOG_DEBUG("   uri: " << uri);
 		
       bool good_response =
 		sender->pullResponse (requestUid,
