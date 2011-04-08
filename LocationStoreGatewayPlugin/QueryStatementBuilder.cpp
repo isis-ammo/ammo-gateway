@@ -43,9 +43,12 @@ QueryStatementBuilder::build (void)
   //this appends the last query parameter (the user that a message was directed
   //to) to the MIME type, in accordance with the way SMS messages are constructed.
   if (parser_.directed_user () != "") {
+    std::string queryType = mime_type_ + "_" + parser_.directed_user();
+    LOG_TRACE("Querying for " << queryType);
     good_add =
-      addFilter (mime_type_ + "_" + parser_.directed_user (), "mime_type", false);
+      addFilter (queryType, "mime_type", false);
   } else {
+    LOG_TRACE("Querying for " << mime_type_);
     good_add =
       addFilter (mime_type_, "mime_type", false);
   }

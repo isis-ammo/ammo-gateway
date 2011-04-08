@@ -197,6 +197,7 @@ LocationStoreReceiver::onDataReceived (GatewayConnector *sender,
 					                   bool /* liveQuery */)
 {
   LOG_DEBUG ("pull request received");
+  LOG_DEBUG ("  Query: " << query);
 	
   // Finalizes (cleans up) the created SQL statement in the destructor.
   QueryStatementBuilder builder (mimeType, query, db_);
