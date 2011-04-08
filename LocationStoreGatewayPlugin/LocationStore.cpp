@@ -229,6 +229,9 @@ LocationStoreReceiver::onDataReceived (GatewayConnector *sender,
 	  std::string uri (
 		reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 0)));
 		
+		std::string dataType (
+		reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 1)));
+		
 	  std::vector<char> data;
 	  size_t len = sqlite3_column_bytes (query_stmt, 5);
 	  data.resize (len);
@@ -239,13 +242,13 @@ LocationStoreReceiver::onDataReceived (GatewayConnector *sender,
 		              len);
 		
       LOG_DEBUG("Sending response to " << pluginId);
-      LOG_DEBUG("  type: " << mimeType);
+      LOG_DEBUG("  type: " << dataType);
       LOG_DEBUG("   uri: " << uri);
 		
       bool good_response =
 		sender->pullResponse (requestUid,
 							  pluginId,
-					          mimeType,
+					          dataType,
 							  uri,
 					          data);
 		
