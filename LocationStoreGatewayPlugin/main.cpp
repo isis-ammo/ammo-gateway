@@ -8,6 +8,10 @@
 #include "LocationStore.h"
 #include "LocationStoreConfigManager.h"
 
+#include "ace/Time_Value.h"
+#include "ace/OS_NS_Time.h"
+#include "ace/Date_Time.h"
+
 using namespace std;
 
 // Quick way to switch between plugin debugging, where this main() is run
@@ -15,7 +19,7 @@ using namespace std;
 #define DEBUG 0
 
 int main (int argc, char **argv)
-{  
+{
   LOG_INFO("AMMO Location Store Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   
   LOG_DEBUG ("Creating location store receiver...");

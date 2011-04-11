@@ -1,6 +1,7 @@
 #include "sqlite3.h"
 
 #include "ace/OS_NS_stdlib.h"
+#include "ace/OS_NS_sys_time.h"
 
 #include "QueryStatementBuilder.h"
 #include "log.h"
@@ -217,9 +218,16 @@ QueryStatementBuilder::bindInteger (const std::string &token)
 {
   if (!token.empty ())
     {
-      int status = sqlite3_bind_int (stmt_,
-                                     bind_index_++,
-                                     ACE_OS::atol (token.c_str ()));
+	  long val = ACE_OS::atol (token.c_str ());
+		
+	  if (val < 0)
+	    {
+		  // A negative time value indicates that it is to be
+		  // used as an offset from the current time.
+		  val += static_cast<long> (ACE_OS::gettimeofday ().sec ());
+		}
+		
+      int status = sqlite3_bind_int (stmt_, bind_index_++, val);
 
       if (status != SQLITE_OK)
         {
