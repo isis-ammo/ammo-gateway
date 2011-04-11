@@ -9,7 +9,7 @@
 #include "LocationStoreConfigManager.h"
 
 #include "ace/Time_Value.h"
-#include "ace/OS_NS_Time.h"
+#include "ace/OS_NS_time.h"
 #include "ace/Date_Time.h"
 
 using namespace std;
