@@ -16,7 +16,7 @@ QueryStatementBuilder::QueryStatementBuilder (
     stmt_ (0),
     has_term_ (false),
     query_str_ ("SELECT * FROM the_table WHERE "),
-    digits_ ("0123456789"),
+    digits_ ("0123456789-"),
     bind_index_ (1)
 {
 }
