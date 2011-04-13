@@ -40,6 +40,8 @@ int AndroidServiceHandler::open(void *ptr) {
   messageProcessor = new AndroidMessageProcessor(this);
   messageProcessor->activate();
   
+  this->peer().enable(ACE_NONBLOCK);
+  
   return 0;
 }
 
