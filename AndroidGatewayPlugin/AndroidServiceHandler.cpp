@@ -214,9 +214,9 @@ ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextMessageToSend() {
   }
   int size = sendQueue.size();
   sendQueueMutex.release();
-  if(size > 0) {
+  //if(size > 0) {
     LOG_TRACE(this << " Dequeued a message to send.  " << size << " messages remain in queue.");
-  }
+  //}
   return msg;
 }
 
