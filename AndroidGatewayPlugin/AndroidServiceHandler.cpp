@@ -117,6 +117,7 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
     if(dataToSend == NULL) {
       ammo::protocol::MessageWrapper *msg = getNextMessageToSend();
       if(msg != NULL) {
+        LOG_TRACE("Getting a new message to send");
         if(!msg->IsInitialized()) {
           LOG_WARN(this << " Protocol Buffers message is missing a required element.");
         }
@@ -150,6 +151,7 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
     if(count >= 0) {
       sendPosition += count;
     }
+    LOG_TRACE("Sent " << count << " bytes (current postition " << sendPosition << "/" << sendBufferSize);
     
     if(sendPosition >= (sendBufferSize - 1)) {
       delete[] dataToSend;
@@ -160,6 +162,7 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
   } while(count != -1);
   
   if(count == -1 && ACE_OS::last_error () == EWOULDBLOCK) {
+    LOG_TRACE("Received EWOULDBLOCK");
     this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
   } else {
     LOG_ERROR(this << " Socket error occurred. (" << ACE_OS::last_error() << ")");
