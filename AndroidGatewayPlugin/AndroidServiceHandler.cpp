@@ -149,7 +149,7 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
     //timeout after ten seconds when sending data (in case connection drops
     //in the middle, we don't want to wait until the socket connection dies)
     //ACE_Time_Value timeout(10);
-    count = this->peer().send(dataToSend, sendBufferSize - sendPosition);
+    count = this->peer().send(dataToSend + sendPosition, sendBufferSize - sendPosition);
     if(count >= 0) {
       sendPosition += count;
     }
