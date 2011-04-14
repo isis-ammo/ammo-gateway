@@ -155,7 +155,7 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
     }
     LOG_TRACE("Sent " << count << " bytes (current postition " << sendPosition << "/" << sendBufferSize);
     
-    if(sendPosition >= (sendBufferSize - 1)) {
+    if(sendPosition >= (sendBufferSize)) {
       delete[] dataToSend;
       dataToSend = NULL;
       sendBufferSize = 0;
