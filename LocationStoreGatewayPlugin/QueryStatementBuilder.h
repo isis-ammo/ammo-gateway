@@ -33,7 +33,7 @@ private:
 
 private:
   QueryParamParser parser_;
-  const std::string &mime_type_;
+  std::string mime_type_;
   const std::string &params_;
   sqlite3 *db_;
   sqlite3_stmt *stmt_;

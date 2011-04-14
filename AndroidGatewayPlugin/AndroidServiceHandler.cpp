@@ -40,6 +40,8 @@ int AndroidServiceHandler::open(void *ptr) {
   messageProcessor = new AndroidMessageProcessor(this);
   messageProcessor->activate();
   
+  this->peer().enable(ACE_NONBLOCK);
+  
   return 0;
 }
 
@@ -117,6 +119,7 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
     if(dataToSend == NULL) {
       ammo::protocol::MessageWrapper *msg = getNextMessageToSend();
       if(msg != NULL) {
+        LOG_TRACE("Getting a new message to send");
         if(!msg->IsInitialized()) {
           LOG_WARN(this << " Protocol Buffers message is missing a required element.");
         }
@@ -143,12 +146,16 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
       }
     }
       
-    count = this->peer().send(dataToSend, sendBufferSize - sendPosition);
+    //timeout after ten seconds when sending data (in case connection drops
+    //in the middle, we don't want to wait until the socket connection dies)
+    //ACE_Time_Value timeout(10);
+    count = this->peer().send(dataToSend + sendPosition, sendBufferSize - sendPosition);
     if(count >= 0) {
       sendPosition += count;
     }
+    LOG_TRACE("Sent " << count << " bytes (current postition " << sendPosition << "/" << sendBufferSize);
     
-    if(sendPosition >= (sendBufferSize - 1)) {
+    if(sendPosition >= (sendBufferSize)) {
       delete[] dataToSend;
       dataToSend = NULL;
       sendBufferSize = 0;
@@ -157,6 +164,7 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
   } while(count != -1);
   
   if(count == -1 && ACE_OS::last_error () == EWOULDBLOCK) {
+    LOG_TRACE("Received EWOULDBLOCK");
     this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
   } else {
     LOG_ERROR(this << " Socket error occurred. (" << ACE_OS::last_error() << ")");
@@ -211,9 +219,9 @@ ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextMessageToSend() {
   }
   int size = sendQueue.size();
   sendQueueMutex.release();
-  if(size > 0) {
+  //if(size > 0) {
     LOG_TRACE(this << " Dequeued a message to send.  " << size << " messages remain in queue.");
-  }
+  //}
   return msg;
 }
 

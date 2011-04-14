@@ -201,7 +201,7 @@ class AndroidConnector(threading.Thread):
     m.subscribe_message.mime_type = mimeType
     reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
-  def pullRequest(mimeType, query, projection, maxResults, startFromCount, liveQuery):
+  def pullRequest(self, mimeType, query, projection, maxResults, startFromCount, liveQuery):
     '''
     Sends a pull request with the specified parameters.  Note that the request
     UID and device ID are automatically set to the correct values (request UID
