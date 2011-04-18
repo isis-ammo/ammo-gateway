@@ -20,11 +20,17 @@ message AssociateResult {
   optional string message = 2;
 }
 
+enum MessageScope {
+  GLOBAL = 0;
+  LOCAL = 1;
+}
+
 message PushData {
   required string uri = 1;
   optional string mime_type = 2;
   optional bytes data = 3;
   optional string origin_user = 4;
+  optional MessageScope scope = 5 [default = GLOBAL];
 }
 
 message PullRequest {
@@ -56,10 +62,12 @@ message UnregisterPullInterest {
 
 message RegisterDataInterest {
   required string mime_type = 1;
+  optional MessageScope scope = 5 [default = GLOBAL];
 }
 
 message UnregisterDataInterest {
   required string mime_type = 1;
+  optional MessageScope scope = 5 [default = GLOBAL];
 }
 
 message GatewayWrapper {
