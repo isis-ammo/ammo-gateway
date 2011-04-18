@@ -178,14 +178,26 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST) {
     LOG_DEBUG("Received Register Data Interest...");
     std::string mime_type = msg.register_data_interest().mime_type();
-    bool result = GatewayCore::getInstance()->registerDataInterest(mime_type, this);
+    MessageScope scope;
+    if(msg.register_data_interest().scope() == ammo::gateway::protocol::GLOBAL) {
+      scope = SCOPE_GLOBAL;
+    } else {
+      scope = SCOPE_LOCAL;
+    }
+    bool result = GatewayCore::getInstance()->registerDataInterest(mime_type, scope, this);
     if(result == true) {
       registeredHandlers.push_back(mime_type);
     }
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST) {
     LOG_DEBUG("Received Unregister Data Interest...");
     std::string mime_type = msg.unregister_data_interest().mime_type();
-    bool result = GatewayCore::getInstance()->unregisterDataInterest(mime_type, this);
+    MessageScope scope;
+    if(msg.unregister_data_interest().scope() == ammo::gateway::protocol::GLOBAL) {
+      scope = SCOPE_GLOBAL;
+    } else {
+      scope = SCOPE_LOCAL;
+    }
+    bool result = GatewayCore::getInstance()->unregisterDataInterest(mime_type, scope, this);
     if(result == true) {
       for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end();) {
         if((*it) == mime_type) {
@@ -198,7 +210,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     }
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
-    GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), this->username);
+    GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), this->username, msg.push_data().scope());
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG("Received Pull Request...");
     LOG_TRACE("  " << msg.DebugString());
@@ -298,7 +310,7 @@ GatewayServiceHandler::~GatewayServiceHandler() {
   LOG_DEBUG("GatewayServiceHandler being destroyed!");
   LOG_DEBUG("Unregistering data handlers...");
   for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
-    GatewayCore::getInstance()->unregisterDataInterest(*it, this);
+    GatewayCore::getInstance()->unregisterDataInterest(*it, SCOPE_ALL, this);
   }
   
   LOG_DEBUG("Unregistering pull request handlers...");

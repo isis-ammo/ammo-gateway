@@ -27,7 +27,7 @@ GatewayCore* GatewayCore::getInstance() {
   return sharedInstance;
 }
 
-bool GatewayCore::registerDataInterest(std::string mime_type, GatewayServiceHandler *handler) {
+bool GatewayCore::registerDataInterest(std::string mime_type, MessageScope messageScope, GatewayServiceHandler *handler) {
   LOG_INFO("Registering interest in " << mime_type << " by handler " << handler);
   pushHandlers.insert(pair<string, GatewayServiceHandler *>(mime_type, handler));
   
@@ -38,7 +38,7 @@ bool GatewayCore::registerDataInterest(std::string mime_type, GatewayServiceHand
   return true;
 }
 
-bool GatewayCore::unregisterDataInterest(std::string mime_type, GatewayServiceHandler *handler) {
+bool GatewayCore::unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayServiceHandler *handler) {
   LOG_INFO("Unregistering interest in " << mime_type << " by handler " << handler);
   multimap<string,GatewayServiceHandler *>::iterator it;
   pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
@@ -89,7 +89,7 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, GatewayServiceHa
   return true;
 }
 
-bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser) {
+bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, ammo::gateway::protocol::MessageScope messageScope) {
   LOG_DEBUG("  Pushing data with uri: " << uri);
   LOG_DEBUG("                    type: " << mimeType);
   set<GatewayServiceHandler *>::iterator it;
