@@ -210,7 +210,13 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     }
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
-    GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), this->username, msg.push_data().scope());
+    MessageScope scope;
+    if(msg.push_data().scope() == ammo::gateway::protocol::GLOBAL) {
+      scope = SCOPE_GLOBAL;
+    } else {
+      scope = SCOPE_LOCAL;
+    }
+    GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), this->username, scope);
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG("Received Pull Request...");
     LOG_TRACE("  " << msg.DebugString());
@@ -248,7 +254,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   return 0;
 }
 
-bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser) {
+bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
   pushMsg->set_uri(uri);

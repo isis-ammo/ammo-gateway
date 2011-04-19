@@ -89,7 +89,7 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, GatewayServiceHa
   return true;
 }
 
-bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, ammo::gateway::protocol::MessageScope messageScope) {
+bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope messageScope) {
   LOG_DEBUG("  Pushing data with uri: " << uri);
   LOG_DEBUG("                    type: " << mimeType);
   set<GatewayServiceHandler *>::iterator it;
@@ -97,7 +97,7 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::str
   set<GatewayServiceHandler *> handlers = getPushHandlersForType(mimeType);
   
   for(it = handlers.begin(); it != handlers.end(); ++it) {
-    (*it)->sendPushedData(uri, mimeType, data, originUser);
+    (*it)->sendPushedData(uri, mimeType, data, originUser, messageScope);
   }
   
   //now propogate the subscription to all the other gateway nodes
@@ -271,7 +271,7 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const 
     
     for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
       LOG_TRACE("Sending push data");
-      (*it).second->sendPushedData(uri, mimeType, data, originUser);
+      (*it).second->sendPushedData(uri, mimeType, data, originUser, SCOPE_GLOBAL);
     }
   }
   

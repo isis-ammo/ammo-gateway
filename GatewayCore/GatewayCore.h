@@ -14,18 +14,18 @@
 #include "ace/Connector.h"
 #include "ace/Reactor.h"
 #include "CrossGatewayServiceHandler.h"
+#include "Enumerations.h"
 
 class GatewayServiceHandler;
 
-typedef struct _subscription_info {
+struct SubscriptionInfo {
   std::string handlerId;
   unsigned int references;
-} SubscriptionInfo;
+};
 
-enum MessageScope {
-  SCOPE_GLOBAL = 0,
-  SCOPE_LOCAL = 1,
-  SCOPE_ALL = 2 //used by unregisterPullInterest, to remove a subscription regardless of scope
+struct LocalSubscriptionInfo {
+  GatewayServiceHandler *handler;
+  MessageScope scope;
 };
 
 class GatewayCore {
@@ -40,7 +40,7 @@ public:
   bool registerPullInterest(std::string mime_type, GatewayServiceHandler *handler);
   bool unregisterPullInterest(std::string mime_type, GatewayServiceHandler *handler);
   
-  bool pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, ammo::gateway::protocol::MessageScope messageScope);
+  bool pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope messageScope);
   
   bool pullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
                    unsigned int maxResults, unsigned int startFromCount, bool liveQuery, GatewayServiceHandler *originatingPlugin);
