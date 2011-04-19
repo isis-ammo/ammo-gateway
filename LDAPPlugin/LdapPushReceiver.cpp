@@ -475,6 +475,8 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
     }
 
 
+  // This block is outdated and overwriting the unit info -- comment out
+  /*
   char *dn = ldap_get_dn(ldapServer, entry);
   char **edn = ldap_explode_dn(dn, 0);
   string unit;
@@ -493,7 +495,7 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
         unit = string(oval) + string("/") + unit;
     }
   root["unit"] = unit;
-
+  */
 
 
 #ifdef TEST_PHOTO
