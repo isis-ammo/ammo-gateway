@@ -99,8 +99,16 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
     LOG_DEBUG(commsHandler << " Received Subscribe Message...");
+    MessageScope scope;
+    if(msg.subscribe_message().scope() == ammo::protocol::LOCAL) {
+      scope = SCOPE_LOCAL;
+    } else {
+      scope = SCOPE_GLOBAL;
+    }
+    
     if(gatewayConnector != NULL) {
       ammo::protocol::SubscribeMessage subscribeMessage = msg.subscribe_message();
+      
       gatewayConnector->registerDataInterest(subscribeMessage.mime_type(), this);
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
