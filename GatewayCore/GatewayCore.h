@@ -62,7 +62,8 @@ private:
   
   static GatewayCore* sharedInstance;
   
-  std::multimap<std::string, GatewayServiceHandler *> pushHandlers;
+  typedef std::multimap<std::string, LocalSubscriptionInfo> PushHandlerMap;
+  PushHandlerMap pushHandlers;
   std::multimap<std::string, GatewayServiceHandler *> pullHandlers;
   
   std::map<std::string, GatewayServiceHandler *> plugins;

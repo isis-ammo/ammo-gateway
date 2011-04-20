@@ -29,7 +29,10 @@ GatewayCore* GatewayCore::getInstance() {
 
 bool GatewayCore::registerDataInterest(std::string mime_type, MessageScope messageScope, GatewayServiceHandler *handler) {
   LOG_INFO("Registering interest in " << mime_type << " by handler " << handler);
-  pushHandlers.insert(pair<string, GatewayServiceHandler *>(mime_type, handler));
+  LocalSubscriptionInfo subscriptionInfo;
+  subscriptionInfo.handler = handler;
+  subscriptionInfo.scope = messageScope;
+  pushHandlers.insert(PushHandlerMap::value_type(mime_type, subscriptionInfo));
   
   //now propogate the subscription to all the other gateway nodes
   for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
@@ -40,8 +43,8 @@ bool GatewayCore::registerDataInterest(std::string mime_type, MessageScope messa
 
 bool GatewayCore::unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayServiceHandler *handler) {
   LOG_INFO("Unregistering interest in " << mime_type << " by handler " << handler);
-  multimap<string,GatewayServiceHandler *>::iterator it;
-  pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
+  PushHandlerMap::iterator it;
+  pair<PushHandlerMap::iterator,PushHandlerMap::iterator> handlerIterators;
   
   handlerIterators = pushHandlers.equal_range(mime_type);
   
@@ -49,9 +52,9 @@ bool GatewayCore::unregisterDataInterest(std::string mime_type, MessageScope mes
     //need to increment the iterator *before* we erase it, because erasing it
     //invalidates the iterator (it doesn't invalidate other iterators in the list,
     //though)
-    multimap<string,GatewayServiceHandler *>::iterator eraseIter = it++;
+    PushHandlerMap::iterator eraseIter = it++;
     
-    if(handler == (*eraseIter).second) {
+    if(handler == (*eraseIter).second.handler) {
       //LOG_TRACE("Removing an element");
       pushHandlers.erase(eraseIter);
       break;
@@ -264,14 +267,14 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const 
   
   //do a local push of this data
   {
-    multimap<string,GatewayServiceHandler *>::iterator it;
-    pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
+    PushHandlerMap::iterator it;
+    pair<PushHandlerMap::iterator,PushHandlerMap::iterator> handlerIterators;
     
     handlerIterators = pushHandlers.equal_range(mimeType);
     
     for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
       LOG_TRACE("Sending push data");
-      (*it).second->sendPushedData(uri, mimeType, data, originUser, SCOPE_GLOBAL);
+      (*it).second.handler->sendPushedData(uri, mimeType, data, originUser, SCOPE_GLOBAL);
     }
   }
   
@@ -295,9 +298,9 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const 
 
 std::set<GatewayServiceHandler *> GatewayCore::getPushHandlersForType(std::string mimeType) {
   set<GatewayServiceHandler *> matchingHandlers;
-  for(multimap<string, GatewayServiceHandler *>::iterator it = pushHandlers.begin(); it!= pushHandlers.end(); it++) {
+  for(PushHandlerMap::iterator it = pushHandlers.begin(); it!= pushHandlers.end(); it++) {
     if(mimeType.find(it->first) == 0) { //looking for subscribers which are a prefix of mimeType
-      matchingHandlers.insert(it->second);
+      matchingHandlers.insert(it->second.handler);
     }
   }
   return matchingHandlers;
