@@ -21,6 +21,8 @@
 #include "GatewayConfigurationManager.h"
 #include "GatewayServiceHandler.h"
 
+#include "Enumerations.h"
+
 class GatewayConnectorDelegate;
 class DataPushReceiverListener;
 class PullRequestReceiverListener;
@@ -162,7 +164,7 @@ public:
   *
   * @return true if the operation succeeded; false if the operation failed.
   */
-  bool registerDataInterest(std::string mime_type, DataPushReceiverListener *listener);
+  bool registerDataInterest(std::string mime_type, DataPushReceiverListener *listener, MessageScope scope = SCOPE_GLOBAL);
   
   /**
   * Unregisters interest in pushed data of type mime_type.  Will unregister all
@@ -173,7 +175,7 @@ public:
   * 
   * @return true if the operation succeeded; false if the operation failed.
   */
-  bool unregisterDataInterest(std::string mime_type);
+  bool unregisterDataInterest(std::string mime_type, MessageScope scope = SCOPE_GLOBAL);
   
   /**
   * Registers a pull request handler for the specified data type.

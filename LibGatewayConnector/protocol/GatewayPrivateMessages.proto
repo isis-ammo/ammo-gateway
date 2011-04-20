@@ -6,6 +6,11 @@ message AssociateDevice {
   required string key = 3;
 }
 
+message AssociateCrossGateway {
+  required string gateway_id = 1;
+  required string key = 2;
+}
+
 message AssociateResult {
   enum Status {
     FAILED = 0;
@@ -15,11 +20,17 @@ message AssociateResult {
   optional string message = 2;
 }
 
+enum MessageScope {
+  GLOBAL = 0;
+  LOCAL = 1;
+}
+
 message PushData {
   required string uri = 1;
   optional string mime_type = 2;
   optional bytes data = 3;
   optional string origin_user = 4;
+  optional MessageScope scope = 5 [default = GLOBAL];
 }
 
 message PullRequest {
@@ -51,10 +62,12 @@ message UnregisterPullInterest {
 
 message RegisterDataInterest {
   required string mime_type = 1;
+  optional MessageScope scope = 5 [default = GLOBAL];
 }
 
 message UnregisterDataInterest {
   required string mime_type = 1;
+  optional MessageScope scope = 5 [default = GLOBAL];
 }
 
 message GatewayWrapper {
@@ -68,6 +81,7 @@ message GatewayWrapper {
     PULL_RESPONSE = 6;
     REGISTER_PULL_INTEREST = 7;
     UNREGISTER_PULL_INTEREST = 8;
+    ASSOCIATE_CROSS_GATEWAY = 9;
   }
   
   required MessageType type = 1;
@@ -81,4 +95,5 @@ message GatewayWrapper {
   optional PullResponse pull_response = 8;
   optional RegisterPullInterest register_pull_interest = 9;
   optional UnregisterPullInterest unregister_pull_interest = 10;
+  optional AssociateCrossGateway associate_cross_gateway = 11;
 }
