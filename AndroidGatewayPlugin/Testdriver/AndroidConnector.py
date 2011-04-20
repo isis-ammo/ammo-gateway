@@ -66,6 +66,10 @@ class AndroidProtocol(stateful.StatefulProtocol):
 class AuthenticationFailure(Exception):
   pass
     
+    
+class MessageScope:
+    GLOBAL = 0
+    LOCAL = 1
 class AndroidConnector(threading.Thread):
   _address = ""
   _port = 0
@@ -188,7 +192,7 @@ class AndroidConnector(threading.Thread):
     m.data_message.data = data
     reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
-  def subscribe(self, mimeType):
+  def subscribe(self, mimeType, scope = MessageScope.GLOBAL):
     '''
     Subscribes to push data with the specified MIME type.
     
@@ -199,6 +203,10 @@ class AndroidConnector(threading.Thread):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
     m.subscribe_message.mime_type = mimeType
+    if scope == MessageScope.GLOBAL:
+      m.subscribe_message.scope = AmmoMessages_pb2.GLOBAL
+    else:
+      m.subscribe_message.scope = AmmoMessages_pb2.LOCAL
     reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
   def pullRequest(self, mimeType, query, projection, maxResults, startFromCount, liveQuery):
