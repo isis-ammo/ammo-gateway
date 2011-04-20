@@ -34,9 +34,11 @@ bool GatewayCore::registerDataInterest(std::string mime_type, MessageScope messa
   subscriptionInfo.scope = messageScope;
   pushHandlers.insert(PushHandlerMap::value_type(mime_type, subscriptionInfo));
   
-  //now propogate the subscription to all the other gateway nodes
-  for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
-    it->second->sendSubscribeMessage(mime_type);
+  if(messageScope == SCOPE_GLOBAL) {
+    //now propogate the subscription to all the other gateway nodes
+    for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+      it->second->sendSubscribeMessage(mime_type);
+    }
   }
   return true;
 }
@@ -48,24 +50,31 @@ bool GatewayCore::unregisterDataInterest(std::string mime_type, MessageScope mes
   
   handlerIterators = pushHandlers.equal_range(mime_type);
   
+  bool foundSubscription = false;
+  MessageScope foundScope = SCOPE_ALL;
+  
   for(it = handlerIterators.first; it != handlerIterators.second;) {
     //need to increment the iterator *before* we erase it, because erasing it
     //invalidates the iterator (it doesn't invalidate other iterators in the list,
     //though)
     PushHandlerMap::iterator eraseIter = it++;
     
-    if(handler == (*eraseIter).second.handler) {
+    if(handler == (*eraseIter).second.handler && (eraseIter->second.scope == messageScope || messageScope == SCOPE_ALL)) {
       //LOG_TRACE("Removing an element");
+      foundScope = eraseIter->second.scope;
       pushHandlers.erase(eraseIter);
+      foundSubscription = true;
       break;
     }
   }
   
-  //now propogate the unsubscription to all the other gateway nodes
-  for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
-    it->second->sendUnsubscribeMessage(mime_type);
+  if(foundSubscription == true && foundScope == SCOPE_GLOBAL) {
+    //now propogate the unsubscription to all the other gateway nodes
+    for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+      it->second->sendUnsubscribeMessage(mime_type);
+    }
   }
-  return true;
+  return foundSubscription;
 }
 
 bool GatewayCore::registerPullInterest(std::string mime_type, GatewayServiceHandler *handler) {
@@ -273,8 +282,10 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const 
     handlerIterators = pushHandlers.equal_range(mimeType);
     
     for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
-      LOG_TRACE("Sending push data");
-      (*it).second.handler->sendPushedData(uri, mimeType, data, originUser, SCOPE_GLOBAL);
+      if((*it).second.scope == SCOPE_GLOBAL) {
+        LOG_TRACE("Sending push data");
+        (*it).second.handler->sendPushedData(uri, mimeType, data, originUser, SCOPE_GLOBAL);
+      }
     }
   }
   
