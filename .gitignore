@@ -10,3 +10,4 @@ bin/
 Makefile*
 .build-version
 *_db.sql3
+nbproject/
