@@ -112,16 +112,18 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::str
     (*it)->sendPushedData(uri, mimeType, data, originUser, messageScope);
   }
   
-  //now propogate the subscription to all the other gateway nodes
-  {
-    multimap<string, SubscriptionInfo>::iterator it;
-    pair<multimap<string, SubscriptionInfo>::iterator,multimap<string,SubscriptionInfo>::iterator> subscriptionIterators;
-    
-    subscriptionIterators = subscriptions.equal_range(mimeType);
-    
-    for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
-      LOG_TRACE("Sending cross-gateway data");
-      crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, data, originUser);
+  if(messageScope == SCOPE_GLOBAL) {
+    //now propagate the subscription to all the other gateway nodes
+    {
+      multimap<string, SubscriptionInfo>::iterator it;
+      pair<multimap<string, SubscriptionInfo>::iterator,multimap<string,SubscriptionInfo>::iterator> subscriptionIterators;
+
+      subscriptionIterators = subscriptions.equal_range(mimeType);
+
+      for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
+        LOG_TRACE("Sending cross-gateway data");
+        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, data, originUser);
+      }
     }
   }
   return true;
