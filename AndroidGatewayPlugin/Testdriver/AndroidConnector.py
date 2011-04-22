@@ -181,7 +181,7 @@ class AndroidConnector(threading.Thread):
     '''
     return not self._messageQueue.empty()
     
-  def push(self, uri, mimeType, data):
+  def push(self, uri, mimeType, data, scope = MessageScope.GLOBAL):
     '''
     Sends a push message with the specified URI and MIME type to the gateway.
     '''
@@ -190,6 +190,10 @@ class AndroidConnector(threading.Thread):
     m.data_message.uri = uri
     m.data_message.mime_type = mimeType
     m.data_message.data = data
+    if scope == MessageScope.GLOBAL:
+      m.data_message.scope = AmmoMessages_pb2.GLOBAL
+    else:
+      m.data_message.scope = AmmoMessages_pb2.LOCAL
     reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
   def subscribe(self, mimeType, scope = MessageScope.GLOBAL):
