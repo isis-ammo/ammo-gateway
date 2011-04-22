@@ -70,6 +70,7 @@ class AuthenticationFailure(Exception):
 class MessageScope:
     GLOBAL = 0
     LOCAL = 1
+    
 class AndroidConnector(threading.Thread):
   _address = ""
   _port = 0
