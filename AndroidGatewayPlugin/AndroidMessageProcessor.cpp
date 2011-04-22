@@ -115,7 +115,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     if(gatewayConnector != NULL) {
       ammo::protocol::SubscribeMessage subscribeMessage = msg.subscribe_message();
       
-      gatewayConnector->registerDataInterest(subscribeMessage.mime_type(), this);
+      gatewayConnector->registerDataInterest(subscribeMessage.mime_type(), this, scope);
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG(commsHandler << " Received Pull Request Message...");

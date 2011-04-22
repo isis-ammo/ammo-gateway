@@ -104,6 +104,7 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, GatewayServiceHa
 bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope messageScope) {
   LOG_DEBUG("  Pushing data with uri: " << uri);
   LOG_DEBUG("                    type: " << mimeType);
+  LOG_DEBUG("                    scope: " << messageScope);
   set<GatewayServiceHandler *>::iterator it;
   
   set<GatewayServiceHandler *> handlers = getPushHandlersForType(mimeType);
