@@ -60,6 +60,10 @@ int main(int argc, char **argv) {
   setRegisterDataInterest(gwc, RTC_INVITE_NS, dataHandler);
   setRegisterDataInterest(gwc, RTC_SHARE_GPS_NS, dataHandler);
   
+  setRegisterDataInterest(gwc, PLI_POST_LOC_NS, dataHandler); // Scope: LOCAL - the subscribe API does not have a scope parameter currently
+  setRegisterDataInterest(gwc, PLI_POST_LOCS_NS, dataHandler); // Scope: GLOBAL 
+
+
   // Get the process-wide ACE_Reactor (i.e. the one with which the acceptor should have registered)
   ACE_Reactor* reactor = ACE_Reactor::instance();
   std::cout << "Starting event loop..." << std::endl << std::flush;
