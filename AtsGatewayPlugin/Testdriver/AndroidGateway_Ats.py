@@ -91,7 +91,7 @@ if __name__ == "__main__":
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.data_message.uri = "type:urn:aterrasys.com:/api/locations/post/"
     m.data_message.mime_type = "urn:aterrasys.com:/api/locations/post/"
-    m.data_message.data = 'json=[{"user":"sbasu","lat":2000000,"lon":2000000},{"user":"dutch","lat":2000000,"lon":2000000}]'
+    m.data_message.data = '[{"user":"sbasu","lat":2000000,"lon":2000000},{"user":"dutch","lat":2000000,"lon":2000000}]'
     print "Sending data message", m.data_message.data
     client.sendMessageWrapper(m)
 
