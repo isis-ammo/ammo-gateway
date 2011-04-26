@@ -2,13 +2,13 @@
 
 LOGDIR="/tmp/gatewaylogs"
 
-if pgrep -l slapd > /dev/null 2>&1 ; then
-  echo "LDAP server: running"
-else
-  echo "ERROR:  LDAP server is not running...  run it with"
-  echo "'sudo ~/ldap/ldap.sh', then rerun this script."
-  exit 1
-fi
+#if pgrep -l slapd > /dev/null 2>&1 ; then
+#  echo "LDAP server: running"
+#else
+#  echo "ERROR:  LDAP server is not running...  run it with"
+#  echo "'sudo ~/ldap/ldap.sh', then rerun this script."
+#  exit 1
+#fi
 
 if [ ! -d $LOGDIR ]; then
   mkdir $LOGDIR
