@@ -7,8 +7,7 @@
 
 #define __PRIVATE_AMMO_LOG(msg) { \
 ACE_Time_Value __ammo_current_time = ACE_OS::gettimeofday(); \
-unsigned long long __ammo_time_milliseconds = __ammo_current_time.get_msec(); \
-std::cout << __ammo_time_milliseconds << msg << std::endl << std::flush; \
+std::cout << __ammo_current_time << msg << std::endl << std::flush; \
 }
 
 
