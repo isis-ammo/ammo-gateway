@@ -57,7 +57,7 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
   LOG_DEBUG("  URI: " << uri);
   LOG_DEBUG("  Mime type: " << mimeType);
   
-  if(mimeType == "application/vnd.edu.vu.isis.ammo.collector.event") {
+  if(mimeType == "application/vnd.edu.vu.isis.ammo.dash.event") {
     LOG_DEBUG("Extracting JSON metadata...");
     
     unsigned int jsonEnd = 0;
@@ -113,7 +113,7 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
     } else {
       unsentEventReports[newEvent.eventNumber] = newEvent;
     }
-  } else if(mimeType == "application/vnd.edu.vu.isis.ammo.collector.media") {
+  } else if(mimeType == "application/vnd.edu.vu.isis.ammo.dash.media") {
     LOG_DEBUG("Extracting JSON metadata...");
     
     unsigned int jsonEnd = 0;

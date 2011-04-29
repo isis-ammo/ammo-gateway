@@ -17,8 +17,8 @@
 
 using namespace std;
 
-const string EVENT_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.collector.event";
-const string MEDIA_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.collector.media";
+const string EVENT_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.dash.event";
+const string MEDIA_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.dash.media";
 const string EVENT_PULL_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.map.object";
 const string REPORT_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.report.report_base";
 

@@ -257,10 +257,11 @@ void GatewayConnector::onPullRequestReceived(const ammo::gateway::protocol::Pull
 
 void GatewayConnector::onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg) {
   string mimeType = msg.mime_type();
-  map<std::string, PullResponseReceiverListener *>::iterator it = pullResponseListeners.find(mimeType);
-  if ( it != pullResponseListeners.end() ) {
-    vector<char> data(msg.data().begin(), msg.data().end());
-    (*it).second->onDataReceived(this, msg.request_uid(), msg.plugin_id(), msg.mime_type(), msg.uri(), data );
+  for(map<string, PullResponseReceiverListener *>::iterator it = pullResponseListeners.begin(); it != pullResponseListeners.end(); it++) {
+    if(mimeType.find(it->first) == 0) {
+      vector<char> data(msg.data().begin(), msg.data().end());
+      (*it).second->onDataReceived(this, msg.request_uid(), msg.plugin_id(), msg.mime_type(), msg.uri(), data );
+    }
   }
 }
 

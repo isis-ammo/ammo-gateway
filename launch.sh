@@ -2,13 +2,13 @@
 
 LOGDIR="/tmp/gatewaylogs"
 
-if pgrep -l slapd > /dev/null 2>&1 ; then
-  echo "LDAP server: running"
-else
-  echo "ERROR:  LDAP server is not running...  run it with"
-  echo "'sudo ~/ldap/ldap.sh', then rerun this script."
-  exit 1
-fi
+#if pgrep -l slapd > /dev/null 2>&1 ; then
+#  echo "LDAP server: running"
+#else
+#  echo "ERROR:  LDAP server is not running...  run it with"
+#  echo "'sudo ~/ldap/ldap.sh', then rerun this script."
+#  exit 1
+#fi
 
 if [ ! -d $LOGDIR ]; then
   mkdir $LOGDIR
@@ -20,7 +20,7 @@ datesuffix=`date "+%Y.%m.%d.%H.%M.%S"`
 gatewaycorelog="$LOGDIR/GatewayCore.log.$datesuffix"
 androidpluginlog="$LOGDIR/AndroidGatewayPlugin.log.$datesuffix"
 tigrpluginlog="$LOGDIR/TigrGatewayPlugin.log.$datesuffix"
-passpluginlog="$LOGDIR/PassGatewayPlugin.log.$datesuffix"
+locationstorepluginlog="$LOGDIR/LocationStoreGatewayPlugin.log.$datesuffix"
 ldappluginlog="$LOGDIR/LdapGatewayPlugin.log.$datesuffix"
 
 . ~/.bashrc
@@ -48,10 +48,10 @@ xterm -bg black -fg yellow -sb -title "TIGR Gateway Plugin ($HOSTNAME)" -e "tail
 
 sleep 5
 
-echo "Launching PASS Gateway Plugin..."
-echo "  Log file in $passpluginlog"
-./PassGatewayPlugin > $passpluginlog 2>&1 &
-xterm -bg black -fg gray -sb -title "PASS Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $passpluginlog" &
+echo "Launching Location Store Gateway Plugin..."
+echo "  Log file in $locationstorepluginlog"
+./LocationStoreGatewayPlugin > $locationstorepluginlog 2>&1 &
+xterm -bg black -fg gray -sb -title "Location Store Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $locationstorepluginlog" &
 
 sleep 5
 

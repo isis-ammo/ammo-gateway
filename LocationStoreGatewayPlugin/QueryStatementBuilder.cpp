@@ -1,6 +1,7 @@
 #include "sqlite3.h"
 
 #include "ace/OS_NS_stdlib.h"
+#include "ace/OS_NS_sys_time.h"
 
 #include "QueryStatementBuilder.h"
 #include "log.h"
@@ -15,7 +16,7 @@ QueryStatementBuilder::QueryStatementBuilder (
     stmt_ (0),
     has_term_ (false),
     query_str_ ("SELECT * FROM the_table WHERE "),
-    digits_ ("0123456789"),
+    digits_ ("0123456789-"),
     bind_index_ (1)
 {
 }
@@ -43,9 +44,12 @@ QueryStatementBuilder::build (void)
   //this appends the last query parameter (the user that a message was directed
   //to) to the MIME type, in accordance with the way SMS messages are constructed.
   if (parser_.directed_user () != "") {
+    mime_type_ = mime_type_ + "_" + parser_.directed_user();
+    LOG_TRACE("Querying for " << mime_type_);
     good_add =
-      addFilter (mime_type_ + "_" + parser_.directed_user (), "mime_type", false);
+      addFilter (mime_type_, "mime_type", false);
   } else {
+    LOG_TRACE("Querying for " << mime_type_);
     good_add =
       addFilter (mime_type_, "mime_type", false);
   }
@@ -214,9 +218,16 @@ QueryStatementBuilder::bindInteger (const std::string &token)
 {
   if (!token.empty ())
     {
-      int status = sqlite3_bind_int (stmt_,
-                                     bind_index_++,
-                                     ACE_OS::atol (token.c_str ()));
+	  long val = ACE_OS::atol (token.c_str ());
+		
+	  if (val < 0)
+	    {
+		  // A negative time value indicates that it is to be
+		  // used as an offset from the current time.
+		  val += static_cast<long> (ACE_OS::gettimeofday ().sec ());
+		}
+		
+      int status = sqlite3_bind_int (stmt_, bind_index_++, val);
 
       if (status != SQLITE_OK)
         {
