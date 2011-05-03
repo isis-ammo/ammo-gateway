@@ -46,7 +46,7 @@ void AtsHandler::onDisconnect(GatewayConnector *sender) { }
 *  request for chat room construction
 *
 */
-void AtsHandler::onDataReceived(GatewayConnector *sender, 
+void AtsHandler::onPushDataReceived(GatewayConnector *sender, 
                                 std::string uri, 
                                 std::string dataType,
                                 std::vector< char >& payload,
@@ -110,7 +110,7 @@ void AtsHandler::onDataReceived(GatewayConnector *sender,
 *  request for chat room construction
 *
 */
-void AtsHandler::onDataReceived(GatewayConnector *sender,
+void AtsHandler::onPullRequestReceived(GatewayConnector *sender,
                               std::string requestUid,
                               std::string pluginId,
                               std::string dataType, 
@@ -155,7 +155,7 @@ void AtsHandler::onDataReceived(GatewayConnector *sender,
 }
 
   // PullResponseReceiverListener
-void AtsHandler::onDataReceived (GatewayConnector *sender,
+void AtsHandler::onPullResponseReceived (GatewayConnector *sender,
                                std::string requestUid,
                                std::string pluginId,
                                std::string dataType, 

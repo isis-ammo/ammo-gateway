@@ -287,7 +287,7 @@ namespace ammo {
     */
     class LibGatewayConnector_Export DataPushReceiverListener {
     public:
-      virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUsername) = 0;
+      virtual void onPushDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUsername) = 0;
     };
     
     /**
@@ -301,7 +301,7 @@ namespace ammo {
       * data type.  A plugin's implementation of this method should call
       * pullResponse at least once to send the requested data. 
       */
-      virtual void onDataReceived(GatewayConnector *sender, 
+      virtual void onPullRequestReceived(GatewayConnector *sender, 
                 std::string requestUid, std::string pluginId,
                 std::string mimeType, std::string query,
                 std::string projection, unsigned int maxResults,
@@ -314,7 +314,7 @@ namespace ammo {
     */
     class LibGatewayConnector_Export PullResponseReceiverListener {
     public:
-      virtual void onDataReceived(GatewayConnector *sender, 
+      virtual void onPullResponseReceived(GatewayConnector *sender, 
                 std::string requestUid, std::string pluginId, std::string mimeType,
                 std::string uri, std::vector<char> &data) = 0;
     };

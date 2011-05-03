@@ -258,7 +258,7 @@ void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::pr
   
   for(map<string, DataPushReceiverListener *>::iterator it = receiverListeners.begin(); it != receiverListeners.end(); it++) {
     if(mimeType.find(it->first) == 0) {
-      it->second->onDataReceived(this, uri, mimeType, data, originUser);
+      it->second->onPushDataReceived(this, uri, mimeType, data, originUser);
     }
   }
 }
@@ -267,7 +267,7 @@ void ammo::gateway::GatewayConnector::onPullRequestReceived(const ammo::gateway:
   string mimeType = msg.mime_type();
   map<std::string, PullRequestReceiverListener *>::iterator it = pullRequestListeners.find(mimeType);
   if ( it != pullRequestListeners.end() ) {
-    (*it).second->onDataReceived(this, msg.request_uid(), msg.plugin_id(), msg.mime_type(), msg.query(),
+    (*it).second->onPullRequestReceived(this, msg.request_uid(), msg.plugin_id(), msg.mime_type(), msg.query(),
 				 msg.projection(), msg.max_results(), msg.start_from_count(), msg.live_query() );
   } 
 }
@@ -278,7 +278,7 @@ void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway
   for(map<string, PullResponseReceiverListener *>::iterator it = pullResponseListeners.begin(); it != pullResponseListeners.end(); it++) {
     if(mimeType.find(it->first) == 0) {
       vector<char> data(msg.data().begin(), msg.data().end());
-      (*it).second->onDataReceived(this, msg.request_uid(), msg.plugin_id(), msg.mime_type(), msg.uri(), data );
+      (*it).second->onPullResponseReceived(this, msg.request_uid(), msg.plugin_id(), msg.mime_type(), msg.uri(), data );
     }
   }
 }

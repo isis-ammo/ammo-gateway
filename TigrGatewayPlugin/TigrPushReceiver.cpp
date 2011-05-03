@@ -53,7 +53,7 @@ void TigrPushReceiver::onDisconnect(GatewayConnector *sender) {
 }
 
 
-void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
+void TigrPushReceiver::onPushDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
   LOG_DEBUG("Got data.");
   LOG_DEBUG("  URI: " << uri);
   LOG_DEBUG("  Mime type: " << mimeType);
@@ -292,7 +292,7 @@ void TigrPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
   
 }
 
-void TigrPushReceiver::onDataReceived(GatewayConnector *sender, 
+void TigrPushReceiver::onPullRequestReceived(GatewayConnector *sender, 
 			      std::string requestUid, std::string pluginId,
 			      std::string mimeType, std::string query,
 			      std::string projection, unsigned int maxResults,

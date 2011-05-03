@@ -34,7 +34,7 @@ int main (int argc, char **argv)
   string origin_user ("gi.joe@usarmy.mil");
   std::vector<char> data (128, 'x');
 	
-  pushReceiver->onDataReceived (0, uri, mime_t, data, origin_user);
+  pushReceiver->onPushDataReceived (0, uri, mime_t, data, origin_user);
 	
   delete pushReceiver;
 	

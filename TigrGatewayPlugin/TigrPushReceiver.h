@@ -60,7 +60,7 @@ public:
   virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
   
   //DataPushReceiverListener methods
-  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
+  virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
   
   bool get(std::string query, std::vector<std::string> &jsonResults);
   std::string jsonForObject(__ns2__union_GetResponseType &obj);
@@ -73,7 +73,7 @@ public:
   bool sendEventReport(EventReport &report);
   
   //PullRequestReceiverListener methods
-  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender, 
+  virtual void onPullRequestReceived(ammo::gateway::GatewayConnector *sender, 
 			      std::string requestUid, std::string pluginId,
 			      std::string mimeType, std::string query,
 			      std::string projection, unsigned int maxResults,

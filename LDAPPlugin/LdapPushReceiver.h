@@ -38,12 +38,12 @@ public:
   virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
 
   // virtual method from DataPushReceiverListener 
-  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender, std::string uri, 
+  virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, std::string uri, 
 			      std::string mimeType, std::vector<char> &data, 
 			      std::string originUser);
 
   // virtual method from PullRequestReceiverListener
-  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender,
+  virtual void onPullRequestReceived(ammo::gateway::GatewayConnector *sender,
                               std::string requestUid, std::string pluginId,
                               std::string mimeType, std::string query,
                               std::string projection, unsigned int maxResults,

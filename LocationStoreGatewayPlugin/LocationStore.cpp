@@ -54,7 +54,7 @@ void LocationStoreReceiver::onDisconnect (GatewayConnector * /* sender */)
 {
 }
 
-void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
+void LocationStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
 										    std::string uri,
 										    std::string mimeType,
 										    std::vector<char> & data,
@@ -188,7 +188,7 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 }
 
 void
-LocationStoreReceiver::onDataReceived (GatewayConnector *sender, 
+LocationStoreReceiver::onPullRequestReceived (GatewayConnector *sender, 
 					                   std::string requestUid,
 					                   std::string pluginId,
 					                   std::string mimeType,

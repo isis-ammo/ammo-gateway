@@ -25,10 +25,10 @@ public:
   virtual void onAuthenticationResponse(ammo::gateway::GatewayConnector *sender, bool result);
   
   //DataPushReceiverListener methods
-  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
+  virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
 
   //PullResponseReceiverListener method
-  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender, 
+  virtual void onPullResponseReceived(ammo::gateway::GatewayConnector *sender, 
 			      std::string requestUid, std::string pluginId, std::string mimeType,
 			      std::string uri, std::vector<char> &data);
   

@@ -32,7 +32,7 @@ void SpotPushReceiver::onDisconnect(GatewayConnector *sender) {
   
 }
 
-void SpotPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
+void SpotPushReceiver::onPushDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
   cout << "Got data." << endl;
   cout << "  URI: " << uri << endl;
   cout << "  Mime type: " << mimeType << endl;

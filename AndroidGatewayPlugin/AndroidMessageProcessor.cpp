@@ -151,7 +151,7 @@ void AndroidMessageProcessor::onDisconnect(GatewayConnector *sender) {
   
 }
 
-void AndroidMessageProcessor::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
+void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
   LOG_DEBUG(commsHandler << " Sending subscribed data to device...");
   LOG_DEBUG(commsHandler << "    URI: " << uri << ", Type: " << mimeType);
   
@@ -168,7 +168,7 @@ void AndroidMessageProcessor::onDataReceived(GatewayConnector *sender, std::stri
   commsHandler->sendMessage(msg);
 }
 
-void AndroidMessageProcessor::onDataReceived(GatewayConnector *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::vector<char> &data) {
+void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::vector<char> &data) {
   LOG_DEBUG(commsHandler << " Sending pull response to device...");
   LOG_DEBUG(commsHandler << "    URI: " << uri << ", Type: " << mimeType);
   

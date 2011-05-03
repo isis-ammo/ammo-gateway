@@ -103,7 +103,7 @@ void LdapPushReceiver::onDisconnect(GatewayConnector *sender)
 // Data Push from the Device
 // User has edited his own contact information - do an ldapadd/modify on the LDAPServer
 //============================================================
-void LdapPushReceiver::onDataReceived(GatewayConnector *sender,
+void LdapPushReceiver::onPushDataReceived(GatewayConnector *sender,
                                       std::string uri, std::string mimeType,
                                       std::vector<char> &data, std::string originUser)
 {
@@ -143,7 +143,7 @@ void LdapPushReceiver::onDataReceived(GatewayConnector *sender,
 // Pull Request
 // Query containing LDAP search parameters
 //============================================================
-void LdapPushReceiver::onDataReceived(GatewayConnector *sender,
+void LdapPushReceiver::onPullRequestReceived(GatewayConnector *sender,
                                       std::string requestUid, std::string pluginId,
                                       std::string mimeType, std::string query,
                                       std::string projection, unsigned int maxResults,

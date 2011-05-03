@@ -20,14 +20,14 @@ public:
   virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
   
   // DataPushReceiverListener methods
-  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender,
+  virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender,
                               std::string uri,
                               std::string mimeType,
                               std::vector<char> &data,
                               std::string originUser);
 
   // PullRequestReceiverListener methods
-  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender,
+  virtual void onPullRequestReceived(ammo::gateway::GatewayConnector *sender,
                               std::string requestUid,
                               std::string pluginId,
                               std::string mimeType, 
@@ -38,7 +38,7 @@ public:
                               bool liveQuery);
 
   // PullResponseReceiverListener
-  virtual void onDataReceived (ammo::gateway::GatewayConnector *sender,
+  virtual void onPullResponseReceived (ammo::gateway::GatewayConnector *sender,
                                std::string requestUid,
                                std::string pluginId,
                                std::string mimeType, 

@@ -12,7 +12,7 @@ public:
   virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
   
   //DataPushReceiverListener methods
-  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
+  virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
 
 
   //PullRequestReceiverListener methods
