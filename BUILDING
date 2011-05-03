@@ -38,7 +38,7 @@ Building on Linux:
   4) Download and extract ACE+TAO+CIAO to a location of your choice.
         http://download.dre.vanderbilt.edu/
         e.g.
-        http://download.dre.vanderbilt.edu/previous_versions/ACE+TAO+CIAO-6.0.1.tar.bz2
+        http://download.dre.vanderbilt.edu/previous_versions/ACE+TAO+CIAO-6.0.2.tar.bz2
   
   5) Set environment variables (in .bashrc or similar):
         export ACE_ROOT=(ACE_wrappers directory)
@@ -105,7 +105,7 @@ Building on Mac OS X (10.6):
   4) Download and extract ACE+TAO+CIAO to a location of your choice.
         http://download.dre.vanderbilt.edu/
         e.g.
-        http://download.dre.vanderbilt.edu/previous_versions/ACE+TAO+CIAO-6.0.1.tar.bz2
+        http://download.dre.vanderbilt.edu/previous_versions/ACE+TAO+CIAO-6.0.2.tar.bz2
   
   5) Set environment variables (in .bashrc or similar):
         export ACE_ROOT=(ACE_wrappers directory)
