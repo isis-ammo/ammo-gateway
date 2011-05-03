@@ -6,6 +6,7 @@
 #include <cmath>
 
 using namespace std;
+using namespace ammo::gateway;
 
 const string BSO_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.battlespace.gcm";
 

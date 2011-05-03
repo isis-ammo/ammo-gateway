@@ -25,6 +25,7 @@
 #include <curl/easy.h>
 
 using namespace std;
+using namespace ammo::gateway;
 
 const string USERNAME = "jwilliams";
 const string PASSWORD = "jwilliams";

@@ -8,26 +8,26 @@
 #include "AtsConfigMgr.h"
 
 class AtsHandler : 
-  public DataPushReceiverListener, 
-  public PullRequestReceiverListener,
-  public PullResponseReceiverListener,
-  public GatewayConnectorDelegate 
+  public ammo::gateway::DataPushReceiverListener, 
+  public ammo::gateway::PullRequestReceiverListener,
+  public ammo::gateway::PullResponseReceiverListener,
+  public ammo::gateway::GatewayConnectorDelegate 
 {
 public:
   AtsHandler(); 
   //GatewayConnectorDelegate methods
-  virtual void onConnect(GatewayConnector *sender);
-  virtual void onDisconnect(GatewayConnector *sender);
+  virtual void onConnect(ammo::gateway::GatewayConnector *sender);
+  virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
   
   // DataPushReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender,
+  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender,
                               std::string uri,
                               std::string mimeType,
                               std::vector<char> &data,
                               std::string originUser);
 
   // PullRequestReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender,
+  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender,
                               std::string requestUid,
                               std::string pluginId,
                               std::string mimeType, 
@@ -38,7 +38,7 @@ public:
                               bool liveQuery);
 
   // PullResponseReceiverListener
-  virtual void onDataReceived (GatewayConnector *sender,
+  virtual void onDataReceived (ammo::gateway::GatewayConnector *sender,
                                std::string requestUid,
                                std::string pluginId,
                                std::string mimeType, 

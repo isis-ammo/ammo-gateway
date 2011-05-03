@@ -5,27 +5,27 @@
 
 class sqlite3;
 
-class LocationStoreReceiver : public DataPushReceiverListener,
-							  public GatewayConnectorDelegate,
-                              public PullRequestReceiverListener
+class LocationStoreReceiver : public ammo::gateway::DataPushReceiverListener,
+							                public ammo::gateway::GatewayConnectorDelegate,
+                              public ammo::gateway::PullRequestReceiverListener
 {
 public:
   LocationStoreReceiver (void);
   ~LocationStoreReceiver (void);
 	
   // GatewayConnectorDelegate methods
-  virtual void onConnect (GatewayConnector *sender);
-  virtual void onDisconnect (GatewayConnector *sender);
+  virtual void onConnect (ammo::gateway::GatewayConnector *sender);
+  virtual void onDisconnect (ammo::gateway::GatewayConnector *sender);
   
   // DataPushReceiverListener methods
-  virtual void onDataReceived (GatewayConnector *sender,
+  virtual void onDataReceived (ammo::gateway::GatewayConnector *sender,
 							   std::string uri,
 							   std::string mimeType,
 							   std::vector<char> &data,
 							   std::string originUser);
 	
   // PullRequestReceiverListener methods
-  virtual void onDataReceived (GatewayConnector *sender, 
+  virtual void onDataReceived (ammo::gateway::GatewayConnector *sender, 
 							   std::string requestUid,
 							   std::string pluginId,
 							   std::string mimeType,

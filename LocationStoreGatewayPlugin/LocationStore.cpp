@@ -9,6 +9,8 @@
 #include "LocationStore.h"
 #include "QueryStatementBuilder.h"
 
+using namespace ammo::gateway;
+
 LocationStoreReceiver::LocationStoreReceiver (void)
   : db_ (0),
     err_prefix_ ("LocationStoreReceiver - data push: ")

@@ -13,6 +13,7 @@
 #include "ace/Date_Time.h"
 
 using namespace std;
+using namespace ammo::gateway;
 
 // Quick way to switch between plugin debugging, where this main() is run
 // by hand, and normal operation.

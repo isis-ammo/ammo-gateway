@@ -11,6 +11,8 @@
 #include "AtsHandler.h"
 #include "GatewayConnector.h"
 
+using namespace ammo::gateway;
+
 /**
   Data Interest is expressed when the service subscribes to messages of a type.
 */ 

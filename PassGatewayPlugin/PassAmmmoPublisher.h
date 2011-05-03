@@ -16,7 +16,7 @@ public:
 
 class PassAmmmoPublisher {
 public:
-  static GatewayConnector *connector;
+  static ammo::gateway::GatewayConnector *connector;
   
   static std::map<std::string, BSO> recentObjects;
   

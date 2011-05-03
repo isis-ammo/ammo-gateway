@@ -52,15 +52,15 @@ public:
 };
 
 
-class TigrPushReceiver : public DataPushReceiverListener, public GatewayConnectorDelegate, public PullRequestReceiverListener {
+class TigrPushReceiver : public ammo::gateway::DataPushReceiverListener, public ammo::gateway::GatewayConnectorDelegate, public ammo::gateway::PullRequestReceiverListener {
 public:
   TigrPushReceiver();
   //GatewayConnectorDelegate methods
-  virtual void onConnect(GatewayConnector *sender);
-  virtual void onDisconnect(GatewayConnector *sender);
+  virtual void onConnect(ammo::gateway::GatewayConnector *sender);
+  virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
   
   //DataPushReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
+  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
   
   bool get(std::string query, std::vector<std::string> &jsonResults);
   std::string jsonForObject(__ns2__union_GetResponseType &obj);
@@ -73,7 +73,7 @@ public:
   bool sendEventReport(EventReport &report);
   
   //PullRequestReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender, 
+  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender, 
 			      std::string requestUid, std::string pluginId,
 			      std::string mimeType, std::string query,
 			      std::string projection, unsigned int maxResults,

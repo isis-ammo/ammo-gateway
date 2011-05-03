@@ -14,6 +14,7 @@
 #include "version.h"
 
 using namespace std;
+using namespace ammo::gateway;
 
 int main(int argc, char **argv) 
 {

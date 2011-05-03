@@ -26,24 +26,24 @@ public:
 };
 
 
-class LdapPushReceiver : public DataPushReceiverListener, 
-			 public GatewayConnectorDelegate, 
-			 public PullRequestReceiverListener
+class LdapPushReceiver : public ammo::gateway::DataPushReceiverListener, 
+			 public ammo::gateway::GatewayConnectorDelegate, 
+			 public ammo::gateway::PullRequestReceiverListener
 {
 public:
   LdapPushReceiver();
   
   // virtual method from GatewayConnectorDelegate
-  virtual void onConnect(GatewayConnector *sender);
-  virtual void onDisconnect(GatewayConnector *sender);
+  virtual void onConnect(ammo::gateway::GatewayConnector *sender);
+  virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
 
   // virtual method from DataPushReceiverListener 
-  virtual void onDataReceived(GatewayConnector *sender, std::string uri, 
+  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender, std::string uri, 
 			      std::string mimeType, std::vector<char> &data, 
 			      std::string originUser);
 
   // virtual method from PullRequestReceiverListener
-  virtual void onDataReceived(GatewayConnector *sender,
+  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender,
                               std::string requestUid, std::string pluginId,
                               std::string mimeType, std::string query,
                               std::string projection, unsigned int maxResults,

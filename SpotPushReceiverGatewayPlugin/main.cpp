@@ -10,6 +10,7 @@
 #include "version.h"
 
 using namespace std;
+using namespace ammo::gateway;
 
 int main(int argc, char **argv) {  
   LOG_INFO("AMMO Spot Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");

@@ -3,6 +3,8 @@
 
 #include "log.h"
 
+using namespace ammo::gateway;
+
 AndroidMessageProcessor::AndroidMessageProcessor(AndroidServiceHandler *serviceHandler) :
 closed(false),
 closeMutex(),

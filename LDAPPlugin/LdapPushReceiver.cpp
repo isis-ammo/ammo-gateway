@@ -15,6 +15,7 @@
 
 
 using namespace std;
+using namespace ammo::gateway;
 
 /*
  * LDAPPlugin

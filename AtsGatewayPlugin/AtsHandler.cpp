@@ -14,6 +14,8 @@
 
 #include "log.h"
 
+using namespace ammo::gateway;
+
 typedef std::pair<std::vector<char>::const_iterator, std::vector<char>::const_iterator > CharSpan;
 typedef std::pair<std::string, CharSpan > NamedBlob;
 
