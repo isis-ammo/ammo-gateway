@@ -9,17 +9,17 @@
 
 using namespace std;
 
-GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : delegate(delegate), handler(NULL), connected(false) {
-  init(delegate, GatewayConfigurationManager::getInstance());
+ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : delegate(delegate), handler(NULL), connected(false) {
+  init(delegate, ammo::gateway::internal::GatewayConfigurationManager::getInstance());
 }
 
-GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate, std::string configFile) : delegate(delegate), handler(NULL), connected(false) {
-  init(delegate, GatewayConfigurationManager::getInstance(configFile.c_str()));
+ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate, std::string configFile) : delegate(delegate), handler(NULL), connected(false) {
+  init(delegate, ammo::gateway::internal::GatewayConfigurationManager::getInstance(configFile.c_str()));
 }
 
-void GatewayConnector::init(GatewayConnectorDelegate *delegate, GatewayConfigurationManager *config) { 
+void ammo::gateway::GatewayConnector::init(GatewayConnectorDelegate *delegate, ammo::gateway::internal::GatewayConfigurationManager *config) { 
   ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayAddress().c_str());
-  connector = new ACE_Connector<GatewayServiceHandler, ACE_SOCK_Connector>();
+  connector = new ACE_Connector<ammo::gateway::internal::GatewayServiceHandler, ACE_SOCK_Connector>();
   int status = connector->connect(handler, serverAddress);
   if(status == -1) {
     LOG_ERROR("connection failed");
@@ -37,7 +37,7 @@ void GatewayConnector::init(GatewayConnectorDelegate *delegate, GatewayConfigura
   }
 }
 
-GatewayConnector::~GatewayConnector() {
+ammo::gateway::GatewayConnector::~GatewayConnector() {
   //LOG_DEBUG("Deleting GatewayConnector()");
   if(connected) {
     handler->close();
@@ -46,7 +46,7 @@ GatewayConnector::~GatewayConnector() {
   delete connector;
 }
   
-bool GatewayConnector::associateDevice(string device, string user, string key) {
+bool ammo::gateway::GatewayConnector::associateDevice(string device, string user, string key) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::AssociateDevice *associateMsg = msg.mutable_associate_device();
   associateMsg->set_device(device);
@@ -65,7 +65,7 @@ bool GatewayConnector::associateDevice(string device, string user, string key) {
   }
 }
 
-bool GatewayConnector::pushData(string uri, string mimeType, const string &data, MessageScope scope) {
+bool ammo::gateway::GatewayConnector::pushData(string uri, string mimeType, const string &data, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
   pushMsg->set_uri(uri);
@@ -90,7 +90,7 @@ bool GatewayConnector::pushData(string uri, string mimeType, const string &data,
   }
 }
 
-bool GatewayConnector::pullRequest(std::string requestUid, std::string pluginId,
+bool ammo::gateway::GatewayConnector::pullRequest(std::string requestUid, std::string pluginId,
 				   std::string mimeType, std::string query,
 				   std::string projection, unsigned int maxResults,
 				   unsigned int startFromCount, bool liveQuery) {
@@ -118,7 +118,7 @@ bool GatewayConnector::pullRequest(std::string requestUid, std::string pluginId,
   }
 }
 
-bool GatewayConnector::pullResponse(std::string requestUid, std::string pluginId,
+bool ammo::gateway::GatewayConnector::pullResponse(std::string requestUid, std::string pluginId,
 				   std::string mimeType, std::string uri,
 				    std::vector<char>& data) {
 
@@ -145,7 +145,7 @@ bool GatewayConnector::pullResponse(std::string requestUid, std::string pluginId
 
 
 
-bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverListener *listener, MessageScope scope) {
+bool ammo::gateway::GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverListener *listener, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::RegisterDataInterest *di = msg.mutable_register_data_interest();
   di->set_mime_type(mime_type);
@@ -170,7 +170,7 @@ bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverLi
   }
 }
 
-bool GatewayConnector::unregisterDataInterest(string mime_type, MessageScope scope) {
+bool ammo::gateway::GatewayConnector::unregisterDataInterest(string mime_type, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::UnregisterDataInterest *di = msg.mutable_unregister_data_interest();
   di->set_mime_type(mime_type);
@@ -195,7 +195,7 @@ bool GatewayConnector::unregisterDataInterest(string mime_type, MessageScope sco
 }
 
 
-bool GatewayConnector::registerPullInterest(string mime_type, PullRequestReceiverListener *listener) {
+bool ammo::gateway::GatewayConnector::registerPullInterest(string mime_type, PullRequestReceiverListener *listener) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::RegisterPullInterest *di = msg.mutable_register_pull_interest();
   di->set_mime_type(mime_type);
@@ -214,7 +214,7 @@ bool GatewayConnector::registerPullInterest(string mime_type, PullRequestReceive
   }
 }
 
-bool GatewayConnector::unregisterPullInterest(string mime_type) {
+bool ammo::gateway::GatewayConnector::unregisterPullInterest(string mime_type) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::UnregisterPullInterest *di = msg.mutable_unregister_pull_interest();
   di->set_mime_type(mime_type);
@@ -232,25 +232,25 @@ bool GatewayConnector::unregisterPullInterest(string mime_type) {
   }
 }
 
-bool GatewayConnector::registerPullResponseInterest(string mime_type, PullResponseReceiverListener *listener) {
+bool ammo::gateway::GatewayConnector::registerPullResponseInterest(string mime_type, PullResponseReceiverListener *listener) {
   pullResponseListeners[mime_type] = listener;
   return true;
 }
 
-bool GatewayConnector::unregisterPullResponseInterest(string mime_type) {
+bool ammo::gateway::GatewayConnector::unregisterPullResponseInterest(string mime_type) {
   pullResponseListeners.erase(mime_type);
   return true;
 }
 
 
-void GatewayConnector::onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg) {
+void ammo::gateway::GatewayConnector::onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg) {
   LOG_INFO("Got associate result of " << msg.result());
   if(delegate != NULL) {
     delegate->onAuthenticationResponse(this, msg.result());
   }
 }
 
-void GatewayConnector::onPushDataReceived(const ammo::gateway::protocol::PushData &msg) {
+void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::protocol::PushData &msg) {
   string uri = msg.uri();
   string mimeType = msg.mime_type();
   vector<char> data(msg.data().begin(), msg.data().end());
@@ -263,7 +263,7 @@ void GatewayConnector::onPushDataReceived(const ammo::gateway::protocol::PushDat
   }
 }
 
-void GatewayConnector::onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg) {
+void ammo::gateway::GatewayConnector::onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg) {
   string mimeType = msg.mime_type();
   map<std::string, PullRequestReceiverListener *>::iterator it = pullRequestListeners.find(mimeType);
   if ( it != pullRequestListeners.end() ) {
@@ -273,7 +273,7 @@ void GatewayConnector::onPullRequestReceived(const ammo::gateway::protocol::Pull
 }
 
 
-void GatewayConnector::onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg) {
+void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg) {
   string mimeType = msg.mime_type();
   for(map<string, PullResponseReceiverListener *>::iterator it = pullResponseListeners.begin(); it != pullResponseListeners.end(); it++) {
     if(mimeType.find(it->first) == 0) {
@@ -288,7 +288,7 @@ void GatewayConnector::onPullResponseReceived(const ammo::gateway::protocol::Pul
 
 //--GatewayConnectorDelegate default implementations (for optional delegate methods)
 
-void GatewayConnectorDelegate::onAuthenticationResponse(GatewayConnector *sender, bool result) {
+void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayConnector *sender, bool result) {
   //LOG_INFO("GatewayConnectorDelegate::onAuthenticationResponse : result = " << result);
 }
 

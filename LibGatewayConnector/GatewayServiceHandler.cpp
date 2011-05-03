@@ -14,7 +14,7 @@
   
 } */
 
-int GatewayServiceHandler::open(void *ptr) {
+int ammo::gateway::internal::GatewayServiceHandler::open(void *ptr) {
   if(super::open(ptr) == -1) {
     return -1;
     
@@ -28,7 +28,7 @@ int GatewayServiceHandler::open(void *ptr) {
   return 0;
 }
 
-int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
+int ammo::gateway::internal::GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
   //LOG_TRACE("In handle_input");
   int count = 0;
   
@@ -82,7 +82,7 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
 }
 
 // This method comes stright from ACE sample code:  see ace_wrappers/examples/APG/Reactor/Client.cpp
-int GatewayServiceHandler::handle_output(ACE_HANDLE) {
+int ammo::gateway::internal::GatewayServiceHandler::handle_output(ACE_HANDLE) {
   ACE_Message_Block *mb;
   ACE_Time_Value nowait(ACE_OS::gettimeofday ());
   
@@ -109,7 +109,7 @@ int GatewayServiceHandler::handle_output(ACE_HANDLE) {
   return 0;
 }
 
-void GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper &msg) {
+void ammo::gateway::internal::GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper &msg) {
   /*//this is bad--  if the message queue gets filled, putq will block forever
   //because there's not another thread pulling objects out of the queue.
   //TODO: figure out how to queue data infinitely without blocking
@@ -147,7 +147,7 @@ void GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper &ms
   }
 }
 
-int GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
+int ammo::gateway::internal::GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if(calculatedChecksum != messageChecksum) {
@@ -182,10 +182,10 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   return 0;
 }
 
-GatewayServiceHandler::~GatewayServiceHandler() {
+ammo::gateway::internal::GatewayServiceHandler::~GatewayServiceHandler() {
   LOG_TRACE("GatewayServiceHandler being destroyed!");
 }
 
-void GatewayServiceHandler::setParentConnector(GatewayConnector *parent) {
+void ammo::gateway::internal::GatewayServiceHandler::setParentConnector(GatewayConnector *parent) {
   this->parent = parent;
 }

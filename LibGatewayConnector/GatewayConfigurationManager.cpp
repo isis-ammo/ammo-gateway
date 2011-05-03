@@ -14,9 +14,9 @@ using namespace std;
 const char *CONFIG_DIRECTORY = "ammo-gateway";
 const char *CONFIG_FILE = "GatewayConfig.json";
 
-GatewayConfigurationManager *GatewayConfigurationManager::sharedInstance = NULL;
+ammo::gateway::internal::GatewayConfigurationManager *ammo::gateway::internal::GatewayConfigurationManager::sharedInstance = NULL;
 
-GatewayConfigurationManager::GatewayConfigurationManager(const char* configFileName) : gatewayAddress("127.0.0.1"), gatewayInterface("0.0.0.0"), gatewayPort(12475) {
+ammo::gateway::internal::GatewayConfigurationManager::GatewayConfigurationManager(const char* configFileName) : gatewayAddress("127.0.0.1"), gatewayInterface("0.0.0.0"), gatewayPort(12475) {
   //LOG_INFO("Parsing config file...");
   
   string filename = findConfigFile(configFileName);
@@ -64,19 +64,19 @@ GatewayConfigurationManager::GatewayConfigurationManager(const char* configFileN
   LOG_INFO("  Port: " << gatewayPort);
 }
 
-std::string GatewayConfigurationManager::getGatewayAddress() {
+std::string ammo::gateway::internal::GatewayConfigurationManager::getGatewayAddress() {
   return gatewayAddress;
 }
 
-std::string GatewayConfigurationManager::getGatewayInterface() {
+std::string ammo::gateway::internal::GatewayConfigurationManager::getGatewayInterface() {
   return gatewayInterface;
 }
 
-int GatewayConfigurationManager::getGatewayPort() {
+int ammo::gateway::internal::GatewayConfigurationManager::getGatewayPort() {
   return gatewayPort;
 }
 
-string GatewayConfigurationManager::findConfigFile(std::string defaultConfigFile) {
+string ammo::gateway::internal::GatewayConfigurationManager::findConfigFile(std::string defaultConfigFile) {
   string filePath;
   ACE_stat statStruct;
   
@@ -122,13 +122,13 @@ string GatewayConfigurationManager::findConfigFile(std::string defaultConfigFile
   return filePath;
 }
 
-GatewayConfigurationManager* GatewayConfigurationManager::getInstance() {
+ammo::gateway::internal::GatewayConfigurationManager* ammo::gateway::internal::GatewayConfigurationManager::getInstance() {
   if(sharedInstance == NULL) {
     sharedInstance = new GatewayConfigurationManager(CONFIG_FILE);
   }
   return sharedInstance;
 }
-GatewayConfigurationManager* GatewayConfigurationManager::getInstance(std::string configfile) {
+ammo::gateway::internal::GatewayConfigurationManager* ammo::gateway::internal::GatewayConfigurationManager::getInstance(std::string configfile) {
   if(sharedInstance == NULL) {
     sharedInstance = new GatewayConfigurationManager(configfile.c_str());
   }
