@@ -14,10 +14,10 @@ void SamplePushReceiver::onDisconnect(GatewayConnector *sender) {
   
 }
 
-void SamplePushReceiver::onPushDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
+void SamplePushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData) {
   cout << "Got data." << endl;
-  cout << "  URI: " << uri << endl;
-  cout << "  Mime type: " << mimeType << endl;
-  cout << "  Data: " << string(data.begin(), data.end()) << endl;
-  cout << "  Origin Username: " << originUser << endl;
+  cout << "  URI: " << pushData.uri << endl;
+  cout << "  Mime type: " << pushData.mimeType << endl;
+  cout << "  Data: " << string(pushData.data.begin(), pushData.data.end()) << endl;
+  cout << "  Origin Username: " << pushData.originUsername << endl;
 }

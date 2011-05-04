@@ -60,7 +60,7 @@ public:
   virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
   
   //DataPushReceiverListener methods
-  virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
+  virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PushData &pushData);
   
   bool get(std::string query, std::vector<std::string> &jsonResults);
   std::string jsonForObject(__ns2__union_GetResponseType &obj);

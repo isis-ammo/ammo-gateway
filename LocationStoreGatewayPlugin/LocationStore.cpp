@@ -55,13 +55,9 @@ void LocationStoreReceiver::onDisconnect (GatewayConnector * /* sender */)
 }
 
 void LocationStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
-										    std::string uri,
-										    std::string mimeType,
-										    std::vector<char> & data,
-										    std::string originUser)
+										    ammo::gateway::PushData &pushData)
 {
-  LOG_DEBUG("Received type:" << mimeType);
-  LOG_DEBUG("  uri: " << uri);
+  LOG_DEBUG("Received " << pushData);
   ACE_Time_Value tv (ACE_OS::gettimeofday ());
   sqlite3_stmt *stmt;
 	
@@ -84,8 +80,8 @@ void LocationStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   status =
 	sqlite3_bind_text (stmt,
 					   1,
-					   uri.c_str (),
-					   uri.length (),
+					   pushData.uri.c_str (),
+					   pushData.uri.length (),
 					   SQLITE_STATIC);
 	
   if (status != SQLITE_OK)
@@ -100,8 +96,8 @@ void LocationStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   status =
 	sqlite3_bind_text (stmt,
 					   2,
-					   mimeType.c_str (),
-					   mimeType.length (),
+					   pushData.mimeType.c_str (),
+					   pushData.mimeType.length (),
 					   SQLITE_STATIC);
 	
   if (status != SQLITE_OK)
@@ -116,8 +112,8 @@ void LocationStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   status =
 	sqlite3_bind_text (stmt,
 					   3,
-					   originUser.c_str (),
-					   originUser.length (),
+					   pushData.originUsername.c_str (),
+					   pushData.originUsername.length (),
 					   SQLITE_STATIC);
 	
   if (status != SQLITE_OK)
@@ -160,8 +156,8 @@ void LocationStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   status =
 	sqlite3_bind_blob (stmt,
 					   6,
-					   data.get_allocator ().address (*data.begin ()),
-					   data.size (),
+					   pushData.data.get_allocator ().address (*(pushData.data.begin ())),
+					   pushData.data.size (),
 					   SQLITE_STATIC);
 	
   if (status != SQLITE_OK)

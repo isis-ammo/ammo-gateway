@@ -32,24 +32,24 @@ void SpotPushReceiver::onDisconnect(GatewayConnector *sender) {
   
 }
 
-void SpotPushReceiver::onPushDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
+void SpotPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData) {
   cout << "Got data." << endl;
-  cout << "  URI: " << uri << endl;
-  cout << "  Mime type: " << mimeType << endl;
-  cout << "  Data: " << string(data.begin(), data.end()) << endl;
-  cout << "  Origin Username: " << originUser << endl;
+  cout << "  URI: " << pushData.uri << endl;
+  cout << "  Mime type: " << pushData.mimeType << endl;
+  cout << "  Data: " << string(pushData.data.begin(), pushData.data.end()) << endl;
+  cout << "  Origin Username: " << pushData.originUsername << endl;
 
     cout << "Extracting JSON metadata..." << endl << flush;
     
     unsigned int jsonEnd = 0;
-    for(vector<char>::iterator it = data.begin(); it != data.end(); it++) {
+    for(vector<char>::iterator it = pushData.data.begin(); it != pushData.data.end(); it++) {
       jsonEnd++;
       if((*it) == 0) {
         break;
       }
     }
     
-    string json(&data[0], jsonEnd);
+    string json(&(pushData.data)[0], jsonEnd);
     
     cout << "JSON string: " << json << endl;
     

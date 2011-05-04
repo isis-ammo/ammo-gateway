@@ -103,18 +103,15 @@ void LdapPushReceiver::onDisconnect(GatewayConnector *sender)
 // Data Push from the Device
 // User has edited his own contact information - do an ldapadd/modify on the LDAPServer
 //============================================================
-void LdapPushReceiver::onPushDataReceived(GatewayConnector *sender,
-                                      std::string uri, std::string mimeType,
-                                      std::vector<char> &data, std::string originUser)
+void LdapPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData)
 {
   cout << "Got data." << endl;
-  cout << "  URI: " << uri << endl;
-  cout << "  Mime type: " << mimeType << endl;
+  cout << "  " << pushData << endl;;
 
-  if(mimeType == CONTACT_MIME_TYPE)
+  if(pushData.mimeType == CONTACT_MIME_TYPE)
     {
       // Extract JSON string from message payload
-      std::string json = payloadToJson(data);
+      std::string json = payloadToJson(pushData.data);
 
       // Populate contact object from data in JSON
       LdapContact* contact = NULL;

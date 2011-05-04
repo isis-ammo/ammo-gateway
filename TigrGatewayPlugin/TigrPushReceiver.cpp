@@ -53,23 +53,21 @@ void TigrPushReceiver::onDisconnect(GatewayConnector *sender) {
 }
 
 
-void TigrPushReceiver::onPushDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
-  LOG_DEBUG("Got data.");
-  LOG_DEBUG("  URI: " << uri);
-  LOG_DEBUG("  Mime type: " << mimeType);
+void TigrPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData) {
+  LOG_DEBUG("Got data:  " << pushData);
   
-  if(mimeType == "application/vnd.edu.vu.isis.ammo.dash.event") {
+  if(pushData.mimeType == "application/vnd.edu.vu.isis.ammo.dash.event") {
     LOG_DEBUG("Extracting JSON metadata...");
     
     unsigned int jsonEnd = 0;
-    for(vector<char>::iterator it = data.begin(); it != data.end(); it++) {
+    for(vector<char>::iterator it = pushData.data.begin(); it != pushData.data.end(); it++) {
       jsonEnd++;
       if((*it) == 0) {
         break;
       }
     }
     
-    string json(&data[0], jsonEnd);
+    string json(&(pushData.data)[0], jsonEnd);
     
     LOG_DEBUG("JSON string: " << json);
     
@@ -86,7 +84,7 @@ void TigrPushReceiver::onPushDataReceived(GatewayConnector *sender, std::string 
     
     LOG_DEBUG("Parsed JSON: " << jsonRoot.toStyledString());
     EventReport newEvent;
-    newEvent.uri = uri;
+    newEvent.uri = pushData.uri;
     newEvent.title = jsonRoot["title"].asString();
     newEvent.description =   jsonRoot["description"].asString();
     newEvent.latitude = jsonRoot["latitude"].asDouble();
@@ -98,10 +96,10 @@ void TigrPushReceiver::onPushDataReceived(GatewayConnector *sender, std::string 
     } else {
       newEvent.categoryId = "";
     }
-    newEvent.username = originUser;
+    newEvent.username = pushData.originUsername;
     
-    int lastSlashPosition = uri.find_last_of("/");
-    string eventNumberString = uri.substr(lastSlashPosition + 1);
+    int lastSlashPosition = pushData.uri.find_last_of("/");
+    string eventNumberString = pushData.uri.substr(lastSlashPosition + 1);
     LOG_DEBUG("Event Number: " << eventNumberString);
     newEvent.eventNumber = atoi(eventNumberString.c_str());
     
@@ -114,13 +112,13 @@ void TigrPushReceiver::onPushDataReceived(GatewayConnector *sender, std::string 
     } else {
       unsentEventReports[newEvent.eventNumber] = newEvent;
     }
-  } else if(mimeType == "application/vnd.edu.vu.isis.ammo.dash.media") {
+  } else if(pushData.mimeType == "application/vnd.edu.vu.isis.ammo.dash.media") {
     LOG_DEBUG("Extracting JSON metadata...");
     
     unsigned int jsonEnd = 0;
     bool jsonEndFound = false;
     unsigned int tagEnd = 0;
-    for(vector<char>::iterator it = data.begin(); it != data.end(); it++) {
+    for(vector<char>::iterator it = pushData.data.begin(); it != pushData.data.end(); it++) {
       if(!jsonEndFound) {
         jsonEnd++;
       }
@@ -136,7 +134,7 @@ void TigrPushReceiver::onPushDataReceived(GatewayConnector *sender, std::string 
     
     
     
-    string json(&data[0], jsonEnd);
+    string json(&(pushData.data)[0], jsonEnd);
     
     LOG_DEBUG("JSON string: " << json);
     
@@ -153,7 +151,7 @@ void TigrPushReceiver::onPushDataReceived(GatewayConnector *sender, std::string 
     
     LOG_DEBUG("Parsed JSON: " << jsonRoot.toStyledString());
     MediaObject newMedia;
-    newMedia.uri = uri;
+    newMedia.uri = pushData.uri;
     string filePath = jsonRoot["data"].asString();
     int lastSlashPosition = filePath.find_last_of("/");
     newMedia.filename = filePath.substr(lastSlashPosition + 1);
@@ -162,11 +160,11 @@ void TigrPushReceiver::onPushDataReceived(GatewayConnector *sender, std::string 
     
     
     
-    unsigned int dataSize = *((int *) &data[tagEnd]);
+    unsigned int dataSize = *((int *) &(pushData.data)[tagEnd]);
     
     LOG_DEBUG("Media Data Size:" << dataSize);
     
-    unsigned int maxSize = data.size() - tagEnd - 8;
+    unsigned int maxSize = pushData.data.size() - tagEnd - 8;
     LOG_DEBUG("Maximum valid data size: " << maxSize);
     
     if(dataSize > maxSize) {
@@ -176,27 +174,27 @@ void TigrPushReceiver::onPushDataReceived(GatewayConnector *sender, std::string 
     
     
     LOG_INFO("Uploading image to TIGR with name " << newMedia.filename << "...");
-    string fileReference = uploadMedia(&data[tagEnd + 4], dataSize, newMedia.filename, newMedia.mimeType, originUser);
+    string fileReference = uploadMedia(&(pushData.data)[tagEnd + 4], dataSize, newMedia.filename, newMedia.mimeType, pushData.originUsername);
     if(fileReference != "") {
-      string imageCid = createMedia(newMedia.filename, fileReference, originUser);
+      string imageCid = createMedia(newMedia.filename, fileReference, pushData.originUsername);
       unsentEventReports[newMedia.associatedEventId].associatedMediaCids.push_back(imageCid);
       if(unsentEventReports[newMedia.associatedEventId].associatedMediaCids.size() == (unsigned int) unsentEventReports[newMedia.associatedEventId].mediaCount) {
         sendEventReport(unsentEventReports[newMedia.associatedEventId]);
         unsentEventReports.erase(newMedia.associatedEventId);
       }
     }
-  } else if(mimeType == "application/vnd.edu.vu.isis.ammo.report.report_base") {
+  } else if(pushData.mimeType == "application/vnd.edu.vu.isis.ammo.report.report_base") {
     LOG_DEBUG("Extracting JSON metadata...");
     
     unsigned int jsonEnd = 0;
-    for(vector<char>::iterator it = data.begin(); it != data.end(); it++) {
+    for(vector<char>::iterator it = pushData.data.begin(); it != pushData.data.end(); it++) {
       jsonEnd++;
       if((*it) == 0) {
         break;
       }
     }
     
-    string json(&data[0], jsonEnd);
+    string json(&(pushData.data)[0], jsonEnd);
     
     LOG_DEBUG("JSON string: " << json);
     
@@ -232,7 +230,7 @@ void TigrPushReceiver::onPushDataReceived(GatewayConnector *sender, std::string 
 
 
     EventReport newEvent;
-    newEvent.uri = uri;
+    newEvent.uri = pushData.uri;
     newEvent.title =  "SPOT: "+sr.reporting_unit; //jsonRoot["title"].asString();
     std::string des = "SPOT REPORT [SPOTREP]\n";
     des += "DATE AND TIME:  ";
@@ -270,10 +268,10 @@ void TigrPushReceiver::onPushDataReceived(GatewayConnector *sender, std::string 
     newEvent.timeSeconds = (time_t) sr.report_time ; //(jsonRoot["createdDate"].asDouble() / 1000);
     newEvent.mediaCount = 0; //jsonRoot["mediaCount"].asInt();
     newEvent.categoryId = "01010203020000000000000000000000"; //jsonRoot["categoryId"].asString();//
-    newEvent.username = originUser;
+    newEvent.username = pushData.originUsername;
     
-    int lastSlashPosition = uri.find_last_of("/");
-    string eventNumberString = uri.substr(lastSlashPosition + 1);
+    int lastSlashPosition = pushData.uri.find_last_of("/");
+    string eventNumberString = pushData.uri.substr(lastSlashPosition + 1);
     LOG_DEBUG("Event Number: " << eventNumberString << "At:(" << cLat << "," << cLon << ")  Descr[" << des);
     newEvent.eventNumber = atoi(eventNumberString.c_str());
     
