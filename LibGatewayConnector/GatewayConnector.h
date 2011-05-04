@@ -30,6 +30,13 @@ namespace ammo {
     class PullRequestReceiverListener;
     class PullResponseReceiverListener;
     
+    struct PushData {
+      std::string uri;
+      std::string mimeType;
+      std::vector<char> data;
+      std::string originUsername;
+    };
+    
     /**
     * This class is used to connect a gateway plugin to the core gateway.  Each 
     * plugin should use at least one instance of this class; a plugin may create
@@ -287,7 +294,7 @@ namespace ammo {
     */
     class LibGatewayConnector_Export DataPushReceiverListener {
     public:
-      virtual void onPushDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUsername) = 0;
+      virtual void onPushDataReceived(GatewayConnector *sender, PushData &pushData) = 0;
     };
     
     /**

@@ -251,14 +251,16 @@ void ammo::gateway::GatewayConnector::onAssociateResultReceived(const ammo::gate
 }
 
 void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::protocol::PushData &msg) {
-  string uri = msg.uri();
-  string mimeType = msg.mime_type();
-  vector<char> data(msg.data().begin(), msg.data().end());
-  string originUser = msg.origin_user();
+  ammo::gateway::PushData pushData;
+  
+  pushData.uri = msg.uri();
+  pushData.mimeType = msg.mime_type();
+  pushData.data.assign(msg.data().begin(), msg.data().end());
+  pushData.originUsername = msg.origin_user();
   
   for(map<string, DataPushReceiverListener *>::iterator it = receiverListeners.begin(); it != receiverListeners.end(); it++) {
-    if(mimeType.find(it->first) == 0) {
-      it->second->onPushDataReceived(this, uri, mimeType, data, originUser);
+    if(pushData.mimeType.find(it->first) == 0) {
+      it->second->onPushDataReceived(this, pushData);
     }
   }
 }
