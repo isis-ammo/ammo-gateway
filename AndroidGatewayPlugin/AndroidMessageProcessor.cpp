@@ -151,15 +151,15 @@ void AndroidMessageProcessor::onDisconnect(GatewayConnector *sender) {
   
 }
 
-void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
+void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData) {
   LOG_DEBUG(commsHandler << " Sending subscribed data to device...");
-  LOG_DEBUG(commsHandler << "    URI: " << uri << ", Type: " << mimeType);
+  LOG_DEBUG(commsHandler << "    " << pushData);
   
-  std::string dataString(data.begin(), data.end());
+  std::string dataString(pushData.data.begin(), pushData.data.end());
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
   ammo::protocol::DataMessage *dataMsg = msg->mutable_data_message();
-  dataMsg->set_uri(uri);
-  dataMsg->set_mime_type(mimeType);
+  dataMsg->set_uri(pushData.uri);
+  dataMsg->set_mime_type(pushData.mimeType);
   dataMsg->set_data(dataString);
   
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);

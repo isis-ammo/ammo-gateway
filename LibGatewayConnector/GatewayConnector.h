@@ -30,11 +30,17 @@ namespace ammo {
     class PullRequestReceiverListener;
     class PullResponseReceiverListener;
     
-    struct PushData {
+    class PushData {
+    public:
       std::string uri;
       std::string mimeType;
       std::vector<char> data;
       std::string originUsername;
+      
+      friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PushData &pushData) {
+        os << "URI: " << pushData.uri << " type: " << pushData.mimeType;
+        return os;
+      }
     };
     
     /**

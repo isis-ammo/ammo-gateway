@@ -293,5 +293,3 @@ void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway
 void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayConnector *sender, bool result) {
   //LOG_INFO("GatewayConnectorDelegate::onAuthenticationResponse : result = " << result);
 }
-
-

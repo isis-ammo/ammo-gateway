@@ -47,19 +47,16 @@ void AtsHandler::onDisconnect(GatewayConnector *sender) { }
 *
 */
 void AtsHandler::onPushDataReceived(GatewayConnector *sender, 
-                                std::string uri, 
-                                std::string dataType,
-                                std::vector< char >& payload,
-                                std::string originUsername)
+                                ammo::gateway::PushData &pushData)
 {
    CURLcode res; 
    LOG_INFO( "Got push data.");
-   LOG_INFO( "  URI: " << uri);
-   LOG_INFO( "  Data type: " << dataType);
-   std::vector<char>::iterator endIt =  (payload.size() < 128) ? payload.end() : payload.begin()+128;
-   LOG_INFO( "  Data: " << std::string(payload.begin(), endIt));
-   LOG_INFO( "  Origin User Name: " << originUsername);
-   LOG_DEBUG("  User: " << config->getUsername(originUsername));
+   LOG_INFO( "  URI: " << pushData.uri);
+   LOG_INFO( "  Data type: " << pushData.mimeType);
+   std::vector<char>::iterator endIt =  (pushData.data.size() < 128) ? pushData.data.end() : pushData.data.begin()+128;
+   LOG_INFO( "  Data: " << std::string(pushData.data.begin(), endIt));
+   LOG_INFO( "  Origin User Name: " << pushData.originUsername);
+   LOG_DEBUG("  User: " << config->getUsername(pushData.originUsername));
 
    CURL *curl = curl_easy_init();
    if (curl == 0) { LOG_ERROR("Failed to initialize curl."); return; }
@@ -67,36 +64,36 @@ void AtsHandler::onPushDataReceived(GatewayConnector *sender,
    res = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorBuffer);
    if(res != CURLE_OK) { LOG_ERROR("Failed to set error buffer."); return; }
 
-   res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth(originUsername).c_str());
+   res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth(pushData.originUsername).c_str());
    if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return; }
 
-   if (dataType == PLI_POST_LOC_NS) {
-     std::string result = postLocation(curl, dataType, payload);
-     LOG_INFO(" Push " << dataType << " result: " << result);
+   if (pushData.mimeType == PLI_POST_LOC_NS) {
+     std::string result = postLocation(curl, pushData.mimeType, pushData.data);
+     LOG_INFO(" Push " << pushData.mimeType << " result: " << result);
      return;
    }
-   if (dataType == PLI_POST_LOCS_NS) {
-     std::string result = postLocations(curl, dataType, payload);
-     LOG_INFO(" Push " << dataType << " result: " << result);
+   if (pushData.mimeType == PLI_POST_LOCS_NS) {
+     std::string result = postLocations(curl, pushData.mimeType, pushData.data);
+     LOG_INFO(" Push " << pushData.mimeType << " result: " << result);
      return;
    }
-   if (dataType == RTC_UPLOAD_CHANNEL_MEDIA_NS) {
-      std::string result = uploadMedia(curl, dataType, payload);
-      LOG_INFO(" Push " << dataType << " result: " << result);
+   if (pushData.mimeType == RTC_UPLOAD_CHANNEL_MEDIA_NS) {
+      std::string result = uploadMedia(curl, pushData.mimeType, pushData.data);
+      LOG_INFO(" Push " << pushData.mimeType << " result: " << result);
       return;
    }
-   if (dataType == RTC_INVITE_NS) {
-      std::string result = inviteChat(curl, dataType, payload);
-      LOG_INFO(" Push "<< dataType << " result: " << result);
+   if (pushData.mimeType == RTC_INVITE_NS) {
+      std::string result = inviteChat(curl, pushData.mimeType, pushData.data);
+      LOG_INFO(" Push "<< pushData.mimeType << " result: " << result);
       return;
    }
-   if (dataType == RTC_CREATE_CHANNEL_NS) {
-      std::string data = channelCreate(curl, dataType, payload);
-      sender->pushData(uri, dataType, data);
-      LOG_INFO(" Push " << dataType << " result: " << data.substr(0,128));
+   if (pushData.mimeType == RTC_CREATE_CHANNEL_NS) {
+      std::string data = channelCreate(curl, pushData.mimeType, pushData.data);
+      sender->pushData(pushData.uri, pushData.mimeType, data);
+      LOG_INFO(" Push " << pushData.mimeType << " result: " << data.substr(0,128));
       return;
    }
-   if (dataType == RTC_SHARE_GPS_NS) {
+   if (pushData.mimeType == RTC_SHARE_GPS_NS) {
    }
 }
  

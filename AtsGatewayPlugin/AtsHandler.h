@@ -21,10 +21,7 @@ public:
   
   // DataPushReceiverListener methods
   virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender,
-                              std::string uri,
-                              std::string mimeType,
-                              std::vector<char> &data,
-                              std::string originUser);
+                              ammo::gateway::PushData &pushData);
 
   // PullRequestReceiverListener methods
   virtual void onPullRequestReceived(ammo::gateway::GatewayConnector *sender,
