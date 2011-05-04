@@ -50,6 +50,8 @@ if __name__ == "__main__":
 '''
     exit(-1)
   
+  count = 0
+  
   print "Creating client"
   client = GatewayTestClient(sys.argv[1], sys.argv[2])
   print "Generating message"
@@ -70,7 +72,8 @@ if __name__ == "__main__":
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
     m.data_message.mime_type = "text/plain"
-    m.data_message.data = "This is some text being pushed out to the gateway."
+    m.data_message.data = "This is some text being pushed out to the gateway." + str(count)
+    count = count + 1
     print "Sending data message"
     client.sendMessageWrapper(m)
   elif sys.argv[3] == "subscribe": 
@@ -101,13 +104,15 @@ if __name__ == "__main__":
   while True:
     msg = client.receiveMessage()
     print msg
-    time.sleep(0.5)
+    
     if(sys.argv[3] == "push"):
+      time.sleep(0.5)
       m = AmmoMessages_pb2.MessageWrapper()
       m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
       m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
       m.data_message.mime_type = "text/plain"
-      m.data_message.data = "This is some text being pushed out to the gateway."
+      m.data_message.data = "This is some text being pushed out to the gateway." + str(count)
+      count = count + 1
       print "Sending data message"
       client.sendMessageWrapper(m)
   

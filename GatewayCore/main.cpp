@@ -15,6 +15,7 @@
 
 #include "GatewayServiceHandler.h"
 #include "GatewayConfigurationManager.h"
+#include "GatewayCore.h"
 
 using namespace std;
 int main(int argc, char **argv) {
@@ -43,6 +44,9 @@ int main(int argc, char **argv) {
   //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor
   //for accept events
   ACE_Acceptor<GatewayServiceHandler, ACE_SOCK_Acceptor> acceptor(serverAddress);
+  
+  //Initializes the cross-gateway connections
+  GatewayCore::getInstance()->initCrossGateway();
   
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();

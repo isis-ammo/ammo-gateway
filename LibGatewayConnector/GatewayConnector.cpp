@@ -65,12 +65,18 @@ bool GatewayConnector::associateDevice(string device, string user, string key) {
   }
 }
 
-bool GatewayConnector::pushData(string uri, string mimeType, const string &data) {
+bool GatewayConnector::pushData(string uri, string mimeType, const string &data, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
   pushMsg->set_uri(uri);
   pushMsg->set_mime_type(mimeType);
   pushMsg->set_data(data);
+  
+  if(scope == SCOPE_LOCAL) {
+    pushMsg->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    pushMsg->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   
@@ -139,10 +145,16 @@ bool GatewayConnector::pullResponse(std::string requestUid, std::string pluginId
 
 
 
-bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverListener *listener) {
+bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverListener *listener, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::RegisterDataInterest *di = msg.mutable_register_data_interest();
   di->set_mime_type(mime_type);
+  
+  if(scope == SCOPE_LOCAL) {
+    di->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    di->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST);
   
@@ -158,10 +170,16 @@ bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverLi
   }
 }
 
-bool GatewayConnector::unregisterDataInterest(string mime_type) {
+bool GatewayConnector::unregisterDataInterest(string mime_type, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::UnregisterDataInterest *di = msg.mutable_unregister_data_interest();
   di->set_mime_type(mime_type);
+  
+  if(scope == SCOPE_LOCAL) {
+    di->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    di->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST);
   

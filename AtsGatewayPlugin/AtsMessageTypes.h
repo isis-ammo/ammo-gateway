@@ -254,6 +254,13 @@ const std::string PLI_POST_LOC = "location/post";
 const std::string PLI_POST_LOC_NS = ATS_NAME_SPACE + PLI_POST_LOC + TERMINATOR;
 
 /**
+Update a group of user's position on the server, supplied in E6 notation
+*/
+const std::string PLI_POST_LOCS = "locations/post";
+const std::string PLI_POST_LOCS_NS = ATS_NAME_SPACE + PLI_POST_LOCS + TERMINATOR;
+
+
+/**
 List all personnel and their locations for the specified unit.
 */
 const std::string PLI_LIST_LOC = "location/list";

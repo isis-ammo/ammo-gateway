@@ -58,6 +58,9 @@ private:
   std::string channelCreate(CURL *curl, std::string dataType, std::vector< char >& payload ); 
 
   std::string centerMap(CURL *curl, std::string dataType, std::vector< char > &query ); 
+
+  std::string postLocation(CURL *curl, std::string mediaType, std::vector< char >& payload ); 
+  std::string postLocations(CURL *curl, std::string mediaType, std::vector< char >& payload ); 
 };
 
 #endif        //  #ifndef ATS_HANDLER_H

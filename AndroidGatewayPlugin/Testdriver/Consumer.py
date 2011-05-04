@@ -17,9 +17,19 @@ def onDataReceived(connector, msg):
 
 if __name__ == "__main__":
   print "Android Gateway Tester"
-  if len(sys.argv) != 3:
-    print "Usage: ", sys.argv[0], "host port"
+  if len(sys.argv) != 3 and len(sys.argv) != 4:
+    print "Usage: ", sys.argv[0], "host port [scope]"
     exit(-1)
+  
+  scope = AndroidConnector.MessageScope.GLOBAL
+  if len(sys.argv) == 4:
+    if sys.argv[3] == "local":
+      scope = AndroidConnector.MessageScope.LOCAL
+    elif sys.argv[3] == "global":
+      scope = AndroidConnector.MessageScope.GLOBAL
+    else:
+      print "scope must be one of: local global"
+      exit(-1)
   
   deviceName = "device:test/" + uuid.uuid1().hex
   userName = "user:test/" + uuid.uuid1().hex
@@ -33,7 +43,7 @@ if __name__ == "__main__":
     connector.waitForAuthentication()
     
     print "Subscribing."
-    connector.subscribe("application/vnd.edu.vu.isis.ammo.test.TestData")
+    connector.subscribe("application/vnd.edu.vu.isis.ammo.test.TestData", scope)
     sequenceNumber = 0
     
     while True:

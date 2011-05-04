@@ -1,7 +1,12 @@
 {
   "GatewayInterface": "127.0.0.1", //Interface that Gateway will listen on (default to all interfaces if not specified)
   "GatewayAddress": "127.0.0.1", //Remote address to connect to Gateway (defaults to localhost if not specified)
-  "GatewayPort": 12475           //Port that Gateway will listen on (default to 12475 if not specified)
+  "GatewayPort": 12475,           //Port that Gateway will listen on (default to 12475 if not specified)
+  "CrossGatewayId": "MainGateway",
+  "CrossGatewayServerInterface": "0.0.0.0",
+  "CrossGatewayServerPort": 47543,
+  "CrossGatewayParentAddress": "", //Leave blank if this node has no parent
+  "CrossGatewayParentPort": 47543
 }
 
 //:mode=javascript: (jEdit modeline for syntax highlighting)

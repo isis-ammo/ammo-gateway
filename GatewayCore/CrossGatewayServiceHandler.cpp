@@ -1,5 +1,6 @@
-#include "GatewayServiceHandler.h"
+#include "CrossGatewayServiceHandler.h"
 #include "GatewayCore.h"
+#include "GatewayConfigurationManager.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
 
 #include <iostream>
@@ -9,13 +10,13 @@
 #include "ace/OS_NS_errno.h"
 
 
-/* GatewayServiceHandler::GatewayServiceHandler(ACE_Thread_Manager *tm = 0, ACE_Message_Queue<ACE_NULL_SYNCH> *mq = 0, ACE_Reactor *reactor = ACE_Reactor::instance())
+/* CrossGatewayServiceHandler::CrossGatewayServiceHandler(ACE_Thread_Manager *tm = 0, ACE_Message_Queue<ACE_NULL_SYNCH> *mq = 0, ACE_Reactor *reactor = ACE_Reactor::instance())
 : ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>(tm, mq, reactor)
 {
   
 } */
 
-int GatewayServiceHandler::open(void *ptr) {
+int CrossGatewayServiceHandler::open(void *ptr) {
   if(super::open(ptr) == -1) {
     return -1;
     
@@ -25,13 +26,21 @@ int GatewayServiceHandler::open(void *ptr) {
   checksum = 0;
   collectedData = NULL;
   position = 0;
-  username = "";
-  usernameAuthenticated = false;
+  gatewayId = "";
+  gatewayIdAuthenticated = false;
+  
+  //send an authentication message to the other gateway
+  ammo::gateway::protocol::GatewayWrapper newMsg;
+  newMsg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_CROSS_GATEWAY);
+  newMsg.mutable_associate_cross_gateway()->set_gateway_id(GatewayConfigurationManager::getInstance()->getCrossGatewayId());
+  newMsg.mutable_associate_cross_gateway()->set_key(GatewayConfigurationManager::getInstance()->getCrossGatewayId());
+  LOG_DEBUG("Sending associate message to connected gateway...");
+  this->sendData(newMsg);
   
   return 0;
 }
 
-int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
+int CrossGatewayServiceHandler::handle_input(ACE_HANDLE fd) {
   //LOG_TRACE("In handle_input");
   int count = 0;
   
@@ -66,7 +75,7 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
         //LOG_TRACE("Got all the data... processing");
         processData(collectedData, dataSize, checksum);
         //LOG_TRACE("Processsing complete.  Deleting buffer.");
-        delete[] collectedData;
+        delete collectedData;
         collectedData = NULL;
         dataSize = 0;
         position = 0;
@@ -85,7 +94,7 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
 }
 
 // This method comes stright from ACE sample code:  see ace_wrappers/examples/APG/Reactor/Client.cpp
-int GatewayServiceHandler::handle_output(ACE_HANDLE) {
+int CrossGatewayServiceHandler::handle_output(ACE_HANDLE) {
   ACE_Message_Block *mb;
   ACE_Time_Value nowait(ACE_OS::gettimeofday ());
   
@@ -112,7 +121,7 @@ int GatewayServiceHandler::handle_output(ACE_HANDLE) {
   return 0;
 }
 
-void GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper &msg) {
+void CrossGatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper &msg) {
   /*Fixme: potential deadlock here
   unsigned int messageSize = msg.ByteSize();
   char *messageToSend = new char[messageSize];
@@ -148,7 +157,7 @@ void GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper &ms
   }
 }
 
-int GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
+int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if(calculatedChecksum != messageChecksum) {
@@ -166,95 +175,72 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   }
   //LOG_TRACE("Message Received: " << msg.DebugString());
   
-  if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE) {
-    LOG_DEBUG("Received Associate Device...");
+  if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_CROSS_GATEWAY) {
+    LOG_DEBUG("Received Associate CrossGateway...");
     //TODO: split out into a different function and do more here
     ammo::gateway::protocol::GatewayWrapper newMsg;
     newMsg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT);
     newMsg.mutable_associate_result()->set_result(ammo::gateway::protocol::AssociateResult_Status_SUCCESS);
     this->sendData(newMsg);
-    username = msg.associate_device().user();
-    usernameAuthenticated = true;
+    gatewayId = msg.associate_cross_gateway().gateway_id();
+    gatewayIdAuthenticated = true;
+    GatewayCore::getInstance()->registerCrossGatewayConnection(gatewayId, this);
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
+    
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST) {
     LOG_DEBUG("Received Register Data Interest...");
     std::string mime_type = msg.register_data_interest().mime_type();
-    MessageScope scope;
-    if(msg.register_data_interest().scope() == ammo::gateway::protocol::GLOBAL) {
-      scope = SCOPE_GLOBAL;
-    } else {
-      scope = SCOPE_LOCAL;
-    }
-    bool result = GatewayCore::getInstance()->registerDataInterest(mime_type, scope, this);
+    bool result = GatewayCore::getInstance()->subscribeCrossGateway(mime_type, gatewayId);
     if(result == true) {
       registeredHandlers.push_back(mime_type);
     }
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST) {
     LOG_DEBUG("Received Unregister Data Interest...");
     std::string mime_type = msg.unregister_data_interest().mime_type();
-    MessageScope scope;
-    if(msg.unregister_data_interest().scope() == ammo::gateway::protocol::GLOBAL) {
-      scope = SCOPE_GLOBAL;
-    } else {
-      scope = SCOPE_LOCAL;
-    }
-    bool result = GatewayCore::getInstance()->unregisterDataInterest(mime_type, scope, this);
+    bool result = GatewayCore::getInstance()->unsubscribeCrossGateway(mime_type, gatewayId);
     if(result == true) {
-      for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end();) {
+      for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
         if((*it) == mime_type) {
-          it = registeredHandlers.erase(it); //erase returns the iterator to the next element
+          registeredHandlers.erase(it);
           break;
-        } else {
-          it++;
         }
       }
     }
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
-    MessageScope scope;
-    if(msg.push_data().scope() == ammo::gateway::protocol::GLOBAL) {
-      scope = SCOPE_GLOBAL;
-    } else {
-      scope = SCOPE_LOCAL;
-    }
-    GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), this->username, scope);
-  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
-    LOG_DEBUG("Received Pull Request...");
-    LOG_TRACE("  " << msg.DebugString());
-    
-    ammo::gateway::protocol::PullRequest pullMsg = msg.pull_request();
-    GatewayCore::getInstance()->pullRequest(pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
-      pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), this);
-  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
-    LOG_DEBUG("Received Pull Response...");
-    LOG_TRACE("  " << msg.DebugString());
-    
-    ammo::gateway::protocol::PullResponse pullRsp = msg.pull_response();
-    GatewayCore::getInstance()->pullResponse( pullRsp.request_uid(), pullRsp.plugin_id(), pullRsp.mime_type(), pullRsp.uri(), pullRsp.data() );
-  }else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST) {
-    LOG_DEBUG("Received Register Pull Interest...");
-    std::string mime_type = msg.register_pull_interest().mime_type();
-    bool result = GatewayCore::getInstance()->registerPullInterest(mime_type, this);
-    if(result == true) {
-      registeredPullRequestHandlers.push_back(mime_type);
-    }
-  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST) {
-    LOG_DEBUG("Received Unregister Pull Interest...");
-    std::string mime_type = msg.unregister_pull_interest().mime_type();
-    bool result = GatewayCore::getInstance()->unregisterPullInterest(mime_type, this);
-    if(result == true) {
-      for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
-        if((*it) == mime_type) {
-          registeredPullRequestHandlers.erase(it);
-          break;
-        }
-      }
-    }
+    GatewayCore::getInstance()->pushCrossGateway(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), msg.push_data().origin_user(), gatewayId);
   }
   
   return 0;
 }
 
-bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope scope) {
+bool CrossGatewayServiceHandler::sendSubscribeMessage(std::string mime_type) {
+  ammo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::RegisterDataInterest *subscribeMsg = msg.mutable_register_data_interest();
+  subscribeMsg->set_mime_type(mime_type);
+  
+  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST);
+  
+  LOG_DEBUG("Sending Subscribe message to connected gateway");
+  this->sendData(msg);
+  
+  return true;
+}
+
+bool CrossGatewayServiceHandler::sendUnsubscribeMessage(std::string mime_type) {
+  ammo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::UnregisterDataInterest *unsubscribeMsg = msg.mutable_unregister_data_interest();
+  unsubscribeMsg->set_mime_type(mime_type);
+  
+  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST);
+  
+  LOG_DEBUG("Sending Subscribe message to connected gateway");
+  this->sendData(msg);
+  
+  return true;
+}
+
+bool CrossGatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
   pushMsg->set_uri(uri);
@@ -264,76 +250,37 @@ bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   
-  LOG_DEBUG("Sending Data Push message to connected plugin");
-  this->sendData(msg);
-  
-  return true;
-}
-
-bool GatewayServiceHandler::sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, 
-                                           std::string query, std::string projection, unsigned int maxResults, 
-                                           unsigned int startFromCount, bool liveQuery) {
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::PullRequest *pullMsg = msg.mutable_pull_request();
-  pullMsg->set_request_uid(requestUid);
-  pullMsg->set_plugin_id(pluginId);
-  pullMsg->set_mime_type(mimeType);
-  pullMsg->set_query(query);
-  pullMsg->set_projection(projection);
-  pullMsg->set_max_results(maxResults);
-  pullMsg->set_start_from_count(startFromCount);
-  pullMsg->set_live_query(liveQuery);
-  
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
-  
-  LOG_DEBUG("Sending Pull Request message to connected plugin");
-  this->sendData(msg);
-  
-  return true;
-}
-
-bool GatewayServiceHandler::sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType,
-					     std::string uri, const std::string& data) {
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::PullResponse *pullRsp = msg.mutable_pull_response();
-  pullRsp->set_request_uid(requestUid);
-  pullRsp->set_plugin_id(pluginId);
-  pullRsp->set_mime_type(mimeType);
-  pullRsp->set_uri(uri);
-  pullRsp->set_data(data);
-  
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
-  
-  LOG_DEBUG("Sending Pull Response message to connected plugin");
+  LOG_DEBUG("Sending Data Push message to connected gateway");
   this->sendData(msg);
   
   return true;
 }
 
 
-
-GatewayServiceHandler::~GatewayServiceHandler() {
-  LOG_DEBUG("GatewayServiceHandler being destroyed!");
+CrossGatewayServiceHandler::~CrossGatewayServiceHandler() {
+  LOG_DEBUG("CrossGatewayServiceHandler being destroyed!");
   LOG_DEBUG("Unregistering data handlers...");
   for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
-    GatewayCore::getInstance()->unregisterDataInterest(*it, SCOPE_ALL, this);
+    GatewayCore::getInstance()->unsubscribeCrossGateway(*it, gatewayId);
   }
+  
+  GatewayCore::getInstance()->unregisterCrossGatewayConnection(gatewayId);
   
   LOG_DEBUG("Unregistering pull request handlers...");
   for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
-    GatewayCore::getInstance()->unregisterPullInterest(*it, this);
+    //GatewayCore::getInstance()->unregisterPullInterest(*it, this);
   }
 }
 
-std::ostream& operator<< (std::ostream& out, const GatewayServiceHandler& handler) {
+std::ostream& operator<< (std::ostream& out, const CrossGatewayServiceHandler& handler) {
     out << &handler;
     return out;
 }
 
-std::ostream& operator<< (std::ostream& out, const GatewayServiceHandler* handler) {
-    // Since operator<< is a friend of the GatewayServiceHandler class, 
+std::ostream& operator<< (std::ostream& out, const CrossGatewayServiceHandler* handler) {
+    // Since operator<< is a friend of the CrossGatewayServiceHandler class, 
     // we can access handler's members directly.
-    out << "(" << reinterpret_cast<void const *>(handler) << " " << handler->state << ", " << handler->username << ")";
+    out << "(" << reinterpret_cast<void const *>(handler) << " " << handler->state << ", " << handler->gatewayId << ")";
     return out;
 }
 

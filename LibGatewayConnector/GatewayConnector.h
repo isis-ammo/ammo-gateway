@@ -21,6 +21,8 @@
 #include "GatewayConfigurationManager.h"
 #include "GatewayServiceHandler.h"
 
+#include "Enumerations.h"
+
 class GatewayConnectorDelegate;
 class DataPushReceiverListener;
 class PullRequestReceiverListener;
@@ -81,15 +83,15 @@ public:
 
   //Sender-side
   /**
-  * Pushes a piece of data (with a particular uri and type) to the gateway.
+  * Pushes a piece of data (with a particular URI and type) to the gateway.
   * 
   * Data pushed with this method can be received by listeners registered with
   * registerDataInterest.  All listeners registered for the type specified by
-  * mimeType will receive this peice of data.
+  * mimeType will receive this piece of data.
   * 
   * @param uri The URI of this piece of data.  This URI should be a universally
   *            unique identifier for the object being pushed (no two distinct
-  *            peices of data should have the same URI).
+  *            pieces of data should have the same URI).
   * @param mimeType The MIME type of this piece of data.  This MIME type is used
   *                 to determine which other gateway plugins will receive this
   *                 pushed data.
@@ -100,7 +102,7 @@ public:
   * 
   * @return true if the operation succeeded; false if the operation failed.
   */
-  bool pushData(std::string uri, std::string mimeType, const std::string &data);
+  bool pushData(std::string uri, std::string mimeType, const std::string &data, MessageScope scope = SCOPE_GLOBAL);
 
   /**
   * Requests data from a gateway plugin or device (which claims it can handle a
@@ -162,7 +164,7 @@ public:
   *
   * @return true if the operation succeeded; false if the operation failed.
   */
-  bool registerDataInterest(std::string mime_type, DataPushReceiverListener *listener);
+  bool registerDataInterest(std::string mime_type, DataPushReceiverListener *listener, MessageScope scope = SCOPE_GLOBAL);
   
   /**
   * Unregisters interest in pushed data of type mime_type.  Will unregister all
@@ -173,7 +175,7 @@ public:
   * 
   * @return true if the operation succeeded; false if the operation failed.
   */
-  bool unregisterDataInterest(std::string mime_type);
+  bool unregisterDataInterest(std::string mime_type, MessageScope scope = SCOPE_GLOBAL);
   
   /**
   * Registers a pull request handler for the specified data type.

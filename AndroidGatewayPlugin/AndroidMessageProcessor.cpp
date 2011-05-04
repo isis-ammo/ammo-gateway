@@ -88,20 +88,34 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     LOG_DEBUG(commsHandler << " Received Data Message...");
     if(gatewayConnector != NULL) {
       ammo::protocol::DataMessage dataMessage = msg.data_message();
-      gatewayConnector->pushData(dataMessage.uri(), dataMessage.mime_type(), dataMessage.data());
+      MessageScope scope;
+      if(dataMessage.scope() == ammo::protocol::LOCAL) {
+        scope = SCOPE_LOCAL;
+      } else {
+        scope = SCOPE_GLOBAL;
+      }
+      gatewayConnector->pushData(dataMessage.uri(), dataMessage.mime_type(), dataMessage.data(), scope);
       ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
       ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
       ack->set_uri(dataMessage.uri());
       ackMsg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
-      LOG_DEBUG(commsHandler << " Sending push acknowledgement to connected device...");
+      LOG_DEBUG(commsHandler << " Sending push acknowledgment to connected device...");
       commsHandler->sendMessage(ackMsg);
       
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
     LOG_DEBUG(commsHandler << " Received Subscribe Message...");
+    MessageScope scope;
+    if(msg.subscribe_message().scope() == ammo::protocol::LOCAL) {
+      scope = SCOPE_LOCAL;
+    } else {
+      scope = SCOPE_GLOBAL;
+    }
+    
     if(gatewayConnector != NULL) {
       ammo::protocol::SubscribeMessage subscribeMessage = msg.subscribe_message();
-      gatewayConnector->registerDataInterest(subscribeMessage.mime_type(), this);
+      
+      gatewayConnector->registerDataInterest(subscribeMessage.mime_type(), this, scope);
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG(commsHandler << " Received Pull Request Message...");
