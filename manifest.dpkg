@@ -4,6 +4,3 @@ libprotobuf-dev
 libsqlite3-dev
 protobuf-compiler
 libcurl4-openssl-dev
-bison
-flex
-libboost-dev
