@@ -29,11 +29,9 @@ install: all
 	install -m 755 build/bin/GatewayUsbTransfer $(INSTALL_DIR)/bin
 	install -m 755 build/bin/LdapGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/LocationStoreGatewayPlugin $(INSTALL_DIR)/bin
-	install -m 755 build/bin/PassGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SamplePushReceiverGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SamplePushTestDriverPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SpotPushReceiverGatewayPlugin $(INSTALL_DIR)/bin
-	install -m 755 build/bin/TigrGatewayPlugin $(INSTALL_DIR)/bin
 	echo "Installing libs ..."
 	install -m 644 build/lib/libgatewayconnector.so $(INSTALL_DIR)/lib
 	install -m 644 build/lib/libgeotrans-mgrs.so $(INSTALL_DIR)/lib
@@ -47,6 +45,4 @@ install: all
 	install -m 644 build/etc/GatewayConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/LdapPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/LocationStorePluginConfig.json $(DESTDIR)/etc/ammo-gateway
-	install -m 644 build/etc/PassPluginConfig.json $(DESTDIR)/etc/ammo-gateway
-	install -m 644 build/etc/TigrPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 
