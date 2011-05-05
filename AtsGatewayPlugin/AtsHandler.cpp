@@ -170,7 +170,7 @@ void AtsHandler::onPullResponseReceived (GatewayConnector *sender, ammo::gateway
   1) a json blob of printable characters terminated by a null character
   2) a set of data blobs
      a) a null terminated string containing the name of the blob
-     b) the length (a 4 byte big endian) of the blob (not including the lenth itself
+     b) the length (a 4 byte big endian) of the blob (not including the length itself
      c) the bytes of the blob
      d) the length repeated
 */
