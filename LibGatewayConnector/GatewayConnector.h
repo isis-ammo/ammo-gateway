@@ -32,10 +32,12 @@ namespace ammo {
     
     class PushData {
     public:
+      PushData();
       std::string uri;
       std::string mimeType;
       std::vector<char> data;
       std::string originUsername;
+      ammo::gateway::MessageScope scope;
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PushData &pushData) {
         os << "URI: " << pushData.uri << " type: " << pushData.mimeType;
@@ -45,6 +47,7 @@ namespace ammo {
     
     class PullRequest {
     public:
+      PullRequest();
       std::string requestUid;
       std::string pluginId;
       std::string mimeType;
@@ -62,6 +65,7 @@ namespace ammo {
     
     class PullResponse {
     public:
+      PullResponse();
       std::string requestUid;
       std::string pluginId;
       std::string mimeType;

@@ -305,3 +305,37 @@ void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway
 void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayConnector *sender, bool result) {
   //LOG_INFO("GatewayConnectorDelegate::onAuthenticationResponse : result = " << result);
 }
+
+//Constructors for PushMessage, PullRequest, PullResponse--  set up sane defaults
+ammo::gateway::PushData::PushData() :
+  uri(""),
+  mimeType(""),
+  data(),
+  originUsername(""),
+  scope(ammo::gateway::SCOPE_GLOBAL)
+{
+  
+}
+
+ammo::gateway::PullRequest::PullRequest() :
+  requestUid(""),
+  pluginId(""),
+  mimeType(""),
+  query(""),
+  projection(""),
+  maxResults(0),
+  startFromCount(0),
+  liveQuery(false)
+{
+  
+}
+
+ammo::gateway::PullResponse::PullResponse() :
+  requestUid(""),
+  pluginId(""),
+  mimeType(""),
+  uri(""),
+  data()
+{
+  
+}
