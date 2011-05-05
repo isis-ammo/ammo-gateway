@@ -65,14 +65,14 @@ bool ammo::gateway::GatewayConnector::associateDevice(string device, string user
   }
 }
 
-bool ammo::gateway::GatewayConnector::pushData(string uri, string mimeType, const string &data, MessageScope scope) {
+bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
-  pushMsg->set_uri(uri);
-  pushMsg->set_mime_type(mimeType);
-  pushMsg->set_data(data);
+  pushMsg->set_uri(pushData.uri);
+  pushMsg->set_mime_type(pushData.mimeType);
+  pushMsg->set_data(pushData.data);
   
-  if(scope == SCOPE_LOCAL) {
+  if(pushData.scope == SCOPE_LOCAL) {
     pushMsg->set_scope(ammo::gateway::protocol::LOCAL);
   } else {
     pushMsg->set_scope(ammo::gateway::protocol::GLOBAL);

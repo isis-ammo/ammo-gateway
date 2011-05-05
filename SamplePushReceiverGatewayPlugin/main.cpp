@@ -24,7 +24,11 @@ int main(int argc, char **argv) {
   gatewayConnector->registerDataInterest("text/plain", pushReceiver);
   
   for(;;) {
-    gatewayConnector->pushData("someUrl", "sometype", "someData");
+    PushData pushData;
+    pushData.uri = "someUrl";
+    pushData.mimeType = "sometype";
+    pushData.data = "someData";
+    gatewayConnector->pushData(pushData);
   }
   
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)

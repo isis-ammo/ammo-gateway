@@ -49,7 +49,7 @@ private:
   bool editContact(const LdapContact& );
   std::string jsonForObject(LDAPMessage *entry);
   LdapContact* objectFromJson(std::string input);
-  std::string payloadToJson(std::vector<char> &data);
+  std::string payloadToJson(std::string &data);
   bool parseJson(std::string input, Json::Value& jsonRoot);
 
 private:

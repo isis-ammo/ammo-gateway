@@ -42,7 +42,7 @@ void SpotPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gatewa
     cout << "Extracting JSON metadata..." << endl << flush;
     
     unsigned int jsonEnd = 0;
-    for(vector<char>::iterator it = pushData.data.begin(); it != pushData.data.end(); it++) {
+    for(string::iterator it = pushData.data.begin(); it != pushData.data.end(); it++) {
       jsonEnd++;
       if((*it) == 0) {
         break;
@@ -172,7 +172,11 @@ void SpotPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gatewa
      ostringstream bsouri;
      bsouri << "bft:bso/" << sr.content_guid;
      if(sender) {
-       sender->pushData(bsouri.str(), BSO_MIME_TYPE, jsonBso.str());
+       PushData pd;
+       pd.uri = bsouri.str();
+       pd.mimeType = BSO_MIME_TYPE;
+       pd.data = jsonBso.str();
+       sender->pushData(pd);
      }
 
     // "uuid"  "sidc"; "title" "description";"longitude" "latitude"; "speed""heading";"created_date" "modified_date" "function"; "gcm_type" "standard_id" "exercise" "battle_dimension" "reality"  "echelon" "_disp"

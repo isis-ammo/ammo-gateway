@@ -17,8 +17,13 @@ int main(int argc, char **argv) {
   cout << "Creating gateway connector..." << endl << flush;
     
   GatewayConnector *gatewayConnector = new GatewayConnector(NULL);
-
-  gatewayConnector->pushData("foo", "text/plain", "baz");
+  
+  
+  PushData pushData;
+  pushData.uri = "foo";
+  pushData.mimeType = "text/plain";
+  pushData.data = "baz";
+  gatewayConnector->pushData(pushData);
  
 #ifdef OLD 
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)

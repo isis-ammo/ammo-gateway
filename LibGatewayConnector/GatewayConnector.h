@@ -35,7 +35,7 @@ namespace ammo {
       PushData();
       std::string uri;
       std::string mimeType;
-      std::vector<char> data;
+      std::string data;
       std::string originUsername;
       ammo::gateway::MessageScope scope;
       
@@ -70,7 +70,7 @@ namespace ammo {
       std::string pluginId;
       std::string mimeType;
       std::string uri;
-      std::vector<char> data;
+      std::string data;
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PullResponse &resp) {
         os << "Response to " << resp.pluginId << " for request " << resp.requestUid << " for type " << resp.requestUid;
@@ -152,7 +152,7 @@ namespace ammo {
       * 
       * @return true if the operation succeeded; false if the operation failed.
       */
-      bool pushData(std::string uri, std::string mimeType, const std::string &data, MessageScope scope = SCOPE_GLOBAL);
+      bool pushData(ammo::gateway::PushData &pushData);
     
       /**
       * Requests data from a gateway plugin or device (which claims it can handle a

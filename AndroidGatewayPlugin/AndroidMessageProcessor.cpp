@@ -96,7 +96,13 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       } else {
         scope = SCOPE_GLOBAL;
       }
-      gatewayConnector->pushData(dataMessage.uri(), dataMessage.mime_type(), dataMessage.data(), scope);
+      
+      PushData pushData;
+      pushData.uri = dataMessage.uri();
+      pushData.mimeType = dataMessage.mime_type();
+      pushData.data = dataMessage.data();
+      pushData.scope = scope;
+      gatewayConnector->pushData(pushData);
       ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
       ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
       ack->set_uri(dataMessage.uri());

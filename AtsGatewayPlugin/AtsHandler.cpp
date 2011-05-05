@@ -16,7 +16,7 @@
 
 using namespace ammo::gateway;
 
-typedef std::pair<std::vector<char>::const_iterator, std::vector<char>::const_iterator > CharSpan;
+typedef std::pair<std::string::const_iterator, std::string::const_iterator > CharSpan;
 typedef std::pair<std::string, CharSpan > NamedBlob;
 
 static char curlErrorBuffer[CURL_ERROR_SIZE]; //libcurl variable for error string
@@ -53,8 +53,7 @@ void AtsHandler::onPushDataReceived(GatewayConnector *sender,
    LOG_INFO( "Got push data.");
    LOG_INFO( "  URI: " << pushData.uri);
    LOG_INFO( "  Data type: " << pushData.mimeType);
-   std::vector<char>::iterator endIt =  (pushData.data.size() < 128) ? pushData.data.end() : pushData.data.begin()+128;
-   LOG_INFO( "  Data: " << std::string(pushData.data.begin(), endIt));
+   LOG_INFO( "  Data: " << pushData.data.substr(0, 128));
    LOG_INFO( "  Origin User Name: " << pushData.originUsername);
    LOG_DEBUG("  User: " << config->getUsername(pushData.originUsername));
 
@@ -89,7 +88,11 @@ void AtsHandler::onPushDataReceived(GatewayConnector *sender,
    }
    if (pushData.mimeType == RTC_CREATE_CHANNEL_NS) {
       std::string data = channelCreate(curl, pushData.mimeType, pushData.data);
-      sender->pushData(pushData.uri, pushData.mimeType, data);
+      ammo::gateway::PushData pd;
+      pd.uri = pushData.uri;
+      pd.mimeType = pushData.mimeType;
+      pd.data = pushData.data;
+      sender->pushData(pd);
       LOG_INFO(" Push " << pushData.mimeType << " result: " << data.substr(0,128));
       return;
    }
@@ -175,12 +178,12 @@ void AtsHandler::onPullResponseReceived (GatewayConnector *sender, ammo::gateway
      d) the length repeated
 */
 
-static int parse_payload(std::vector<char>& payload, Json::Value& meta, std::vector<NamedBlob>& media ) {
+static int parse_payload(std::string& payload, Json::Value& meta, std::vector<NamedBlob>& media ) {
 
    LOG_DEBUG("Extracting JSON metadata...");
  
-   std::vector<char>::iterator begin = payload.begin();
-   std::vector<char>::iterator end = std::find(begin, payload.end(), '\0');
+   std::string::iterator begin = payload.begin();
+   std::string::iterator end = std::find(begin, payload.end(), '\0');
    std::string json(begin, end);
  
    LOG_DEBUG("JSON string: " << json);
@@ -233,7 +236,8 @@ static int parse_payload(std::vector<char>& payload, Json::Value& meta, std::vec
 static int parse_query(std::vector<char> query, Json::Value& meta) {
    LOG_TRACE("parse query <vector(char)>");
    std::vector< NamedBlob > media;
-   return parse_payload(query, meta, media);
+   std::string queryString(query.begin(), query.end());
+   return parse_payload(queryString, meta, media);
 }
 
 static int parse_query(std::string query, Json::Value& meta) {
@@ -276,7 +280,7 @@ static int write_callback(char *data, size_t size, size_t nmemb, std::string *wr
 reduced size version of the full file, so the server can hand back smaller files if requested by a
 client. How the reduced size version is created is client specific.
 */
-std::string AtsHandler::uploadMedia(CURL *curl, std::string mediaType, std::vector< char > &payload ) 
+std::string AtsHandler::uploadMedia(CURL *curl, std::string mediaType, std::string &payload ) 
 {
    CURLcode res;
    // parse the serialized packet
@@ -356,7 +360,7 @@ std::string AtsHandler::uploadMedia(CURL *curl, std::string mediaType, std::vect
    return returnedData;
 }
 
-std::string AtsHandler::inviteChat(CURL *curl, std::string mediaType, std::vector< char > &payload ) 
+std::string AtsHandler::inviteChat(CURL *curl, std::string mediaType, std::string &payload ) 
 {
    CURLcode res;
    // parse the serialized packet
@@ -495,7 +499,7 @@ std::vector<char> AtsHandler::listChannels(CURL *curl, std::string dataType, std
 }
 
 
-std::string AtsHandler::channelCreate(CURL *curl, std::string dataType, std::vector< char > &payload ) 
+std::string AtsHandler::channelCreate(CURL *curl, std::string dataType, std::string &payload ) 
 {
    CURLcode res;
    // parse the serialized packet
@@ -619,7 +623,7 @@ size_t print_httppost_callback(void *arg, const char *buf, size_t len)
 
 
 
-std::string AtsHandler::postLocation(CURL *curl, std::string dataType, std::vector< char > &payload ) 
+std::string AtsHandler::postLocation(CURL *curl, std::string dataType, std::string &payload ) 
 {
    CURLcode res;
    // parse the serialized packet
@@ -677,7 +681,7 @@ std::string AtsHandler::postLocation(CURL *curl, std::string dataType, std::vect
 }
 
 
-std::string AtsHandler::postLocations(CURL *curl, std::string dataType, std::vector< char > &payload ) 
+std::string AtsHandler::postLocations(CURL *curl, std::string dataType, std::string &payload ) 
 {
    CURLcode res;
    // no need to parse payload - it is already a JSON buffer

@@ -269,11 +269,11 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
 // payloadToJson()
 //
 //============================================================
-std::string LdapPushReceiver::payloadToJson(std::vector<char> &data)
+std::string LdapPushReceiver::payloadToJson(std::string &data)
 {
   //cout << "Extracting JSON metadata..." << endl << flush;
   unsigned int jsonEnd = 0;
-  for(vector<char>::iterator it = data.begin(); it != data.end(); it++)
+  for(string::iterator it = data.begin(); it != data.end(); it++)
     {
       jsonEnd++;
       if((*it) == 0) break;
