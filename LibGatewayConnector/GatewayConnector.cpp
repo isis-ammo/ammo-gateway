@@ -269,8 +269,15 @@ void ammo::gateway::GatewayConnector::onPullRequestReceived(const ammo::gateway:
   string mimeType = msg.mime_type();
   map<std::string, PullRequestReceiverListener *>::iterator it = pullRequestListeners.find(mimeType);
   if ( it != pullRequestListeners.end() ) {
-    (*it).second->onPullRequestReceived(this, msg.request_uid(), msg.plugin_id(), msg.mime_type(), msg.query(),
-				 msg.projection(), msg.max_results(), msg.start_from_count(), msg.live_query() );
+    ammo::gateway::PullRequest req;
+    req.requestUid = msg.request_uid();
+    req.pluginId = msg.plugin_id();
+    req.mimeType = msg.mime_type();
+    req.query = msg.query();
+    req.projection = msg.projection();
+    req.startFromCount = msg.start_from_count();
+    req.liveQuery = msg.live_query();
+    (*it).second->onPullRequestReceived(this, req);
   } 
 }
 

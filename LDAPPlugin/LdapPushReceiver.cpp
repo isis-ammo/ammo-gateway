@@ -140,19 +140,15 @@ void LdapPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gatewa
 // Pull Request
 // Query containing LDAP search parameters
 //============================================================
-void LdapPushReceiver::onPullRequestReceived(GatewayConnector *sender,
-                                      std::string requestUid, std::string pluginId,
-                                      std::string mimeType, std::string query,
-                                      std::string projection, unsigned int maxResults,
-                                      unsigned int startFromCount, bool liveQuery)
+void LdapPushReceiver::onPullRequestReceived(GatewayConnector *sender, ammo::gateway::PullRequest &pullReq)
 {
   string response = "asdf";
   vector<string> jsonResults;
-  get(query, jsonResults);
+  get(pullReq.query, jsonResults);
   for(vector<string>::iterator it = jsonResults.begin(); it != jsonResults.end(); it++)
     {
       vector<char> data(it->begin(), it->end());
-      sender->pullResponse(requestUid, pluginId, mimeType, "ammo-demo:test-object", data);
+      sender->pullResponse(pullReq.requestUid, pullReq.pluginId, pullReq.mimeType, "ammo-demo:test-object", data);
     }
 }
 

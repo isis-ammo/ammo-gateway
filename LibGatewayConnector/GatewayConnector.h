@@ -43,6 +43,23 @@ namespace ammo {
       }
     };
     
+    class PullRequest {
+    public:
+      std::string requestUid;
+      std::string pluginId;
+      std::string mimeType;
+      std::string query;
+      std::string projection;
+      unsigned int maxResults;
+      unsigned int startFromCount;
+      bool liveQuery;
+      
+      friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PullRequest &pullReq) {
+        os << "Pull from " << pullReq.pluginId << " for type " << pullReq.mimeType << " query: " << pullReq.query;
+        return os;
+      }
+    };
+    
     /**
     * This class is used to connect a gateway plugin to the core gateway.  Each 
     * plugin should use at least one instance of this class; a plugin may create
@@ -300,7 +317,7 @@ namespace ammo {
     */
     class LibGatewayConnector_Export DataPushReceiverListener {
     public:
-      virtual void onPushDataReceived(GatewayConnector *sender, PushData &pushData) = 0;
+      virtual void onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData) = 0;
     };
     
     /**
@@ -314,11 +331,7 @@ namespace ammo {
       * data type.  A plugin's implementation of this method should call
       * pullResponse at least once to send the requested data. 
       */
-      virtual void onPullRequestReceived(GatewayConnector *sender, 
-                std::string requestUid, std::string pluginId,
-                std::string mimeType, std::string query,
-                std::string projection, unsigned int maxResults,
-                unsigned int startFromCount, bool liveQuery) = 0;
+      virtual void onPullRequestReceived(GatewayConnector *sender, ammo::gateway::PullRequest &) = 0;
     };
     
     /**

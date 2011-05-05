@@ -184,21 +184,13 @@ void LocationStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
 }
 
 void
-LocationStoreReceiver::onPullRequestReceived (GatewayConnector *sender, 
-					                   std::string requestUid,
-					                   std::string pluginId,
-					                   std::string mimeType,
-					                   std::string query,
-					                   std::string /* projection */,
-					                   unsigned int maxResults,
-					                   unsigned int startFromCount,
-					                   bool /* liveQuery */)
+LocationStoreReceiver::onPullRequestReceived (GatewayConnector *sender, ammo::gateway::PullRequest &pullReq)
 {
   LOG_DEBUG ("pull request received");
-  LOG_DEBUG ("  Query: " << query);
+  LOG_DEBUG ("  Query: " << pullReq.query);
 	
   // Finalizes (cleans up) the created SQL statement in the destructor.
-  QueryStatementBuilder builder (mimeType, query, db_);
+  QueryStatementBuilder builder (pullReq.mimeType, pullReq.query, db_);
 	
   if (!builder.build ())
     {
@@ -209,13 +201,13 @@ LocationStoreReceiver::onPullRequestReceived (GatewayConnector *sender,
 	
   // If the arg is 0, we want unlimited results.	
   unsigned int resultLimit =
-    (maxResults == 0 ? ACE_UINT32_MAX : maxResults);
+    (pullReq.maxResults == 0 ? ACE_UINT32_MAX : pullReq.maxResults);
   unsigned int index = 0;
 	
   while (sqlite3_step (query_stmt) == SQLITE_ROW
 	     && index < resultLimit)
     {
-      if (index++ < startFromCount)
+      if (index++ < pullReq.startFromCount)
         {
 	      continue;
         }
@@ -239,13 +231,13 @@ LocationStoreReceiver::onPullRequestReceived (GatewayConnector *sender,
 		              sqlite3_column_blob (query_stmt, 5),
 		              len);
 		
-      LOG_DEBUG("Sending response to " << pluginId);
+      LOG_DEBUG("Sending response to " << pullReq.pluginId);
       LOG_DEBUG("  type: " << dataType);
       LOG_DEBUG("   uri: " << uri);
 		
       bool good_response =
-		sender->pullResponse (requestUid,
-							  pluginId,
+		sender->pullResponse (pullReq.requestUid,
+							  pullReq.pluginId,
 					          dataType,
 							  uri,
 					          data);

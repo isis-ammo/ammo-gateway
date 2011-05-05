@@ -41,11 +41,7 @@ public:
   virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PushData &pushData);
 
   // virtual method from PullRequestReceiverListener
-  virtual void onPullRequestReceived(ammo::gateway::GatewayConnector *sender,
-                              std::string requestUid, std::string pluginId,
-                              std::string mimeType, std::string query,
-                              std::string projection, unsigned int maxResults,
-                              unsigned int startFromCount, bool liveQuery);
+  virtual void onPullRequestReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PullRequest &pullReq);
 
 
 private:

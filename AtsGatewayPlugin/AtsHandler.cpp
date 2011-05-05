@@ -107,25 +107,17 @@ void AtsHandler::onPushDataReceived(GatewayConnector *sender,
 *  request for chat room construction
 *
 */
-void AtsHandler::onPullRequestReceived(GatewayConnector *sender,
-                              std::string requestUid,
-                              std::string pluginId,
-                              std::string dataType, 
-                              std::string query,
-                              std::string projection,
-                              unsigned int maxResults,
-                              unsigned int startFromCount,
-                              bool liveQuery)
+void AtsHandler::onPullRequestReceived(GatewayConnector *sender, ammo::gateway::PullRequest &pullReq)
 {
    CURLcode res; 
    LOG_INFO("Got pull request data.");
-   LOG_INFO( "  ReqId: " << requestUid);
-   LOG_INFO( "  Plugin: " << pluginId);
-   LOG_INFO( "  Data type: " << dataType);
-   LOG_INFO( "  Query: " << query);
-   LOG_INFO( "  Projection: " << projection);
-   LOG_INFO( "  Start Count: " << startFromCount);
-   LOG_INFO( "  Live: " << liveQuery);
+   LOG_INFO( "  ReqId: " << pullReq.requestUid);
+   LOG_INFO( "  Plugin: " << pullReq.pluginId);
+   LOG_INFO( "  Data type: " << pullReq.mimeType);
+   LOG_INFO( "  Query: " << pullReq.query);
+   LOG_INFO( "  Projection: " << pullReq.projection);
+   LOG_INFO( "  Start Count: " << pullReq.startFromCount);
+   LOG_INFO( "  Live: " << pullReq.liveQuery);
 
    CURL *curl = curl_easy_init();
    if (curl == 0) { LOG_ERROR("Failed to initialize curl."); return; }
@@ -136,17 +128,17 @@ void AtsHandler::onPullRequestReceived(GatewayConnector *sender,
    res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth().c_str());
    if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return; }
 
-   if (dataType == RTC_LIST_PEOPLE_NS) {
-      std::vector<char> data = listPeople(curl, dataType, query);
-      LOG_INFO( "pull " << dataType << " result: " << std::string(data.begin(), data.begin()+128));
-      sender->pullResponse(requestUid, pluginId, dataType, query, data);
-      LOG_INFO( "send response: " << requestUid);
+   if (pullReq.mimeType == RTC_LIST_PEOPLE_NS) {
+      std::vector<char> data = listPeople(curl, pullReq.mimeType, pullReq.query);
+      LOG_INFO( "pull " << pullReq.mimeType << " result: " << std::string(data.begin(), data.begin()+128));
+      sender->pullResponse(pullReq.requestUid, pullReq.pluginId, pullReq.mimeType, pullReq.query, data);
+      LOG_INFO( "send response: " << pullReq.requestUid);
       return;
    }
-   if (dataType == RTC_LIST_CHANNEL_NS) {
-      std::vector<char> data = listChannels(curl, dataType, query);
-      sender->pullResponse(requestUid, pluginId, dataType, query, data);
-      LOG_INFO(" Pull " << dataType << " result: " << std::string(data.begin(), data.begin()+128));
+   if (pullReq.mimeType == RTC_LIST_CHANNEL_NS) {
+      std::vector<char> data = listChannels(curl, pullReq.mimeType, pullReq.query);
+      sender->pullResponse(pullReq.requestUid, pullReq.pluginId, pullReq.mimeType, pullReq.query, data);
+      LOG_INFO(" Pull " << pullReq.mimeType << " result: " << std::string(data.begin(), data.begin()+128));
       return;
    }
 }
