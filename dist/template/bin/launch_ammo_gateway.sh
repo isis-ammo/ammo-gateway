@@ -22,7 +22,6 @@ datesuffix=`date "+%Y.%m.%d.%H.%M.%S"`
 
 gatewaycorelog="$LOGDIR/GatewayCore.log.$datesuffix"
 androidpluginlog="$LOGDIR/AndroidGatewayPlugin.log.$datesuffix"
-tigrpluginlog="$LOGDIR/TigrGatewayPlugin.log.$datesuffix"
 locationstorepluginlog="$LOGDIR/LocationStoreGatewayPlugin.log.$datesuffix"
 ldappluginlog="$LOGDIR/LdapGatewayPlugin.log.$datesuffix"
 
@@ -37,13 +36,6 @@ echo "Launching Android Gateway Plugin..."
 echo "  Log file in $androidpluginlog"
 AndroidGatewayPlugin --listenPort 33289 > $androidpluginlog 2>&1 &
 xterm -bg black -fg cyan -sb -title "Android Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $androidpluginlog" &
-
-sleep 5
-
-echo "Launching TIGR Gateway Plugin..."
-echo "  Log file in $tigrpluginlog"
-TigrGatewayPlugin > $tigrpluginlog 2>&1 &
-xterm -bg black -fg yellow -sb -title "TIGR Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $tigrpluginlog" &
 
 sleep 5
 
@@ -67,8 +59,6 @@ echo "Terminating Gateway Core..."
 kill %Gatewa
 echo "Terminating Android Gateway Plugin..."
 kill %AndroidGat
-echo "Terminating TIGR Gateway Plugin..."
-kill %TigrGat
 echo "Terminating Location Store Gateway Plugin..."
 kill %Locatio
 echo "Terminating LDAP Gateway Plugin..."
