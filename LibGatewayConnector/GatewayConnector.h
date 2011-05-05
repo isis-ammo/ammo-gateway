@@ -55,7 +55,21 @@ namespace ammo {
       bool liveQuery;
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PullRequest &pullReq) {
-        os << "Pull from " << pullReq.pluginId << " for type " << pullReq.mimeType << " query: " << pullReq.query;
+        os << "Pull << " << pullReq.requestUid << " from " << pullReq.pluginId << " for type " << pullReq.mimeType << " query: " << pullReq.query;
+        return os;
+      }
+    };
+    
+    class PullResponse {
+    public:
+      std::string requestUid;
+      std::string pluginId;
+      std::string mimeType;
+      std::string uri;
+      std::vector<char> data;
+      
+      friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PullResponse &resp) {
+        os << "Response to " << resp.pluginId << " for request " << resp.requestUid << " for type " << resp.requestUid;
         return os;
       }
     };
@@ -331,7 +345,7 @@ namespace ammo {
       * data type.  A plugin's implementation of this method should call
       * pullResponse at least once to send the requested data. 
       */
-      virtual void onPullRequestReceived(GatewayConnector *sender, ammo::gateway::PullRequest &) = 0;
+      virtual void onPullRequestReceived(GatewayConnector *sender, ammo::gateway::PullRequest &pullReq) = 0;
     };
     
     /**
@@ -340,9 +354,7 @@ namespace ammo {
     */
     class LibGatewayConnector_Export PullResponseReceiverListener {
     public:
-      virtual void onPullResponseReceived(GatewayConnector *sender, 
-                std::string requestUid, std::string pluginId, std::string mimeType,
-                std::string uri, std::vector<char> &data) = 0;
+      virtual void onPullResponseReceived(GatewayConnector *sender, PullResponse &response) = 0;
     };
 
   }

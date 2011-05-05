@@ -28,9 +28,7 @@ public:
   virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PushData &pushData);
 
   //PullResponseReceiverListener method
-  virtual void onPullResponseReceived(ammo::gateway::GatewayConnector *sender, 
-			      std::string requestUid, std::string pluginId, std::string mimeType,
-			      std::string uri, std::vector<char> &data);
+  virtual void onPullResponseReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PullResponse &response);
   
 private:
   bool closed;

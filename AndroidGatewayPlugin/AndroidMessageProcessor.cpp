@@ -168,18 +168,18 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
   commsHandler->sendMessage(msg);
 }
 
-void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::vector<char> &data) {
+void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, ammo::gateway::PullResponse &response) {
   LOG_DEBUG(commsHandler << " Sending pull response to device...");
-  LOG_DEBUG(commsHandler << "    URI: " << uri << ", Type: " << mimeType);
+  LOG_DEBUG(commsHandler << "    URI: " << response.uri << ", Type: " << response.mimeType);
   
-  std::string dataString(data.begin(), data.end());
+  std::string dataString(response.data.begin(), response.data.end());
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper();
   ammo::protocol::PullResponse *pullMsg = msg->mutable_pull_response();
 
-  pullMsg->set_request_uid(requestUid);
-  pullMsg->set_plugin_id(pluginId);
-  pullMsg->set_mime_type(mimeType);
-  pullMsg->set_uri(uri);
+  pullMsg->set_request_uid(response.requestUid);
+  pullMsg->set_plugin_id(response.pluginId);
+  pullMsg->set_mime_type(response.mimeType);
+  pullMsg->set_uri(response.uri);
   pullMsg->set_data(dataString);
   
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);

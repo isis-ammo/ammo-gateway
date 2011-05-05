@@ -27,12 +27,7 @@ public:
   virtual void onPullRequestReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PullRequest &pullReq);
 
   // PullResponseReceiverListener
-  virtual void onPullResponseReceived (ammo::gateway::GatewayConnector *sender,
-                               std::string requestUid,
-                               std::string pluginId,
-                               std::string mimeType, 
-                               std::string uri,
-                               std::vector< char > &data);
+  virtual void onPullResponseReceived (ammo::gateway::GatewayConnector *sender, ammo::gateway::PullResponse &response);
 private:
   char* baseServerAddr;
   AtsConfigMgr* config;

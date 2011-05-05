@@ -286,8 +286,13 @@ void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway
   string mimeType = msg.mime_type();
   for(map<string, PullResponseReceiverListener *>::iterator it = pullResponseListeners.begin(); it != pullResponseListeners.end(); it++) {
     if(mimeType.find(it->first) == 0) {
-      vector<char> data(msg.data().begin(), msg.data().end());
-      (*it).second->onPullResponseReceived(this, msg.request_uid(), msg.plugin_id(), msg.mime_type(), msg.uri(), data );
+      PullResponse response;
+      response.requestUid = msg.request_uid();
+      response.pluginId = msg.plugin_id();
+      response.mimeType = msg.mime_type();
+      response.uri = msg.uri();
+      response.data.assign(msg.data().begin(), msg.data().end());
+      (*it).second->onPullResponseReceived(this, response );
     }
   }
 }

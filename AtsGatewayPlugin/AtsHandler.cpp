@@ -144,20 +144,15 @@ void AtsHandler::onPullRequestReceived(GatewayConnector *sender, ammo::gateway::
 }
 
   // PullResponseReceiverListener
-void AtsHandler::onPullResponseReceived (GatewayConnector *sender,
-                               std::string requestUid,
-                               std::string pluginId,
-                               std::string dataType, 
-                               std::string uri,
-                               std::vector< char > &data)
+void AtsHandler::onPullResponseReceived (GatewayConnector *sender, ammo::gateway::PullResponse &response)
 {
    CURLcode res; 
    LOG_INFO( "Got pull response data." );
-   LOG_INFO( "  ReqId: " << requestUid );
-   LOG_INFO( "  Plugin: " << pluginId );
-   LOG_INFO( "  Data type: " << dataType );
-   LOG_INFO( "  Uri: " << uri );
-   LOG_INFO( "  Data: " << std::string(data.begin(), data.end()) );
+   LOG_INFO( "  ReqId: " << response.requestUid );
+   LOG_INFO( "  Plugin: " << response.pluginId );
+   LOG_INFO( "  Data type: " << response.mimeType );
+   LOG_INFO( "  Uri: " << response.uri );
+   LOG_INFO( "  Data: " << std::string(response.data.begin(), response.data.end()) );
 
    CURL *curl = curl_easy_init();
    if (curl == 0) { LOG_ERROR("Failed to initialize curl."); return; }
