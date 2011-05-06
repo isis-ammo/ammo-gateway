@@ -30,14 +30,27 @@ namespace ammo {
     class PullRequestReceiverListener;
     class PullResponseReceiverListener;
     
+    /**
+     * A data object.
+     */
     class PushData {
     public:
       PushData();
-      std::string uri;
-      std::string mimeType;
-      std::string data;
-      std::string originUsername;
-      ammo::gateway::MessageScope scope;
+      std::string uri;                  ///< The URI of this piece of data.  This URI should be a universally
+                                        ///  unique identifier for the object being pushed (no two pieces of
+                                        ///  data should have the same URI).
+      std::string mimeType;             ///< The MIME type of this piece of data.  This MIME type is used to
+                                        ///  determine which other gateway plugins will receive this pushed
+                                        ///  data.
+      std::string data;                 ///< The data to be pushed to the gateway.  Represented as a C++ string,
+                                        ///  but can contain any arbitrary binary data (the gateway will 
+                                        ///  accept strings with bytes invalid in C-strings such as embedded
+                                        ///  nulls).
+      std::string originUsername;       ///< The username of the user who generated this data.  May be
+                                        ///  overwritten by the gateway in some cases.  Optional.
+      ammo::gateway::MessageScope scope;///< The scope of this object (determines how many gateways to send
+                                        ///  this object to in a multiple gateway configuration).  Optional,
+                                        ///  will default to SCOPE_GLOBAL.
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PushData &pushData) {
         os << "URI: " << pushData.uri << " type: " << pushData.mimeType;
@@ -45,17 +58,28 @@ namespace ammo {
       }
     };
     
+    /**
+     * A request for data from a plugin.
+     */
     class PullRequest {
     public:
       PullRequest();
-      std::string requestUid;
-      std::string pluginId;
-      std::string mimeType;
-      std::string query;
-      std::string projection;
-      unsigned int maxResults;
-      unsigned int startFromCount;
-      bool liveQuery;
+      std::string requestUid;      ///< A unique identifier for this pull request.  It will be returned
+                                   ///  with each item returned by the pull request.
+      std::string pluginId;        ///< The unique identifier for this plugin or connected device.  For
+                                   ///  devices, this should be the same as the device ID used by
+                                   ///  associateDevice.
+      std::string mimeType;        ///< The data type to request.  Used to determine which plugin or
+                                   ///  plugins a request is routed to.
+      std::string query;           ///< The query for this pull request.  Its format is defined by the
+                                   ///  plugin handling the request.
+      std::string projection;      ///< An application-specific transformation to be applied to the results.  Optional.
+      unsigned int maxResults;     ///< The maxiumum number of results to return from this pull request.  Optional.
+      unsigned int startFromCount; ///< An offset specifying the result to begin returning from (when a
+                                   ///  subset of results is returned).  Optional.
+      bool liveQuery;              ///< Specifies a live query--  results are returned continously as they
+                                   ///  become available.  The exact behavior of this option is defined
+                                   ///  by the plugin handling the request.  Optional.
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PullRequest &pullReq) {
         os << "Pull << " << pullReq.requestUid << " from " << pullReq.pluginId << " for type " << pullReq.mimeType << " query: " << pullReq.query;
@@ -63,14 +87,20 @@ namespace ammo {
       }
     };
     
+    /**
+     * A response to a pull request.
+     */
     class PullResponse {
     public:
       PullResponse();
-      std::string requestUid;
-      std::string pluginId;
-      std::string mimeType;
-      std::string uri;
-      std::string data;
+      std::string requestUid; ///< The unique identifier for this pull request, as specified
+                              ///  in the original request.
+      std::string pluginId;   ///< The unique identifier of the device to send the response to.
+                              ///  Must match the identifier from the initial request or data
+                              ///  will not be routed correctly.
+      std::string mimeType;   ///< The data type of the data in this response.
+      std::string uri;        ///< The URI of the data in this response.
+      std::string data;       ///< The data to be sent to the requestor.
       
       /**
        * Convenience method which creates a PullResponse, prepopulating elements
