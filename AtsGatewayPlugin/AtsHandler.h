@@ -35,10 +35,10 @@ private:
 
   std::string uploadMedia(CURL *curl, std::string mediaType, std::string& payload ); 
   std::string inviteChat(CURL *curl, std::string mediaType, std::string& payload ); 
-  std::vector<char> listChannels(CURL *curl, std::string dataType, std::string query );
+  std::string listChannels(CURL *curl, std::string dataType, std::string query );
 
-  std::vector<char> listPeople(CURL *curl, std::string dataType, std::string query ); 
-  std::vector<char> listPeople(CURL *curl, std::string dataType, std::vector<char>& query ); 
+  std::string listPeople(CURL *curl, std::string dataType, std::string query ); 
+  std::string listPeople(CURL *curl, std::string dataType, std::vector<char>& query ); 
   std::string channelCreate(CURL *curl, std::string dataType, std::string& payload ); 
 
   std::string centerMap(CURL *curl, std::string dataType, std::vector< char > &query ); 

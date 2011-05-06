@@ -115,17 +115,15 @@ bool ammo::gateway::GatewayConnector::pullRequest(PullRequest &request) {
   }
 }
 
-bool ammo::gateway::GatewayConnector::pullResponse(std::string requestUid, std::string pluginId,
-				   std::string mimeType, std::string uri,
-				    std::vector<char>& data) {
+bool ammo::gateway::GatewayConnector::pullResponse(PullResponse &response) {
 
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::PullResponse *pullMsg = msg.mutable_pull_response();
-  pullMsg->set_request_uid(requestUid);
-  pullMsg->set_plugin_id(pluginId);
-  pullMsg->set_mime_type(mimeType);
-  pullMsg->set_uri(uri);
-  pullMsg->set_data( std::string(data.begin(), data.end()) );
+  pullMsg->set_request_uid(response.requestUid);
+  pullMsg->set_plugin_id(response.pluginId);
+  pullMsg->set_mime_type(response.mimeType);
+  pullMsg->set_uri(response.uri);
+  pullMsg->set_data(response.data);
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
   
@@ -335,4 +333,12 @@ ammo::gateway::PullResponse::PullResponse() :
   data()
 {
   
+}
+
+ammo::gateway::PullResponse ammo::gateway::PullResponse::createFromPullRequest(ammo::gateway::PullRequest &request) {
+  ammo::gateway::PullResponse newResponse;
+  newResponse.requestUid = request.requestUid;
+  newResponse.pluginId = request.pluginId;
+  newResponse.mimeType = request.mimeType;
+  return newResponse;
 }

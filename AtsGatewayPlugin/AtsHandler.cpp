@@ -132,16 +132,22 @@ void AtsHandler::onPullRequestReceived(GatewayConnector *sender, ammo::gateway::
    if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return; }
 
    if (pullReq.mimeType == RTC_LIST_PEOPLE_NS) {
-      std::vector<char> data = listPeople(curl, pullReq.mimeType, pullReq.query);
-      LOG_INFO( "pull " << pullReq.mimeType << " result: " << std::string(data.begin(), data.begin()+128));
-      sender->pullResponse(pullReq.requestUid, pullReq.pluginId, pullReq.mimeType, pullReq.query, data);
+      std::string data = listPeople(curl, pullReq.mimeType, pullReq.query);
+      LOG_INFO( "pull " << pullReq.mimeType << " result: " << data.substr(0, 128));
+      PullResponse resp = PullResponse::createFromPullRequest(pullReq);
+      resp.uri = pullReq.query;
+      resp.data = data;
+      sender->pullResponse(resp);
       LOG_INFO( "send response: " << pullReq.requestUid);
       return;
    }
    if (pullReq.mimeType == RTC_LIST_CHANNEL_NS) {
-      std::vector<char> data = listChannels(curl, pullReq.mimeType, pullReq.query);
-      sender->pullResponse(pullReq.requestUid, pullReq.pluginId, pullReq.mimeType, pullReq.query, data);
-      LOG_INFO(" Pull " << pullReq.mimeType << " result: " << std::string(data.begin(), data.begin()+128));
+      std::string data = listChannels(curl, pullReq.mimeType, pullReq.query);
+      PullResponse resp = PullResponse::createFromPullRequest(pullReq);
+      resp.uri = pullReq.query;
+      resp.data = data;
+      sender->pullResponse(resp);
+      LOG_INFO(" Pull " << pullReq.mimeType << " result: " << data.substr(0, 128));
       return;
    }
 }
@@ -406,7 +412,7 @@ std::string AtsHandler::inviteChat(CURL *curl, std::string mediaType, std::strin
    return returnedData;
 }
 
-std::vector<char> AtsHandler::listPeople(CURL *curl, std::string dataType, std::string query ) 
+std::string AtsHandler::listPeople(CURL *curl, std::string dataType, std::string query ) 
 {
    CURLcode res;
    // if (rc < 0) return std::vector<char>();
@@ -415,31 +421,29 @@ std::vector<char> AtsHandler::listPeople(CURL *curl, std::string dataType, std::
    Json::Value meta;
    int rc = parse_query(query, meta);
    LOG_DEBUG("parse query: "<<rc);
-
-   std::vector<char> nullRetval;
-    
+   
    // struct curl_httppost* formpost=NULL;
    // struct curl_httppost* lastptr=NULL;
 
    std::string url = config->getUrl(RTC_LIST_PEOPLE);
    LOG_DEBUG("url: "+ url);
    res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return nullRetval; }
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return ""; }
 
    std::string returnedData = "";
    res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set writer: " << curlErrorBuffer); return nullRetval; }
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set writer: " << curlErrorBuffer); return ""; }
    LOG_DEBUG("set write callback");
 
    res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &returnedData);
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set write data: " << curlErrorBuffer); return nullRetval; }
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set write data: " << curlErrorBuffer); return ""; }
    LOG_DEBUG("set place to put message");
 
    res = curl_easy_perform(curl);
    if(res != CURLE_OK) { 
      LOG_ERROR("Failed to POST data: " << curlErrorBuffer); 
      curl_easy_cleanup(curl);
-     return nullRetval;
+     return "";
    }
    LOG_DEBUG("sent message");
 
@@ -447,11 +451,10 @@ std::vector<char> AtsHandler::listPeople(CURL *curl, std::string dataType, std::
    // curl_formfree(formpost);
 
    LOG_DEBUG("Returned data from POST: " << returnedData);
-   std::vector<char> retval(returnedData.begin(),returnedData.end());
-   return retval;
+   return returnedData;
 }
 
-std::vector<char> AtsHandler::listChannels(CURL *curl, std::string dataType, std::string query ) 
+std::string AtsHandler::listChannels(CURL *curl, std::string dataType, std::string query ) 
 {
    CURLcode res;
    // parse the serialized packet
@@ -459,11 +462,10 @@ std::vector<char> AtsHandler::listChannels(CURL *curl, std::string dataType, std
    std::vector<NamedBlob> media;
    int rc = parse_query(query, meta);
    if (rc < 0) {
-      return std::vector<char>();
+      return "";
    }
 
    std::string emptyRetval("");
-   std::vector<char> nullRetval(emptyRetval.begin(),emptyRetval.end());
     
    //struct curl_httppost* formpost=NULL;
    //struct curl_httppost* lastptr=NULL;
@@ -471,31 +473,30 @@ std::vector<char> AtsHandler::listChannels(CURL *curl, std::string dataType, std
    std::string url = config->getUrl(RTC_LIST_CHANNEL);
    LOG_DEBUG("url: "+ url);
    res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return nullRetval; }
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return ""; }
 
    // res = curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
    // if(res != CURLE_OK) { LOG_ERROR("Failed to set post data: " << curlErrorBuffer); return nullRetval; }
 
    std::string returnedData = "";
    res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set writer: " << curlErrorBuffer); return nullRetval; }
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set writer: " << curlErrorBuffer); return ""; }
 
    res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &returnedData);
-   if(res != CURLE_OK) { LOG_ERROR("Failed to set write data: " << curlErrorBuffer); return nullRetval; }
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set write data: " << curlErrorBuffer); return ""; }
 
    res = curl_easy_perform(curl);
    if(res != CURLE_OK) { 
      LOG_ERROR("Failed to POST data: " << curlErrorBuffer); 
      curl_easy_cleanup(curl);
-     return nullRetval; 
+     return ""; 
    }
 
    curl_easy_cleanup(curl);
    //curl_formfree(formpost);
 
    LOG_DEBUG("Returned data from POST: " << returnedData);
-   std::vector<char> retval(returnedData.begin(),returnedData.end());
-   return retval;
+   return returnedData;
 }
 
 

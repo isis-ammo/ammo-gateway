@@ -222,25 +222,21 @@ LocationStoreReceiver::onPullRequestReceived (GatewayConnector *sender, ammo::ga
 		std::string dataType (
 		reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 1)));
 		
-	  std::vector<char> data;
+	 
 	  size_t len = sqlite3_column_bytes (query_stmt, 5);
-	  data.resize (len);
-		
-	  // This trick seems to work for assigning to the vector in one shot.	
-	  ACE_OS::memcpy (data.get_allocator ().address (*data.begin ()),
-		              sqlite3_column_blob (query_stmt, 5),
-		              len);
+    std::string data((char *)sqlite3_column_blob(query_stmt, 5), len);
 		
       LOG_DEBUG("Sending response to " << pullReq.pluginId);
       LOG_DEBUG("  type: " << dataType);
       LOG_DEBUG("   uri: " << uri);
+      
+      PullResponse response = PullResponse::createFromPullRequest(pullReq);
+      response.mimeType = dataType;
+      response.uri = uri;
+      response.data = data;
 		
       bool good_response =
-		sender->pullResponse (pullReq.requestUid,
-							  pullReq.pluginId,
-					          dataType,
-							  uri,
-					          data);
+		sender->pullResponse (response);
 		
 	  if (!good_response)
 		{

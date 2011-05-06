@@ -191,8 +191,8 @@ void SpotPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gatewa
  * Aniticipated: this will return the data from the search time to present
  * Search time will be the newest record on the pull client's content provider
  */
-
-void SpotPushReceiver::onDataReceived(GatewayConnector *sender, 
+//Commented out--  doesn't appear to be used anywhere
+/*void SpotPushReceiver::onDataReceived(GatewayConnector *sender, 
 			      std::string requestUid, std::string pluginId,
 			      std::string mimeType, std::string query,
 			      std::string projection, unsigned int maxResults,
@@ -217,6 +217,6 @@ void SpotPushReceiver::onDataReceived(GatewayConnector *sender,
   }
 
   spot_file.close();
-}
+}*/
 
 
