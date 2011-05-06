@@ -132,8 +132,16 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       // register for pull response - 
       gatewayConnector->registerPullResponseInterest(pullRequest.mime_type(), this);
       // now send request
-      gatewayConnector->pullRequest( pullRequest.request_uid(), pullRequest.plugin_id(), pullRequest.mime_type(), pullRequest.query(),
-				     pullRequest.projection(), pullRequest.max_results(), pullRequest.start_from_count(), pullRequest.live_query() );
+      PullRequest req;
+      req.requestUid = pullRequest.request_uid();
+      req.pluginId = pullRequest.plugin_id();
+      req.mimeType = pullRequest.mime_type();
+      req.query = pullRequest.query();
+      req.projection = pullRequest.projection();
+      req.maxResults = pullRequest.max_results();
+      req.startFromCount = pullRequest.start_from_count();
+      req.liveQuery = pullRequest.live_query();
+      gatewayConnector->pullRequest(req);
 
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_HEARTBEAT) {

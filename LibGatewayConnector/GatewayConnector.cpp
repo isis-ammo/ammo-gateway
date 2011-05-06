@@ -90,21 +90,18 @@ bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData
   }
 }
 
-bool ammo::gateway::GatewayConnector::pullRequest(std::string requestUid, std::string pluginId,
-				   std::string mimeType, std::string query,
-				   std::string projection, unsigned int maxResults,
-				   unsigned int startFromCount, bool liveQuery) {
+bool ammo::gateway::GatewayConnector::pullRequest(PullRequest &request) {
 
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::PullRequest *pullMsg = msg.mutable_pull_request();
-  pullMsg->set_request_uid(requestUid);
-  pullMsg->set_plugin_id(pluginId);
-  pullMsg->set_mime_type(mimeType);
-  pullMsg->set_query(query);
-  pullMsg->set_projection(projection);
-  pullMsg->set_max_results(maxResults);
-  pullMsg->set_start_from_count(startFromCount);
-  pullMsg->set_live_query(liveQuery);
+  pullMsg->set_request_uid(request.requestUid);
+  pullMsg->set_plugin_id(request.pluginId);
+  pullMsg->set_mime_type(request.mimeType);
+  pullMsg->set_query(request.query);
+  pullMsg->set_projection(request.projection);
+  pullMsg->set_max_results(request.maxResults);
+  pullMsg->set_start_from_count(request.startFromCount);
+  pullMsg->set_live_query(request.liveQuery);
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
   

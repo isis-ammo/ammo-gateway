@@ -178,10 +178,7 @@ namespace ammo {
       *
       * @return true if the operation succeeded; false if the operation failed.
       */
-      bool pullRequest(std::string requestUid, std::string pluginId,
-           std::string mimeType, std::string query,
-           std::string projection, unsigned int maxResults,
-           unsigned int startFromCount, bool liveQuery);
+      bool pullRequest(PullRequest &request);
     
       /** 
       * Sends a response to a pull request.  Used by plugins with a registered
