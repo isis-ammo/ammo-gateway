@@ -2,10 +2,16 @@ package ammo.protocol;
 
 option java_package = "edu.vu.isis.ammo.coreapplication.pb";
 
+enum MessageScope {
+  GLOBAL = 0;
+  LOCAL = 1;
+}
+
 message DataMessage {
   required string uri = 1;
   optional string mime_type = 3;
   optional bytes data = 2;
+  optional MessageScope scope = 4 [default = GLOBAL];
 }
 
 message PushAcknowledgement {
@@ -22,6 +28,7 @@ message AuthenticationMessage {
 message SubscribeMessage {
   required string mime_type = 1;
   optional string query = 2;
+  optional MessageScope scope = 3 [default = GLOBAL];
 }
 
 //Sent by gateway to show result of authentication

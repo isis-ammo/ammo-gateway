@@ -1,9 +1,0 @@
-{
-  "PassServerAddress": "http://localhost:8888/PASS", //Base address for the TIGR server (i.e. http://tigr/r4/)
-  "PassTopic": "POS-RPT:MCS:US/ARMY/BFT",
-  "PassSubscriberId": "ammosub@isis",
-  "PassSubscriberInterface": "0.0.0.0",
-  "PassSubscriberPort": 8045,
-  "PassSubscriberAddress": "http://192.168.5.2:8045/"
-}
-//:mode=javascript: (jEdit modeline for syntax highlighting)

@@ -12,20 +12,22 @@ class LocationStoreConfigManager
 public:
   static
   LocationStoreConfigManager *getInstance (
-	LocationStoreReceiver *push_receiver,
+	LocationStoreReceiver *receiver,
 	GatewayConnector *connector);
 	
 private:
   LocationStoreConfigManager (
-	LocationStoreReceiver *push_receiver,
+	LocationStoreReceiver *receiver,
 	GatewayConnector *connector);
+	
+  std::string findConfigFile ();
 	
   static LocationStoreConfigManager *sharedInstance;
 	
-  Json::Value root;
+  Json::Value root_;
 	
-  LocationStoreReceiver *receiver;
-  GatewayConnector *connector;
+  LocationStoreReceiver *receiver_;
+  GatewayConnector *connector_;
 };
 
 #endif // LOCATIONSTORE_CONFIG_MANAGER_H

@@ -1,0 +1,5 @@
+{
+  "LdapBaseAddress": "ldap://localhost", 
+  "LdapUsername": "cn=librarian,dc=books,dc=info",
+  "LdapPassword": "transappsRfun" 
+}

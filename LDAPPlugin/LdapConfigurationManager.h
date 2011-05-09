@@ -3,17 +3,24 @@
 
 #include <string>
 
-class LdapConfigurationManager {
+class LdapConfigurationManager 
+{
 public:
-  static LdapConfigurationManager* getInstance();
-  
+  LdapConfigurationManager(std::string fileName);
+  static LdapConfigurationManager* getInstance();  
+
   std::string getLdapBaseAddress();
   std::string getLdapUsername();
   std::string getLdapPassword();
+
 private:
   LdapConfigurationManager();
+  void configFromFile(std::string fileName);
+  
   static LdapConfigurationManager *sharedInstance;
   
+  std::string findConfigFile(std::string defaultConfigFile);
+
   std::string ldapBaseAddress;
   std::string ldapUsername;
   std::string ldapPassword;

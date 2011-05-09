@@ -8,7 +8,7 @@ DOT_INSTALLED=$?
 
 if [[ ( $DOXYGEN_INSTALLED != 0 ) || ( $DOT_INSTALLED != 0 ) ]]; then
 echo "Doxygen and dot must be installed to build this documentation."
-echo "To install on ubuntu, run 'sudo apt-get install doxygen dot'."
+echo "To install on ubuntu, run 'sudo apt-get install doxygen graphviz'."
 exit
 fi
 

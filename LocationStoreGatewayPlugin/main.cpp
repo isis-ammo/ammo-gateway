@@ -3,9 +3,14 @@
 #include "ace/Reactor.h"
 
 #include "log.h"
+#include "version.h"
 
 #include "LocationStore.h"
 #include "LocationStoreConfigManager.h"
+
+#include "ace/Time_Value.h"
+#include "ace/OS_NS_time.h"
+#include "ace/Date_Time.h"
 
 using namespace std;
 
@@ -14,7 +19,9 @@ using namespace std;
 #define DEBUG 0
 
 int main (int argc, char **argv)
-{  
+{
+  LOG_INFO("AMMO Location Store Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  
   LOG_DEBUG ("Creating location store receiver...");
   
   LocationStoreReceiver *pushReceiver = new LocationStoreReceiver ();
@@ -36,8 +43,6 @@ int main (int argc, char **argv)
 	
   LocationStoreConfigManager *config =
 	LocationStoreConfigManager::getInstance (pushReceiver, gatewayConnector);
-	
-  // gatewayConnector->registerDataInterest ("text/plain", pushReceiver);
 	
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance ();

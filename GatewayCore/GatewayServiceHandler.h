@@ -5,6 +5,7 @@
 #include "ace/SOCK_Stream.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
 #include <vector>
+#include "Enumerations.h"
 
 class GatewayServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH> {
 public:
@@ -17,7 +18,7 @@ public:
   void sendData(ammo::gateway::protocol::GatewayWrapper &msg);
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
   
-  bool sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser);
+  bool sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope scope);
   bool sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
 		       unsigned int maxResults, unsigned int startFromCount, bool liveQuery);
   bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string& data);

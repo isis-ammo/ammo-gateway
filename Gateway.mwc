@@ -8,8 +8,6 @@ workspace(AndroidGatewayPlugin) {
   SamplePushTestDriverPlugin/
   LocationStoreGatewayPlugin/
   LDAPPlugin/
-  TigrGatewayPlugin/
-  PassGatewayPlugin/
   SpotPushReceiverGatewayPlugin/
   AtsGatewayPlugin/
 }

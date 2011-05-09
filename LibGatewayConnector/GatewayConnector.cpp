@@ -65,12 +65,18 @@ bool GatewayConnector::associateDevice(string device, string user, string key) {
   }
 }
 
-bool GatewayConnector::pushData(string uri, string mimeType, const string &data) {
+bool GatewayConnector::pushData(string uri, string mimeType, const string &data, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
   pushMsg->set_uri(uri);
   pushMsg->set_mime_type(mimeType);
   pushMsg->set_data(data);
+  
+  if(scope == SCOPE_LOCAL) {
+    pushMsg->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    pushMsg->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   
@@ -139,10 +145,16 @@ bool GatewayConnector::pullResponse(std::string requestUid, std::string pluginId
 
 
 
-bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverListener *listener) {
+bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverListener *listener, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::RegisterDataInterest *di = msg.mutable_register_data_interest();
   di->set_mime_type(mime_type);
+  
+  if(scope == SCOPE_LOCAL) {
+    di->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    di->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST);
   
@@ -158,10 +170,16 @@ bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverLi
   }
 }
 
-bool GatewayConnector::unregisterDataInterest(string mime_type) {
+bool GatewayConnector::unregisterDataInterest(string mime_type, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::UnregisterDataInterest *di = msg.mutable_unregister_data_interest();
   di->set_mime_type(mime_type);
+  
+  if(scope == SCOPE_LOCAL) {
+    di->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    di->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST);
   
@@ -238,7 +256,11 @@ void GatewayConnector::onPushDataReceived(const ammo::gateway::protocol::PushDat
   vector<char> data(msg.data().begin(), msg.data().end());
   string originUser = msg.origin_user();
   
-  receiverListeners[mimeType]->onDataReceived(this, uri, mimeType, data, originUser);
+  for(map<string, DataPushReceiverListener *>::iterator it = receiverListeners.begin(); it != receiverListeners.end(); it++) {
+    if(mimeType.find(it->first) == 0) {
+      it->second->onDataReceived(this, uri, mimeType, data, originUser);
+    }
+  }
 }
 
 void GatewayConnector::onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg) {
@@ -253,10 +275,11 @@ void GatewayConnector::onPullRequestReceived(const ammo::gateway::protocol::Pull
 
 void GatewayConnector::onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg) {
   string mimeType = msg.mime_type();
-  map<std::string, PullResponseReceiverListener *>::iterator it = pullResponseListeners.find(mimeType);
-  if ( it != pullResponseListeners.end() ) {
-    vector<char> data(msg.data().begin(), msg.data().end());
-    (*it).second->onDataReceived(this, msg.request_uid(), msg.plugin_id(), msg.mime_type(), msg.uri(), data );
+  for(map<string, PullResponseReceiverListener *>::iterator it = pullResponseListeners.begin(); it != pullResponseListeners.end(); it++) {
+    if(mimeType.find(it->first) == 0) {
+      vector<char> data(msg.data().begin(), msg.data().end());
+      (*it).second->onDataReceived(this, msg.request_uid(), msg.plugin_id(), msg.mime_type(), msg.uri(), data );
+    }
   }
 }
 

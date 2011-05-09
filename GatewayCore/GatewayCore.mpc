@@ -13,12 +13,13 @@ project(GatewayCore) : aceexe, protobuf, gatewaycommon {
   }
   
   Protobuf_Files {
-    protocol/GatewayPrivateMessages.proto
+    ../common/protocol/GatewayPrivateMessages.proto
   }
   
   Source_Files {
     main.cpp
     GatewayServiceHandler.cpp
+    CrossGatewayServiceHandler.cpp
     GatewayCore.cpp
     GatewayConfigurationManager.cpp
   }

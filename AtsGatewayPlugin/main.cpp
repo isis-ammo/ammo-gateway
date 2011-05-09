@@ -4,6 +4,8 @@
 #include <string>
 
 #include "log.h"
+#include "version.h"
+
 #include "ace/Reactor.h"
 
 #include "AtsHandler.h"
@@ -28,6 +30,7 @@ int setRegisterPullInterest(GatewayConnector* gwc, std::string interest, AtsHand
 }
 
 int main(int argc, char **argv) {  
+  LOG_INFO("AMMO Ats Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   AtsConfigMgr* config = AtsConfigMgr::getInstance(); // load the configuration file
 
   LOG_DEBUG("Creating gateway connector...");
@@ -57,6 +60,10 @@ int main(int argc, char **argv) {
   setRegisterDataInterest(gwc, RTC_INVITE_NS, dataHandler);
   setRegisterDataInterest(gwc, RTC_SHARE_GPS_NS, dataHandler);
   
+  setRegisterDataInterest(gwc, PLI_POST_LOC_NS, dataHandler); // Scope: LOCAL - the subscribe API does not have a scope parameter currently
+  setRegisterDataInterest(gwc, PLI_POST_LOCS_NS, dataHandler); // Scope: GLOBAL 
+
+
   // Get the process-wide ACE_Reactor (i.e. the one with which the acceptor should have registered)
   ACE_Reactor* reactor = ACE_Reactor::instance();
   std::cout << "Starting event loop..." << std::endl << std::flush;

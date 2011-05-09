@@ -68,6 +68,16 @@ void AtsHandler::onDataReceived(GatewayConnector *sender,
    res = curl_easy_setopt(curl, CURLOPT_USERPWD, config->getHttpAuth(originUsername).c_str());
    if(res != CURLE_OK) { LOG_ERROR("Failed to set user/pass: " << curlErrorBuffer); return; }
 
+   if (dataType == PLI_POST_LOC_NS) {
+     std::string result = postLocation(curl, dataType, payload);
+     LOG_INFO(" Push " << dataType << " result: " << result);
+     return;
+   }
+   if (dataType == PLI_POST_LOCS_NS) {
+     std::string result = postLocations(curl, dataType, payload);
+     LOG_INFO(" Push " << dataType << " result: " << result);
+     return;
+   }
    if (dataType == RTC_UPLOAD_CHANNEL_MEDIA_NS) {
       std::string result = uploadMedia(curl, dataType, payload);
       LOG_INFO(" Push " << dataType << " result: " << result);
@@ -591,6 +601,113 @@ std::string AtsHandler::centerMap(CURL *curl, std::string dataType, std::vector<
    curl_formadd(&formpost, &lastptr,
                 CURLFORM_COPYNAME, "lon",
                 CURLFORM_COPYCONTENTS, meta["lon"].asString().c_str(),
+                CURLFORM_END);
+
+   res = curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set post data: " << curlErrorBuffer); return ""; }
+
+   std::string returnedData = "";
+   res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set writer: " << curlErrorBuffer); return ""; }
+
+   res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &returnedData);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set write data: " << curlErrorBuffer); return ""; }
+
+   res = curl_easy_perform(curl);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to POST data: " << curlErrorBuffer); returnedData = ""; }
+
+   curl_easy_cleanup(curl);
+   curl_formfree(formpost);
+
+   LOG_DEBUG("Returned data from POST: " << returnedData);
+
+   return returnedData;
+}
+
+size_t print_httppost_callback(void *arg, const char *buf, size_t len)
+{
+  fwrite(buf, len, 1, stdout);
+  (*(size_t *) arg) += len;
+  return len;
+}
+
+
+
+std::string AtsHandler::postLocation(CURL *curl, std::string dataType, std::vector< char > &payload ) 
+{
+   CURLcode res;
+   // parse the serialized packet
+   Json::Value meta;
+   int rc = parse_query(payload, meta);
+   if (rc < 0) return ""; // the parsing of the payload failed.
+    
+   struct curl_httppost* formpost=NULL;
+   struct curl_httppost* lastptr=NULL;
+
+   std::string url = config->getUrl(PLI_POST_LOC);
+   LOG_DEBUG("url: "+ url);
+   res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return ""; }
+
+   std::ostringstream lat, lon;
+   lat << meta["lat"].asInt();
+   lon << meta["lon"].asInt();
+
+   curl_formadd(&formpost, &lastptr,
+                CURLFORM_COPYNAME, "lat",
+                CURLFORM_COPYCONTENTS, lat.str().c_str(),
+                CURLFORM_END);
+
+   curl_formadd(&formpost, &lastptr,
+                CURLFORM_COPYNAME, "lon",
+                CURLFORM_COPYCONTENTS, lon.str().c_str(),
+                CURLFORM_END);
+
+   res = curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set post data: " << curlErrorBuffer); return ""; }
+
+   std::string returnedData = "";
+   res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set writer: " << curlErrorBuffer); return ""; }
+
+   res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &returnedData);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set write data: " << curlErrorBuffer); return ""; }
+
+   res = curl_easy_setopt(curl, CURLOPT_VERBOSE, true);
+
+   // DEBUG: uncomment to check the contents of the FORM post
+   // size_t total_size = 0;
+   // curl_formget(formpost, &total_size, print_httppost_callback);
+
+   res = curl_easy_perform(curl);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to POST data: " << curlErrorBuffer); returnedData = ""; }
+
+   curl_easy_cleanup(curl);
+   curl_formfree(formpost);
+
+   LOG_DEBUG("Returned data from POST: " << returnedData);
+
+   return returnedData;
+}
+
+
+std::string AtsHandler::postLocations(CURL *curl, std::string dataType, std::vector< char > &payload ) 
+{
+   CURLcode res;
+   // no need to parse payload - it is already a JSON buffer
+   
+    
+   struct curl_httppost* formpost=NULL;
+   struct curl_httppost* lastptr=NULL;
+
+   std::string url = config->getUrl(PLI_POST_LOCS);
+   LOG_DEBUG("url: "+ url);
+   res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return ""; }
+
+   curl_formadd(&formpost, &lastptr,
+                CURLFORM_COPYNAME, "json",
+                CURLFORM_COPYCONTENTS, &payload[0], // conversion from std::vector<char> to char *
                 CURLFORM_END);
 
    res = curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
