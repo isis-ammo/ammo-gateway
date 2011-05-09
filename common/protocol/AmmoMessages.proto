@@ -1,12 +1,37 @@
 package ammo.protocol;
 
-option java_package = "edu.vu.isis.ammo.coreapplication.pb";
+option java_package = "edu.vu.isis.ammo.core.pb";
+
+/**
+*  Android device to Gateway protocol.
+*  
+*  In all cases...
+*  
+*  data : is not defined by the gateway protocols but by specific application protocols.
+*   
+*  mime_type : a type specification providing enough information to identify the data 
+*              so that the proper readers will be invoked or notified.
+*   e.g. application/vnd.ammo.incident
+*        application/vnd.tigr.report
+*    It is the responsibility of a plug-in to mutate these mime types as needed for other uses.
+*    
+*  uri : when used serves as a unique identifier for the data being sent.
+*    It includes the name of the source type and an optional tuple id.
+*    If the tuple id is missing the receiver must force uniqueness itself.
+*/
 
 enum MessageScope {
   GLOBAL = 0;
   LOCAL = 1;
 }
 
+/**
+* When data is to be sent to the Gateway for distribution.
+* 
+* uri : is a unique identifier of the primary source of the data.
+* scope : the scope of this message (used to determine how many gateways
+*         to send this message to in a multiple-gateway configuration).
+*/
 message DataMessage {
   required string uri = 1;
   optional string mime_type = 3;
@@ -14,29 +39,55 @@ message DataMessage {
   optional MessageScope scope = 4 [default = GLOBAL];
 }
 
+/**
+* Sent from the Android plugin to the device when a DataMessage is
+* received.
+*/
 message PushAcknowledgement {
   required string uri = 1;
 }
 
-//Sent on initial connection to gateway to authenticate user
+/**
+* Sent on initial connection to gateway to authenticate user.
+* 
+* device : a unique identifier for the device
+*
+* user : a unique identifier for the user/role
+* 
+* key : an encrypted version of the user's pass key.
+*    If the key is not sent then the session_id must be sent.
+*    A request without a key or with a session_id is a 
+*    request for a new authenticated session.
+*/
 message AuthenticationMessage {
   required string device_id = 1;
   required string user_id = 2;
   required string user_key = 3;
 }
 
+/**
+* Subscribes to data of the specified type.
+*/
 message SubscribeMessage {
   required string mime_type = 1;
   optional string query = 2;
   optional MessageScope scope = 3 [default = GLOBAL];
 }
 
+/**
+* Unsubscribes from data of the specified type.  The scope parameter
+* should match that of the original subscription request.
+*/
 message UnsubscribeMessage {
   required string mime_type = 1;
   optional MessageScope scope = 3 [default = GLOBAL];
 }
 
-//Sent by gateway to show result of authentication
+/**
+* Sent in response to an AuthnenticationMessage.
+* 
+* result : was the association successful?
+*/
 message AuthenticationResult {
   enum Status {
     FAILED = 0;
@@ -46,6 +97,26 @@ message AuthenticationResult {
   optional string message = 2;
 }
 
+/**
+* A request for data of a particular type.
+
+*  request_uid      : A unique identifier for this pull request.  It will be
+*                     returned with each item returned by the pull request.
+*  plugin_id        : The unique identifier for this plugin or connected device.
+*                     For devices, should be the same as the device ID used by
+*                     associateDevice.
+*  mime_type        : The data type to request.  mimeType is used to determine
+*                     which plugin or plugins a request is routed to.
+*  query            : The query for this pull request.  Its format is defined
+*                     by the plugin handling the request. 
+*  max_results      : The maximum number of results to return from this pull
+*                     request.
+*  start_from_count : An offset specifying the result to begin returning
+*                     from (when a subset of results is returned).
+*  live_query       : Specifies a live query--  results are returned continuously
+*                     as they become available.  The exact behavior of this
+*                     option is defined by the plugin handling the request.
+*/
 message PullRequest {
   required string request_uid = 1;
   required string plugin_id = 2;
@@ -57,6 +128,11 @@ message PullRequest {
   optional bool live_query = 8 [default = false];
 }
 
+/**
+* A data item returned from a pull request.
+* 
+* see PullRequest for request_id, plugin_id and mime_type.
+*/
 message PullResponse {
   required string request_uid = 1;
   required string plugin_id = 2;
@@ -65,6 +141,10 @@ message PullResponse {
   required bytes data = 5;
 }
 
+/**
+* A periodic heartbeat message.  When received by the AndroidGatewayPlugin,
+* a Heartbeat will be sent back to the device with the same sequence number.
+*/
 message Heartbeat {
   required uint64 sequence_number = 1;
 }
