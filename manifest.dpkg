@@ -1,4 +1,4 @@
-ant
+ant1.8
 g++
 libprotobuf-dev
 libsqlite3-dev
