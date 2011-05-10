@@ -30,7 +30,7 @@
 #  endif
 # endif
 
-# ifdef JSON_IN_CPPTL
+/*# ifdef JSON_IN_CPPTL
 #  define JSON_API CPPTL_API
 # elif defined(JSON_DLL_BUILD)
 #  define JSON_API __declspec(dllexport)
@@ -38,6 +38,31 @@
 #  define JSON_API __declspec(dllimport)
 # else
 #  define JSON_API
-# endif
+# endif*/
+
+#if defined _WIN32 || defined __CYGWIN__
+  #ifdef JSON_DLL_BUILD
+    #ifdef __GNUC__
+      #define JSON_API __attribute__((dllexport))
+    #else
+      #define JSON_API __declspec(dllexport) // Note: actually gcc seems to also supports this syntax.
+    #endif
+  #else
+    #ifdef __GNUC__
+      #define JSON_API __attribute__((dllimport))
+    #else
+      #define JSON_API __declspec(dllimport) // Note: actually gcc seems to also supports this syntax.
+    #endif
+  #endif
+  #define JSON_LOCAL
+#else
+  #if __GNUC__ >= 4
+    #define JSON_API __attribute__ ((visibility("default")))
+    #define JSON_LOCAL  __attribute__ ((visibility("hidden")))
+  #else
+    #define JSON_API
+    #define JSON_LOCAL
+  #endif
+#endif
 
 #endif // JSON_CONFIG_H_INCLUDED
