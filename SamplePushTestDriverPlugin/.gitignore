@@ -1,6 +1,6 @@
 Makefile*
 *.o
 .depend*
-SamplePushReceiverGatewayPlugin
-SamplePushReceiverGatewayPlugin.exe
+SamplePushTestDriverPlugin
+SamplePushTestDriverPlugin.exe
 Debug\

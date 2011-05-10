@@ -4,3 +4,4 @@
 Makefile*
 *.o
 *.so
+libgeotrans-mgrs.so*
