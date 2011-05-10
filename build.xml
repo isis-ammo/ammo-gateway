@@ -119,7 +119,7 @@ Built on ${os.arch} ${os.name} ${os.version}
     <target name="configure"
         description="constructing makefiles" depends="-update-gatewayversion">
         <exec executable="mwc.pl" dir="." searchpath="true">
-           <arg value="--type"/> <arg value="make"/>
+           <arg value="--type"/> <arg value="gnuace"/>
            <arg value="Gateway.mwc"/>
         </exec>
     </target>
