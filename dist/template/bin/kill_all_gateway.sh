@@ -17,3 +17,5 @@ killall -9 GatewayCore
 killall -9 AndroidGatewayPlugin
 killall -9 LdapGatewayPlugin
 killall -9 LocationStoreGatewayPlugin
+
+exit 0
