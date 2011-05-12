@@ -5,6 +5,7 @@
 #include "ace/SOCK_Stream.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
 #include <vector>
+#include <queue>
 
 class GatewayConnector;
 
@@ -16,7 +17,9 @@ public:
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   int handle_output(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   
-  void sendData(ammo::gateway::protocol::GatewayWrapper &msg);
+  void sendData(ammo::gateway::protocol::GatewayWrapper *msg);
+  ammo::gateway::protocol::GatewayWrapper *getNextMessageToSend();
+  
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
   
   void setParentConnector(GatewayConnector *parent);
@@ -36,7 +39,15 @@ protected:
   char *collectedData;
   unsigned int position;
   
+  char *dataToSend;
+  unsigned int sendPosition;
+  unsigned int sendBufferSize;
+  
+  ACE_Thread_Mutex sendQueueMutex;
+  
   GatewayConnector *parent;
+  
+  std::queue<ammo::gateway::protocol::GatewayWrapper *> sendQueue;
 };
 
 #endif        //  #ifndef GATEWAY_SERVICE_HANDLER_H

@@ -47,13 +47,13 @@ GatewayConnector::~GatewayConnector() {
 }
   
 bool GatewayConnector::associateDevice(string device, string user, string key) {
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::AssociateDevice *associateMsg = msg.mutable_associate_device();
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::AssociateDevice *associateMsg = msg->mutable_associate_device();
   associateMsg->set_device(device);
   associateMsg->set_user(user);
   associateMsg->set_key(key);
   
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE);
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE);
   
   LOG_DEBUG("Sending Associate Device message to gateway core");
   if(connected) {
@@ -66,8 +66,8 @@ bool GatewayConnector::associateDevice(string device, string user, string key) {
 }
 
 bool GatewayConnector::pushData(string uri, string mimeType, const string &data, MessageScope scope) {
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
   pushMsg->set_uri(uri);
   pushMsg->set_mime_type(mimeType);
   pushMsg->set_data(data);
@@ -78,7 +78,7 @@ bool GatewayConnector::pushData(string uri, string mimeType, const string &data,
     pushMsg->set_scope(ammo::gateway::protocol::GLOBAL);
   }
   
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   
   LOG_DEBUG("Sending Data Push message to gateway core");
   if(connected) {
@@ -95,8 +95,8 @@ bool GatewayConnector::pullRequest(std::string requestUid, std::string pluginId,
 				   std::string projection, unsigned int maxResults,
 				   unsigned int startFromCount, bool liveQuery) {
 
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::PullRequest *pullMsg = msg.mutable_pull_request();
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::PullRequest *pullMsg = msg->mutable_pull_request();
   pullMsg->set_request_uid(requestUid);
   pullMsg->set_plugin_id(pluginId);
   pullMsg->set_mime_type(mimeType);
@@ -106,7 +106,7 @@ bool GatewayConnector::pullRequest(std::string requestUid, std::string pluginId,
   pullMsg->set_start_from_count(startFromCount);
   pullMsg->set_live_query(liveQuery);
   
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
   
   LOG_DEBUG("Sending Pull Request message to gateway core");
   if(connected) {
@@ -122,15 +122,15 @@ bool GatewayConnector::pullResponse(std::string requestUid, std::string pluginId
 				   std::string mimeType, std::string uri,
 				    std::vector<char>& data) {
 
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::PullResponse *pullMsg = msg.mutable_pull_response();
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::PullResponse *pullMsg = msg->mutable_pull_response();
   pullMsg->set_request_uid(requestUid);
   pullMsg->set_plugin_id(pluginId);
   pullMsg->set_mime_type(mimeType);
   pullMsg->set_uri(uri);
   pullMsg->set_data( std::string(data.begin(), data.end()) );
   
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
   
   LOG_DEBUG("Sending Pull Response message to gateway core");
   if(connected) {
@@ -146,8 +146,8 @@ bool GatewayConnector::pullResponse(std::string requestUid, std::string pluginId
 
 
 bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverListener *listener, MessageScope scope) {
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::RegisterDataInterest *di = msg.mutable_register_data_interest();
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::RegisterDataInterest *di = msg->mutable_register_data_interest();
   di->set_mime_type(mime_type);
   
   if(scope == SCOPE_LOCAL) {
@@ -156,7 +156,7 @@ bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverLi
     di->set_scope(ammo::gateway::protocol::GLOBAL);
   }
   
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST);
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST);
   
   LOG_DEBUG("Sending RegisterDataInterest message to gateway core");
   if(connected) {
@@ -171,8 +171,8 @@ bool GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverLi
 }
 
 bool GatewayConnector::unregisterDataInterest(string mime_type, MessageScope scope) {
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::UnregisterDataInterest *di = msg.mutable_unregister_data_interest();
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::UnregisterDataInterest *di = msg->mutable_unregister_data_interest();
   di->set_mime_type(mime_type);
   
   if(scope == SCOPE_LOCAL) {
@@ -181,7 +181,7 @@ bool GatewayConnector::unregisterDataInterest(string mime_type, MessageScope sco
     di->set_scope(ammo::gateway::protocol::GLOBAL);
   }
   
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST);
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST);
   
   LOG_DEBUG("Sending UnregisterDataInterest message to gateway core");
   if(connected) {
@@ -196,11 +196,11 @@ bool GatewayConnector::unregisterDataInterest(string mime_type, MessageScope sco
 
 
 bool GatewayConnector::registerPullInterest(string mime_type, PullRequestReceiverListener *listener) {
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::RegisterPullInterest *di = msg.mutable_register_pull_interest();
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::RegisterPullInterest *di = msg->mutable_register_pull_interest();
   di->set_mime_type(mime_type);
   
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST);
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST);
   
   LOG_DEBUG("Sending RegisterPullInterest message to gateway core");
   if(connected) {
@@ -215,11 +215,11 @@ bool GatewayConnector::registerPullInterest(string mime_type, PullRequestReceive
 }
 
 bool GatewayConnector::unregisterPullInterest(string mime_type) {
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::UnregisterPullInterest *di = msg.mutable_unregister_pull_interest();
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::UnregisterPullInterest *di = msg->mutable_unregister_pull_interest();
   di->set_mime_type(mime_type);
   
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST);
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST);
   
   LOG_DEBUG("Sending UnregisterPullInterest message to gateway core");
   if(connected) {
