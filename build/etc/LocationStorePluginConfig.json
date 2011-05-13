@@ -1,9 +1,9 @@
 {
   "MimeTypes": [ "text/plain",
 		  "application/vnd.edu.vu.isis.ammo.dash.event",
-                  "application/vnd.edu.vu.isis.ammo.dash.media",
-                  "application/vnd.edu.vu.isis.ammo.sms.message",
-                  "application/vnd.edu.vu.isis.ammo.report.report_base" ]
+      "application/vnd.edu.vu.isis.ammo.dash.media",
+      "application/vnd.edu.vu.isis.ammo.sms.message",
+      "application/vnd.edu.vu.isis.ammo.report.report_base" ]
 
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)

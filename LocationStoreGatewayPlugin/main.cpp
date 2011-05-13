@@ -27,14 +27,49 @@ int main (int argc, char **argv)
   LocationStoreReceiver *pushReceiver = new LocationStoreReceiver ();
   
 #if DEBUG
-	
+
   string uri ("http://battalion/company/platoon/squad.mil");
-  string mime_t ("text/plain");
+  string mime_t ("application/vnd.edu.vu.isis.ammo.dash.event");
   string origin_user ("gi.joe@usarmy.mil");
-  std::vector<char> data (128, 'x');
+
+  Json::Value value;
+  value["uuid"] = "3q;4lkj34t:8b";
+  value["mediaCount"] = 3;
+  value["displayName"] = "Do you know who I am?";
+  value["categoryId"] = "famous names";
+  value["title"] = "lord mayor";
+  value["description"] = "fat cat";
+  value["longitude"] = 122.45;
+  value["latitude"] = 67.89;
+  value["createdDate"] = 1020000000;
+  value["modifiedDate"] = 1030000000;
+ 
+  std::string styled_string (value.toStyledString ());
+  
+  std::vector<char> data (styled_string.length ());
+  ACE_OS::memcpy (data.get_allocator ().address (*data.begin ()),
+                  styled_string.c_str (),
+                  styled_string.length ());
 	
   pushReceiver->onDataReceived (0, uri, mime_t, data, origin_user);
+  
+  value["longitude"] = 123.56;
+  styled_string = value.toStyledString ();
+  data.resize (styled_string.length ());
 	
+  ACE_OS::memcpy (data.get_allocator ().address (*data.begin ()),
+                  styled_string.c_str (),
+                  styled_string.length ());
+	
+  pushReceiver->onDataReceived (0, uri, mime_t, data, origin_user);
+  
+  std::string requestUid ("requestUid");
+  std::string pluginId ("pluginId");
+  std::string query (",,,,");
+  std::string projection (",,,,,,,,123.11,,,,,,");
+  
+  pushReceiver->onDataReceived (0, requestUid, pluginId, mime_t, query, projection, 0, 0, false);
+  
   delete pushReceiver;
 	
 #else

@@ -41,8 +41,8 @@ QueryStatementBuilder::build (void)
       return false;
     }
   
-  //this appends the last query parameter (the user that a message was directed
-  //to) to the MIME type, in accordance with the way SMS messages are constructed.
+  // this appends the last query parameter (the user that a message was directed
+  // to) to the MIME type, in accordance with the way SMS messages are constructed.
   if (parser_.directed_user () != "") {
     mime_type_ = mime_type_ + "_" + parser_.directed_user();
     LOG_TRACE("Querying for " << mime_type_);

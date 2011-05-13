@@ -13,10 +13,18 @@ project(LocationStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewaypl
   exename = LocationStoreGatewayPlugin
 
   Source_Files {
-    main.cpp
+    EventFilter.cpp
+    EventProjectionParser.cpp
     LocationStore.cpp
     LocationStoreConfigManager.cpp
+    main.cpp
+    MediaFilter.cpp
+    MediaProjectionParser.cpp
+    ProjectionFilter.cpp
     QueryParamParser.cpp
     QueryStatementBuilder.cpp
+    SMSFilter.cpp
+    SMSProjectionParser.cpp
+    StringParser.cpp
   }
 }
