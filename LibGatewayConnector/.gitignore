@@ -3,3 +3,4 @@ Makefile*
 .depend*
 Debug\
 libgatewayconnector.so*
+libgatewayconnector.dylib*
