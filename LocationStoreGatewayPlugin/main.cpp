@@ -16,7 +16,7 @@ using namespace std;
 
 // Quick way to switch between plugin debugging, where this main() is run
 // by hand, and normal operation.
-#define DEBUG 1
+#define DEBUG 0
 
 int main (int argc, char **argv)
 {
