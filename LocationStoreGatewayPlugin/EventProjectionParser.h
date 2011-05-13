@@ -28,6 +28,15 @@ public:
   const std::string &createdDate_max (void) const;
   const std::string &modifiedDate_min (void) const;
   const std::string &modifiedDate_max (void) const;
+  const std::string &cid (void) const;
+  const std::string &category (void) const;
+  const std::string &unit (void) const;
+  const std::string &size_min (void) const;
+  const std::string &size_max (void) const;
+  const std::string &dest_group_name (void) const;
+  const std::string &dest_group_type (void) const;
+  const std::string &status_min (void) const;
+  const std::string &status_max (void) const;
 
 private:
   std::string uuid_;
@@ -45,6 +54,15 @@ private:
   std::string createdDate_max_;
   std::string modifiedDate_min_;
   std::string modifiedDate_max_;
+  std::string cid_;
+  std::string category_;
+  std::string unit_;
+  std::string size_min_;
+  std::string size_max_;
+  std::string dest_group_type_;
+  std::string dest_group_name_;
+  std::string status_min_;
+  std::string status_max_;
 };
 
 #endif // EVENT_PROJECTION_PARSER_H

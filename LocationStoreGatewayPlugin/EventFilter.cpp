@@ -33,7 +33,15 @@ EventFilter::match (void)
     && match_int (parser_.createdDate_min (), root_["createdDate"].asInt (), true)
     && match_int (parser_.createdDate_max (), root_["createdDate"].asInt (), false)
     && match_int (parser_.modifiedDate_min (), root_["modifiedDate"].asInt (), true)
-    && match_int (parser_.modifiedDate_max (), root_["modifiedDate"].asInt (), false);
+    && match_string (parser_.cid (), root_["cid"].asString ())
+    && match_string (parser_.category (), root_["category"].asString ())
+    && match_string (parser_.unit (), root_["unit"].asString ())
+    && match_int (parser_.size_min (), root_["size"].asInt (), true)
+    && match_int (parser_.size_max (), root_["size"].asInt (), false)
+    && match_string (parser_.dest_group_name (), root_["dest_group_name"].asString ())
+    && match_string (parser_.dest_group_type (), root_["dest_group_type"].asString ())
+    && match_int (parser_.status_min (), root_["status"].asInt (), true)
+    && match_int (parser_.status_max (), root_["statuc"].asInt (), false);
 }
 
 

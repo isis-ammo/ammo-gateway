@@ -23,6 +23,15 @@ EventProjectionParser::parse (const std::string &params)
   tokenize (createdDate_max_, params);
   tokenize (modifiedDate_min_, params);
   tokenize (modifiedDate_max_, params);
+  tokenize (cid_, params);
+  tokenize (category_, params);
+  tokenize (unit_, params);
+  tokenize (size_min_, params);
+  tokenize (size_max_, params);
+  tokenize (dest_group_name_, params);
+  tokenize (dest_group_type_, params);
+  tokenize (status_min_, params);
+  tokenize (status_max_, params);
   
   fini_check (params);
 }
@@ -116,5 +125,60 @@ EventProjectionParser::modifiedDate_max (void) const
 {
   return modifiedDate_max_;
 }
+
+const std::string &
+EventProjectionParser::cid (void) const
+{
+  return cid_;
+}
+
+const std::string &
+EventProjectionParser::category (void) const
+{
+  return category_;
+}
+
+const std::string &
+EventProjectionParser::unit (void) const
+{
+  return unit_;
+}
+
+const std::string &
+EventProjectionParser::size_min (void) const
+{
+  return size_min_;
+}
+
+const std::string &
+EventProjectionParser::size_max (void) const
+{
+  return size_max_;
+}
+
+const std::string &
+EventProjectionParser::dest_group_name (void) const
+{
+  return dest_group_name_;
+}
+
+const std::string &
+EventProjectionParser::dest_group_type (void) const
+{
+  return dest_group_type_;
+}
+
+const std::string &
+EventProjectionParser::status_min (void) const
+{
+  return status_min_;
+}
+
+const std::string &
+EventProjectionParser::status_max (void) const
+{
+  return status_max_;
+}
+
 
 

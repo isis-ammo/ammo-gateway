@@ -16,7 +16,7 @@ using namespace std;
 
 // Quick way to switch between plugin debugging, where this main() is run
 // by hand, and normal operation.
-#define DEBUG 0
+#define DEBUG 1
 
 int main (int argc, char **argv)
 {
@@ -43,7 +43,7 @@ int main (int argc, char **argv)
   value["latitude"] = 67.89;
   value["createdDate"] = 1020000000;
   value["modifiedDate"] = 1030000000;
- 
+  
   std::string styled_string (value.toStyledString ());
   
   std::vector<char> data (styled_string.length ());
