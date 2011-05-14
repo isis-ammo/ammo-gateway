@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
   LOG_INFO("AMMO Android Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
+#ifndef _WIN32 //TODO:  Use the correct ACE paradigm for handling signals so both Win32 and *nix work correctly
   {
     struct sigaction sa;
     sigemptyset(&sa.sa_mask);
@@ -32,6 +33,7 @@ int main(int argc, char **argv) {
     sa.sa_handler = SIG_IGN;
     sigaction(SIGPIPE, &sa, 0);
   }
+#endif
   
   string androidAddress = "0.0.0.0";
   int androidPort = 32869;

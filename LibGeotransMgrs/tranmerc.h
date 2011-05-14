@@ -1,6 +1,8 @@
 #ifndef TRANMERC_H
   #define TRANMERC_H
 
+#include "GeotransExport.h"
+
 /***************************************************************************/
 /* RSC IDENTIFIER: TRANSVERSE MERCATOR
  *
@@ -113,7 +115,7 @@ extern "C" {
   #endif
 
 
-  long Set_Transverse_Mercator_Parameters(double a,      
+  long GEOTRANS_API Set_Transverse_Mercator_Parameters(double a,      
                                           double f,
                                           double Origin_Latitude,
                                           double Central_Meridian,
@@ -139,7 +141,7 @@ extern "C" {
  */
 
 
-  void Get_Transverse_Mercator_Parameters(double *a,
+  void GEOTRANS_API Get_Transverse_Mercator_Parameters(double *a,
                                           double *f,
                                           double *Origin_Latitude,
                                           double *Central_Meridian,
@@ -162,7 +164,7 @@ extern "C" {
  */
 
 
-  long Convert_Geodetic_To_Transverse_Mercator (double Latitude,
+  long GEOTRANS_API Convert_Geodetic_To_Transverse_Mercator (double Latitude,
                                                 double Longitude,
                                                 double *Easting,
                                                 double *Northing);
@@ -182,7 +184,7 @@ extern "C" {
  */
 
 
-  long Convert_Transverse_Mercator_To_Geodetic (double Easting,
+  long GEOTRANS_API Convert_Transverse_Mercator_To_Geodetic (double Easting,
                                                 double Northing,
                                                 double *Latitude,
                                                 double *Longitude);

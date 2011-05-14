@@ -1,5 +1,7 @@
 #ifndef UPS_H
   #define UPS_H
+
+#include "GeotransExport.h"
 /********************************************************************/
 /* RSC IDENTIFIER: UPS
  *
@@ -106,7 +108,7 @@
 extern "C" {
   #endif
 
-  long Set_UPS_Parameters( double a,
+  long GEOTRANS_API Set_UPS_Parameters( double a,
                            double f);
 /*
  * The function SET_UPS_PARAMETERS receives the ellipsoid parameters and sets
@@ -118,7 +120,7 @@ extern "C" {
  */
 
 
-  void Get_UPS_Parameters( double *a,
+  void GEOTRANS_API Get_UPS_Parameters( double *a,
                            double *f);
 /*
  * The function Get_UPS_Parameters returns the current ellipsoid parameters.
@@ -128,7 +130,7 @@ extern "C" {
  */
 
 
-  long Convert_Geodetic_To_UPS ( double Latitude,
+  long GEOTRANS_API Convert_Geodetic_To_UPS ( double Latitude,
                                  double Longitude,
                                  char   *Hemisphere,
                                  double *Easting,
@@ -148,7 +150,7 @@ extern "C" {
  */
 
 
-  long Convert_UPS_To_Geodetic(char   Hemisphere,
+  long GEOTRANS_API Convert_UPS_To_Geodetic(char   Hemisphere,
                                double Easting,
                                double Northing,
                                double *Latitude,

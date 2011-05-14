@@ -1,4 +1,5 @@
 #include "log.h"
+#include "ace/OS_NS_sys_time.h"
 
 #include "StringParser.h"
 

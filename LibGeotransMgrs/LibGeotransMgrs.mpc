@@ -1,6 +1,8 @@
 project(LibGeotransMgrs) : aceexe, gatewaycommon {
   sharedname = geotrans-mgrs
   
+  dynamicflags += GEOTRANS_DLL_BUILD
+
   Source_Files {
     mgrs.c
     polarst.c

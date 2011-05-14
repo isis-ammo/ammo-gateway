@@ -1,6 +1,8 @@
 #ifndef MGRS_H
   #define MGRS_H
 
+#include "GeotransExport.h"
+
 /***************************************************************************/
 /* RSC IDENTIFIER:  MGRS
  *
@@ -105,7 +107,7 @@ extern "C" {
   #endif
 
 
-  long Set_MGRS_Parameters(double a,
+  long GEOTRANS_API Set_MGRS_Parameters(double a,
                            double f,
                            char   *Ellipsoid_Code);
 /*
@@ -119,7 +121,7 @@ extern "C" {
  */
 
 
-  void Get_MGRS_Parameters(double *a,
+  void GEOTRANS_API Get_MGRS_Parameters(double *a,
                            double *f,
                            char   *Ellipsoid_Code);
 /*
@@ -132,7 +134,7 @@ extern "C" {
  */
 
 
-  long Convert_Geodetic_To_MGRS (double Latitude,
+  long GEOTRANS_API Convert_Geodetic_To_MGRS (double Latitude,
                                  double Longitude,
                                  long   Precision,
                                  char *MGRS);
@@ -150,7 +152,7 @@ extern "C" {
  */
 
 
-  long Convert_MGRS_To_Geodetic (char *MGRS,
+  long GEOTRANS_API Convert_MGRS_To_Geodetic (char *MGRS,
                                  double *Latitude,
                                  double *Longitude);
 /*
@@ -165,7 +167,7 @@ extern "C" {
  */
 
 
-  long Convert_UTM_To_MGRS (long Zone,
+  long GEOTRANS_API Convert_UTM_To_MGRS (long Zone,
                             char Hemisphere,
                             double Easting,
                             double Northing,
@@ -186,7 +188,7 @@ extern "C" {
  */
 
 
-  long Convert_MGRS_To_UTM (char   *MGRS,
+  long GEOTRANS_API Convert_MGRS_To_UTM (char   *MGRS,
                             long   *Zone,
                             char   *Hemisphere,
                             double *Easting,
@@ -207,7 +209,7 @@ extern "C" {
 
 
 
-  long Convert_UPS_To_MGRS ( char   Hemisphere,
+  long GEOTRANS_API Convert_UPS_To_MGRS ( char   Hemisphere,
                              double Easting,
                              double Northing,
                              long Precision,
@@ -228,7 +230,7 @@ extern "C" {
  */
 
 
-  long Convert_MGRS_To_UPS ( char   *MGRS,
+  long GEOTRANS_API Convert_MGRS_To_UPS ( char   *MGRS,
                              char   *Hemisphere,
                              double *Easting,
                              double *Northing);

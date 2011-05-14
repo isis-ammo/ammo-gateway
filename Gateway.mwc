@@ -7,7 +7,9 @@ workspace(AndroidGatewayPlugin) {
   SamplePushReceiverGatewayPlugin/
   SamplePushTestDriverPlugin/
   LocationStoreGatewayPlugin/
-  LDAPPlugin/
   SpotPushReceiverGatewayPlugin/
-  AtsGatewayPlugin/
+  exclude(prop:microsoft) {
+    LDAPPlugin/
+    AtsGatewayPlugin/
+  }
 }

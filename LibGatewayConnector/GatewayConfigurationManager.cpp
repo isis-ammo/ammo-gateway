@@ -9,6 +9,10 @@
 
 #include "log.h"
 
+#include <ace/OS_NS_sys_stat.h>
+#include <ace/OS_NS_sys_time.h>
+#include <ace/OS_NS_stdlib.h>
+
 using namespace std;
 
 const char *CONFIG_DIRECTORY = "ammo-gateway";

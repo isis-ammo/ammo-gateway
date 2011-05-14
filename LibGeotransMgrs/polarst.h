@@ -1,5 +1,7 @@
 #ifndef POLARST_H
   #define POLARST_H
+
+#include "GeotransExport.h"
 /***************************************************************************/
 /* RSC IDENTIFIER: POLAR STEREOGRAPHIC 
  *
@@ -115,7 +117,7 @@
 extern "C" {
   #endif
 
-  long Set_Polar_Stereographic_Parameters (double a,
+  long GEOTRANS_API Set_Polar_Stereographic_Parameters (double a,
                                            double f,
                                            double Latitude_of_True_Scale,
                                            double Longitude_Down_from_Pole,
@@ -136,7 +138,7 @@ extern "C" {
  */
 
 
-  void Get_Polar_Stereographic_Parameters (double *a,
+  void GEOTRANS_API Get_Polar_Stereographic_Parameters (double *a,
                                            double *f,
                                            double *Latitude_of_True_Scale,
                                            double *Longitude_Down_from_Pole,
@@ -155,7 +157,7 @@ extern "C" {
  */
 
 
-  long Convert_Geodetic_To_Polar_Stereographic (double Latitude,
+  long GEOTRANS_API Convert_Geodetic_To_Polar_Stereographic (double Latitude,
                                                 double Longitude,
                                                 double *Easting,
                                                 double *Northing);
@@ -174,7 +176,7 @@ extern "C" {
 
 
 
-  long Convert_Polar_Stereographic_To_Geodetic (double Easting,
+  long GEOTRANS_API Convert_Polar_Stereographic_To_Geodetic (double Easting,
                                                 double Northing,
                                                 double *Latitude,
                                                 double *Longitude);

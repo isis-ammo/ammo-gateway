@@ -1,6 +1,8 @@
 #ifndef UTM_H
   #define UTM_H
 
+#include "GeotransExport.h"
+
 /***************************************************************************/
 /* RSC IDENTIFIER: UTM
  *
@@ -100,7 +102,7 @@
 extern "C" {
   #endif
 
-  long Set_UTM_Parameters(double a,      
+  long GEOTRANS_API Set_UTM_Parameters(double a,      
                           double f,
                           long   override);
 /*
@@ -115,7 +117,7 @@ extern "C" {
  */
 
 
-  void Get_UTM_Parameters(double *a,
+  void GEOTRANS_API Get_UTM_Parameters(double *a,
                           double *f,
                           long   *override);
 /*
@@ -128,7 +130,7 @@ extern "C" {
  */
 
 
-  long Convert_Geodetic_To_UTM (double Latitude,
+  long GEOTRANS_API Convert_Geodetic_To_UTM (double Latitude,
                                 double Longitude,
                                 long   *Zone,
                                 char   *Hemisphere,
@@ -150,7 +152,7 @@ extern "C" {
  */
 
 
-  long Convert_UTM_To_Geodetic(long   Zone,
+  long GEOTRANS_API Convert_UTM_To_Geodetic(long   Zone,
                                char   Hemisphere,
                                double Easting,
                                double Northing,

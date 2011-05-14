@@ -12,6 +12,10 @@
 
 #include "mgrs.h"
 
+#if defined _WIN32
+#define M_PI 3.14159 //M_PI doesn't exist in Windows' math.h or cmath
+#endif
+
 
 //#include <boost/tokenizer.hpp>
 //#include <boost/foreach.hpp>

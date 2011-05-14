@@ -7,6 +7,17 @@ bin/
 *.pdb
 *.vcproj
 *.vcproj.*
+*.opensdf
+*.sdf
+*.vcxproj
+*.vcxproj.*
+Debug/
+Release/
+*.exe
+*.dll
+*.exp
+*.lib
+ipch/
 Makefile*
 .build-version
 *_db.sql3

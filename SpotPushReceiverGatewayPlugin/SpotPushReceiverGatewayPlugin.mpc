@@ -3,9 +3,14 @@ project(SpotPushReceiverGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewa
 
   exename=SpotPushReceiverGatewayPlugin
 
-
-  libs+=curl
-  libs+=ssl geotrans-mgrs
+  
+  specific(prop:windows) {
+    lit_libs += curllib libeay32 ssleay32
+  } else {
+    libs+=curl
+    libs+=ssl
+  }
+  libs+=geotrans-mgrs
   includes+=.
   includes+=$(GATEWAY_ROOT)/LibJSON
   includes+=$(GATEWAY_ROOT)/LibGeotransMgrs
