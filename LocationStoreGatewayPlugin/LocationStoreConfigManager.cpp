@@ -39,15 +39,15 @@ LocationStoreConfigManager::LocationStoreConfigManager (
             {
               if (root_["MimeTypes"].isArray ())
                 {
-		          for (Json::Value::iterator i = root_["MimeTypes"].begin ();
+		              for (Json::Value::iterator i = root_["MimeTypes"].begin ();
                        i != root_["MimeTypes"].end ();
                        ++i)
                     {
                       const char *mime_type = (*i).asString ().c_str ();
                       LOG_DEBUG ("Registering interest in " << mime_type);
                       connector_->registerDataInterest (mime_type, receiver_);
-			          connector_->registerPullInterest (mime_type, receiver_);
-				    }
+                      connector_->registerPullInterest (mime_type, receiver_);
+                    }
                 }
             }
           else
