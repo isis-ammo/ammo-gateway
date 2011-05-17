@@ -5,9 +5,15 @@
 
 class sqlite3;
 
+namespace Json
+{
+  class Value;
+}
+
 class LocationStoreReceiver : public ammo::gateway::DataPushReceiverListener,
 							                public ammo::gateway::GatewayConnectorDelegate,
                               public ammo::gateway::PullRequestReceiverListener
+
 {
 public:
   LocationStoreReceiver (void);
@@ -23,6 +29,20 @@ public:
 	
   // PullRequestReceiverListener methods
   virtual void onPullRequestReceived (ammo::gateway::GatewayConnector *sender, ammo::gateway::PullRequest &pullReq);
+
+private:
+  bool matchedData (const std::string &mimeType,
+                    const std::string &projection,
+                    const std::vector<char> &data);
+                    
+  bool matchedEvent (const Json::Value &root,
+                     const std::string &projection);
+                     
+  bool matchedMedia (const Json::Value &root,
+                     const std::string &projection);
+                     
+  bool matchedSMS (const Json::Value &root,
+                   const std::string &projection);
 	
 private:
   // Pointer to open database.
