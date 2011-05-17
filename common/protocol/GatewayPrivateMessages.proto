@@ -52,6 +52,15 @@ message PullResponse {
   required bytes data = 5;
 }
 
+message DirectedMessage {
+  required string uri = 1;
+  required string destination_user = 2;
+  optional string mime_type = 3;
+  optional bytes data = 4;
+  optional string origin_user = 5;
+  optional MessageScope scope = 6 [default = GLOBAL];
+}
+
 message RegisterPullInterest {
   required string mime_type = 1;
 }
@@ -82,6 +91,7 @@ message GatewayWrapper {
     REGISTER_PULL_INTEREST = 7;
     UNREGISTER_PULL_INTEREST = 8;
     ASSOCIATE_CROSS_GATEWAY = 9;
+    DIRECTED_MESSAGE = 10;
   }
   
   required MessageType type = 1;
@@ -96,4 +106,5 @@ message GatewayWrapper {
   optional RegisterPullInterest register_pull_interest = 9;
   optional UnregisterPullInterest unregister_pull_interest = 10;
   optional AssociateCrossGateway associate_cross_gateway = 11;
+  optional DirectedMessage directed_message = 12;
 }
