@@ -5,8 +5,13 @@
 
 class sqlite3;
 
+namespace Json
+{
+  class Value;
+}
+
 class LocationStoreReceiver : public DataPushReceiverListener,
-							  public GatewayConnectorDelegate,
+                              public GatewayConnectorDelegate,
                               public PullRequestReceiverListener
 {
 public:
@@ -19,21 +24,35 @@ public:
   
   // DataPushReceiverListener methods
   virtual void onDataReceived (GatewayConnector *sender,
-							   std::string uri,
-							   std::string mimeType,
-							   std::vector<char> &data,
-							   std::string originUser);
+                               std::string uri,
+                               std::string mimeType,
+                               std::vector<char> &data,
+                               std::string originUser);
 	
   // PullRequestReceiverListener methods
   virtual void onDataReceived (GatewayConnector *sender, 
-							   std::string requestUid,
-							   std::string pluginId,
-							   std::string mimeType,
-							   std::string query,
-							   std::string projection,
-							   unsigned int maxResults,
-							   unsigned int startFromCount,
-							   bool liveQuery);
+                               std::string requestUid,
+                               std::string pluginId,
+                               std::string mimeType,
+                               std::string query,
+                               std::string projection,
+                               unsigned int maxResults,
+                               unsigned int startFromCount,
+                               bool liveQuery);
+
+private:
+  bool matchedData (const std::string &mimeType,
+                    const std::string &projection,
+                    const std::vector<char> &data);
+                    
+  bool matchedEvent (const Json::Value &root,
+                     const std::string &projection);
+                     
+  bool matchedMedia (const Json::Value &root,
+                     const std::string &projection);
+                     
+  bool matchedSMS (const Json::Value &root,
+                   const std::string &projection);
 	
 private:
   // Pointer to open database.
