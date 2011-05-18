@@ -46,6 +46,8 @@ public:
                    unsigned int maxResults, unsigned int startFromCount, bool liveQuery, GatewayServiceHandler *originatingPlugin);
   bool pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string &data);
   
+  bool directedMessage(std::string &uri, std::string &destinationUser, std::string &mimeType, std::string &data, std::string &originUser, MessageScope messageScope);
+  
   //Methods for cross-gateway communication
   void initCrossGateway();
   

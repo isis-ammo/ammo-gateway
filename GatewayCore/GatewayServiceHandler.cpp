@@ -266,6 +266,17 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       }
       break;
     }
+    case ammo::gateway::protocol::GatewayWrapper_MessageType_DIRECTED_MESSAGE: {
+      LOG_DEBUG("Received Directed Message...");
+      MessageScope scope;
+      if(msg.directed_message().scope() == ammo::gateway::protocol::GLOBAL) {
+        scope = SCOPE_GLOBAL;
+      } else {
+        scope = SCOPE_LOCAL;
+      }
+      //GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), this->username, scope);
+      break;
+    } 
     default: {
       LOG_ERROR("Received unsupported message:" << msg.DebugString());
       break;

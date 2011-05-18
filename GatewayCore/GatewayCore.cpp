@@ -164,6 +164,10 @@ bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std
   return true;
 }
 
+bool GatewayCore::directedMessage(std::string &uri, std::string &destinationUser, std::string &mimeType, std::string &data, std::string &originUser, MessageScope messageScope) {
+  return false;
+}
+
 void GatewayCore::initCrossGateway() {
   GatewayConfigurationManager *config = GatewayConfigurationManager::getInstance();
   
