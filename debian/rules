@@ -12,7 +12,7 @@
 
 Makefile: Gateway.mwc
 	mwc.pl --type make Gateway.mwc
-	cat install.mk >> Makefile
+	cat install.mk >> GNUmakefile
 
 #.PHONY: build
 #build: Makefile

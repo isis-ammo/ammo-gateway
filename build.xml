@@ -8,6 +8,8 @@
     <property name="gatewayversion.file" value=".build-version" />
     <property name="gatewayversion.template" value="common/version.h.in" />
     <property name="gatewayversion.out" value="common/version.h" />
+    <property name="gatewayversion-mpb.template" value="gatewayversion.mpb.in" />
+    <property name="gatewayversion-mpb.out" value="gatewayversion.mpb" />
 
     <description>
         Build file for the AMMO ${project}
@@ -17,6 +19,7 @@
         <delete>
           <fileset file="${gatewayversion.file}" />
           <fileset file="${gatewayversion.out}" />
+          <fileset file="${gatewayversion-mpb.out}" />
         </delete>
     </target>
 
@@ -27,6 +30,12 @@
           <arg value="describe" />
           <arg value="--match" />
           <arg value="release-*" />
+        </exec>
+        <exec executable="sh" dir="."
+              searchpath="true"
+              outputproperty="gatewayversion-stripped">
+           <arg value="-c" />
+           <arg value="git describe --match release-\*  | sed 's/release-//' | cut -d- -f 1,2" />
         </exec>
 
         <loadfile property="gateway-reversion" srcFile="${gatewayversion.file}" failonerror="false"/>
@@ -39,6 +48,8 @@
         <echo message="${gatewayversion}" file="${gatewayversion.file}"/>
         <copy file="${gatewayversion.template}" tofile="${gatewayversion.out}"/>
         <replace file="${gatewayversion.out}" token="&lt;VERSION&gt;" value="${gatewayversion}"/>
+        <copy file="${gatewayversion-mpb.template}" tofile="${gatewayversion-mpb.out}"/>
+        <replace file="${gatewayversion-mpb.out}" token="&lt;VERSION&gt;" value="${gatewayversion-stripped}"/>
     </target>
 
     <target name="build" depends="configure">
@@ -119,7 +130,7 @@ Built on ${os.arch} ${os.name} ${os.version}
     <target name="configure"
         description="constructing makefiles" depends="-update-gatewayversion">
         <exec executable="mwc.pl" dir="." searchpath="true">
-           <arg value="--type"/> <arg value="make"/>
+           <arg value="--type"/> <arg value="gnuace"/>
            <arg value="Gateway.mwc"/>
         </exec>
     </target>

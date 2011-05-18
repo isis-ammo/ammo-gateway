@@ -3,6 +3,8 @@ project(LibJSON) : aceexe, gatewaycommon {
   
   includes += .
   
+  dynamicflags += JSON_DLL_BUILD
+  
   specific(prop:windows) {
     macros += JSON_DLL_BUILD
   }

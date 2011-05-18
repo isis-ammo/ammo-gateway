@@ -8,6 +8,7 @@
 
 # Installation directory for Gateway
 INSTALL_DIR_BASE=/usr
+VERSION=`git describe --match release-\*  | sed 's/release-//' | cut -d- -f 1,2`
 
 ###############################################################################
 # Installation rules
@@ -33,9 +34,12 @@ install: all
 	install -m 755 build/bin/SamplePushTestDriverPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SpotPushReceiverGatewayPlugin $(INSTALL_DIR)/bin
 	echo "Installing libs ..."
-	install -m 644 build/lib/libgatewayconnector.so $(INSTALL_DIR)/lib
-	install -m 644 build/lib/libgeotrans-mgrs.so $(INSTALL_DIR)/lib
-	install -m 644 build/lib/libjson.so $(INSTALL_DIR)/lib
+	install -m 644 build/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib
+	ln -s $(INSTALL_DIR_BASE)/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib/libgatewayconnector.so
+	install -m 644 build/lib/libgeotrans-mgrs.so.$(VERSION) $(INSTALL_DIR)/lib
+	ln -s $(INSTALL_DIR_BASE)/lib/libgeotrans-mgrs.so.$(VERSION) $(INSTALL_DIR)/lib/libgeotrans-mgrs.so
+	install -m 644 build/lib/libjson.so.$(VERSION) $(INSTALL_DIR)/lib
+	ln -s $(INSTALL_DIR_BASE)/lib/libjson.so.$(VERSION) $(INSTALL_DIR)/lib/libjson.so
 	echo "Installing scripts ..."
 	install -m 755 dist/template/bin/launch_ammo_gateway_headless.sh $(INSTALL_DIR)/bin
 	install -m 755 dist/template/bin/launch_ammo_gateway.sh $(INSTALL_DIR)/bin
