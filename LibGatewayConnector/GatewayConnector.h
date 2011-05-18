@@ -33,7 +33,7 @@ namespace ammo {
     /**
      * A data object.
      */
-    class PushData {
+    class LibGatewayConnector_Export PushData {
     public:
       PushData();
       std::string uri;                  ///< The URI of this piece of data.  This URI should be a universally
@@ -61,7 +61,7 @@ namespace ammo {
     /**
      * A request for data from a plugin.
      */
-    class PullRequest {
+    class LibGatewayConnector_Export PullRequest {
     public:
       PullRequest();
       std::string requestUid;      ///< A unique identifier for this pull request.  It will be returned
@@ -90,7 +90,7 @@ namespace ammo {
     /**
      * A response to a pull request.
      */
-    class PullResponse {
+    class LibGatewayConnector_Export PullResponse {
     public:
       PullResponse();
       std::string requestUid; ///< The unique identifier for this pull request, as specified

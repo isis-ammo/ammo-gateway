@@ -9,6 +9,9 @@ project(LocationStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewaypl
 //  libpaths += /usr/lib
 
   libs += sqlite3
+  specific(prop:make) {
+    libpaths += /usr/lib/x86_64-linux-gnu
+  }
 
   exename = LocationStoreGatewayPlugin
 
