@@ -8,6 +8,8 @@ bin/
 *.vcproj
 *.vcproj.*
 Makefile*
+GNUmakefile*
 .build-version
 *_db.sql3
 nbproject/
+gatewayversion.mpb
