@@ -4,13 +4,15 @@ project(LocationStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewaypl
   includes += $(GATEWAY_ROOT)/LibJSON
 
 // Added for MacOS, which comes with SQLite already installed.
-// This directory is apparently not in the default system lib path,
-// although it is in the include path.
+// This directory is apparently not in the default system lib path.
 //  libpaths += /usr/lib
 
   libs += sqlite3
+  
+  // Paths to SQLite lib for 32- and 64-bit machines.
   specific(prop:make) {
-    libpaths += /usr/lib/x86_64-linux-gnu
+    libpaths += /usr/lib/i386-linux-gnu \
+                /usr/lib/x86_64-linux-gnu
   }
 
   exename = LocationStoreGatewayPlugin
@@ -26,6 +28,8 @@ project(LocationStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewaypl
     ProjectionFilter.cpp
     QueryParamParser.cpp
     QueryStatementBuilder.cpp
+    ReportFilter.cpp
+    ReportProjectionParser.cpp
     SMSFilter.cpp
     SMSProjectionParser.cpp
     StringParser.cpp

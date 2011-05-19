@@ -2,6 +2,7 @@
 #define EVENT_FILTER_H
 
 #include "ProjectionFilter.h"
+#include "EventProjectionParser.h"
 
 class EventFilter : public ProjectionFilter
 {
