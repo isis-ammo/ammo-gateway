@@ -8,4 +8,8 @@ project : gatewayversion {
   verbatim(make, bottom) {
     CPPFLAGS+=-O0 -g -Wall
   }
+  
+  verbatim(gnuace, bottom) {
+    CPPFLAGS+=-Wno-unused-parameter -Wno-type-limits
+  }
 }
