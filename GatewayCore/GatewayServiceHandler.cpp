@@ -343,6 +343,26 @@ bool GatewayServiceHandler::sendPullResponse(std::string requestUid, std::string
   return true;
 }
 
+bool GatewayServiceHandler::sendDirectedMessage(std::string &uri, std::string &destinationUser, std::string &mimeType, 
+                                                std::string &data, std::string &originUser, MessageScope messageScope) {
+
+  ammo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::DirectedMessage *directedMsg = msg.mutable_directed_message();
+  directedMsg->set_uri(uri);
+  directedMsg->set_destination_user(destinationUser);
+  directedMsg->set_mime_type(mimeType);
+  directedMsg->set_data(data);
+  directedMsg->set_origin_user(originUser);
+  
+  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_DIRECTED_MESSAGE);
+  
+  LOG_DEBUG("Sending Directed Message to connected plugin");
+  this->sendData(msg);
+
+  return true;
+}
+  
+
 
 
 GatewayServiceHandler::~GatewayServiceHandler() {

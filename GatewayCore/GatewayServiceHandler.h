@@ -22,6 +22,7 @@ public:
   bool sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
 		       unsigned int maxResults, unsigned int startFromCount, bool liveQuery);
   bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string& data);
+  bool sendDirectedMessage(std::string &uri, std::string &destinationUser, std::string &mimeType, std::string &data, std::string &originUser, MessageScope messageScope);
 
   friend std::ostream& operator<< (std::ostream& out, const GatewayServiceHandler& handler);
   friend std::ostream& operator<< (std::ostream& out, const GatewayServiceHandler* handler);
