@@ -1,4 +1,5 @@
 #include <vector>
+#include <stdexcept>
 
 #include <sqlite3.h>
 
@@ -12,16 +13,12 @@
 #include "LocationStore.h"
 #include "QueryStatementBuilder.h"
 
-
 using namespace ammo::gateway;
-#include "EventProjectionParser.h"
+
 #include "EventFilter.h"
-
-#include "MediaProjectionParser.h"
 #include "MediaFilter.h"
-
-#include "SMSProjectionParser.h"
 #include "SMSFilter.h"
+#include "ReportFilter.h"
 
 LocationStoreReceiver::LocationStoreReceiver (void)
   : db_ (0),
@@ -201,13 +198,19 @@ LocationStoreReceiver::onPullRequestReceived (GatewayConnector *sender, ammo::ga
   LOG_DEBUG ("pull request received");
   LOG_DEBUG ("  Query: " << pullReq.query);
 	
+  if (sender == 0)
+    {
+      LOG_ERROR ("Sender is null");
+      return;
+    }
+		
   // Finalizes (cleans up) the created SQL statement in the destructor.
   QueryStatementBuilder builder (pullReq.mimeType, pullReq.query, db_);
 	
   if (!builder.build ())
     {
-      LOG_ERROR ("LocationStoreReceiver - pullrequest: ")
-      LOG_ERROR ("Constsruction of query statement failed");
+      LOG_ERROR ("LocationStoreReceiver - pullrequest: "
+                 "Constsruction of query statement failed");
       return;
     }
 	
@@ -227,7 +230,6 @@ LocationStoreReceiver::onPullRequestReceived (GatewayConnector *sender, ammo::ga
         }
 
 	  // For insertion, column numbers are 1-based, for extraction, 0-based.
-		
 	  // SQLite retrieves text as const unsigned char*, reinterpret_cast<>
 	  // is the only way to convert it to const char* for std::string assignment.
 	  std::string uri (
@@ -266,7 +268,7 @@ LocationStoreReceiver::matchedData (const std::string &mimeType,
                                     const std::string &projection,
                                     const std::vector<char> &data)
 {
-  // No additional (content-based) filtering to be done.
+  // No content-based filtering to be done, return immediately.
   if (projection.empty ())
     {
       return true;
@@ -295,27 +297,55 @@ LocationStoreReceiver::matchedData (const std::string &mimeType,
         
   if (!goodParse)
     {
-      LOG_ERROR ("LocationStoreReceiver pullrequest")
-      LOG_ERROR (" - JSON parsing error: ");
-      LOG_ERROR (reader.getFormatedErrorMessages ());
+      LOG_ERROR ("LocationStoreReceiver pullrequest"
+                 " - JSON parsing error: "
+                 << reader.getFormatedErrorMessages ());
+                 
       return false;
     }
 
+  LOG_DEBUG ("MIME type: " << mimeType);
   LOG_DEBUG ("Parsed JSON: " << root.toStyledString ());
   
-  if (mimeType == "application/vnd.edu.vu.isis.ammo.dash.event")
-    {
-      return this->matchedEvent (root, projection);
-    }
-  else if (mimeType == "application/vnd.edu.vu.isis.ammo.sms.message")
-    {
-      return this->matchedSMS (root, projection);
-    }
-  else if (mimeType == "application/vnd.edu.vu.isis.ammo.dash.media")
-    {
-      return this->matchedMedia (root, projection);
-    }
+  // Incoming SMS mime types have the destination user name appended to this
+  // base string, which we then pass to std::string::find instead of checking
+  // for equality.
+  std::string sms_mime_base ("application/vnd.edu.vu.isis.ammo.sms.message");
   
+  // Some of the legacy SMS entries have 'createdDate' and 'modifiedDate'
+  // fields that are (1) reals instead of long integers as required,
+  // and (2) expressed as usec instead of sec, too large by a factor of 1000.
+  // Since the value is out of range, Json::Value::asInt() will throw
+  // std::runtime_error, with the message that we catch and output below.
+  // As of this date (2011-5-18), the Json-parsed entry is output (for
+  // debugging) so the offending field can be seen by inspection.
+  try
+    {
+      if (mimeType == "application/vnd.edu.vu.isis.ammo.dash.event")
+        {
+          return this->matchedEvent (root, projection);
+        }
+      else if (mimeType == "application/vnd.edu.vu.isis.ammo.dash.media")
+        {
+          return this->matchedMedia (root, projection);
+        }
+      else if (mimeType.find (sms_mime_base) == 0)
+        {
+          return this->matchedSMS (root, projection);
+        }
+      else if (mimeType == "application/vnd.edu.vu.isis.ammo.report.report_base")
+        {
+          return this->matchedReport (root, projection);
+        }
+    }
+  catch (const std::runtime_error &ex)
+    {
+      LOG_ERROR ("Malformed database entry - " << ex.what ());
+      return false;
+    }
+    
+  // In case we have registered interest in other mime types, but
+  // do no filtering on the associated data content.  
   return true;
 }
 
@@ -340,6 +370,14 @@ LocationStoreReceiver::matchedSMS (const Json::Value &root,
                                    const std::string &projection)
 {
   SMSFilter filter (root, projection);
+  return filter.match ();
+}
+
+bool
+LocationStoreReceiver::matchedReport(const Json::Value &root,
+                                     const std::string &projection)
+{
+  ReportFilter filter (root, projection);
   return filter.match ();
 }
 

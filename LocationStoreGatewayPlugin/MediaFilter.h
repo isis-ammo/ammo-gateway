@@ -2,6 +2,7 @@
 #define MEDIA_FILTER_H
 
 #include "ProjectionFilter.h"
+#include "MediaProjectionParser.h"
 
 class MediaFilter : public ProjectionFilter
 {
