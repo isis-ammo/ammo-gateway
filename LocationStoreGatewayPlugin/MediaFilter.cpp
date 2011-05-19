@@ -3,8 +3,6 @@
 #include "json/reader.h"
 #include "json/value.h"
 
-#include "MediaProjectionParser.h"
-
 #include "MediaFilter.h"
 
 MediaFilter::MediaFilter (

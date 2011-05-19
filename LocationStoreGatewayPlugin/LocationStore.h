@@ -43,6 +43,9 @@ private:
                      
   bool matchedSMS (const Json::Value &root,
                    const std::string &projection);
+                   
+  bool matchedReport (const Json::Value &root,
+                      const std::string &projection);
 	
 private:
   // Pointer to open database.

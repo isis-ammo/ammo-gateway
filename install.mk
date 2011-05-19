@@ -8,7 +8,7 @@
 
 # Installation directory for Gateway
 INSTALL_DIR_BASE=/usr
-VERSION=`git describe --match release-\*  | sed 's/release-//' | cut -d- -f 1,2`
+VERSION=`cat .build-version | sed 's/release-//' | cut -d- -f 1,2`
 
 ###############################################################################
 # Installation rules

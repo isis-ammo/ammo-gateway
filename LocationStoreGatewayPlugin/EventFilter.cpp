@@ -3,8 +3,6 @@
 #include "json/reader.h"
 #include "json/value.h"
 
-#include "EventProjectionParser.h"
-
 #include "EventFilter.h"
 
 EventFilter::EventFilter (
@@ -38,10 +36,10 @@ EventFilter::match (void)
     && match_string (parser_.unit (), root_["unit"].asString ())
     && match_int (parser_.size_min (), root_["size"].asInt (), true)
     && match_int (parser_.size_max (), root_["size"].asInt (), false)
-    && match_string (parser_.dest_group_name (), root_["dest_group_name"].asString ())
-    && match_string (parser_.dest_group_type (), root_["dest_group_type"].asString ())
+    && match_string (parser_.dest_group_name (), root_["destGroupName"].asString ())
+    && match_string (parser_.dest_group_type (), root_["destGroupType"].asString ())
     && match_int (parser_.status_min (), root_["status"].asInt (), true)
-    && match_int (parser_.status_max (), root_["statuc"].asInt (), false);
+    && match_int (parser_.status_max (), root_["status"].asInt (), false);
 }
 
 
