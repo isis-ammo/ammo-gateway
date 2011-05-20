@@ -38,15 +38,9 @@ int main(int argc, char **argv) {
   LOG_INFO("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
-  {
-    struct sigaction sa;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-
-    // Register the handler for SIGINT
-    sa.sa_handler = SIG_IGN;
-    sigaction(SIGPIPE, &sa, 0);
-  }
+  ACE_Sig_Action no_sigpipe((ACE_SignalHandler) SIG_IGN);
+  ACE_Sig_Action original_action;
+  no_sigpipe.register_action(SIGPIPE, &original_action);
   
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
