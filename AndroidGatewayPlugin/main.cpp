@@ -78,4 +78,5 @@ int main(int argc, char **argv) {
   ACE_Reactor *reactor = ACE_Reactor::instance();
   LOG_DEBUG("Starting event loop...");
   reactor->run_reactor_event_loop();
+  LOG_DEBUG("Event loop terminated.");
 }
