@@ -27,7 +27,7 @@ using namespace std;
 class SigintHandler : public ACE_Event_Handler {
 public:
   int handle_signal (int signum, siginfo_t * = 0, ucontext_t * = 0) {
-    if (signum == SIGINT) {
+    if (signum == SIGINT || signum == SIGTERM) {
       ACE_Reactor::instance()->end_reactor_event_loop();
     }
     return 0;
@@ -44,6 +44,7 @@ int main(int argc, char **argv) {
   
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
+  ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
   
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
