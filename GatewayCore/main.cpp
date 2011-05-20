@@ -45,6 +45,9 @@ int main(int argc, char **argv) {
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
   
+  SigintHandler * handleExit = new SigintHandler();
+  ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
+  
   GatewayConfigurationManager *config = GatewayConfigurationManager::getInstance();
   
   LOG_DEBUG("Creating acceptor...");
