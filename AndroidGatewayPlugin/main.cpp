@@ -7,6 +7,9 @@
 #include "ace/SOCK_Stream.h"
 #include "ace/SOCK_Acceptor.h"
 
+#include "ace/OS_NS_unistd.h"
+#include "ace/Signal.h"
+
 #include "ace/Acceptor.h"
 #include "ace/Reactor.h"
 
@@ -24,14 +27,9 @@ int main(int argc, char **argv) {
   LOG_INFO("AMMO Android Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
-  {
-    struct sigaction sa;
-    sigemptyset(&sa.sa_mask);
-
-    // Register the handler for SIGINT
-    sa.sa_handler = SIG_IGN;
-    sigaction(SIGPIPE, &sa, 0);
-  }
+  ACE_Sig_Action no_sigpipe((ACE_SignalHandler) SIG_IGN);
+  ACE_Sig_Action original_action;
+  no_sigpipe.register_action(SIGPIPE, &original_action);
   
   string androidAddress = "0.0.0.0";
   int androidPort = 32869;
