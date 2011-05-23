@@ -52,7 +52,9 @@ private:
   std::string uploadMedia(CURL *curl, std::string mediaType, std::vector< char >& payload ); 
   std::string inviteChat(CURL *curl, std::string mediaType, std::vector< char >& payload ); 
   std::vector<char> listChannels(CURL *curl, std::string dataType, std::string query );
-
+  std::vector<char> listUnits(CURL *curl, std::string dataType, std::string query );
+  std::vector<char> listMembers(CURL *curl, std::string dataType, std::string query );
+  std::vector<char> listLocations(CURL *curl, std::string dataType, std::string query );
   std::vector<char> listPeople(CURL *curl, std::string dataType, std::string query ); 
   std::vector<char> listPeople(CURL *curl, std::string dataType, std::vector<char>& query ); 
   std::string channelCreate(CURL *curl, std::string dataType, std::vector< char >& payload ); 

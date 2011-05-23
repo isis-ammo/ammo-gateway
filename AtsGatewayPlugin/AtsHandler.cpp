@@ -30,7 +30,12 @@ AtsHandler::AtsHandler() {
    }
 }
 
-
+std::string IntToStr(int tmp)
+{
+    std::ostringstream out;
+    out << tmp;
+    return out.str();
+}
 void AtsHandler::onConnect(GatewayConnector *sender) { }
 
 void AtsHandler::onDisconnect(GatewayConnector *sender) { }
@@ -96,6 +101,9 @@ void AtsHandler::onDataReceived(GatewayConnector *sender,
    }
    if (dataType == RTC_SHARE_GPS_NS) {
    }
+       if (dataType == PLI_POST_LOC_NS)  {
+               LOG_INFO("POSTING LOCATION:");
+       }
 }
  
 
@@ -150,6 +158,26 @@ void AtsHandler::onDataReceived(GatewayConnector *sender,
       LOG_INFO(" Pull " << dataType << " result: " << std::string(data.begin(), data.begin()+128));
       return;
    }
+   if (dataType == PLI_LIST_LOC_NS){
+               std::vector<char> data = listLocations(curl, dataType, query);
+               LOG_INFO(" Pull " << dataType << " result: " << std::string(data.begin(), data.begin()+128));
+      sender->pullResponse(requestUid, pluginId, dataType, query, data);
+      LOG_INFO(" Pull " << dataType << " result: " << std::string(data.begin(), data.begin()+128));
+      return;
+       }
+       if (dataType == PLI_LIST_UNIT_NS){
+               std::vector<char> data = listUnits(curl, dataType, query);
+      sender->pullResponse(requestUid, pluginId, dataType, query, data);
+      LOG_DEBUG(" Pull " << dataType << " result: " << std::string(data.begin(), data.begin()+128));
+      return;
+       }
+       if (dataType == PLI_MEMBERS_NS){
+               std::vector<char> data = listMembers(curl, dataType, query);
+      sender->pullResponse(requestUid, pluginId, dataType, query, data);
+      LOG_INFO(" Pull " << dataType << " result: " << std::string(data.begin(), data.begin()+128));
+      return;
+       }
+
 }
 
   // PullResponseReceiverListener
@@ -214,7 +242,9 @@ static int parse_payload(std::vector<char>& payload, Json::Value& meta, std::vec
      // get the name of the blob 
      end = std::find(begin, payload.end(), 0);
      // check the end value for success
-     if (end == payload.end()) break;
+     if (end == payload.end()){
+               break;
+               }
      std::string blobName(begin, end);
      LOG_DEBUG("Process BLOB: "+blobName);
  
@@ -267,11 +297,15 @@ bool isClipBlob(const NamedBlob blob) { return (blob.first == "file"); }
  If such a function is not provided curl writes to a file.
 */
 static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData) {
+
   std::ostringstream msg;  
   msg << "message: " << size << " x " << nmemb ;
   LOG_DEBUG(msg.str());
+       
+       
   if(writerData == NULL) { return 0; }
   writerData->append(data, size*nmemb);
+       
   return size * nmemb;
 }
 
@@ -461,6 +495,176 @@ std::vector<char> AtsHandler::listPeople(CURL *curl, std::string dataType, std::
    return retval;
 }
 
+std::vector<char> AtsHandler::listLocations(CURL *curl, std::string dataType, std::string query ) 
+{
+   CURLcode res;
+   LOG_DEBUG( "list locations ");
+   // parse the serialized packet
+   Json::Value meta;
+   int rc = parse_query(query, meta);
+   LOG_DEBUG("parse query: "<<rc);
+       LOG_DEBUG("query: " << query);
+       LOG_DEBUG("meta: "  << meta.toStyledString());
+
+   std::vector<char> nullRetval;
+    
+   struct curl_httppost* formpost=NULL;
+   struct curl_httppost* lastptr=NULL;
+
+       std::string unitid = IntToStr(meta["unitId"].asInt());
+
+   std::string url = config->getUrl(PLI_LIST_LOC);
+   LOG_DEBUG("url: "+ url);
+   res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return nullRetval; }
+
+       curl_formadd(&formpost, &lastptr,
+                CURLFORM_COPYNAME, "unitId",
+               CURLFORM_COPYCONTENTS, unitid.c_str(),
+                CURLFORM_END);
+
+       res = curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set post data: " << curlErrorBuffer); return nullRetval; }
+  
+       std::string returnedData = "";
+   res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set writer: " << curlErrorBuffer); return nullRetval; }
+   LOG_DEBUG("set write callback");
+
+   res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &returnedData);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set write data: " << curlErrorBuffer); return nullRetval; }
+   LOG_DEBUG("set place to put message");
+
+   res = curl_easy_perform(curl);
+   if(res != CURLE_OK) { 
+     LOG_ERROR("Failed to POST data: " << curlErrorBuffer); 
+     curl_easy_cleanup(curl);
+     return nullRetval;
+   }
+       
+   LOG_DEBUG("sent message");
+
+   curl_easy_cleanup(curl);
+   curl_formfree(formpost);
+
+   LOG_DEBUG("Returned data from POST: " << returnedData);
+   std::vector<char> retval(returnedData.begin(),returnedData.end());
+   return retval;
+}
+
+
+std::vector<char> AtsHandler::listMembers(CURL *curl, std::string dataType, std::string query ) 
+{
+   CURLcode res;
+ 
+   LOG_INFO( "list members ");
+   // parse the serialized packet
+   Json::Value meta;
+   int rc = parse_query(query, meta);
+       
+   LOG_DEBUG("parse query: "<<rc);
+       LOG_DEBUG("query: " << query);
+       LOG_DEBUG("meta: "  << meta.toStyledString());
+
+   std::vector<char> nullRetval;
+    
+   struct curl_httppost* formpost=NULL;
+   struct curl_httppost* lastptr=NULL;
+
+   std::string url = config->getUrl(PLI_MEMBERS);
+   LOG_DEBUG("url: "+ url);
+   res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return nullRetval; }
+
+  
+       std::string unitid = IntToStr(meta["unitId"].asInt());
+
+       
+
+       LOG_DEBUG ("META[UNITID]:" <<  unitid);
+
+
+       curl_formadd(&formpost, &lastptr,
+                CURLFORM_COPYNAME, "unitId",
+               CURLFORM_COPYCONTENTS, unitid.c_str(),
+                CURLFORM_END);
+
+  
+
+   res = curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set post data: " << curlErrorBuffer); return nullRetval; }
+
+
+   std::string returnedData = "";
+   res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set writer: " << curlErrorBuffer); return nullRetval; }
+   LOG_DEBUG("set write callback");
+
+   res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &returnedData);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set write data: " << curlErrorBuffer); return nullRetval; }
+   LOG_DEBUG("set place to put message");
+
+   res = curl_easy_perform(curl);
+       
+   if(res != CURLE_OK) { 
+     LOG_ERROR("Failed to POST data: " << curlErrorBuffer); 
+     curl_easy_cleanup(curl);
+     return nullRetval;
+   }
+   LOG_DEBUG("sent message");
+
+   curl_easy_cleanup(curl);
+   curl_formfree(formpost);
+
+   LOG_DEBUG("Returned data from POST: " << returnedData);
+   std::vector<char> retval(returnedData.begin(),returnedData.end());
+   return retval;
+}
+std::vector<char> AtsHandler::listUnits(CURL *curl, std::string dataType, std::string query ) 
+{
+   CURLcode res;
+   std::string returnedData = "";
+ 
+   LOG_DEBUG( "list units ");
+   // parse the serialized packet
+   Json::Value meta;
+   int rc = parse_query(query, meta);
+   LOG_DEBUG("parse query: "<<rc);
+
+   std::vector<char> nullRetval;
+    
+   // struct curl_httppost* formpost=NULL;
+   // struct curl_httppost* lastptr=NULL;
+
+   std::string url = config->getUrl(PLI_LIST_UNIT);
+   LOG_DEBUG("url: "+ url);
+   res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set URL: " << curlErrorBuffer); return nullRetval; }
+
+   res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set writer: " << curlErrorBuffer); return nullRetval; }
+   LOG_DEBUG("set write callback");
+
+   res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &returnedData);
+   if(res != CURLE_OK) { LOG_ERROR("Failed to set write data: " << curlErrorBuffer); return nullRetval; }
+   LOG_DEBUG("set place to put message");
+
+   res = curl_easy_perform(curl);
+   if(res != CURLE_OK) { 
+     LOG_ERROR("Failed to POST data: " << curlErrorBuffer); 
+     curl_easy_cleanup(curl);
+     return nullRetval;
+   }
+   LOG_DEBUG("sent message");
+
+   curl_easy_cleanup(curl);
+   // curl_formfree(formpost);
+
+   LOG_DEBUG("Returned data from POST: " << returnedData);
+   std::vector<char> retval(returnedData.begin(),returnedData.end());
+   return retval;
+}
+
 std::vector<char> AtsHandler::listChannels(CURL *curl, std::string dataType, std::string query ) 
 {
    CURLcode res;
@@ -468,9 +672,9 @@ std::vector<char> AtsHandler::listChannels(CURL *curl, std::string dataType, std
    Json::Value meta;
    std::vector<NamedBlob> media;
    int rc = parse_query(query, meta);
-   if (rc < 0) {
-      return std::vector<char>();
-   }
+   //if (rc < 0) {
+   //   return std::vector<char>();
+   //}
 
    std::string emptyRetval("");
    std::vector<char> nullRetval(emptyRetval.begin(),emptyRetval.end());
