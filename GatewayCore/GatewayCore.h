@@ -48,6 +48,10 @@ public:
   
   bool directedMessage(std::string &uri, std::string &destinationUser, std::string &mimeType, std::string &data, std::string &originUser, MessageScope messageScope);
   
+  //shouldn't be called until a user is fully authenticated (they'll get directed messages)
+  bool registerUser(std::string &username, GatewayServiceHandler *handler);
+  bool unregisterUser(std::string &username, GatewayServiceHandler *handler);
+  
   //Methods for cross-gateway communication
   void initCrossGateway();
   
@@ -66,9 +70,13 @@ private:
   
   typedef std::multimap<std::string, LocalSubscriptionInfo> PushHandlerMap;
   PushHandlerMap pushHandlers;
+  
   std::multimap<std::string, GatewayServiceHandler *> pullHandlers;
   
   std::map<std::string, GatewayServiceHandler *> plugins;
+  
+  typedef std::map<std::string, GatewayServiceHandler *> UserMap;
+  UserMap authenticatedUsers;
   
   std::map<std::string, CrossGatewayServiceHandler *> crossGatewayHandlers;
   std::multimap<std::string, SubscriptionInfo> subscriptions;

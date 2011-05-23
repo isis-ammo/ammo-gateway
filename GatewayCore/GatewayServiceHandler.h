@@ -44,6 +44,7 @@ protected:
   
   std::string username;
   bool usernameAuthenticated;
+  bool usernameRegistered;
   
   std::vector<std::string> registeredHandlers;
   std::vector<std::string> registeredPullRequestHandlers;

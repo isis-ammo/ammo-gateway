@@ -165,7 +165,36 @@ bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std
 }
 
 bool GatewayCore::directedMessage(std::string &uri, std::string &destinationUser, std::string &mimeType, std::string &data, std::string &originUser, MessageScope messageScope) {
+  UserMap::iterator it = authenticatedUsers.find(destinationUser);
+  if(it != plugins.end()) {
+    (*it).second->sendDirectedMessage(uri, destinationUser, mimeType, data, originUser, messageScope);
+    return true;
+  }
+  
   return false;
+}
+
+bool GatewayCore::registerUser(std::string &username, GatewayServiceHandler *handler) {
+  LOG_DEBUG("Registering user " << username << " with handler " << handler);
+  if(authenticatedUsers.find(username) == authenticatedUsers.end()) {
+    authenticatedUsers[username] = handler;
+    return true;
+  } else {
+    LOG_WARN(username << " attempted to login more than once.  Only the first login will receive directed messages.");
+    return false;
+  }
+}
+
+bool GatewayCore::unregisterUser(std::string &username, GatewayServiceHandler *handler) {
+  LOG_DEBUG("Unregistering user " << username << " with handler " << handler);
+  //TODO:  Check to make sure the handlers are the same?  Is this necessary?  (shouldn't happen)
+  UserMap::size_type numberRemoved = authenticatedUsers.erase(username);
+  if(numberRemoved == 0) {
+    LOG_WARN(username << " attempted to unregister itself without being authenticated.");
+    return false;
+  } else {
+    return true;
+  }
 }
 
 void GatewayCore::initCrossGateway() {

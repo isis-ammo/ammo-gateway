@@ -27,6 +27,7 @@ int GatewayServiceHandler::open(void *ptr) {
   position = 0;
   username = "";
   usernameAuthenticated = false;
+  usernameRegistered = false;
   
   return 0;
 }
@@ -176,6 +177,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       this->sendData(newMsg);
       username = msg.associate_device().user();
       usernameAuthenticated = true;
+      usernameRegistered = GatewayCore::getInstance()->registerUser(username, this);
       break;
     }
     case ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST: {
@@ -375,6 +377,10 @@ GatewayServiceHandler::~GatewayServiceHandler() {
   LOG_DEBUG("Unregistering pull request handlers...");
   for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
     GatewayCore::getInstance()->unregisterPullInterest(*it, this);
+  }
+  
+  if(usernameRegistered) {
+    GatewayCore::getInstance()->unregisterUser(username, this);
   }
 }
 
