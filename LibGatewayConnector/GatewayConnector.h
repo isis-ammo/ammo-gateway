@@ -121,6 +121,31 @@ namespace ammo {
       }
     };
     
+    class LibGatewayConnector_Export DirectedMessage {
+      std::string uri;                          ///< The URI of this piece of data.  This URI should be a universally
+                                                ///  unique identifier for the object being pushed (no two pieces of
+                                                ///  data should have the same URI).
+      std::string destinationUser;              ///< The user to deliver this message to.
+      std::string mimeType;                     ///< The MIME type of this piece of data.  This MIME type is used to
+                                                ///  determine which other gateway plugins will receive this pushed
+                                                ///  data.
+      std::string data;                         ///< The data to be pushed to the gateway.  Represented as a C++ string,
+                                                ///  but can contain any arbitrary binary data (the gateway will 
+                                                ///  accept strings with bytes invalid in C-strings such as embedded
+                                                ///  nulls).
+      std::string originUser;                   ///< The username of the user who generated this data. Will be
+                                                ///  overwritten if the plugin doesn't have permission to pose as 
+                                                ///  a different user (not yet implemented).  Optional.
+      ammo::gateway::MessageScope messageScope; ///< The scope of this object (determines how many gateways to send
+                                                ///  this object to in a multiple gateway configuration).  Optional,
+                                                ///  will default to SCOPE_GLOBAL.
+                                                
+      friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::DirectedMessage &directedMessage) {
+        os << "URI: " << directedMessage.uri << " dest: " << directedMessage.destinationUser;
+        return os;
+      }
+    };
+    
     /**
     * This class is used to connect a gateway plugin to the core gateway.  Each 
     * plugin should use at least one instance of this class; a plugin may create
@@ -340,6 +365,8 @@ namespace ammo {
       *               failed.
       */
       virtual void onAuthenticationResponse(GatewayConnector *sender, bool result);
+      
+      virtual void onDirectedMessage(GatewayConnector *sender, DirectedMessage &directedMsg);
     };
     
     /**

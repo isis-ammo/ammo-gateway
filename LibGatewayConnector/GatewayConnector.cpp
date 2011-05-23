@@ -301,6 +301,10 @@ void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayCo
   //LOG_INFO("GatewayConnectorDelegate::onAuthenticationResponse : result = " << result);
 }
 
+void ammo::gateway::GatewayConnectorDelegate::onDirectedMessage(GatewayConnector *sender, DirectedMessage &directedMsg) {
+  
+}
+
 //Constructors for PushMessage, PullRequest, PullResponse--  set up sane defaults
 ammo::gateway::PushData::PushData() :
   uri(""),
