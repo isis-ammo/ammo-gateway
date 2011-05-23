@@ -276,7 +276,16 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       } else {
         scope = SCOPE_LOCAL;
       }
-      //GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), this->username, scope);
+      std::string usernameToSend;
+      if(usernameAuthenticated) {
+        usernameToSend = this->username;
+      } else {
+        //TODO:  Need to verify that the connected plugin has permission to act
+        //       on behalf of users
+        usernameToSend = msg.directed_message().origin_user();
+      }
+      GatewayCore::getInstance()->directedMessage(msg.directed_message().uri(), msg.directed_message().destination_user(), msg.directed_message().mime_type(),
+                                                  msg.directed_message().data(), usernameToSend, scope);
       break;
     } 
     default: {
@@ -345,8 +354,8 @@ bool GatewayServiceHandler::sendPullResponse(std::string requestUid, std::string
   return true;
 }
 
-bool GatewayServiceHandler::sendDirectedMessage(std::string &uri, std::string &destinationUser, std::string &mimeType, 
-                                                std::string &data, std::string &originUser, MessageScope messageScope) {
+bool GatewayServiceHandler::sendDirectedMessage(const std::string &uri, const std::string &destinationUser, const std::string &mimeType, 
+                                                const std::string &data, const std::string &originUser, const MessageScope messageScope) {
 
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::DirectedMessage *directedMsg = msg.mutable_directed_message();

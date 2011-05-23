@@ -164,7 +164,7 @@ bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std
   return true;
 }
 
-bool GatewayCore::directedMessage(std::string &uri, std::string &destinationUser, std::string &mimeType, std::string &data, std::string &originUser, MessageScope messageScope) {
+bool GatewayCore::directedMessage(const std::string &uri, const std::string &destinationUser, const std::string &mimeType, const std::string &data, const std::string &originUser, const MessageScope messageScope) {
   UserMap::iterator it = authenticatedUsers.find(destinationUser);
   if(it != plugins.end()) {
     (*it).second->sendDirectedMessage(uri, destinationUser, mimeType, data, originUser, messageScope);
