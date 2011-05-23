@@ -9,9 +9,9 @@
   // (the configuration file shared between LibGatewayConnector and GatewayCore)
   // in normal operation so that address and port settings are synchronized
   // between all running plugins.
-  //"AGatewayConfig": "AtsPluginConfig.json", //a single configuration file
+  "AGatewayConfig": "AtsPluginConfig.json", //a single configuration file
 
-  "Host":  "flagon.aterrasys.com",  //Host name for the Aterrasys Server
+  "Host":  "firebar.aterrasys.com",  //Host name for the Aterrasys Server
   "Port":  8080,   //Port on the Aterrasys Server
   "BaseDir":  "nevada/api",  //base path on the Aterrasys Server
 
