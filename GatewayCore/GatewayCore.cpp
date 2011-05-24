@@ -165,8 +165,12 @@ bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std
 }
 
 bool GatewayCore::directedMessage(const std::string &uri, const std::string &destinationUser, const std::string &mimeType, const std::string &data, const std::string &originUser, const MessageScope messageScope) {
+  LOG_DEBUG("  Sending directed message with uri: " << uri);
+  LOG_DEBUG("                    destinationUser: " << destinationUser);
+  LOG_DEBUG("                               type: " << mimeType);
   UserMap::iterator it = authenticatedUsers.find(destinationUser);
-  if(it != plugins.end()) {
+  if(it != authenticatedUsers.end()) {
+    LOG_TRACE("  Sending to " << (*it).first << ", " << (void*) (*it).second);
     (*it).second->sendDirectedMessage(uri, destinationUser, mimeType, data, originUser, messageScope);
     return true;
   }
@@ -189,10 +193,11 @@ bool GatewayCore::unregisterUser(std::string &username, GatewayServiceHandler *h
   LOG_DEBUG("Unregistering user " << username << " with handler " << handler);
   //TODO:  Check to make sure the handlers are the same?  Is this necessary?  (shouldn't happen)
   UserMap::size_type numberRemoved = authenticatedUsers.erase(username);
-  if(numberRemoved == 0) {
+  if(numberRemoved != 1) {
     LOG_WARN(username << " attempted to unregister itself without being authenticated.");
     return false;
   } else {
+    LOG_TRACE("  Removed " << numberRemoved << " handlers");
     return true;
   }
 }
