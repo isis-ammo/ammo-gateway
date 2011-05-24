@@ -179,6 +179,24 @@ void AndroidMessageProcessor::onDisconnect(GatewayConnector *sender) {
   
 }
 
+void AndroidMessageProcessor::onDirectedMessage(GatewayConnector *sender, ammo::gateway::DirectedMessage &directedMsg) {
+  LOG_DEBUG(commsHandler << " Sending directed message to device...");
+  LOG_DEBUG(commsHandler << "    " << directedMsg);
+  
+  ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
+  ammo::protocol::DirectedMessage *dirMsg = msg->mutable_directed_message();
+  dirMsg->set_uri(directedMsg.uri);
+  dirMsg->set_destination_user(directedMsg.destinationUser);
+  dirMsg->set_mime_type(directedMsg.mimeType);
+  dirMsg->set_data(directedMsg.data);
+  dirMsg->set_origin_user(directedMsg.originUser);
+  
+  msg->set_type(ammo::protocol::MessageWrapper_MessageType_DIRECTED_MESSAGE);
+  
+  LOG_DEBUG(commsHandler << " Sending Directed Message to connected device");
+  commsHandler->sendMessage(msg);
+}
+
 void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData) {
   LOG_DEBUG(commsHandler << " Sending subscribed data to device...");
   LOG_DEBUG(commsHandler << "    " << pushData);

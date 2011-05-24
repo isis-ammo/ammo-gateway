@@ -388,7 +388,7 @@ namespace ammo {
       * @param sender The GatewayConnector instance which received the messsage.
       * @param directedMessage The directed message that was received.
       */
-      virtual void onDirectedMessage(GatewayConnector *sender, DirectedMessage &directedMsg);
+      virtual void onDirectedMessage(GatewayConnector *sender, ammo::gateway::DirectedMessage &directedMsg);
     };
     
     /**

@@ -40,6 +40,23 @@ message DataMessage {
 }
 
 /**
+* A directed message.
+* 
+* uri : a unique identifier of this data item.
+* destination_user : the user to send this data item to.
+* scope : the scope of this message (used to determine how many gateways to send
+*         this message to in a multiple-gateway configuration)
+*/
+message DirectedMessage {
+  required string uri = 1;
+  required string destination_user = 2;
+  optional string mime_type = 3;
+  optional bytes data = 4;
+  optional string origin_user = 5;
+  optional MessageScope scope = 6 [default = GLOBAL];
+}
+
+/**
 * Sent from the Android plugin to the device when a DataMessage is
 * received.
 */
@@ -160,6 +177,7 @@ message MessageWrapper {
     PULL_RESPONSE = 7;
     HEARTBEAT = 8;
     UNSUBSCRIBE_MESSAGE = 9;
+    DIRECTED_MESSAGE = 10;
   }
 
   required MessageType type = 1;
@@ -174,4 +192,5 @@ message MessageWrapper {
   optional PullResponse pull_response = 9;
   optional Heartbeat heartbeat = 10;
   optional UnsubscribeMessage unsubscribe_message = 11;
+  optional DirectedMessage directed_message = 12;
 }
