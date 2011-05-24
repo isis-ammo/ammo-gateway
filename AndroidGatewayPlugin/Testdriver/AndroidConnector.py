@@ -233,6 +233,19 @@ class AndroidConnector(threading.Thread):
     m.pull_request.live_query = liveQuery
     reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
+  def directedMessage(self, uri, destinationUser, mimeType, data, scope = MessageScope.GLOBAL):
+    m = AmmoMessages_pb2.MessageWrapper()
+    m.type = AmmoMessages_pb2.MessageWrapper.DIRECTED_MESSAGE
+    m.directed_message.uri = uri
+    m.directed_message.destination_user = destinationUser
+    m.directed_message.mime_type = mimeType
+    m.directed_message.data = data
+    if scope == MessageScope.GLOBAL:
+      m.directed_message.scope = AmmoMessages_pb2.GLOBAL
+    else:
+      m.directed_message.scope = AmmoMessages_pb2.LOCAL
+    reactor.callFromThread(self._protocol.sendMessageWrapper, m)
+    
   def waitForAuthentication(self):
     '''
     Waits for the AndroidConnector to connect to the Android Gateway Plugin, and
