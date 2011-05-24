@@ -139,7 +139,28 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       
       gatewayConnector->unregisterDataInterest(unsubscribeMessage.mime_type(), scope);
     }
-  } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
+  } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_DIRECTED_MESSAGE) {
+    LOG_DEBUG(commsHandler << " Received Directed message");
+    if(gatewayConnector != NULL) {
+      ammo::protocol::DirectedMessage dirMsg = msg.directed_message();
+      ammo::gateway::DirectedMessage message;
+      message.uri = dirMsg.uri();
+      message.destinationUser = dirMsg.destination_user();
+      message.mimeType = dirMsg.mime_type();
+      message.data = dirMsg.data();
+      message.originUser = dirMsg.origin_user();
+      
+      if(dirMsg.scope() == ammo::protocol::LOCAL) {
+        message.scope = SCOPE_LOCAL;
+      } else {
+        message.scope = SCOPE_GLOBAL;
+      }
+      
+      gatewayConnector->directedMessage(message);
+    }
+      
+      
+  }else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG(commsHandler << " Received Pull Request Message...");
     if(gatewayConnector != NULL) {
       ammo::protocol::PullRequest pullRequest = msg.pull_request();
