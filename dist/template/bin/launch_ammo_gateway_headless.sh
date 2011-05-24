@@ -15,7 +15,7 @@ if [ ! -d $LOGDIR ]; then
 fi
 
 hostname=`hostname`
-datesuffix=`date "+%Y.%M.%d.%H.%M.%S"`
+datesuffix=`date "+%Y.%m.%d.%H.%M.%S"`
 
 gatewaycorelog="$LOGDIR/GatewayCore.log.$datesuffix"
 androidpluginlog="$LOGDIR/AndroidGatewayPlugin.log.$datesuffix"
