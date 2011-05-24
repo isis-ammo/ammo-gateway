@@ -379,6 +379,15 @@ namespace ammo {
       */
       virtual void onAuthenticationResponse(GatewayConnector *sender, bool result);
       
+      /**
+      * Optional delegate method called when a directed message is received.
+      * GatewayConnectorDelegate subclasses don't have to implement this method
+      * if they don't need to handle directed messages, although any plugin
+      * which logs in as a user should handle directed messages.
+      *
+      * @param sender The GatewayConnector instance which received the messsage.
+      * @param directedMessage The directed message that was received.
+      */
       virtual void onDirectedMessage(GatewayConnector *sender, DirectedMessage &directedMsg);
     };
     
