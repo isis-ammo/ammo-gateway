@@ -122,6 +122,8 @@ namespace ammo {
     };
     
     class LibGatewayConnector_Export DirectedMessage {
+    public:
+      DirectedMessage();
       std::string uri;                          ///< The URI of this piece of data.  This URI should be a universally
                                                 ///  unique identifier for the object being pushed (no two pieces of
                                                 ///  data should have the same URI).
@@ -136,7 +138,7 @@ namespace ammo {
       std::string originUser;                   ///< The username of the user who generated this data. Will be
                                                 ///  overwritten if the plugin doesn't have permission to pose as 
                                                 ///  a different user (not yet implemented).  Optional.
-      ammo::gateway::MessageScope messageScope; ///< The scope of this object (determines how many gateways to send
+      ammo::gateway::MessageScope scope;        ///< The scope of this object (determines how many gateways to send
                                                 ///  this object to in a multiple gateway configuration).  Optional,
                                                 ///  will default to SCOPE_GLOBAL.
                                                 
@@ -239,7 +241,17 @@ namespace ammo {
        * @return true if the operation succeeded; false if the operation failed.
        */
       bool pullResponse(PullResponse &response);
-    
+      
+      /**
+       * Sends a directed message to the user specified in the message.
+       *
+       * @param message The directed message to be sent.  The uri, 
+       *                destinationUser, and mimeType fields must be set, or 
+       *                this call will fail.
+       *
+       * @return true if the operation succeeded; false if the operation failed.
+       */
+      bool directedMessage(DirectedMessage &message);
     
       //Receiver-side
       /**
@@ -319,6 +331,7 @@ namespace ammo {
       void onPushDataReceived(const ammo::gateway::protocol::PushData &msg);
       void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg);
       void onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg);
+      void onDirectedMessageReceived(const ammo::gateway::protocol::DirectedMessage &msg);
       
       GatewayConnectorDelegate *delegate;
       std::map<std::string, DataPushReceiverListener *> receiverListeners;

@@ -137,7 +137,31 @@ bool ammo::gateway::GatewayConnector::pullResponse(PullResponse &response) {
   }
 }
 
-
+bool ammo::gateway::GatewayConnector::directedMessage(DirectedMessage &message) {
+  ammo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::DirectedMessage *dirMsg = msg.mutable_directed_message();
+  dirMsg->set_uri(message.uri);
+  dirMsg->set_destination_user(message.destinationUser);
+  dirMsg->set_mime_type(message.mimeType);
+  dirMsg->set_data(message.data);
+  dirMsg->set_origin_user(message.originUser);
+  if(message.scope == SCOPE_LOCAL) {
+    dirMsg->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    dirMsg->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
+  
+  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_DIRECTED_MESSAGE);
+  
+  LOG_DEBUG("Sending Directed Message to gateway core");
+  if(connected) {
+    handler->sendData(msg);
+    return true;
+  } else {
+    LOG_ERROR("Not connected to gateway; can't send data");
+    return false;
+  }
+}
 
 
 bool ammo::gateway::GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverListener *listener, MessageScope scope) {
@@ -292,7 +316,18 @@ void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway
   }
 }
 
-
+void ammo::gateway::GatewayConnector::onDirectedMessageReceived(const ammo::gateway::protocol::DirectedMessage &msg) {
+  ammo::gateway::DirectedMessage message;
+  message.uri = msg.uri();
+  message.destinationUser = msg.destination_user();
+  message.mimeType = msg.mime_type();
+  message.data = msg.data();
+  message.originUser = msg.origin_user();
+  
+  if(delegate != NULL) {
+    delegate->onDirectedMessage(this, message);
+  }
+}
 
 
 //--GatewayConnectorDelegate default implementations (for optional delegate methods)
@@ -335,6 +370,17 @@ ammo::gateway::PullResponse::PullResponse() :
   mimeType(""),
   uri(""),
   data()
+{
+  
+}
+
+ammo::gateway::DirectedMessage::DirectedMessage() :
+  uri(""),
+  destinationUser(""),
+  mimeType(""),
+  data(""),
+  originUser(""),
+  scope(ammo::gateway::SCOPE_GLOBAL)
 {
   
 }

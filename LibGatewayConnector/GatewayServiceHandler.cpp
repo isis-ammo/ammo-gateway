@@ -177,6 +177,9 @@ int ammo::gateway::internal::GatewayServiceHandler::processData(char *data, unsi
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
     LOG_DEBUG("Received Pull Response...");
     parent->onPullResponseReceived(msg.pull_response());
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_DIRECTED_MESSAGE) {
+    LOG_DEBUG("Received Directed Message...");
+    parent->onDirectedMessageReceived(msg.directed_message());
   }
   
   return 0;
