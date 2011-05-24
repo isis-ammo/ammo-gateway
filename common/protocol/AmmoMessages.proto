@@ -46,6 +46,10 @@ message DataMessage {
 * destination_user : the user to send this data item to.
 * scope : the scope of this message (used to determine how many gateways to send
 *         this message to in a multiple-gateway configuration)
+* origin_user : the user who sent this directed message.  Will be set correctly
+*               when a device *receives* a directed message, but a device CANNOT
+*               set this field explicitly when *sending* a directed message (it
+*               will be overwritten by the gateway).
 */
 message DirectedMessage {
   required string uri = 1;
