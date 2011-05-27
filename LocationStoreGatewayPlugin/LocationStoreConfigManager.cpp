@@ -49,6 +49,19 @@ LocationStoreConfigManager::LocationStoreConfigManager (
                       connector_->registerPullInterest (mime_type, receiver_);
                     }
                 }
+              else
+                {
+                  LOG_ERROR ("MimeTypes string array is malformed in config file");
+                }
+                
+              if (root_["DatabasePath"].isString ())
+                {
+                  receiver_->db_filepath (root_["DatabasePath"].asString ());
+                }
+              else
+                {
+                  LOG_ERROR ("DatabasePath string is malformed in config file");
+                }
             }
           else
             {
