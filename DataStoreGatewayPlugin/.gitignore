@@ -1,0 +1,6 @@
+Makefile*
+*.o
+.depend*
+DataStoreGatewayPlugin
+DataStoreGatewayPluginGatewayPlugin.exe
+Debug\

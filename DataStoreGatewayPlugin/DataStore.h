@@ -1,5 +1,5 @@
-#ifndef LOCATION_STORE_H
-#define LOCATION_STORE_H
+#ifndef DATA_STORE_H
+#define DATA_STORE_H
 
 #include "GatewayConnector.h"
 
@@ -10,14 +10,14 @@ namespace Json
   class Value;
 }
 
-class LocationStoreReceiver : public ammo::gateway::DataPushReceiverListener,
-							                public ammo::gateway::GatewayConnectorDelegate,
-                              public ammo::gateway::PullRequestReceiverListener
+class DataStoreReceiver : public ammo::gateway::DataPushReceiverListener,
+					                public ammo::gateway::GatewayConnectorDelegate,
+                          public ammo::gateway::PullRequestReceiverListener
 
 {
 public:
-  LocationStoreReceiver (void);
-  ~LocationStoreReceiver (void);
+  DataStoreReceiver (void);
+  ~DataStoreReceiver (void);
 	
   // GatewayConnectorDelegate methods
   virtual void onConnect (ammo::gateway::GatewayConnector *sender);
@@ -63,5 +63,5 @@ private:
   std::string db_filepath_;
 };
 
-#endif        //  #ifndef LOCATION_STORE_H
+#endif        //  #ifndef DATA_STORE_H
 

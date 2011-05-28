@@ -1,4 +1,4 @@
-project(LocationStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
+project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
   after += LibGatewayConnector LibJSON
   
   includes += $(GATEWAY_ROOT)/LibJSON
@@ -15,13 +15,13 @@ project(LocationStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewaypl
                 /usr/lib/x86_64-linux-gnu
   }
 
-  exename = LocationStoreGatewayPlugin
+  exename = DataStoreGatewayPlugin
 
   Source_Files {
     EventFilter.cpp
     EventProjectionParser.cpp
-    LocationStore.cpp
-    LocationStoreConfigManager.cpp
+    DataStore.cpp
+    DataStoreConfigManager.cpp
     main.cpp
     MediaFilter.cpp
     MediaProjectionParser.cpp
