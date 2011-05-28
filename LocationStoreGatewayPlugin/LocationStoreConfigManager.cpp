@@ -12,6 +12,7 @@ const char *CONFIG_DIRECTORY = "ammo-gateway";
 const char *LOC_STORE_CONFIG_FILE = "LocationStorePluginConfig.json";
 
 using namespace std;
+using namespace ammo::gateway;
 
 LocationStoreConfigManager *LocationStoreConfigManager::sharedInstance = 0;
 

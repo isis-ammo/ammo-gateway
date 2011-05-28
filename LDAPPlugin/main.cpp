@@ -17,6 +17,7 @@
 #include "version.h"
 
 using namespace std;
+using namespace ammo::gateway;
 
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
 //in the middle of the reactor event loop, which isn't always a good thing).

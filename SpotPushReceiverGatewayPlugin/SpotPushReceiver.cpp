@@ -20,6 +20,7 @@
 int spot_id = 1000;
 
 using namespace std;
+using namespace ammo::gateway;
 
 const string BSO_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.battlespace.gcm";
 
@@ -31,24 +32,24 @@ void SpotPushReceiver::onDisconnect(GatewayConnector *sender) {
   
 }
 
-void SpotPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
+void SpotPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData) {
   cout << "Got data." << endl;
-  cout << "  URI: " << uri << endl;
-  cout << "  Mime type: " << mimeType << endl;
-  cout << "  Data: " << string(data.begin(), data.end()) << endl;
-  cout << "  Origin Username: " << originUser << endl;
+  cout << "  URI: " << pushData.uri << endl;
+  cout << "  Mime type: " << pushData.mimeType << endl;
+  cout << "  Data: " << string(pushData.data.begin(), pushData.data.end()) << endl;
+  cout << "  Origin Username: " << pushData.originUsername << endl;
 
     cout << "Extracting JSON metadata..." << endl << flush;
     
     unsigned int jsonEnd = 0;
-    for(vector<char>::iterator it = data.begin(); it != data.end(); it++) {
+    for(string::iterator it = pushData.data.begin(); it != pushData.data.end(); it++) {
       jsonEnd++;
       if((*it) == 0) {
         break;
       }
     }
     
-    string json(&data[0], jsonEnd);
+    string json(&(pushData.data)[0], jsonEnd);
     
     cout << "JSON string: " << json << endl;
     
@@ -171,7 +172,11 @@ void SpotPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
      ostringstream bsouri;
      bsouri << "bft:bso/" << sr.content_guid;
      if(sender) {
-       sender->pushData(bsouri.str(), BSO_MIME_TYPE, jsonBso.str());
+       PushData pd;
+       pd.uri = bsouri.str();
+       pd.mimeType = BSO_MIME_TYPE;
+       pd.data = jsonBso.str();
+       sender->pushData(pd);
      }
 
     // "uuid"  "sidc"; "title" "description";"longitude" "latitude"; "speed""heading";"created_date" "modified_date" "function"; "gcm_type" "standard_id" "exercise" "battle_dimension" "reality"  "echelon" "_disp"
@@ -186,8 +191,8 @@ void SpotPushReceiver::onDataReceived(GatewayConnector *sender, std::string uri,
  * Aniticipated: this will return the data from the search time to present
  * Search time will be the newest record on the pull client's content provider
  */
-
-void SpotPushReceiver::onDataReceived(GatewayConnector *sender, 
+//Commented out--  doesn't appear to be used anywhere
+/*void SpotPushReceiver::onDataReceived(GatewayConnector *sender, 
 			      std::string requestUid, std::string pluginId,
 			      std::string mimeType, std::string query,
 			      std::string projection, unsigned int maxResults,
@@ -212,6 +217,6 @@ void SpotPushReceiver::onDataReceived(GatewayConnector *sender,
   }
 
   spot_file.close();
-}
+}*/
 
 

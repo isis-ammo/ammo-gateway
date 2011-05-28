@@ -9,6 +9,17 @@
 #include "LocationStore.h"
 #include "LocationStoreConfigManager.h"
 
+#include "ace/Time_Value.h"
+#include "ace/OS_NS_time.h"
+#include "ace/Date_Time.h"
+
+using namespace std;
+using namespace ammo::gateway;
+
+// Quick way to switch between plugin debugging, where this main() is run
+// by hand, and normal operation.
+#define DEBUG 0
+
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
 //in the middle of the reactor event loop, which isn't always a good thing).
 class SigintHandler : public ACE_Event_Handler {

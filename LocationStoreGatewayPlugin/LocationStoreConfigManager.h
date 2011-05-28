@@ -5,7 +5,11 @@
 #include "json/value.h"
 
 class LocationStoreReceiver;
-class GatewayConnector;
+namespace ammo {
+  namespace gateway {
+    class GatewayConnector;
+  }
+}
 
 class LocationStoreConfigManager
 {
@@ -13,12 +17,12 @@ public:
   static
   LocationStoreConfigManager *getInstance (
 	LocationStoreReceiver *receiver,
-	GatewayConnector *connector);
+	ammo::gateway::GatewayConnector *connector);
 	
 private:
   LocationStoreConfigManager (
 	LocationStoreReceiver *receiver,
-	GatewayConnector *connector);
+	ammo::gateway::GatewayConnector *connector);
 	
   std::string findConfigFile ();
 	
@@ -27,7 +31,7 @@ private:
   Json::Value root_;
 	
   LocationStoreReceiver *receiver_;
-  GatewayConnector *connector_;
+  ammo::gateway::GatewayConnector *connector_;
 };
 
 #endif // LOCATIONSTORE_CONFIG_MANAGER_H

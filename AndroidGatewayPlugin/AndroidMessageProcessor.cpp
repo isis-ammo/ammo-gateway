@@ -3,6 +3,8 @@
 
 #include "log.h"
 
+using namespace ammo::gateway;
+
 AndroidMessageProcessor::AndroidMessageProcessor(AndroidServiceHandler *serviceHandler) :
 closed(false),
 closeMutex(),
@@ -94,7 +96,13 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       } else {
         scope = SCOPE_GLOBAL;
       }
-      gatewayConnector->pushData(dataMessage.uri(), dataMessage.mime_type(), dataMessage.data(), scope);
+      
+      PushData pushData;
+      pushData.uri = dataMessage.uri();
+      pushData.mimeType = dataMessage.mime_type();
+      pushData.data = dataMessage.data();
+      pushData.scope = scope;
+      gatewayConnector->pushData(pushData);
       ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
       ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
       ack->set_uri(dataMessage.uri());
@@ -138,8 +146,16 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       // register for pull response - 
       gatewayConnector->registerPullResponseInterest(pullRequest.mime_type(), this);
       // now send request
-      gatewayConnector->pullRequest( pullRequest.request_uid(), pullRequest.plugin_id(), pullRequest.mime_type(), pullRequest.query(),
-				     pullRequest.projection(), pullRequest.max_results(), pullRequest.start_from_count(), pullRequest.live_query() );
+      PullRequest req;
+      req.requestUid = pullRequest.request_uid();
+      req.pluginId = pullRequest.plugin_id();
+      req.mimeType = pullRequest.mime_type();
+      req.query = pullRequest.query();
+      req.projection = pullRequest.projection();
+      req.maxResults = pullRequest.max_results();
+      req.startFromCount = pullRequest.start_from_count();
+      req.liveQuery = pullRequest.live_query();
+      gatewayConnector->pullRequest(req);
 
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_HEARTBEAT) {
@@ -163,15 +179,15 @@ void AndroidMessageProcessor::onDisconnect(GatewayConnector *sender) {
   
 }
 
-void AndroidMessageProcessor::onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser) {
+void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData) {
   LOG_DEBUG(commsHandler << " Sending subscribed data to device...");
-  LOG_DEBUG(commsHandler << "    URI: " << uri << ", Type: " << mimeType);
+  LOG_DEBUG(commsHandler << "    " << pushData);
   
-  std::string dataString(data.begin(), data.end());
+  std::string dataString(pushData.data.begin(), pushData.data.end());
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
   ammo::protocol::DataMessage *dataMsg = msg->mutable_data_message();
-  dataMsg->set_uri(uri);
-  dataMsg->set_mime_type(mimeType);
+  dataMsg->set_uri(pushData.uri);
+  dataMsg->set_mime_type(pushData.mimeType);
   dataMsg->set_data(dataString);
   
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
@@ -180,18 +196,18 @@ void AndroidMessageProcessor::onDataReceived(GatewayConnector *sender, std::stri
   commsHandler->sendMessage(msg);
 }
 
-void AndroidMessageProcessor::onDataReceived(GatewayConnector *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::vector<char> &data) {
+void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, ammo::gateway::PullResponse &response) {
   LOG_DEBUG(commsHandler << " Sending pull response to device...");
-  LOG_DEBUG(commsHandler << "    URI: " << uri << ", Type: " << mimeType);
+  LOG_DEBUG(commsHandler << "    URI: " << response.uri << ", Type: " << response.mimeType);
   
-  std::string dataString(data.begin(), data.end());
+  std::string dataString(response.data.begin(), response.data.end());
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper();
   ammo::protocol::PullResponse *pullMsg = msg->mutable_pull_response();
 
-  pullMsg->set_request_uid(requestUid);
-  pullMsg->set_plugin_id(pluginId);
-  pullMsg->set_mime_type(mimeType);
-  pullMsg->set_uri(uri);
+  pullMsg->set_request_uid(response.requestUid);
+  pullMsg->set_plugin_id(response.pluginId);
+  pullMsg->set_mime_type(response.mimeType);
+  pullMsg->set_uri(response.uri);
   pullMsg->set_data(dataString);
   
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);

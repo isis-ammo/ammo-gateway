@@ -10,35 +10,26 @@ namespace Json
   class Value;
 }
 
-class LocationStoreReceiver : public DataPushReceiverListener,
-                              public GatewayConnectorDelegate,
-                              public PullRequestReceiverListener
+class LocationStoreReceiver : public ammo::gateway::DataPushReceiverListener,
+							                public ammo::gateway::GatewayConnectorDelegate,
+                              public ammo::gateway::PullRequestReceiverListener
+
 {
 public:
   LocationStoreReceiver (void);
   ~LocationStoreReceiver (void);
 	
   // GatewayConnectorDelegate methods
-  virtual void onConnect (GatewayConnector *sender);
-  virtual void onDisconnect (GatewayConnector *sender);
+  virtual void onConnect (ammo::gateway::GatewayConnector *sender);
+  virtual void onDisconnect (ammo::gateway::GatewayConnector *sender);
   
   // DataPushReceiverListener methods
-  virtual void onDataReceived (GatewayConnector *sender,
-                               std::string uri,
-                               std::string mimeType,
-                               std::vector<char> &data,
-                               std::string originUser);
+  virtual void onPushDataReceived (ammo::gateway::GatewayConnector *sender,
+							                     ammo::gateway::PushData &pushData);
 	
   // PullRequestReceiverListener methods
-  virtual void onDataReceived (GatewayConnector *sender, 
-                               std::string requestUid,
-                               std::string pluginId,
-                               std::string mimeType,
-                               std::string query,
-                               std::string projection,
-                               unsigned int maxResults,
-                               unsigned int startFromCount,
-                               bool liveQuery);
+  virtual void onPullRequestReceived (ammo::gateway::GatewayConnector *sender,
+                                      ammo::gateway::PullRequest &pullReq);
                                
   void db_filepath (const std::string &path);
   bool init (void);

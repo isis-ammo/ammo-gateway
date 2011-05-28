@@ -13,6 +13,8 @@
 #include "LocationStore.h"
 #include "QueryStatementBuilder.h"
 
+using namespace ammo::gateway;
+
 #include "EventFilter.h"
 #include "MediaFilter.h"
 #include "SMSFilter.h"
@@ -31,22 +33,24 @@ LocationStoreReceiver::~LocationStoreReceiver (void)
   sqlite3_close (db_);
 }
 
-void LocationStoreReceiver::onConnect (GatewayConnector * /* sender */)
+void
+LocationStoreReceiver::onConnect (
+  ammo::gateway::GatewayConnector * /* sender */)
 {
 }
 
-void LocationStoreReceiver::onDisconnect (GatewayConnector * /* sender */)
+void
+LocationStoreReceiver::onDisconnect (
+  ammo::gateway::GatewayConnector * /* sender */)
 {
 }
 
-void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
-					                                  std::string uri,
-					                                  std::string mimeType,
-					                                  std::vector<char> & data,
-					                                  std::string originUser)
+void
+LocationStoreReceiver::onPushDataReceived (
+  ammo::gateway::GatewayConnector * /* sender */,
+  ammo::gateway::PushData &pushData)
 {
-  LOG_DEBUG ("Received type:" << mimeType);
-  LOG_DEBUG ("  uri: " << uri);
+  LOG_DEBUG ("Received " << pushData);
   ACE_Time_Value tv (ACE_OS::gettimeofday ());
   sqlite3_stmt *stmt;
 	
@@ -68,10 +72,10 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   status =
 	sqlite3_bind_text (stmt,
-			               1,
-			               uri.c_str (),
-			               uri.length (),
-			               SQLITE_STATIC);
+					           1,
+					           pushData.uri.c_str (),
+					           pushData.uri.length (),
+					           SQLITE_STATIC);
 	
   if (status != SQLITE_OK)
     {
@@ -84,10 +88,10 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   status =
 	sqlite3_bind_text (stmt,
-			               2,
-			               mimeType.c_str (),
-			               mimeType.length (),
-			               SQLITE_STATIC);
+					           2,
+					           pushData.mimeType.c_str (),
+					           pushData.mimeType.length (),
+					           SQLITE_STATIC);
 	
   if (status != SQLITE_OK)
     {
@@ -100,10 +104,10 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   status =
 	sqlite3_bind_text (stmt,
-			               3,
-			               originUser.c_str (),
-			               originUser.length (),
-			               SQLITE_STATIC);
+					           3,
+					           pushData.originUsername.c_str (),
+					           pushData.originUsername.length (),
+					           SQLITE_STATIC);
 	
   if (status != SQLITE_OK)
     {
@@ -144,10 +148,10 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 	
   status =
 	sqlite3_bind_blob (stmt,
-			               6,
-			               data.get_allocator ().address (*data.begin ()),
-			               data.size (),
-			               SQLITE_STATIC);
+					           6,
+					           pushData.data.get_allocator ().address (*(pushData.data.begin ())),
+					           pushData.data.size (),
+					           SQLITE_STATIC);
 	
   if (status != SQLITE_OK)
     {
@@ -173,17 +177,12 @@ void LocationStoreReceiver::onDataReceived (GatewayConnector * /* sender */,
 }
 
 void
-LocationStoreReceiver::onDataReceived (GatewayConnector *sender, 
-                                       std::string requestUid,
-                                       std::string pluginId,
-                                       std::string mimeType,
-                                       std::string query,
-                                       std::string projection,
-                                       unsigned int maxResults,
-                                       unsigned int startFromCount,
-                                       bool /* liveQuery */)
+LocationStoreReceiver::onPullRequestReceived (
+  ammo::gateway::GatewayConnector *sender,
+  ammo::gateway::PullRequest &pullReq)
 {
-  LOG_DEBUG ("pull request received Query: " << query);
+  LOG_DEBUG ("pull request received");
+  LOG_DEBUG ("  Query: " << pullReq.query);
 	
   if (sender == 0)
     {
@@ -192,7 +191,7 @@ LocationStoreReceiver::onDataReceived (GatewayConnector *sender,
     }
 		
   // Finalizes (cleans up) the created SQL statement in the destructor.
-  QueryStatementBuilder builder (mimeType, query, db_);
+  QueryStatementBuilder builder (pullReq.mimeType, pullReq.query, db_);
 	
   if (!builder.build ())
     {
@@ -205,51 +204,43 @@ LocationStoreReceiver::onDataReceived (GatewayConnector *sender,
 	
   // If the arg is 0, we want unlimited results.	
   unsigned int resultLimit =
-    (maxResults == 0 ? ACE_UINT32_MAX : maxResults);
+    (pullReq.maxResults == 0 ? ACE_UINT32_MAX : pullReq.maxResults);
   unsigned int index = 0;
 	
   while (sqlite3_step (query_stmt) == SQLITE_ROW
          && index < resultLimit)
     {
-      if (index++ < startFromCount)
+      if (index++ < pullReq.startFromCount)
         {
           continue;
         }
+
+	    // For insertion, column numbers are 1-based, for extraction
+	    // they're 0-based. SQLite retrieves text as const unsigned
+	    // char*, reinterpret_cast<> is the only way to convert it
+	    // to const char* for std::string assignment.
+	    std::string uri (
+		    reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 0)));
 		
-      // For insertion, column numbers are 1-based, for extraction, 0-based.
-	
-      // SQLite retrieves text as const unsigned char*, reinterpret_cast<>
-      // is the only way to convert it to const char* for std::string assignment.
-      std::string uri (
-	      reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 0)));
-	
-      std::string dataType (
-	      reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 1)));
-	
-      std::vector<char> data;
-      size_t len = sqlite3_column_bytes (query_stmt, 5);
-	
-      // This seems to work for assigning to the vector in one shot.	
-      data.resize (len);
-      ACE_OS::memcpy (data.get_allocator ().address (*data.begin ()),
-	                    sqlite3_column_blob (query_stmt, 5),
-	                    len);
-	                    
-	    if (!this->matchedData (mimeType, projection, data))
-	      {
-	        continue;
-	      }
-	      
-      LOG_DEBUG ("Sending response to " << pluginId);
+		  std::string dataType (
+		    reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 1)));
+		
+	   
+	    size_t len = sqlite3_column_bytes (query_stmt, 5);
+      std::string data ((char *) sqlite3_column_blob (query_stmt, 5), len);
+		
+      LOG_DEBUG ("Sending response to " << pullReq.pluginId);
       LOG_DEBUG ("  type: " << dataType);
       LOG_DEBUG ("   uri: " << uri);
+      
+      PullResponse response =
+        PullResponse::createFromPullRequest (pullReq);
+      response.mimeType = dataType;
+      response.uri = uri;
+      response.data = data;
 		
       bool good_response =
-        sender->pullResponse (requestUid,
-                              pluginId,
-                              dataType,
-                              uri,
-                              data);
+		    sender->pullResponse (response);
 		
       if (!good_response)
 	      {
