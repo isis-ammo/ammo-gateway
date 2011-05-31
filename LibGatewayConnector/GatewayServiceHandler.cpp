@@ -63,7 +63,7 @@ int ammo::gateway::internal::GatewayServiceHandler::handle_input(ACE_HANDLE fd) 
         //LOG_TRACE("Got all the data... processing");
         processData(collectedData, dataSize, checksum);
         //LOG_TRACE("Processsing complete.  Deleting buffer.");
-        delete collectedData;
+        delete[] collectedData;
         collectedData = NULL;
         dataSize = 0;
         position = 0;
@@ -145,6 +145,8 @@ void ammo::gateway::internal::GatewayServiceHandler::sendData(ammo::gateway::pro
   } else {
     LOG_ERROR("SEND ERROR (LibGatewayConnector):  Message is missing a required element.");
   }
+  
+  delete[] messageToSend;
 }
 
 int ammo::gateway::internal::GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {

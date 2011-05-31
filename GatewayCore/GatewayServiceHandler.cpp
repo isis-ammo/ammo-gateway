@@ -146,6 +146,8 @@ void GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper &ms
   } else {
     LOG_ERROR("SEND ERROR:  Message is missing a required element.");
   }
+  
+  delete[] messageToSend;
 }
 
 int GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {

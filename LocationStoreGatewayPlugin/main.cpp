@@ -59,11 +59,17 @@ int main (int /* argc */, char ** /* argv */)
 	// in the constructor. This macro avoids the 'unused' warning.  
 	ACE_UNUSED_ARG (config);
 	
+	if (!receiver->init ())
+	  {
+	    // Error msg already output, just exit w/o starting reactor.
+	    return -1;
+	  }
+
   // Get the process-wide ACE_Reactor (the one the acceptor should
   // have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance ();
   LOG_DEBUG ("Starting event loop...");
   reactor->run_reactor_event_loop ();
-	
+
   return 0;
 }

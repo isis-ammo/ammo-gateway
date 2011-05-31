@@ -29,6 +29,9 @@ public:
 	
   // PullRequestReceiverListener methods
   virtual void onPullRequestReceived (ammo::gateway::GatewayConnector *sender, ammo::gateway::PullRequest &pullReq);
+                               
+  void db_filepath (const std::string &path);
+  bool init (void);
 
 private:
   bool matchedData (const std::string &mimeType,
@@ -54,6 +57,9 @@ private:
   // Prefix to error messages from data push callbacks
   // to this class, used repeatedly in overridden method.
   const char * const err_prefix_;
+  
+  // Set by the config manager.
+  std::string db_filepath_;
 };
 
 #endif        //  #ifndef LOCATION_STORE_H

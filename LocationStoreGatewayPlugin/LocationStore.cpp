@@ -24,33 +24,11 @@ LocationStoreReceiver::LocationStoreReceiver (void)
   : db_ (0),
     err_prefix_ ("LocationStoreReceiver - data push: ")
 {
-  sqlite3_open ("LocationStore_db.sql3", &db_);
-	
-  LOG_DEBUG ("Opening location store database...");
-
-  const char *create_tbl_str =
-	  "CREATE TABLE IF NOT EXISTS the_table ("
-	  "uri TEXT,"
-	  "mime_type TEXT,"
-	  "origin_user TEXT,"
-	  "tv_sec INTEGER NOT NULL,"
-	  "tv_usec INTEGER,"
-	  "data BLOB)";
-	
-  char *db_err = 0;
-	
-  sqlite3_exec (db_, create_tbl_str, 0, 0, &db_err);
-	
-  if (db_err != 0)
-	  {
-	    LOG_ERROR ("Error creating location store database table - "
-				         << db_err);
-	  }
 }
 
 LocationStoreReceiver::~LocationStoreReceiver (void)
 {
-  LOG_DEBUG ("Closing location store database...");
+  LOG_DEBUG ("Closing Data Store Service database...");
 	
   sqlite3_close (db_);
 }
@@ -261,6 +239,51 @@ LocationStoreReceiver::onPullRequestReceived (GatewayConnector *sender, ammo::ga
                      "sender->pullResponse() failed");
 	      }
     }
+}
+
+void
+LocationStoreReceiver::db_filepath (const std::string &path)
+{
+  db_filepath_ = path;
+}
+
+bool
+LocationStoreReceiver::init (void)
+{
+  std::string filepath (db_filepath_);
+  filepath += "LocationStore_db.sql3";
+  
+//  LOG_DEBUG ("full path = " << filepath.c_str ());
+  
+  int status = sqlite3_open (filepath.c_str (), &db_);
+  
+  if (status != 0)
+    {
+      LOG_ERROR ("Data Store Service - " << sqlite3_errmsg (db_));
+      return false;
+    }
+  
+  const char *create_tbl_str =
+	  "CREATE TABLE IF NOT EXISTS the_table ("
+	  "uri TEXT,"
+	  "mime_type TEXT,"
+	  "origin_user TEXT,"
+	  "tv_sec INTEGER NOT NULL,"
+	  "tv_usec INTEGER,"
+	  "data BLOB)";
+	
+  char *db_err = 0;
+	
+  sqlite3_exec (db_, create_tbl_str, 0, 0, &db_err);
+	
+  if (db_err != 0)
+	  {
+	    LOG_ERROR ("Data Store Service - " << db_err);
+			return false;
+	  }
+	  
+	LOG_DEBUG ("Data Store Service database opened successfully...");  
+	return true;
 }
 
 bool
