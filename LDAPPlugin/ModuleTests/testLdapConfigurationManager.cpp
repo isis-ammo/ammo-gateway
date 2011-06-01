@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     LdapConfigurationManager* t = LdapConfigurationManager::getInstance();
 
     if ((t->getLdapBaseAddress() == "localhost") && 
-	(t->getLdapUsername() == "cn=Manager,dc=transapps,dc=darpa,dc=mil") && 
+	(t->getLdapUsername() == "cn=Manager,dc=ammo,dc=tdm") && 
 	(t->getLdapPassword() == "ammmo"))
       {
 	cout << "*** PASSED ***";
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     
     if ((t->getLdapBaseAddress() == "ldap://localhost") && 
 	(t->getLdapUsername() == "cn=librarian,dc=books,dc=info") && 
-	(t->getLdapPassword() == "transappsRfun"))
+	(t->getLdapPassword() == "AmmoRfun"))
       {
 	cout << "*** PASSED ***";
       }
