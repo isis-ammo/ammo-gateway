@@ -258,6 +258,71 @@ bool CrossGatewayServiceHandler::sendPushedData(std::string uri, std::string mim
   return true;
 }
 
+bool CrossGatewayServiceHandler::sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, 
+                                                 std::string projection, unsigned int maxResults, unsigned int startFromCount, bool liveQuery) {
+  ammo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::PullRequest *pullMsg = msg.mutable_pull_request();
+  pullMsg->set_request_uid(requestUid);
+  pullMsg->set_plugin_id(pluginId);
+  pullMsg->set_mime_type(mimeType);
+  pullMsg->set_query(query);
+  pullMsg->set_projection(projection);
+  pullMsg->set_max_results(maxResults);
+  pullMsg->set_start_from_count(startFromCount);
+  pullMsg->set_live_query(liveQuery);
+  
+  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
+  
+  LOG_DEBUG("Sending Pull Request message to connected gateway");
+  this->sendData(msg);
+  
+  return true;
+}
+
+bool CrossGatewayServiceHandler::sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType,
+					     std::string uri, const std::string& data) {
+  ammo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::PullResponse *pullRsp = msg.mutable_pull_response();
+  pullRsp->set_request_uid(requestUid);
+  pullRsp->set_plugin_id(pluginId);
+  pullRsp->set_mime_type(mimeType);
+  pullRsp->set_uri(uri);
+  pullRsp->set_data(data);
+  
+  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
+  
+  LOG_DEBUG("Sending Pull Response message to connected gateway");
+  this->sendData(msg);
+  
+  return true;
+}
+
+
+bool CrossGatewayServiceHandler::sendRegisterPullInterest(std::string mimeType) {
+  ammo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::RegisterPullInterest *di = msg.mutable_register_pull_interest();
+  di->set_mime_type(mimeType);
+  
+  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST);
+  
+  LOG_DEBUG("Sending Register Pull Interest message to connected gateway");
+  this->sendData(msg);
+  
+  return true;
+}
+
+bool CrossGatewayServiceHandler::sendUnregisterPullInterest(std::string mimeType) {
+  ammo::gateway::protocol::GatewayWrapper msg;
+  ammo::gateway::protocol::UnregisterPullInterest *di = msg.mutable_unregister_pull_interest();
+  di->set_mime_type(mimeType);
+  
+  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST);
+  
+  LOG_DEBUG("Sending Unregister Pull Interest message to connected gateway");
+  this->sendData(msg);
+  
+  return true;
+}
 
 CrossGatewayServiceHandler::~CrossGatewayServiceHandler() {
   LOG_DEBUG("CrossGatewayServiceHandler being destroyed!");
