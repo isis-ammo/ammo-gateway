@@ -42,6 +42,7 @@ message PullRequest {
   optional uint32 max_results = 6 [default = 0]; //0 means infinite results--  send as many as possible
   optional uint32 start_from_count = 7 [default = 0];
   optional bool live_query = 8 [default = false];
+  optional MessageScope scope = 9 [default = GLOBAL];
 }
 
 message PullResponse {
@@ -54,10 +55,12 @@ message PullResponse {
 
 message RegisterPullInterest {
   required string mime_type = 1;
+  optional MessageScope scope = 2 [default = GLOBAL];
 }
 
 message UnregisterPullInterest {
   required string mime_type = 1;
+  optional MessageScope scope = 2 [default = GLOBAL];
 }
 
 message RegisterDataInterest {
