@@ -229,7 +229,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   cout << "LDAP Starting Search for: " << filter << endl;
 
   int ret = ldap_search_ext_s(ldapServer,
-                              "dc=transapps,dc=darpa,dc=mil", /* LDAP search base dn (distinguished name) */
+                              "dc=ammo,dc=tdm", /* LDAP search base dn (distinguished name) */
                               LDAP_SCOPE_SUBTREE, /* scope - root and all descendants */
                               filter.c_str(), /* filter - query expression */
                               attrs, /* requested attributes (white-space seperated list, * = ALL) */
