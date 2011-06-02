@@ -23,6 +23,11 @@ struct SubscriptionInfo {
   unsigned int references;
 };
 
+struct PullRequestHandlerInfo {
+  std::string handlerId;
+  unsigned int references;
+};
+
 struct LocalSubscriptionInfo {
   GatewayServiceHandler *handler;
   MessageScope scope;
@@ -70,6 +75,12 @@ private:
   
   std::map<std::string, CrossGatewayServiceHandler *> crossGatewayHandlers;
   std::multimap<std::string, SubscriptionInfo> subscriptions;
+  
+  typedef std::multimap<std::string, PullRequestHandlerInfo> CrossGatewayPullRequestHandlerMap;
+  CrossGatewayPullRequestHandlerMap crossGatewayPullRequestHandlers;
+  
+  typedef std::map<std::string, std::string> PullRequestReturnIdMap;
+  PullRequestReturnIdMap pullRequestReturnIds;
   
   ACE_Connector<CrossGatewayServiceHandler, ACE_SOCK_Connector> *parentConnector;
   CrossGatewayServiceHandler *parentHandler;
