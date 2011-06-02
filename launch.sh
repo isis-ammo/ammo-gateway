@@ -19,7 +19,7 @@ datesuffix=`date "+%Y.%m.%d.%H.%M.%S"`
 
 gatewaycorelog="$LOGDIR/GatewayCore.log.$datesuffix"
 androidpluginlog="$LOGDIR/AndroidGatewayPlugin.log.$datesuffix"
-locationstorepluginlog="$LOGDIR/LocationStoreGatewayPlugin.log.$datesuffix"
+datastorepluginlog="$LOGDIR/DataStoreGatewayPlugin.log.$datesuffix"
 ldappluginlog="$LOGDIR/LdapGatewayPlugin.log.$datesuffix"
 
 . ~/.bashrc
@@ -40,10 +40,10 @@ xterm -bg black -fg cyan -sb -title "Android Gateway Plugin ($HOSTNAME)" -e "tai
 
 sleep 5
 
-echo "Launching Location Store Gateway Plugin..."
-echo "  Log file in $locationstorepluginlog"
-./LocationStoreGatewayPlugin > $locationstorepluginlog 2>&1 &
-xterm -bg black -fg gray -sb -title "Location Store Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $locationstorepluginlog" &
+echo "Launching Data Store Gateway Plugin..."
+echo "  Log file in $datastorepluginlog"
+./DataStoreGatewayPlugin > $datastorepluginlog 2>&1 &
+xterm -bg black -fg gray -sb -title "Data Store Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $datastorepluginlog" &
 
 sleep 5
 
@@ -60,7 +60,7 @@ echo "Terminating Gateway Core..."
 kill %./Gatewa
 echo "Terminating Android Gateway Plugin..."
 kill %./AndroidGat
-echo "Terminating Location Store Gateway Plugin..."
-kill %./Locatio
+echo "Terminating Data Store Gateway Plugin..."
+kill %./DataStoreGat
 echo "Terminating LDAP Gateway Plugin..."
 kill %./LdapGat

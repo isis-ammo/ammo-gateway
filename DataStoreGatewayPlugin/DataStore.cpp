@@ -10,7 +10,7 @@
 #include "json/reader.h"
 #include "json/value.h"
 
-#include "LocationStore.h"
+#include "DataStore.h"
 #include "QueryStatementBuilder.h"
 
 using namespace ammo::gateway;
@@ -20,13 +20,13 @@ using namespace ammo::gateway;
 #include "SMSFilter.h"
 #include "ReportFilter.h"
 
-LocationStoreReceiver::LocationStoreReceiver (void)
+DataStoreReceiver::DataStoreReceiver (void)
   : db_ (0),
-    err_prefix_ ("LocationStoreReceiver - data push: ")
+    err_prefix_ ("DataStoreReceiver - data push: ")
 {
 }
 
-LocationStoreReceiver::~LocationStoreReceiver (void)
+DataStoreReceiver::~DataStoreReceiver (void)
 {
   LOG_DEBUG ("Closing Data Store Service database...");
 	
@@ -34,21 +34,18 @@ LocationStoreReceiver::~LocationStoreReceiver (void)
 }
 
 void
-LocationStoreReceiver::onConnect (
-  ammo::gateway::GatewayConnector * /* sender */)
+DataStoreReceiver::onConnect (GatewayConnector * /* sender */)
 {
 }
 
 void
-LocationStoreReceiver::onDisconnect (
-  ammo::gateway::GatewayConnector * /* sender */)
+DataStoreReceiver::onDisconnect (GatewayConnector * /* sender */)
 {
 }
 
 void
-LocationStoreReceiver::onPushDataReceived (
-  ammo::gateway::GatewayConnector * /* sender */,
-  ammo::gateway::PushData &pushData)
+DataStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
+                                       PushData &pushData)
 {
   LOG_DEBUG ("Received " << pushData);
   ACE_Time_Value tv (ACE_OS::gettimeofday ());
@@ -96,7 +93,7 @@ LocationStoreReceiver::onPushDataReceived (
   if (status != SQLITE_OK)
     {
       LOG_ERROR (err_prefix_
-                 << "MIME type bind failed: "
+                 << "data type bind failed: "
                  << sqlite3_errmsg (db_));
 		
       return;
@@ -177,9 +174,8 @@ LocationStoreReceiver::onPushDataReceived (
 }
 
 void
-LocationStoreReceiver::onPullRequestReceived (
-  ammo::gateway::GatewayConnector *sender,
-  ammo::gateway::PullRequest &pullReq)
+DataStoreReceiver::onPullRequestReceived (GatewayConnector *sender,
+                                          PullRequest &pullReq)
 {
   LOG_DEBUG ("pull request received");
   LOG_DEBUG ("  Query: " << pullReq.query);
@@ -195,7 +191,7 @@ LocationStoreReceiver::onPullRequestReceived (
 	
   if (!builder.build ())
     {
-      LOG_ERROR ("LocationStoreReceiver - pullrequest: "
+      LOG_ERROR ("DataStoreReceiver - pullrequest: "
                  "Constsruction of query statement failed");
       return;
     }
@@ -244,23 +240,23 @@ LocationStoreReceiver::onPullRequestReceived (
 		
       if (!good_response)
 	      {
-	        LOG_ERROR ("LocationStoreReceiver - pullrequest: "
+	        LOG_ERROR ("DataStoreReceiver - pullrequest: "
                      "sender->pullResponse() failed");
 	      }
     }
 }
 
 void
-LocationStoreReceiver::db_filepath (const std::string &path)
+DataStoreReceiver::db_filepath (const std::string &path)
 {
   db_filepath_ = path;
 }
 
 bool
-LocationStoreReceiver::init (void)
+DataStoreReceiver::init (void)
 {
   std::string filepath (db_filepath_);
-  filepath += "LocationStore_db.sql3";
+  filepath += "DataStore_db.sql3";
   
 //  LOG_DEBUG ("full path = " << filepath.c_str ());
   
@@ -296,9 +292,9 @@ LocationStoreReceiver::init (void)
 }
 
 bool
-LocationStoreReceiver::matchedData (const std::string &mimeType,
-                                    const std::string &projection,
-                                    const std::vector<char> &data)
+DataStoreReceiver::matchedData (const std::string &mimeType,
+                                const std::string &projection,
+                                const std::vector<char> &data)
 {
   // No content-based filtering to be done, return immediately.
   if (projection.empty ())
@@ -329,14 +325,14 @@ LocationStoreReceiver::matchedData (const std::string &mimeType,
         
   if (!goodParse)
     {
-      LOG_ERROR ("LocationStoreReceiver pullrequest"
+      LOG_ERROR ("DataStoreReceiver pullrequest"
                  " - JSON parsing error: "
                  << reader.getFormatedErrorMessages ());
                  
       return false;
     }
 
-  LOG_DEBUG ("MIME type: " << mimeType);
+  LOG_DEBUG ("Data type: " << mimeType);
   LOG_DEBUG ("Parsed JSON: " << root.toStyledString ());
   
   // Incoming SMS mime types have the destination user name appended to this
@@ -382,32 +378,32 @@ LocationStoreReceiver::matchedData (const std::string &mimeType,
 }
 
 bool
-LocationStoreReceiver::matchedEvent (const Json::Value &root,
-                                     const std::string &projection)
+DataStoreReceiver::matchedEvent (const Json::Value &root,
+                                 const std::string &projection)
 {
   EventFilter filter (root, projection);
   return filter.match ();
 }
                    
 bool
-LocationStoreReceiver::matchedMedia (const Json::Value &root,
-                                     const std::string &projection)
+DataStoreReceiver::matchedMedia (const Json::Value &root,
+                                 const std::string &projection)
 {
   MediaFilter filter (root, projection);
   return filter.match ();
 }
                    
 bool
-LocationStoreReceiver::matchedSMS (const Json::Value &root,
-                                   const std::string &projection)
+DataStoreReceiver::matchedSMS (const Json::Value &root,
+                               const std::string &projection)
 {
   SMSFilter filter (root, projection);
   return filter.match ();
 }
 
 bool
-LocationStoreReceiver::matchedReport(const Json::Value &root,
-                                     const std::string &projection)
+DataStoreReceiver::matchedReport(const Json::Value &root,
+                                 const std::string &projection)
 {
   ReportFilter filter (root, projection);
   return filter.match ();

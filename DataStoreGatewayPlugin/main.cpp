@@ -6,8 +6,8 @@
 #include "log.h"
 #include "version.h"
 
-#include "LocationStore.h"
-#include "LocationStoreConfigManager.h"
+#include "DataStore.h"
+#include "DataStoreConfigManager.h"
 
 #include "ace/Time_Value.h"
 #include "ace/OS_NS_time.h"
@@ -48,12 +48,12 @@ int main (int /* argc */, char ** /* argv */)
   
   LOG_DEBUG ("Creating location store receiver...");
   
-  LocationStoreReceiver *receiver = new LocationStoreReceiver ();
+  DataStoreReceiver *receiver = new DataStoreReceiver ();
   
   GatewayConnector *gatewayConnector = new GatewayConnector (receiver);
 	
-  LocationStoreConfigManager *config =
-	  LocationStoreConfigManager::getInstance (receiver, gatewayConnector);
+  DataStoreConfigManager *config =
+	  DataStoreConfigManager::getInstance (receiver, gatewayConnector);
 	  
 	// Nothing further is done with 'config' since everything happens
 	// in the constructor. This macro avoids the 'unused' warning.  
