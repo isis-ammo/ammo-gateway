@@ -155,6 +155,8 @@ void CrossGatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrappe
   } else {
     LOG_ERROR("SEND ERROR:  Message is missing a required element.");
   }
+  
+  delete[] messageToSend;
 }
 
 int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {

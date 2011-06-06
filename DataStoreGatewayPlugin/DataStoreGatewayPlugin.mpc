@@ -1,31 +1,35 @@
-project(LocationStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
+project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
   after += LibGatewayConnector LibJSON
   
   includes += $(GATEWAY_ROOT)/LibJSON
 
 // Added for MacOS, which comes with SQLite already installed.
-// This directory is apparently not in the default system lib path,
-// although it is in the include path.
+// This directory is apparently not in the default system lib path.
 //  libpaths += /usr/lib
 
   libs += sqlite3
+  
+  // Paths to SQLite lib for 32- and 64-bit machines.
   specific(prop:make) {
-    libpaths += /usr/lib/x86_64-linux-gnu
+    libpaths += /usr/lib/i386-linux-gnu \
+                /usr/lib/x86_64-linux-gnu
   }
 
-  exename = LocationStoreGatewayPlugin
+  exename = DataStoreGatewayPlugin
 
   Source_Files {
     EventFilter.cpp
     EventProjectionParser.cpp
-    LocationStore.cpp
-    LocationStoreConfigManager.cpp
+    DataStore.cpp
+    DataStoreConfigManager.cpp
     main.cpp
     MediaFilter.cpp
     MediaProjectionParser.cpp
     ProjectionFilter.cpp
     QueryParamParser.cpp
     QueryStatementBuilder.cpp
+    ReportFilter.cpp
+    ReportProjectionParser.cpp
     SMSFilter.cpp
     SMSProjectionParser.cpp
     StringParser.cpp

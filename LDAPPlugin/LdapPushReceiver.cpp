@@ -147,8 +147,11 @@ void LdapPushReceiver::onPullRequestReceived(GatewayConnector *sender, ammo::gat
   get(pullReq.query, jsonResults);
   for(vector<string>::iterator it = jsonResults.begin(); it != jsonResults.end(); it++)
     {
-      vector<char> data(it->begin(), it->end());
-      sender->pullResponse(pullReq.requestUid, pullReq.pluginId, pullReq.mimeType, "ammo-demo:test-object", data);
+      string data = *it;
+      PullResponse resp = PullResponse::createFromPullRequest(pullReq);
+      resp.uri = "ammo-demo:test-object";
+      resp.data = data;
+      sender->pullResponse(resp);
     }
 }
 
@@ -223,7 +226,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   cout << "LDAP Starting Search for: " << filter << endl;
 
   int ret = ldap_search_ext_s(ldapServer,
-                              "dc=transapps,dc=darpa,dc=mil", /* LDAP search base dn (distinguished name) */
+                              "dc=ammo,dc=tdm", /* LDAP search base dn (distinguished name) */
                               LDAP_SCOPE_SUBTREE, /* scope - root and all descendants */
                               filter.c_str(), /* filter - query expression */
                               attrs, /* requested attributes (white-space seperated list, * = ALL) */

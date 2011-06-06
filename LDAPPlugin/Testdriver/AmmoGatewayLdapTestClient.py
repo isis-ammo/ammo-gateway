@@ -109,8 +109,8 @@ class AmmoGatewayLdapTestClient:
         m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
         m.pull_request.request_uid = "contact-req-1"
         m.pull_request.plugin_id = "android-plugin-test"
-        #m.pull_request.query = "x-Callsign = Hawk*"
-        m.pull_request.query = ""
+        m.pull_request.query = "Callsign=Apache*"
+        #m.pull_request.query = ""
         m.pull_request.mime_type = "application/vnd.edu.vu.isis.ammo.launcher.contact_pull"
         sys.stdout.write("Sending pull request...\n")
         self.sendMessageWrapper(m)
@@ -137,9 +137,11 @@ class AmmoGatewayLdapTestClient:
         contactEntry['rank'] = "1Lt"
         contactEntry['callsign'] = "Red Rover"
         contactEntry['branch'] = "Army"
-        contactEntry['email'] = "bob@example.com"
-        contactEntry['phone'] = "615-555-1212"
         contactEntry['unitDivision'] = "10MTN"
+        contactEntry['unitBrigade'] = "1"
+        contactEntry['unitBattalion'] = "3"
+        contactEntry['unitCompany'] = "C"
+        contactEntry['unitPlatoon'] = "3"
         s = json.dumps(contactEntry)
         sys.stdout.write("*** json-ized string is: %s\n" % s)
         return s

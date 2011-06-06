@@ -2,6 +2,7 @@
 #define SMS_FILTER_H
 
 #include "ProjectionFilter.h"
+#include "SMSProjectionParser.h"
 
 class SMSFilter : public ProjectionFilter
 {

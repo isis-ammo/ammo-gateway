@@ -16,11 +16,11 @@ public:
 
 
   //PullRequestReceiverListener methods
-  virtual void onDataReceived(ammo::gateway::GatewayConnector *sender, 
+  /*virtual void onDataReceived(ammo::gateway::GatewayConnector *sender, 
 			      std::string requestUid, std::string pluginId,
 			      std::string mimeType, std::string query,
 			      std::string projection, unsigned int maxResults,
-			      unsigned int startFromCount, bool liveQuery);
+			      unsigned int startFromCount, bool liveQuery);*/
 
 };
 
