@@ -6,10 +6,21 @@
 
 #include "log.h"
 
+#include "json/reader.h"
+#include "json/value.h"
+
 #include "LocationStore.h"
 #include "QueryStatementBuilder.h"
 
 using namespace ammo::gateway;
+#include "EventProjectionParser.h"
+#include "EventFilter.h"
+
+#include "MediaProjectionParser.h"
+#include "MediaFilter.h"
+
+#include "SMSProjectionParser.h"
+#include "SMSFilter.h"
 
 LocationStoreReceiver::LocationStoreReceiver (void)
   : db_ (0),
@@ -20,23 +31,23 @@ LocationStoreReceiver::LocationStoreReceiver (void)
   LOG_DEBUG ("Opening location store database...");
 
   const char *create_tbl_str =
-	"CREATE TABLE IF NOT EXISTS the_table ("
-	"uri TEXT,"
-	"mime_type TEXT,"
-	"origin_user TEXT,"
-	"tv_sec INTEGER NOT NULL,"
-	"tv_usec INTEGER,"
-	"data BLOB)";
+	  "CREATE TABLE IF NOT EXISTS the_table ("
+	  "uri TEXT,"
+	  "mime_type TEXT,"
+	  "origin_user TEXT,"
+	  "tv_sec INTEGER NOT NULL,"
+	  "tv_usec INTEGER,"
+	  "data BLOB)";
 	
   char *db_err = 0;
 	
   sqlite3_exec (db_, create_tbl_str, 0, 0, &db_err);
 	
   if (db_err != 0)
-	{
-	  LOG_ERROR ("Error creating location store database table - "
-				 << db_err);
-	}
+	  {
+	    LOG_ERROR ("Error creating location store database table - "
+				         << db_err);
+	  }
 }
 
 LocationStoreReceiver::~LocationStoreReceiver (void)
@@ -63,19 +74,19 @@ void LocationStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
 	
   int status =
 	sqlite3_prepare (db_,
-					 "insert into the_table values (?,?,?,?,?,?)",
-					 -1,
-					 &stmt,
-					 0);
+			             "insert into the_table values (?,?,?,?,?,?)",
+			             -1,
+			             &stmt,
+			             0);
 	
   if (status != SQLITE_OK)
     {
-	  LOG_ERROR (err_prefix_
-				 << "prep of sqlite statement failed: "
-		         << sqlite3_errmsg (db_));
+      LOG_ERROR (err_prefix_
+                 << "prep of sqlite statement failed: "
+		             << sqlite3_errmsg (db_));
 		
-	  return;
-	}
+      return;
+    }
 	
   status =
 	sqlite3_bind_text (stmt,
@@ -86,12 +97,12 @@ void LocationStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  LOG_ERROR (err_prefix_
-				 << "URI bind failed: "
-		         << sqlite3_errmsg (db_));
+      LOG_ERROR (err_prefix_
+		             << "URI bind failed: "
+		             << sqlite3_errmsg (db_));
 		
-	  return;
-	}
+      return;
+    }
 	
   status =
 	sqlite3_bind_text (stmt,
@@ -102,12 +113,12 @@ void LocationStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  LOG_ERROR (err_prefix_
-				 << "MIME type bind failed: "
-		         << sqlite3_errmsg (db_));
+      LOG_ERROR (err_prefix_
+                 << "MIME type bind failed: "
+                 << sqlite3_errmsg (db_));
 		
-	  return;
-	}
+      return;
+    }
 	
   status =
 	sqlite3_bind_text (stmt,
@@ -118,40 +129,40 @@ void LocationStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  LOG_ERROR (err_prefix_
-				 << "origin user bind failed: "
-		         << sqlite3_errmsg (db_));
+      LOG_ERROR (err_prefix_
+                 << "origin user bind failed: "
+                 << sqlite3_errmsg (db_));
 		
-		return;
-	}
+      return;
+    }
 	
   status =
 	sqlite3_bind_int (stmt,
-					  4,
-					  tv.sec ());
+			              4,
+			              tv.sec ());
 	
   if (status != SQLITE_OK)
     {
       LOG_ERROR (err_prefix_
-				 << "timestamp sec bind failed: "
-		         << sqlite3_errmsg (db_));
+                 << "timestamp sec bind failed: "
+                 << sqlite3_errmsg (db_));
 		
-	  return;
-	}
+      return;
+    }
 	
   status =
 	sqlite3_bind_int (stmt,
-					  5,
-					  tv.usec ());
+			              5,
+			              tv.usec ());
 	
   if (status != SQLITE_OK)
     {
-	  LOG_ERROR (err_prefix_
-				 << "timestamp usec bind failed: "
-		         << sqlite3_errmsg (db_));
+      LOG_ERROR (err_prefix_
+                 << "timestamp usec bind failed: "
+                 << sqlite3_errmsg (db_));
 		
-	  return;
-	}
+      return;
+    }
 	
   status =
 	sqlite3_bind_blob (stmt,
@@ -162,22 +173,22 @@ void LocationStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
 	
   if (status != SQLITE_OK)
     {
-	  LOG_ERROR (err_prefix_
-				 << "data bind failed: "
-		         << sqlite3_errmsg (db_));
+      LOG_ERROR (err_prefix_
+                 << "data bind failed: "
+                 << sqlite3_errmsg (db_));
 		
-	  return;
-	}
+      return;
+    }
 	
   status = sqlite3_step (stmt);
 	
   if (status != SQLITE_DONE)
     {
-	  LOG_ERROR (err_prefix_
-				 << "insert operation failed: "
-		         << sqlite3_errmsg (db_));
+      LOG_ERROR (err_prefix_
+                 << "insert operation failed: "
+                 << sqlite3_errmsg (db_));
 		
-	  return;
+      return;
     }
 	
   LOG_DEBUG ("data store successful");
@@ -194,7 +205,9 @@ LocationStoreReceiver::onPullRequestReceived (GatewayConnector *sender, ammo::ga
 	
   if (!builder.build ())
     {
+      LOG_ERROR ("LocationStoreReceiver - pullrequest: ")
       LOG_ERROR ("Constsruction of query statement failed");
+      return;
     }
 	
   sqlite3_stmt *query_stmt = builder.query ();
@@ -205,31 +218,42 @@ LocationStoreReceiver::onPullRequestReceived (GatewayConnector *sender, ammo::ga
   unsigned int index = 0;
 	
   while (sqlite3_step (query_stmt) == SQLITE_ROW
-	     && index < resultLimit)
+         && index < resultLimit)
     {
       if (index++ < pullReq.startFromCount)
         {
-	      continue;
+          continue;
         }
 		
-	  // For insertion, column numbers are 1-based, for extraction, 0-based.
-		
-	  // SQLite retrieves text as const unsigned char*, reinterpret_cast<>
-	  // is the only way to convert it to const char* for std::string assignment.
-	  std::string uri (
-		reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 0)));
-		
-		std::string dataType (
-		reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 1)));
-		
-	  std::vector<char> data;
-	  size_t len = sqlite3_column_bytes (query_stmt, 5);
-	  data.resize (len);
-		
-	  // This trick seems to work for assigning to the vector in one shot.	
-	  ACE_OS::memcpy (data.get_allocator ().address (*data.begin ()),
-		              sqlite3_column_blob (query_stmt, 5),
-		              len);
+      // For insertion, column numbers are 1-based, for extraction, 0-based.
+	
+      // SQLite retrieves text as const unsigned char*, reinterpret_cast<>
+      // is the only way to convert it to const char* for std::string assignment.
+      std::string uri (
+	      reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 0)));
+	
+      std::string dataType (
+	      reinterpret_cast<const char *> (sqlite3_column_text (query_stmt, 1)));
+	
+      std::vector<char> data;
+      size_t len = sqlite3_column_bytes (query_stmt, 5);
+      data.resize (len);
+	
+      // This seems to work for assigning to the vector in one shot.	
+      ACE_OS::memcpy (data.get_allocator ().address (*data.begin ()),
+	                    sqlite3_column_blob (query_stmt, 5),
+	                    len);
+	                    
+	    if (!this->matchedData (mimeType, projection, data))
+	      {
+	        continue;
+	      }
+	      
+	    if (sender == 0)
+	      {
+	        LOG_ERROR ("Sender is null");
+	        return;
+	      }
 		
       LOG_DEBUG("Sending response to " << pullReq.pluginId);
       LOG_DEBUG("  type: " << dataType);
@@ -242,11 +266,94 @@ LocationStoreReceiver::onPullRequestReceived (GatewayConnector *sender, ammo::ga
 							  uri,
 					          data);
 		
-	  if (!good_response)
-		{
-		  LOG_ERROR ("LocationStoreReceiver - pullrequest: "
-					 "sender->pullResponse() failed");
-		}
+      if (!good_response)
+	      {
+	        LOG_ERROR ("LocationStoreReceiver - pullrequest: "
+                     "sender->pullResponse() failed");
+	      }
     }
 }
+
+bool
+LocationStoreReceiver::matchedData (const std::string &mimeType,
+                                    const std::string &projection,
+                                    const std::vector<char> &data)
+{
+  // No additional (content-based) filtering to be done.
+  if (projection.empty ())
+    {
+      return true;
+    }
+
+  unsigned int jsonEnd = 0;
+  
+  // The last few fields can default to 0. At least for now, skip
+  // the first one we find and any thereafter, even if non-zero.
+  for (std::vector<char>::const_iterator it = data.begin ();
+       it != data.end ();
+       it++, jsonEnd++)
+    {
+      if ((*it) == 0)
+        {
+          break;
+        }
+    }
+  
+  std::string json (&data[0], jsonEnd);
+  
+  Json::Reader reader;
+  Json::Value root;
+
+  bool goodParse = reader.parse (json, root);
+        
+  if (!goodParse)
+    {
+      LOG_ERROR ("LocationStoreReceiver pullrequest")
+      LOG_ERROR (" - JSON parsing error: ");
+      LOG_ERROR (reader.getFormatedErrorMessages ());
+      return false;
+    }
+
+  LOG_DEBUG ("Parsed JSON: " << root.toStyledString ());
+  
+  if (mimeType == "application/vnd.edu.vu.isis.ammo.dash.event")
+    {
+      return this->matchedEvent (root, projection);
+    }
+  else if (mimeType == "application/vnd.edu.vu.isis.ammo.sms.message")
+    {
+      return this->matchedSMS (root, projection);
+    }
+  else if (mimeType == "application/vnd.edu.vu.isis.ammo.dash.media")
+    {
+      return this->matchedMedia (root, projection);
+    }
+  
+  return true;
+}
+
+bool
+LocationStoreReceiver::matchedEvent (const Json::Value &root,
+                                     const std::string &projection)
+{
+  EventFilter filter (root, projection);
+  return filter.match ();
+}
+                   
+bool
+LocationStoreReceiver::matchedMedia (const Json::Value &root,
+                                     const std::string &projection)
+{
+  MediaFilter filter (root, projection);
+  return filter.match ();
+}
+                   
+bool
+LocationStoreReceiver::matchedSMS (const Json::Value &root,
+                                   const std::string &projection)
+{
+  SMSFilter filter (root, projection);
+  return filter.match ();
+}
+
 

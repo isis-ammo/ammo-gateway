@@ -1,4 +1,4 @@
-project {
+project : gatewayversion {
   exeout=$(GATEWAY_ROOT)/build/bin
   libout=$(GATEWAY_ROOT)/build/lib
   libpaths+=$(GATEWAY_ROOT)/build/lib

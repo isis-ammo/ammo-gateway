@@ -125,6 +125,20 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       
       gatewayConnector->registerDataInterest(subscribeMessage.mime_type(), this, scope);
     }
+  } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_UNSUBSCRIBE_MESSAGE) {
+    LOG_DEBUG(commsHandler << " Received Unubscribe Message...");
+    MessageScope scope;
+    if(msg.unsubscribe_message().scope() == ammo::protocol::LOCAL) {
+      scope = SCOPE_LOCAL;
+    } else {
+      scope = SCOPE_GLOBAL;
+    }
+    
+    if(gatewayConnector != NULL) {
+      ammo::protocol::UnsubscribeMessage unsubscribeMessage = msg.unsubscribe_message();
+      
+      gatewayConnector->unregisterDataInterest(unsubscribeMessage.mime_type(), scope);
+    }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG(commsHandler << " Received Pull Request Message...");
     if(gatewayConnector != NULL) {

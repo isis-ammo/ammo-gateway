@@ -7,10 +7,11 @@ bin/
 *.pdb
 *.vcproj
 *.vcproj.*
-*Makefile*
-*makefile*
+*.so
+*.so.*
+Makefile*
+GNUmakefile*
 .build-version
 *_db.sql3
 nbproject/
-*.so
-*.so.*
+gatewayversion.mpb

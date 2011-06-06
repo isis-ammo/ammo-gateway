@@ -5,6 +5,16 @@
 # Version:	1.0  03-May-2011  johnwilliams@isis.vanderbilt.edu
 #
 
+### BEGIN INIT INFO
+# Provides:          ammo-gateway
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start daemon at boot time
+# Description:       Enable service provided by daemon.
+### END INIT INFO
+
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="AMMO Gateway"
 
