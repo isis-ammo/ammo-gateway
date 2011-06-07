@@ -348,6 +348,30 @@ bool GatewayCore::pullRequestCrossGateway(std::string requestUid, std::string pl
   return true;
 }
 
+bool GatewayCore::pullResponseCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string &data, std::string originHandlerId) {
+  //check for a local plugin with this ID
+  map<string,GatewayServiceHandler *>::iterator it = plugins.find(pluginId);
+  if ( it != plugins.end() ) {
+    //check for something here?
+    (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uri, data);
+    return true;
+  } else {
+    PullRequestReturnIdMap::iterator it2 = cgPullRequestReturnIds.find(pluginId);
+    if(it2 != cgPullRequestReturnIds.end()) {
+      if((it2->second) == originHandlerId) {
+        LOG_WARN("Attempted to send message back to origin handler...  message won't be sent.");
+      } else {
+        std::map<std::string, CrossGatewayServiceHandler *>::iterator cgHandlerIt = crossGatewayHandlers.find(it2->second);
+        if(cgHandlerIt != crossGatewayHandlers.end()) {
+          (*cgHandlerIt).second->sendPullResponse(requestUid, pluginId, mimeType, uri, data);
+        }
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 std::set<GatewayServiceHandler *> GatewayCore::getPushHandlersForType(std::string mimeType) {
   set<GatewayServiceHandler *> matchingHandlers;
   for(PushHandlerMap::iterator it = pushHandlers.begin(); it!= pushHandlers.end(); it++) {
