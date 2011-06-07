@@ -61,6 +61,7 @@ public:
   bool unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId);
   
   bool pushCrossGateway(std::string uri, std::string mimeType, const std::string &data, std::string originUser, std::string originHandlerId);
+  bool pullRequestCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection, unsigned int maxResults, unsigned int startFromCount, bool liveQuery, std::string originHandlerId);
   
 private:
   std::set<GatewayServiceHandler *> getPushHandlersForType(std::string mimeType);
@@ -80,7 +81,7 @@ private:
   CrossGatewayPullRequestHandlerMap crossGatewayPullRequestHandlers;
   
   typedef std::map<std::string, std::string> PullRequestReturnIdMap;
-  PullRequestReturnIdMap pullRequestReturnIds;
+  PullRequestReturnIdMap cgPullRequestReturnIds;
   
   ACE_Connector<CrossGatewayServiceHandler, ACE_SOCK_Connector> *parentConnector;
   CrossGatewayServiceHandler *parentHandler;

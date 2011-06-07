@@ -310,6 +310,44 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const 
   return true;
 }
 
+bool GatewayCore::pullRequestCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection, unsigned int maxResults, unsigned int startFromCount, bool liveQuery, std::string originHandlerId) {
+  LOG_DEBUG("  Received cross-gateway pull request with requestUid: " << requestUid);
+  LOG_DEBUG("                                             pluginId: " << pluginId);
+  LOG_DEBUG("                                                 from: " << originHandlerId);
+  
+  //do a local pull request
+  multimap<string,GatewayServiceHandler *>::iterator it;
+  pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
+  
+  handlerIterators = pullHandlers.equal_range(mimeType);
+  
+  for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
+    //check for something here?
+    LOG_DEBUG("Sending request to " << (*it).second);
+    (*it).second->sendPullRequest(requestUid, pluginId, mimeType, query, projection, maxResults, startFromCount, liveQuery);
+  }
+  
+  //update handler return ID
+  cgPullRequestReturnIds[pluginId] = originHandlerId;
+  
+  //push to all subscribed cross-gateway nodes, except the origin
+  {
+    CrossGatewayPullRequestHandlerMap::iterator it;
+    pair<CrossGatewayPullRequestHandlerMap::iterator, CrossGatewayPullRequestHandlerMap::iterator> pullRequestIterators;
+    
+    pullRequestIterators = crossGatewayPullRequestHandlers.equal_range(mimeType);
+    
+    for(it = pullRequestIterators.first; it != pullRequestIterators.second; it++) {
+      if(originHandlerId != (*it).second.handlerId) {
+        LOG_TRACE("Sending cross-gateway data");
+        crossGatewayHandlers[(*it).second.handlerId]->sendPullRequest(requestUid, pluginId, mimeType, query, projection, maxResults, startFromCount, liveQuery);
+      }
+    }
+  }
+  
+  return true;
+}
+
 std::set<GatewayServiceHandler *> GatewayCore::getPushHandlersForType(std::string mimeType) {
   set<GatewayServiceHandler *> matchingHandlers;
   for(PushHandlerMap::iterator it = pushHandlers.begin(); it!= pushHandlers.end(); it++) {
