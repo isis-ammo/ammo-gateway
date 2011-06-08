@@ -37,7 +37,7 @@ public:
 private:
   bool matchedData (const std::string &mimeType,
                     const std::string &projection,
-                    const std::vector<char> &data);
+                    const std::string &data);
                     
   bool matchedEvent (const Json::Value &root,
                      const std::string &projection);

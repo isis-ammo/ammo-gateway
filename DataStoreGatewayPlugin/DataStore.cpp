@@ -224,6 +224,11 @@ DataStoreReceiver::onPullRequestReceived (GatewayConnector *sender,
 	   
 	    size_t len = sqlite3_column_bytes (query_stmt, 5);
       std::string data ((char *) sqlite3_column_blob (query_stmt, 5), len);
+      
+      if (!this->matchedData (pullReq.mimeType, pullReq.projection, data))
+        {
+          continue;
+        }
 		
       LOG_DEBUG ("Sending response to " << pullReq.pluginId);
       LOG_DEBUG ("  type: " << dataType);
@@ -294,7 +299,7 @@ DataStoreReceiver::init (void)
 bool
 DataStoreReceiver::matchedData (const std::string &mimeType,
                                 const std::string &projection,
-                                const std::vector<char> &data)
+                                const std::string &data)
 {
   // No content-based filtering to be done, return immediately.
   if (projection.empty ())
@@ -302,26 +307,10 @@ DataStoreReceiver::matchedData (const std::string &mimeType,
       return true;
     }
 
-  unsigned int jsonEnd = 0;
-  
-  // The last few fields can default to 0. At least for now, skip
-  // the first one we find and any thereafter, even if non-zero.
-  for (std::vector<char>::const_iterator it = data.begin ();
-       it != data.end ();
-       it++, jsonEnd++)
-    {
-      if ((*it) == 0)
-        {
-          break;
-        }
-    }
-  
-  std::string json (&data[0], jsonEnd);
-  
   Json::Reader reader;
   Json::Value root;
 
-  bool goodParse = reader.parse (json, root);
+  bool goodParse = reader.parse (data, root);
         
   if (!goodParse)
     {
