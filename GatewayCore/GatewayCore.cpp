@@ -132,7 +132,7 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::str
 
 bool GatewayCore::pullRequest(std::string requestUid, std::string pluginId, std::string mimeType, 
                               std::string query, std::string projection, unsigned int maxResults, 
-                              unsigned int startFromCount, bool liveQuery, GatewayServiceHandler *originatingPlugin, MessageScope scope) {
+                              unsigned int startFromCount, bool liveQuery, MessageScope scope, GatewayServiceHandler *originatingPlugin) {
   LOG_DEBUG("  Sending pull request with type: " << mimeType);
   LOG_DEBUG("                        pluginId: " << pluginId);
   LOG_DEBUG("                           query: " << query);
@@ -173,8 +173,18 @@ bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std
   if ( it != plugins.end() ) {
     //check for something here?
     (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uri, data);
+    return true;
+  } else {
+    PullRequestReturnIdMap::iterator it2 = cgPullRequestReturnIds.find(pluginId);
+    if(it2 != cgPullRequestReturnIds.end()) {
+      std::map<std::string, CrossGatewayServiceHandler *>::iterator cgHandlerIt = crossGatewayHandlers.find(it2->second);
+      if(cgHandlerIt != crossGatewayHandlers.end()) {
+        (*cgHandlerIt).second->sendPullResponse(requestUid, pluginId, mimeType, uri, data);
+      }
+      return true;
+    }
   }
-  return true;
+  return false;
 }
 
 void GatewayCore::initCrossGateway() {
@@ -382,6 +392,7 @@ bool GatewayCore::pullResponseCrossGateway(std::string requestUid, std::string p
       }
     }
   }
+  
   return false;
 }
 
