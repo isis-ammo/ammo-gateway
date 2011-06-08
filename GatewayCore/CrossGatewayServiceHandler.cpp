@@ -211,6 +211,15 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
     GatewayCore::getInstance()->pushCrossGateway(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), msg.push_data().origin_user(), gatewayId);
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
+    LOG_DEBUG("Received Push Data...");
+    GatewayCore::getInstance()->pullRequestCrossGateway(msg.pull_request().request_uid(), msg.pull_request().plugin_id(), msg.pull_request().mime_type(), msg.pull_request().query(),
+                                                        msg.pull_request().projection(), msg.pull_request().max_results(), msg.pull_request().start_from_count(),
+                                                        msg.pull_request().live_query(), gatewayId);
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
+    LOG_DEBUG("Received Push Data...");
+    GatewayCore::getInstance()->pullResponseCrossGateway(msg.pull_response().request_uid(), msg.pull_response().plugin_id(), msg.pull_response().mime_type(),
+                                                         msg.pull_response().uri(), msg.pull_response().data(), gatewayId);
   }
   
   return 0;
