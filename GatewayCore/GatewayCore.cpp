@@ -77,28 +77,50 @@ bool GatewayCore::unregisterDataInterest(std::string mime_type, MessageScope mes
   return foundSubscription;
 }
 
-bool GatewayCore::registerPullInterest(std::string mime_type, GatewayServiceHandler *handler) {
+bool GatewayCore::registerPullInterest(std::string mime_type, MessageScope scope, GatewayServiceHandler *handler) {
   LOG_INFO("Registering pull interest in " << mime_type << " by handler " << handler);
-  pullHandlers.insert(pair<string, GatewayServiceHandler *>(mime_type, handler));
-  return true;
-}
-
-bool GatewayCore::unregisterPullInterest(std::string mime_type, GatewayServiceHandler *handler) {
-  LOG_INFO("Unregistering pull interest in " << mime_type << " by handler " << handler);
-  multimap<string,GatewayServiceHandler *>::iterator it;
-  pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
+  LocalPullHandlerInfo pullHandler;
+  pullHandler.handler = handler;
+  pullHandler.scope = scope;
+  pullHandlers.insert(PullHandlerMap::value_type(mime_type, pullHandler));
   
-  handlerIterators = pullHandlers.equal_range(mime_type);
-  
-  for(it = handlerIterators.first; it != handlerIterators.second;) {
-    multimap<string,GatewayServiceHandler *>::iterator eraseIter = it++;
-    
-    if(handler == (*eraseIter).second) {
-      pullHandlers.erase(eraseIter);
-      break;
+  if(scope == SCOPE_GLOBAL) {
+    //now propogate the subscription to all the other gateway nodes
+    for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+      it->second->sendSubscribeMessage(mime_type);
     }
   }
   return true;
+}
+
+bool GatewayCore::unregisterPullInterest(std::string mime_type, MessageScope scope, GatewayServiceHandler *handler) {
+  LOG_INFO("Unregistering pull interest in " << mime_type << " by handler " << handler);
+  PullHandlerMap::iterator it;
+  pair<PullHandlerMap::iterator, PullHandlerMap::iterator> handlerIterators;
+  
+  handlerIterators = pullHandlers.equal_range(mime_type);
+  
+  bool foundSubscription = false;
+  MessageScope foundScope = SCOPE_ALL;
+  
+  for(it = handlerIterators.first; it != handlerIterators.second;) {
+    PullHandlerMap::iterator eraseIter = it++;
+    
+    if(handler == (*eraseIter).second.handler) {
+      pullHandlers.erase(eraseIter);
+      foundSubscription = true;
+      foundScope = SCOPE_ALL;
+      break;
+    }
+  }
+  
+  if(foundSubscription == true && foundScope == SCOPE_GLOBAL) {
+    //now propogate the unsubscription to all the other gateway nodes
+    for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+      it->second->sendUnsubscribeMessage(mime_type);
+    }
+  }
+  return foundSubscription;
 }
 
 bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope messageScope) {
@@ -136,15 +158,15 @@ bool GatewayCore::pullRequest(std::string requestUid, std::string pluginId, std:
   LOG_DEBUG("  Sending pull request with type: " << mimeType);
   LOG_DEBUG("                        pluginId: " << pluginId);
   LOG_DEBUG("                           query: " << query);
-  multimap<string,GatewayServiceHandler *>::iterator it;
-  pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
+  PullHandlerMap::iterator it;
+  pair<PullHandlerMap::iterator, PullHandlerMap::iterator> handlerIterators;
   
   handlerIterators = pullHandlers.equal_range(mimeType);
   
   for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
     //check for something here?
-    LOG_DEBUG("Sending request to " << (*it).second);
-    (*it).second->sendPullRequest(requestUid, pluginId, mimeType, query, projection, maxResults, startFromCount, liveQuery);
+    LOG_DEBUG("Sending request to " << (*it).second.handler);
+    (*it).second.handler->sendPullRequest(requestUid, pluginId, mimeType, query, projection, maxResults, startFromCount, liveQuery);
   }
   
   if(scope == SCOPE_GLOBAL) {
@@ -404,15 +426,15 @@ bool GatewayCore::pullRequestCrossGateway(std::string requestUid, std::string pl
   LOG_DEBUG("                                                 from: " << originHandlerId);
   
   //do a local pull request
-  multimap<string,GatewayServiceHandler *>::iterator it;
-  pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
+  PullHandlerMap::iterator it;
+  pair<PullHandlerMap::iterator,PullHandlerMap::iterator> handlerIterators;
   
   handlerIterators = pullHandlers.equal_range(mimeType);
   
   for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
     //check for something here?
-    LOG_DEBUG("Sending request to " << (*it).second);
-    (*it).second->sendPullRequest(requestUid, pluginId, mimeType, query, projection, maxResults, startFromCount, liveQuery);
+    LOG_DEBUG("Sending request to " << (*it).second.handler);
+    (*it).second.handler->sendPullRequest(requestUid, pluginId, mimeType, query, projection, maxResults, startFromCount, liveQuery);
   }
   
   //update handler return ID

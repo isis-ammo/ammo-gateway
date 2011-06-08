@@ -33,6 +33,11 @@ struct LocalSubscriptionInfo {
   MessageScope scope;
 };
 
+struct LocalPullHandlerInfo {
+  GatewayServiceHandler *handler;
+  MessageScope scope;
+};
+
 class GatewayCore {
 public:
   GatewayCore();
@@ -42,8 +47,8 @@ public:
   bool registerDataInterest(std::string mime_type, MessageScope messageScope,  GatewayServiceHandler *handler);
   bool unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayServiceHandler *handler);
   
-  bool registerPullInterest(std::string mime_type, GatewayServiceHandler *handler);
-  bool unregisterPullInterest(std::string mime_type, GatewayServiceHandler *handler);
+  bool registerPullInterest(std::string mime_type, MessageScope scope, GatewayServiceHandler *handler);
+  bool unregisterPullInterest(std::string mime_type, MessageScope scope, GatewayServiceHandler *handler);
   
   bool pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope messageScope);
   
@@ -74,7 +79,9 @@ private:
   
   typedef std::multimap<std::string, LocalSubscriptionInfo> PushHandlerMap;
   PushHandlerMap pushHandlers;
-  std::multimap<std::string, GatewayServiceHandler *> pullHandlers;
+  
+  typedef std::multimap<std::string, LocalPullHandlerInfo> PullHandlerMap;
+  PullHandlerMap pullHandlers;
   
   std::map<std::string, GatewayServiceHandler *> plugins;
   

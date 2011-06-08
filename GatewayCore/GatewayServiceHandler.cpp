@@ -233,7 +233,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       LOG_TRACE("  " << msg.DebugString());
       
       MessageScope scope;
-      if(msg.push_data().scope() == ammo::gateway::protocol::GLOBAL) {
+      if(msg.pull_request().scope() == ammo::gateway::protocol::GLOBAL) {
         scope = SCOPE_GLOBAL;
       } else {
         scope = SCOPE_LOCAL;
@@ -255,7 +255,14 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     case ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST: {
       LOG_DEBUG("Received Register Pull Interest...");
       std::string mime_type = msg.register_pull_interest().mime_type();
-      bool result = GatewayCore::getInstance()->registerPullInterest(mime_type, this);
+      MessageScope scope;
+      if(msg.register_pull_interest().scope() == ammo::gateway::protocol::GLOBAL) {
+        scope = SCOPE_GLOBAL;
+      } else {
+        scope = SCOPE_LOCAL;
+      }
+      
+      bool result = GatewayCore::getInstance()->registerPullInterest(mime_type, scope, this);
       if(result == true) {
         registeredPullRequestHandlers.push_back(mime_type);
       }
@@ -264,7 +271,14 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     case ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST: {
       LOG_DEBUG("Received Unregister Pull Interest...");
       std::string mime_type = msg.unregister_pull_interest().mime_type();
-      bool result = GatewayCore::getInstance()->unregisterPullInterest(mime_type, this);
+      MessageScope scope;
+      if(msg.unregister_pull_interest().scope() == ammo::gateway::protocol::GLOBAL) {
+        scope = SCOPE_GLOBAL;
+      } else {
+        scope = SCOPE_LOCAL;
+      }
+      
+      bool result = GatewayCore::getInstance()->unregisterPullInterest(mime_type, scope, this);
       if(result == true) {
         for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
           if((*it) == mime_type) {
@@ -352,7 +366,7 @@ GatewayServiceHandler::~GatewayServiceHandler() {
   
   LOG_DEBUG("Unregistering pull request handlers...");
   for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
-    GatewayCore::getInstance()->unregisterPullInterest(*it, this);
+    GatewayCore::getInstance()->unregisterPullInterest(*it, SCOPE_ALL, this);
   }
 }
 
