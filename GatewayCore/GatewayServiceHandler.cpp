@@ -232,9 +232,16 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       LOG_DEBUG("Received Pull Request...");
       LOG_TRACE("  " << msg.DebugString());
       
+      MessageScope scope;
+      if(msg.push_data().scope() == ammo::gateway::protocol::GLOBAL) {
+        scope = SCOPE_GLOBAL;
+      } else {
+        scope = SCOPE_LOCAL;
+      }
+      
       ammo::gateway::protocol::PullRequest pullMsg = msg.pull_request();
       GatewayCore::getInstance()->pullRequest(pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
-        pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), this);
+        pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), this, scope);
       break;
     } 
     case ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE: {

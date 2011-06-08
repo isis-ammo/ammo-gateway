@@ -132,7 +132,7 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::str
 
 bool GatewayCore::pullRequest(std::string requestUid, std::string pluginId, std::string mimeType, 
                               std::string query, std::string projection, unsigned int maxResults, 
-                              unsigned int startFromCount, bool liveQuery, GatewayServiceHandler *originatingPlugin) {
+                              unsigned int startFromCount, bool liveQuery, GatewayServiceHandler *originatingPlugin, MessageScope scope) {
   LOG_DEBUG("  Sending pull request with type: " << mimeType);
   LOG_DEBUG("                        pluginId: " << pluginId);
   LOG_DEBUG("                           query: " << query);
@@ -147,8 +147,21 @@ bool GatewayCore::pullRequest(std::string requestUid, std::string pluginId, std:
     (*it).second->sendPullRequest(requestUid, pluginId, mimeType, query, projection, maxResults, startFromCount, liveQuery);
   }
   
-  //update plugin ID to the originating service handler that called this method
-  plugins[pluginId] = originatingPlugin;
+  if(scope == SCOPE_GLOBAL) {
+    //update plugin ID to the originating service handler that called this method
+    plugins[pluginId] = originatingPlugin;
+    
+    CrossGatewayPullRequestHandlerMap::iterator it;
+    pair<CrossGatewayPullRequestHandlerMap::iterator, CrossGatewayPullRequestHandlerMap::iterator> pullRequestIterators;
+    
+    pullRequestIterators = crossGatewayPullRequestHandlers.equal_range(mimeType);
+    
+    //send pull request to other gateways
+    for(it = pullRequestIterators.first; it != pullRequestIterators.second; it++) {
+      LOG_TRACE("Sending cross-gateway pull request");
+      crossGatewayHandlers[(*it).second.handlerId]->sendPullRequest(requestUid, pluginId, mimeType, query, projection, maxResults, startFromCount, liveQuery);
+    }
+  }
   return true;
 }
 
