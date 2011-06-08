@@ -60,6 +60,9 @@ public:
   bool subscribeCrossGateway(std::string mimeType, std::string originHandlerId);
   bool unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId);
   
+  bool registerPullInterestCrossGateway(std::string mimeType, std::string originHandlerId);
+  bool unregisterPullInterestCrossGateway(std::string mimeType, std::string originHandlerId);
+  
   bool pushCrossGateway(std::string uri, std::string mimeType, const std::string &data, std::string originUser, std::string originHandlerId);
   bool pullRequestCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection, unsigned int maxResults, unsigned int startFromCount, bool liveQuery, std::string originHandlerId);
   bool pullResponseCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string &data, std::string originHandlerId);

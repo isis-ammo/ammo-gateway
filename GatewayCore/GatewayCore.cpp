@@ -295,6 +295,71 @@ bool GatewayCore::unsubscribeCrossGateway(std::string mimeType, std::string orig
   return false;
 }
 
+bool GatewayCore::registerPullInterestCrossGateway(std::string mimeType, std::string originHandlerId) {
+  LOG_DEBUG("Got register pull interest for type " << mimeType << " for handler " << originHandlerId);
+  //see if there's already a subscription to this type for this handler
+  bool foundSubscription = false;
+  CrossGatewayPullRequestHandlerMap::iterator it;
+  pair<CrossGatewayPullRequestHandlerMap::iterator, CrossGatewayPullRequestHandlerMap::iterator> pullRequestHandlerIterators;
+  
+  pullRequestHandlerIterators = crossGatewayPullRequestHandlers.equal_range(mimeType);
+  
+  for(it = pullRequestHandlerIterators.first; it != pullRequestHandlerIterators.second; it++) {
+    if(originHandlerId == (*it).second.handlerId) {
+      (*it).second.references++;
+      foundSubscription = true;
+    }
+  }
+  
+  if(!foundSubscription) {
+    //if we get here, we don't already have an entry for this handler in the table
+    PullRequestHandlerInfo newHandler;
+    newHandler.handlerId = originHandlerId;
+    newHandler.references = 1;
+    
+    crossGatewayPullRequestHandlers.insert(CrossGatewayPullRequestHandlerMap::value_type(mimeType, newHandler));
+  }
+  
+  //now propogate the subscription to all the other gateway nodes, except the one it came from
+  for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+    if(it->first != originHandlerId) {
+      it->second->sendRegisterPullInterest(mimeType);
+    }
+  }
+  
+  return true;
+}
+
+bool GatewayCore::unregisterPullInterestCrossGateway(std::string mimeType, std::string originHandlerId) {
+  LOG_DEBUG("Handler " << originHandlerId << " unregistering from pulls of type " << mimeType);
+  //propogate the unsubscribe to all the other gateway nodes, except the one it came from
+  for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+    if(it->first != originHandlerId) {
+      it->second->sendUnregisterPullInterest(mimeType);
+    }
+  }
+  
+  //look for an existing subscription to this type
+  CrossGatewayPullRequestHandlerMap::iterator it;
+  pair<CrossGatewayPullRequestHandlerMap::iterator,CrossGatewayPullRequestHandlerMap::iterator> pullHandlerIterators;
+  
+  pullHandlerIterators = crossGatewayPullRequestHandlers.equal_range(mimeType);
+  
+  for(it = pullHandlerIterators.first; it != pullHandlerIterators.second; it++) {
+    if(originHandlerId == (*it).second.handlerId) {
+      (*it).second.references--;
+      if((*it).second.references == 0) {
+        crossGatewayPullRequestHandlers.erase(it);
+      }
+      return true;
+    }
+  }
+  
+  //if we get here, there wasn't a subscription to unsubscribe from
+  LOG_WARN("Tried to unregister without an existing pull registration");
+  return false;
+}
+
 bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const std::string &data, std::string originUser, std::string originHandlerId) {
   LOG_DEBUG("  Received cross-gateway push data with uri: " << uri);
   LOG_DEBUG("                                       type: " << mimeType);
