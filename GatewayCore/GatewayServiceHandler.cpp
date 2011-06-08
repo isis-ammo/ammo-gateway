@@ -241,7 +241,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       
       ammo::gateway::protocol::PullRequest pullMsg = msg.pull_request();
       GatewayCore::getInstance()->pullRequest(pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
-        pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), this, scope);
+        pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), scope, this);
       break;
     } 
     case ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE: {
