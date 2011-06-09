@@ -50,7 +50,7 @@ protected:
   bool gatewayIdAuthenticated;
   
   std::vector<std::string> registeredHandlers;
-  std::vector<std::string> registeredPullRequestHandlers;
+  std::vector<std::string> registeredPullHandlers;
 };
 
 #endif        //  #ifndef CROSS_GATEWAY_SERVICE_HANDLER_H

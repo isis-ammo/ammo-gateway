@@ -212,14 +212,33 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
     LOG_DEBUG("Received Push Data...");
     GatewayCore::getInstance()->pushCrossGateway(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), msg.push_data().origin_user(), gatewayId);
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
-    LOG_DEBUG("Received Push Data...");
+    LOG_DEBUG("Received Pull Request...");
     GatewayCore::getInstance()->pullRequestCrossGateway(msg.pull_request().request_uid(), msg.pull_request().plugin_id(), msg.pull_request().mime_type(), msg.pull_request().query(),
                                                         msg.pull_request().projection(), msg.pull_request().max_results(), msg.pull_request().start_from_count(),
                                                         msg.pull_request().live_query(), gatewayId);
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
-    LOG_DEBUG("Received Push Data...");
+    LOG_DEBUG("Received Pull Response...");
     GatewayCore::getInstance()->pullResponseCrossGateway(msg.pull_response().request_uid(), msg.pull_response().plugin_id(), msg.pull_response().mime_type(),
                                                          msg.pull_response().uri(), msg.pull_response().data(), gatewayId);
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST) {
+    LOG_DEBUG("Received Register Pull Interest...");
+    std::string mime_type = msg.register_pull_interest().mime_type();
+    bool result = GatewayCore::getInstance()->registerPullInterestCrossGateway(mime_type, gatewayId);
+    if(result == true) {
+      registeredPullHandlers.push_back(mime_type);
+    }
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST) {
+    LOG_DEBUG("Received Unregister Pull Interest...");
+    std::string mime_type = msg.unregister_pull_interest().mime_type();
+    bool result = GatewayCore::getInstance()->unregisterPullInterestCrossGateway(mime_type, gatewayId);
+    if(result == true) {
+      for(std::vector<std::string>::iterator it = registeredPullHandlers.begin(); it != registeredPullHandlers.end(); it++) {
+        if((*it) == mime_type) {
+          registeredPullHandlers.erase(it);
+          break;
+        }
+      }
+    }
   }
   
   return 0;
@@ -343,7 +362,7 @@ CrossGatewayServiceHandler::~CrossGatewayServiceHandler() {
   GatewayCore::getInstance()->unregisterCrossGatewayConnection(gatewayId);
   
   LOG_DEBUG("Unregistering pull request handlers...");
-  for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
+  for(std::vector<std::string>::iterator it = registeredPullHandlers.begin(); it != registeredPullHandlers.end(); it++) {
     //GatewayCore::getInstance()->unregisterPullInterest(*it, this);
   }
 }
