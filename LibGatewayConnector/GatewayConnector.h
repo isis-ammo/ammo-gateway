@@ -252,7 +252,7 @@ namespace ammo {
       *
       * @return true if the operation succeeded; false if the operation failed.
       */
-      bool registerPullInterest(std::string mime_type, PullRequestReceiverListener *listener);
+      bool registerPullInterest(std::string mime_type, PullRequestReceiverListener *listener, MessageScope scope = SCOPE_LOCAL);
       
       /**
       * Unregisters interest in pull requests for the specified data type.  Will
@@ -263,7 +263,7 @@ namespace ammo {
       * 
       * @return true if the operation succeeded; false if the operation failed.
       */
-      bool unregisterPullInterest(std::string mime_type);
+      bool unregisterPullInterest(std::string mime_type, MessageScope scope = SCOPE_LOCAL);
       
       /**
       * Registers a listener to be called when data is received as a response from a
