@@ -103,6 +103,12 @@ bool ammo::gateway::GatewayConnector::pullRequest(PullRequest &request) {
   pullMsg->set_start_from_count(request.startFromCount);
   pullMsg->set_live_query(request.liveQuery);
   
+  if(request.scope == SCOPE_LOCAL) {
+    pullMsg->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    pullMsg->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
+  
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
   
   LOG_DEBUG("Sending Pull Request message to gateway core");
@@ -320,7 +326,8 @@ ammo::gateway::PullRequest::PullRequest() :
   projection(""),
   maxResults(0),
   startFromCount(0),
-  liveQuery(false)
+  liveQuery(false),
+  scope(ammo::gateway::SCOPE_LOCAL)
 {
   
 }

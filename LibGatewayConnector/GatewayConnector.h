@@ -80,6 +80,9 @@ namespace ammo {
       bool liveQuery;              ///< Specifies a live query--  results are returned continously as they
                                    ///  become available.  The exact behavior of this option is defined
                                    ///  by the plugin handling the request.  Optional.
+      ammo::gateway::MessageScope scope;///< The scope of this object (determines how many gateways to send
+                                        ///  this object to in a multiple gateway configuration).  Optional,
+                                        ///  will default to SCOPE_LOCAL.
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PullRequest &pullReq) {
         os << "Pull << " << pullReq.requestUid << " from " << pullReq.pluginId << " for type " << pullReq.mimeType << " query: " << pullReq.query;
