@@ -110,7 +110,6 @@ if __name__ == "__main__":
   m.pull_request.query = ",,"
   m.pull_request.query += str(start)
   m.pull_request.query += ",,"
-  m.pull_request.scope = AmmoMessages_pb2.GLOBAL
   
   # This string will filter the responses to a single message.
   m.pull_request.projection = ",,soldier_2,,,,,,,"
