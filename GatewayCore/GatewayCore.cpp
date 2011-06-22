@@ -85,9 +85,10 @@ bool GatewayCore::registerPullInterest(std::string mime_type, MessageScope scope
   pullHandlers.insert(PullHandlerMap::value_type(mime_type, pullHandler));
   
   if(scope == SCOPE_GLOBAL) {
+    LOG_TRACE("Sending pull interest to connected gateways...");
     //now propogate the subscription to all the other gateway nodes
     for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
-      it->second->sendSubscribeMessage(mime_type);
+      it->second->sendRegisterPullInterest(mime_type);
     }
   }
   return true;
@@ -117,7 +118,7 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, MessageScope sco
   if(foundSubscription == true && foundScope == SCOPE_GLOBAL) {
     //now propogate the unsubscription to all the other gateway nodes
     for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
-      it->second->sendUnsubscribeMessage(mime_type);
+      it->second->sendRegisterPullInterest(mime_type);
     }
   }
   return foundSubscription;

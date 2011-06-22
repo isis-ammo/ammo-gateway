@@ -47,7 +47,7 @@ DataStoreConfigManager::DataStoreConfigManager (
                       const char *mime_type = (*i).asString ().c_str ();
                       LOG_DEBUG ("Registering interest in " << mime_type);
                       connector_->registerDataInterest (mime_type, receiver_);
-                      connector_->registerPullInterest (mime_type, receiver_);
+                      connector_->registerPullInterest (mime_type, receiver_, SCOPE_GLOBAL);
                     }
                 }
               else
