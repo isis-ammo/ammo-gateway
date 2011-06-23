@@ -6,8 +6,19 @@
 #include "log.h"
 #include "version.h"
 
-#include "LocationStore.h"
-#include "LocationStoreConfigManager.h"
+#include "DataStore.h"
+#include "DataStoreConfigManager.h"
+
+#include "ace/Time_Value.h"
+#include "ace/OS_NS_time.h"
+#include "ace/Date_Time.h"
+
+using namespace std;
+using namespace ammo::gateway;
+
+// Quick way to switch between plugin debugging, where this main() is run
+// by hand, and normal operation.
+#define DEBUG 0
 
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
 //in the middle of the reactor event loop, which isn't always a good thing).
@@ -37,12 +48,12 @@ int main (int /* argc */, char ** /* argv */)
   
   LOG_DEBUG ("Creating location store receiver...");
   
-  LocationStoreReceiver *receiver = new LocationStoreReceiver ();
+  DataStoreReceiver *receiver = new DataStoreReceiver ();
   
   GatewayConnector *gatewayConnector = new GatewayConnector (receiver);
 	
-  LocationStoreConfigManager *config =
-	  LocationStoreConfigManager::getInstance (receiver, gatewayConnector);
+  DataStoreConfigManager *config =
+	  DataStoreConfigManager::getInstance (receiver, gatewayConnector);
 	  
 	// Nothing further is done with 'config' since everything happens
 	// in the constructor. This macro avoids the 'unused' warning.  

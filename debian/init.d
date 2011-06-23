@@ -64,7 +64,7 @@ case "$1" in
     isProcessRunning GatewayCore
     isProcessRunning AndroidGatewayPlugin
     isProcessRunning LdapGatewayPlugin
-    isProcessRunning LocationStoreGatewayPlugin
+    isProcessRunning DataStoreGatewayPlugin
     ;;
   *)
     N=/etc/init.d/$NAME

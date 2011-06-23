@@ -13,6 +13,19 @@
 #include "log.h"
 
 using namespace std;
+using namespace ammo::gateway;
+
+//Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
+//in the middle of the reactor event loop, which isn't always a good thing).
+class SigintHandler : public ACE_Event_Handler {
+public:
+  int handle_signal (int signum, siginfo_t * = 0, ucontext_t * = 0) {
+    if (signum == SIGINT || signum == SIGTERM) {
+      ACE_Reactor::instance()->end_reactor_event_loop();
+    }
+    return 0;
+  }
+};
 
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
 //in the middle of the reactor event loop, which isn't always a good thing).
@@ -36,8 +49,13 @@ int main(int argc, char **argv) {
   cout << "Creating gateway connector..." << endl << flush;
     
   GatewayConnector *gatewayConnector = new GatewayConnector(NULL);
-
-  gatewayConnector->pushData("foo", "text/plain", "baz");
+  
+  
+  PushData pushData;
+  pushData.uri = "foo";
+  pushData.mimeType = "text/plain";
+  pushData.data = "baz";
+  gatewayConnector->pushData(pushData);
  
 #ifdef OLD 
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)

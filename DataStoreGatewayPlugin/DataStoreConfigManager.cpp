@@ -1,7 +1,7 @@
-#include "LocationStoreConfigManager.h"
+#include "DataStoreConfigManager.h"
 
 #include "log.h"
-#include "LocationStore.h"
+#include "DataStore.h"
 
 #include <iostream>
 #include <fstream>
@@ -9,14 +9,15 @@
 #include <ace/OS_NS_sys_stat.h>
 
 const char *CONFIG_DIRECTORY = "ammo-gateway";
-const char *LOC_STORE_CONFIG_FILE = "LocationStorePluginConfig.json";
+const char *LOC_STORE_CONFIG_FILE = "DataStorePluginConfig.json";
 
 using namespace std;
+using namespace ammo::gateway;
 
-LocationStoreConfigManager *LocationStoreConfigManager::sharedInstance = 0;
+DataStoreConfigManager *DataStoreConfigManager::sharedInstance = 0;
 
-LocationStoreConfigManager::LocationStoreConfigManager (
-      LocationStoreReceiver *receiver,
+DataStoreConfigManager::DataStoreConfigManager (
+      DataStoreReceiver *receiver,
       GatewayConnector *connector)
   : receiver_ (receiver),
     connector_ (connector)
@@ -86,7 +87,8 @@ LocationStoreConfigManager::LocationStoreConfigManager (
     }
 }
 
-string LocationStoreConfigManager::findConfigFile() {
+string DataStoreConfigManager::findConfigFile ()
+{
   string filePath;
   ACE_stat statStruct;
   
@@ -132,16 +134,15 @@ string LocationStoreConfigManager::findConfigFile() {
   return filePath;
 }
 
-LocationStoreConfigManager *
-LocationStoreConfigManager::getInstance (
-  LocationStoreReceiver *receiver,
-  GatewayConnector *connector)
+DataStoreConfigManager *
+DataStoreConfigManager::getInstance (DataStoreReceiver *receiver,
+                                     GatewayConnector *connector)
 {
   if (sharedInstance == 0)
     {
-	  sharedInstance =
-		new LocationStoreConfigManager (receiver, connector);
-	}
+	    sharedInstance =
+		    new DataStoreConfigManager (receiver, connector);
+	  }
 	
   return sharedInstance;
 }

@@ -14,6 +14,8 @@
 #include "AtsHandler.h"
 #include "GatewayConnector.h"
 
+using namespace ammo::gateway;
+
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
 //in the middle of the reactor event loop, which isn't always a good thing).
 class SigintHandler : public ACE_Event_Handler {
@@ -65,6 +67,10 @@ int main(int argc, char **argv) {
   
   setRegisterPullInterest(gwc, RTC_LIST_PEOPLE_NS, dataHandler);
   setRegisterPullInterest(gwc, RTC_LIST_CHANNEL_NS, dataHandler);
+  setRegisterPullInterest(gwc, PLI_LIST_UNIT_NS, dataHandler);
+  setRegisterPullInterest(gwc, PLI_LIST_LOC_NS, dataHandler);
+  setRegisterPullInterest(gwc, PLI_MEMBERS_NS, dataHandler);
+
   setRegisterPullInterest(gwc, RTC_ACTIVATE_CHANNEL_NS, dataHandler);
   setRegisterPullInterest(gwc, RTC_PASSIVATE_CHANNEL_NS, dataHandler);
 

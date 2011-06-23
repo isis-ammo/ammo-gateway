@@ -1,5 +1,5 @@
 {
-  "Host":  "flagon.aterrasys.com",  //Host name for the Aterrasys Server
+  "Host":  "firebar.aterrasys.com",  //Host name for the Aterrasys Server
   "Port":  8080,   //Port on the Aterrasys Server
   "BaseDir":  "nevada/api",  //base path on the Aterrasys Server
 
@@ -19,6 +19,11 @@
       "Password": "bar",
       "Enabled": "false"
     }
+       "user:mspears": {
+      "Username": "mspears",
+      "Password": "mspears",
+      "Enabled": "true"
+    }
   }
 
   // Uncomment to use gateway configuration defined in this configuration file.
@@ -28,7 +33,7 @@
   // In normal operation using the same configuration file ensures 
   // that address and port settings are synchronized between all running plugins.
   //
-  //"AGatewayConfig": "AtsPluginConfig.json", //a single configuration file
+  "AGatewayConfig": "AtsPluginConfig.json", //a single configuration file
 
   "GatewayInterface": "127.0.0.1", //Interface that Gateway will listen on (default to loopback interface if not specified)
 
