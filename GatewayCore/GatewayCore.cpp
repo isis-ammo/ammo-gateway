@@ -170,10 +170,10 @@ bool GatewayCore::pullRequest(std::string requestUid, std::string pluginId, std:
     (*it).second.handler->sendPullRequest(requestUid, pluginId, mimeType, query, projection, maxResults, startFromCount, liveQuery);
   }
   
+  //update plugin ID to the originating service handler that called this method
+  plugins[pluginId] = originatingPlugin;
+  
   if(scope == SCOPE_GLOBAL) {
-    //update plugin ID to the originating service handler that called this method
-    plugins[pluginId] = originatingPlugin;
-    
     CrossGatewayPullRequestHandlerMap::iterator it;
     pair<CrossGatewayPullRequestHandlerMap::iterator, CrossGatewayPullRequestHandlerMap::iterator> pullRequestIterators;
     
