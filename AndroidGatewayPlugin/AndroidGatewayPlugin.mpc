@@ -2,6 +2,14 @@ project(AndroidGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
   after += LibGatewayConnector
 
   exename=AndroidGatewayPlugin
+
+  includes += "../LibCryptoPlus/include"
+
+  libpaths += "../LibCryptoPlus/lib"
+
+  libs += "crypto"
+
+  libs += "cryptoplus"
   
   specific(prop:windows) {
     macros += JSON_DLL
@@ -15,5 +23,7 @@ project(AndroidGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
     main.cpp
     AndroidServiceHandler.cpp
     AndroidMessageProcessor.cpp
+    AMMO_Crypto.cpp
+    GWSecurityMgr.cpp
   }
 }

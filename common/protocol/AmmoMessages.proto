@@ -60,9 +60,18 @@ message PushAcknowledgement {
 *    request for a new authenticated session.
 */
 message AuthenticationMessage {
-  required string device_id = 1;
-  required string user_id = 2;
-  required string user_key = 3;
+  enum Type {
+    CLIENT_NONCE = 0;
+    SERVER_NONCE = 1;
+    CLIENT_PSESSION_KEY = 2;
+    CLIENT_FINISH = 3;
+    SERVER_FINISH = 4;
+  }
+  required Type type = 1;
+  optional bytes message = 2;
+  optional string device_id = 3;
+  optional string user_id = 4;
+  optional bytes user_key = 5;
 }
 
 /**
@@ -94,7 +103,7 @@ message AuthenticationResult {
     SUCCESS = 1;
   }
   required Status result = 1;
-  optional string message = 2;
+  optional bytes message = 2;
 }
 
 /**

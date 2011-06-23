@@ -1,6 +1,8 @@
 #include "AndroidMessageProcessor.h"
 #include "AndroidServiceHandler.h"
 
+#include "GWSecurityMgr.h"
+
 #include "log.h"
 
 using namespace ammo::gateway;
@@ -81,10 +83,52 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
   
   if(msg.type() == ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE) {
     LOG_DEBUG(commsHandler << " Received Authentication Message...");
-    if(gatewayConnector != NULL) {
-      ammo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
-      gatewayConnector->associateDevice(authMessage.device_id(), authMessage.user_id(), authMessage.user_key());
-      //deviceId = authMessage.device_id();
+
+    // Authenticate the device .....
+    GWSecurityMgr secP;
+
+    LOG_DEBUG(commsHandler << " Calling Authenticate...");
+    
+    ammo::protocol::MessageWrapper *authMsg = new ammo::protocol::MessageWrapper();
+    ammo::protocol::AuthenticationResult *authRes = authMsg->mutable_authentication_result();
+    authMsg->set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
+
+    if (secP.Authenticate (msg))
+    {
+      // send success ...with its own sign ....
+      authRes->set_result(ammo::protocol::AuthenticationResult_Status_SUCCESS);
+
+      std::vector<unsigned char> sig = secP.get_gateway_sign ();
+
+      printf ("\n Got the sign .. the sign length is %d\n", sig.size());
+      
+      std::string sigStr; 
+      sigStr.assign (sig.begin (), sig.end ());
+
+      authRes->set_message(sigStr);
+      
+      printf ("\n The sign is %s, and its length is %d\n", sigStr.c_str(), sigStr.size ());
+
+      //send its own sign 
+
+      // If Authenticated, let Gateway know about the new device ....
+      if(gatewayConnector != NULL) {
+        ammo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
+        gatewayConnector->associateDevice(authMessage.device_id(), authMessage.user_id(), authMessage.user_key());
+        //deviceId = authMessage.device_id();
+    }
+    else
+    {
+      // send failed 
+      authRes->set_result(ammo::protocol::AuthenticationResult_Status_FAILED);
+    }
+    
+    LOG_DEBUG(commsHandler << " Returning from Authenticate...");
+    commsHandler->sendMessage(authMsg);
+
+    // Send back Authenticated result to Gateway ...
+
+
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE) {
     LOG_DEBUG(commsHandler << " Received Data Message...");
@@ -199,7 +243,7 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
 void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, ammo::gateway::PullResponse &response) {
   LOG_DEBUG(commsHandler << " Sending pull response to device...");
   LOG_DEBUG(commsHandler << "    URI: " << response.uri << ", Type: " << response.mimeType);
-  
+
   std::string dataString(response.data.begin(), response.data.end());
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper();
   ammo::protocol::PullResponse *pullMsg = msg->mutable_pull_response();

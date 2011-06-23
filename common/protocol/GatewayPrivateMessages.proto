@@ -3,7 +3,7 @@ package ammo.gateway.protocol;
 message AssociateDevice {
   required string device = 1;
   required string user = 2;
-  required string key = 3;
+  required bytes key = 3;
 }
 
 message AssociateCrossGateway {
