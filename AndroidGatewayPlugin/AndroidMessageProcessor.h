@@ -4,6 +4,7 @@
 #include "ace/Task.h"
 #include "protocol/AmmoMessages.pb.h"
 #include "GatewayConnector.h"
+#include "GWSecurityMgr.h"
 
 class AndroidServiceHandler;
 
@@ -42,6 +43,9 @@ private:
   
   bool isClosed();
   void processMessage(ammo::protocol::MessageWrapper &msg);
+
+  // The Security Manager code class ...
+  GWSecurityMgr *secP_;
 };
 
 #endif

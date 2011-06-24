@@ -23,6 +23,16 @@ class GWSecurityMgr {
     std::vector<unsigned char> get_gateway_sign ();
 
     GWSecurityMgr ();
+    
+    std::vector<unsigned char> get_Server_Nonce ();
+    
+    void set_client_nonce (string cl_nonce);
+
+    void set_keyXchange (string keyX);
+    
+    void set_phn_auth (string phnA);
+
+    bool verify_phone_auth ();
 
   private:
     // The Crypto object providing basic 
@@ -32,6 +42,15 @@ class GWSecurityMgr {
 
    map<string, string> pass_keys;
 //   vector<int> previous
+
+   string client_nonce_;
+
+   string keyXChange_;
+
+   string phnAuth_;
+
+   string server_nonce_;
+   
 };
 
 

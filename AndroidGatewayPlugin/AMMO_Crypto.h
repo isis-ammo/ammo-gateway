@@ -45,6 +45,8 @@ class AMMO_Crypt
    
    int read_private_key (std::string pvt_file);
 
+   std::vector<unsigned char> get_random_bytes ();
+
   private:
     
     RSA * pub_RSAp_;
@@ -52,7 +54,11 @@ class AMMO_Crypt
 
     char* getErrorString ();
     
-    std::string to_hex(const void* buf, size_t buf_len);
+   // to hex function ...
+    template <typename T>
+    std::string to_hex(const T& begin,const T& end);
+   
+   std::string to_hex(const void* buf, size_t buf_len);
 };
 
 

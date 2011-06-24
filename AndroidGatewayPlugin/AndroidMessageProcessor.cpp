@@ -13,11 +13,15 @@ closeMutex(),
 newMessageMutex(),
 newMessageAvailable(newMessageMutex),
 commsHandler(serviceHandler),
-gatewayConnector(NULL)
+gatewayConnector(NULL),
+secP_(NULL)
 {
   //need to initialize GatewayConnector in the main thread; the constructor always
   //happens in the main thread
   gatewayConnector = new GatewayConnector(this);
+
+  // create the Security Manager ...
+  secP_ = new GWSecurityMgr();
 }
 
 AndroidMessageProcessor::~AndroidMessageProcessor() {
@@ -25,6 +29,11 @@ AndroidMessageProcessor::~AndroidMessageProcessor() {
   if(gatewayConnector) {
     delete gatewayConnector;
   }
+  
+  if(secP_) {
+    delete secP_;
+  }
+
 }
 
 int AndroidMessageProcessor::open(void *args) {
@@ -84,21 +93,66 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
   if(msg.type() == ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE) {
     LOG_DEBUG(commsHandler << " Received Authentication Message...");
 
-    // Authenticate the device .....
-    GWSecurityMgr secP;
-
     LOG_DEBUG(commsHandler << " Calling Authenticate...");
     
-    ammo::protocol::MessageWrapper *authMsg = new ammo::protocol::MessageWrapper();
-    ammo::protocol::AuthenticationResult *authRes = authMsg->mutable_authentication_result();
-    authMsg->set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
+    ammo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
+    
+    ammo::protocol::MessageWrapper *outMsg = new ammo::protocol::MessageWrapper();
 
-    if (secP.Authenticate (msg))
+    if (authMessage.type() == ammo::protocol::AuthenticationMessage_Type_CLIENT_NONCE)
+    {
+      secP_->set_client_nonce (authMessage.message());
+
+      LOG_TRACE(commsHandler << "Got the Client Nonce ");
+
+      std::vector<unsigned char> nonce = secP_->get_Server_Nonce ();
+
+      ammo::protocol::AuthenticationMessage *authRes = outMsg->mutable_authentication_message();
+      outMsg->set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE);
+
+      authRes->set_result(ammo::protocol::AuthenticationMessage_Status_SUCCESS);
+      authRes->set_type(ammo::protocol::AuthenticationMessage_Type_SERVER_NONCE);
+
+      std::string sigStr; 
+      sigStr.assign (nonce.begin (), nonce.end ());
+
+      authRes->set_message(sigStr);
+      
+      LOG_DEBUG(commsHandler << " Returning from Authenticate...");
+      commsHandler->sendMessage(outMsg);
+
+
+    } else if (authMessage.type() == ammo::protocol::AuthenticationMessage_Type_CLIENT_KEYXCHANGE)
+    {
+      
+      string keyXChange = authMessage.message();
+
+      LOG_TRACE(commsHandler << "Got the Key Exchange");
+
+      secP_->set_keyXchange (authMessage.message());
+
+    } else if (authMessage.type() == ammo::protocol::AuthenticationMessage_Type_CLIENT_PHNAUTH)
+    {
+      
+      string phnAuth = authMessage.message();
+
+      LOG_TRACE(commsHandler << "Got the Phone Auth");
+
+      secP_->set_phn_auth (phnAuth);
+
+      bool ver = secP_->verify_phone_auth ();
+
+
+      LOG_TRACE(commsHandler << "Verified " << ((ver)? "OK": "FAILED"));
+
+    }
+
+/*
+    if (secP->Authenticate (msg))
     {
       // send success ...with its own sign ....
-      authRes->set_result(ammo::protocol::AuthenticationResult_Status_SUCCESS);
 
-      std::vector<unsigned char> sig = secP.get_gateway_sign ();
+      std::vector<unsigned char> sig = secP->get_gateway_sign ();
 
       printf ("\n Got the sign .. the sign length is %d\n", sig.size());
       
@@ -114,7 +168,11 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       // If Authenticated, let Gateway know about the new device ....
       if(gatewayConnector != NULL) {
         ammo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
-        gatewayConnector->associateDevice(authMessage.device_id(), authMessage.user_id(), authMessage.user_key());
+
+        gatewayConnector->associateDevice(authMessage.device_id(), 
+                                          authMessage.user_id(), 
+                                          authMessage.user_key());
+
         //deviceId = authMessage.device_id();
     }
     else
@@ -122,14 +180,13 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       // send failed 
       authRes->set_result(ammo::protocol::AuthenticationResult_Status_FAILED);
     }
+    */
     
-    LOG_DEBUG(commsHandler << " Returning from Authenticate...");
-    commsHandler->sendMessage(authMsg);
 
     // Send back Authenticated result to Gateway ...
 
 
-    }
+    //}
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE) {
     LOG_DEBUG(commsHandler << " Received Data Message...");
     if(gatewayConnector != NULL) {

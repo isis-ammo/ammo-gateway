@@ -63,15 +63,21 @@ message AuthenticationMessage {
   enum Type {
     CLIENT_NONCE = 0;
     SERVER_NONCE = 1;
-    CLIENT_PSESSION_KEY = 2;
-    CLIENT_FINISH = 3;
-    SERVER_FINISH = 4;
+    CLIENT_KEYXCHANGE = 2;
+    CLIENT_PHNAUTH = 3;
+    CLIENT_FINISH = 4;
+    SERVER_FINISH = 5;
+  }
+  enum Status {
+    FAILED = 0;
+    SUCCESS = 1;
   }
   required Type type = 1;
   optional bytes message = 2;
   optional string device_id = 3;
   optional string user_id = 4;
   optional bytes user_key = 5;
+  optional Status result = 6;
 }
 
 /**

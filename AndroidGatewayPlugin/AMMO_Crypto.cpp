@@ -3,12 +3,15 @@
 
 #include <string.h>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 
 #include <cryptoplus/cryptoplus.hpp>
 #include <cryptoplus/hash/message_digest_context.hpp>
 #include <cryptoplus/pkey/pkey.hpp>
 #include <cryptoplus/error/error_strings.hpp>
+#include <cryptoplus/random/random.hpp>
 
 
 AMMO_Crypt::AMMO_Crypt ()
@@ -213,8 +216,29 @@ std::vector<unsigned char> AMMO_Crypt::sign (uchar_ptr data, size_t data_len)
     }
 }
 
+std::vector<unsigned char> AMMO_Crypt::get_random_bytes ()
+{
+  std::vector<unsigned char> bytes = 
+       cryptoplus::random::get_random_bytes<unsigned char>(16);
+  std::cout << "Random bytes: " << to_hex(bytes.begin(), bytes.end()) << std::endl;  
+
+  return bytes;
+}
+
+template <typename T>
+std::string AMMO_Crypt::to_hex(const T& begin,const T& end)
+{
+  std::ostringstream oss;
+
+  for (T i = begin; i != end; ++i)
+  {
+    oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(*i);
+  }
+
+  return oss.str();
+}
 
 std::string AMMO_Crypt::to_hex(const void* buf, size_t buf_len)
 {
-//	return to_hex(static_cast<const unsigned char*>(buf), static_cast<const unsigned char*>(buf) + buf_len);
+  //return to_hex(static_cast<const unsigned char*>(buf), static_cast<const unsigned char*>(buf) + buf_len);
 }

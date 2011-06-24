@@ -66,3 +66,36 @@ std::vector<unsigned char> GWSecurityMgr::get_gateway_sign ()
 //  return crp.sign ((unsigned char*)operator_id, strlen(operator_id));
   return crp.sign ((unsigned char*)pass_keys[string("operator")].c_str(), pass_keys[string("operator")].size());
 }
+
+std::vector<unsigned char> GWSecurityMgr::get_Server_Nonce ()
+{
+  std::vector<unsigned char> bytes = crp.get_random_bytes ();
+  server_nonce_.assign (bytes.begin(), bytes.end());
+  
+  return bytes;
+}
+
+void GWSecurityMgr::set_client_nonce (string cl_nonce)
+{
+  client_nonce_ = cl_nonce;
+}
+
+void GWSecurityMgr::set_keyXchange (string keyX)
+{
+  keyXChange_ = keyX;
+}
+void GWSecurityMgr::set_phn_auth (string phnA)
+{
+  phnAuth_ =  phnA;
+}
+
+bool GWSecurityMgr::verify_phone_auth ()
+{
+  string orig_data = keyXChange_ + client_nonce_ + server_nonce_;
+  printf ("\n Before calling the verify function \n");
+
+  return crp.verify ((unsigned char*)orig_data.c_str(),
+                     orig_data.size(), 
+                     (unsigned char*)phnAuth_.c_str(),
+                     phnAuth_.length ());
+}
