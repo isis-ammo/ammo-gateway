@@ -240,8 +240,11 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       }
       
       ammo::gateway::protocol::PullRequest pullMsg = msg.pull_request();
-      GatewayCore::getInstance()->pullRequest(pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
+      bool result = GatewayCore::getInstance()->pullRequest(pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
         pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), scope, this);
+      if(result == true) {
+        registeredPullResponsePluginIds.insert(pullMsg.plugin_id());
+      }
       break;
     } 
     case ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE: {
@@ -333,7 +336,7 @@ bool GatewayServiceHandler::sendPullRequest(std::string requestUid, std::string 
   
   LOG_DEBUG("Sending Pull Request message to connected plugin");
   this->sendData(msg);
-  registeredPullResponsePluginIds.insert(pluginId);
+  
   
   return true;
 }
