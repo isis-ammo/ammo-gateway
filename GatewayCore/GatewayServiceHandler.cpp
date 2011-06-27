@@ -312,6 +312,7 @@ bool GatewayServiceHandler::sendPullRequest(std::string requestUid, std::string 
   
   LOG_DEBUG("Sending Pull Request message to connected plugin");
   this->sendData(msg);
+  registeredPullResponsePluginIds.insert(pluginId);
   
   return true;
 }
@@ -346,6 +347,11 @@ GatewayServiceHandler::~GatewayServiceHandler() {
   LOG_DEBUG("Unregistering pull request handlers...");
   for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
     GatewayCore::getInstance()->unregisterPullInterest(*it, this);
+  }
+  
+  LOG_DEBUG("Unregistering pull response plugin IDs...");
+  for(std::set<std::string>::iterator it = registeredPullResponsePluginIds.begin(); it != registeredPullResponsePluginIds.end(); it++) {
+    GatewayCore::getInstance()->unregisterPullResponsePluginId(*it, this);
   }
 }
 
