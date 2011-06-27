@@ -42,23 +42,23 @@ int main (int /* argc */, char ** /* argv */)
             << __TIME__
             << ")");
   
-//  SigintHandler * handleExit = new SigintHandler();
-//  ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
-//  ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
+  SigintHandler * handleExit = new SigintHandler();
+  ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
+  ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
   
   LOG_DEBUG ("Creating location store receiver...");
   
   DataStoreReceiver *receiver = new DataStoreReceiver ();
   
   GatewayConnector *gatewayConnector = new GatewayConnector (receiver);
-/*
+
   DataStoreConfigManager *config =
 	  DataStoreConfigManager::getInstance (receiver, gatewayConnector);
 	  
 	// Nothing further is done with 'config' since everything happens
 	// in the constructor. This macro avoids the 'unused' warning.  
 	ACE_UNUSED_ARG (config);
-*/
+
 	if (!receiver->init ())
 	  {
 	    // Error msg already output, just exit w/o starting reactor.
@@ -66,7 +66,7 @@ int main (int /* argc */, char ** /* argv */)
 	  }
 	  
 //====================================
-
+/*
   std::string mime_t ("application/vnd.edu.vu.isis.ammo.private_contacts");
   std::string orig_user ("kyle.anderson");
   std::string uri ("timbuktu");
@@ -102,12 +102,13 @@ int main (int /* argc */, char ** /* argv */)
   
   delete receiver;
 //===================================
-/*
+*/
+
   // Get the process-wide ACE_Reactor (the one the acceptor should
   // have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance ();
   LOG_DEBUG ("Starting event loop...");
   reactor->run_reactor_event_loop ();
-*/
+
   return 0;
 }
