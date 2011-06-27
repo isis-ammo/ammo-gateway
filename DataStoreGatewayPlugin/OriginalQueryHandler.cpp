@@ -72,16 +72,12 @@ OriginalQueryHandler::handleQuery (void)
 	    std::string uri (
 		    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0)));
 		
-		  std::string dataType (
-		    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 1)));
-			   
       LOG_DEBUG ("Sending response to " << pr_.pluginId);
-      LOG_DEBUG ("  type: " << dataType);
+      LOG_DEBUG ("  type: " << pr_.mimeType);
       LOG_DEBUG ("   uri: " << uri);
       
       ammo::gateway::PullResponse response =
         ammo::gateway::PullResponse::createFromPullRequest (pr_);
-      response.mimeType = dataType;
       response.uri = uri;
       response.data = data;
 		

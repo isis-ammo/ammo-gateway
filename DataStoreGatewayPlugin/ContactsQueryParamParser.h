@@ -14,6 +14,7 @@ public:
 
   // Member accessors.
   const std::string &contact_owner (void) const;
+  const std::string &uri (void) const;
   const std::string &first_name (void) const;
   const std::string &middle_initial (void) const;
   const std::string &last_name (void) const;
@@ -26,6 +27,7 @@ public:
 
 private:
   std::string contact_owner_;
+  std::string uri_;
   std::string first_name_;
   std::string middle_initial_;
   std::string last_name_;

@@ -33,7 +33,8 @@ ContactsQueryStatementBuilder::build (void)
 //  LOG_TRACE ("Querying for " << mime_type_);
       
   bool good_adds =
-    this->addFilter (parser_.first_name (), "first_name", false)
+    this->addFilter (parser_.uri (), "uri", false)
+    && this->addFilter (parser_.first_name (), "first_name", false)
     && this->addFilter (parser_.middle_initial (), "middle_initial", false)
     && this->addFilter (parser_.last_name (), "last_name", false)
     && this->addFilter (parser_.rank (), "rank", false)
@@ -49,13 +50,13 @@ ContactsQueryStatementBuilder::build (void)
     {
       return false;
     }
-
+LOG_TRACE ("before stmt prepare");
   int status = sqlite3_prepare (db_,
                                 query_str_.c_str (),
                                 query_str_.length (),
                                 &stmt_,
                                 0);
-
+LOG_TRACE ("after stmt prepare");
   if (status != SQLITE_OK)
     {
       LOG_ERROR ("Preparation of query statement failed: "
@@ -71,7 +72,8 @@ bool
 ContactsQueryStatementBuilder::bind (void)
 {
   return
-    this->bindText (parser_.first_name ())
+    this->bindText (parser_.uri ())
+    && this->bindText (parser_.first_name ())
     && this->bindText (parser_.middle_initial ())
     && this->bindText (parser_.last_name ())
     && this->bindText (parser_.rank ())

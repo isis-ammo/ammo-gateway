@@ -130,10 +130,20 @@ DataStoreReceiver::pushContactData (const ammo::gateway::PushData &pushData)
   PrivateContact info;
   this->contactFromJson (root, info);
   
+  // SQL table names can't contain '.', so we append the chars of
+  // the arg we use for the table name to the query string,
+  // while replacing '.' with '_'.
+  std::string tbl_name = pushData.originUsername;
+  std::replace_if (tbl_name.begin (),
+                   tbl_name.end (),
+                   std::bind2nd (std::equal_to<char> (), '.'),
+                   '_');
+  
   // 2011-06-21 - not using the last 2 columns at this point.
 	std::string contacts_tbl_str ("CREATE TABLE IF NOT EXISTS ");
-	contacts_tbl_str += pushData.originUsername;
+	contacts_tbl_str += tbl_name;
   contacts_tbl_str += " ("
+    "uri TEXT,"
 	  "first_name TEXT,"
 	  "middle_initial TEXT,"
 	  "last_name TEXT,"
@@ -152,19 +162,8 @@ DataStoreReceiver::pushContactData (const ammo::gateway::PushData &pushData)
     }
     
   std::string insert_str ("insert into ");
-  std::string::size_type len = insert_str.length ();
-  
-  // SQL table names can't contain '.', so we append the chars of
-  // the arg we use for the table name to the query string,
-  // while replacing '.' with '_'.
-  insert_str.resize (len + pushData.originUsername.length ());
-  std::replace_copy_if (pushData.originUsername.begin (),
-                        pushData.originUsername.end (),
-                        insert_str.begin () + len,
-                        std::bind2nd (std::equal_to<char> (), '.'),
-                        '_');
-                   
-  insert_str += " values (?,?,?,?,?,?,?,?,?,?,?)";
+  insert_str += tbl_name;
+  insert_str += " values (?,?,?,?,?,?,?,?,?,?,?,?)";
 	
   int status =
 	  sqlite3_prepare (db_, insert_str.c_str (), -1, &stmt_, 0);
@@ -181,15 +180,16 @@ DataStoreReceiver::pushContactData (const ammo::gateway::PushData &pushData)
   const char *insert_type = "Private contact";
   
   bool good_binds =
-    this->bind_text (1, info.first_name, insert_type, "first name")
-    && this->bind_text (2, info.middle_initial, insert_type, "middle initial")
-    && this->bind_text (3, info.last_name, insert_type, "last name")
-    && this->bind_text (4, info.rank, insert_type, "rank")
-    && this->bind_text (5, info.call_sign, insert_type, "call sign")
-    && this->bind_text (6, info.branch, insert_type, "branch")
-    && this->bind_text (7, info.unit, insert_type, "unit")
-    && this->bind_text (8, info.email, insert_type, "email")
-    && this->bind_text (9, info.phone, insert_type, "phone");
+    this->bind_text (1, pushData.uri, insert_type, "uri")
+    && this->bind_text (2, info.first_name, insert_type, "first name")
+    && this->bind_text (3, info.middle_initial, insert_type, "middle initial")
+    && this->bind_text (4, info.last_name, insert_type, "last name")
+    && this->bind_text (5, info.rank, insert_type, "rank")
+    && this->bind_text (6, info.call_sign, insert_type, "call sign")
+    && this->bind_text (7, info.branch, insert_type, "branch")
+    && this->bind_text (8, info.unit, insert_type, "unit")
+    && this->bind_text (9, info.email, insert_type, "email")
+    && this->bind_text (10, info.phone, insert_type, "phone");
 	
 	if (good_binds)
 	  {
@@ -264,25 +264,8 @@ bool
 DataStoreReceiver::parseJson (const std::string &input,
                               Json::Value& root)
 {
-  unsigned int jsonEnd = 0;
-  
-  for (std::string::const_iterator it =
-         input.begin ();
-       it != input.end ();
-       it++)
-    {
-      jsonEnd++;
-      
-      if ((*it) == 0)
-        {
-          break;
-        }
-    }
-
-  std::string jsonOut (&input[0], jsonEnd);
-  
   Json::Reader jsonReader;
-  bool parseSuccess = jsonReader.parse (jsonOut, root);
+  bool parseSuccess = jsonReader.parse (input, root);
 
   if (!parseSuccess)
     {
