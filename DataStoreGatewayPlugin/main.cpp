@@ -13,21 +13,20 @@
 #include "ace/OS_NS_time.h"
 #include "ace/Date_Time.h"
 
-using namespace std;
 using namespace ammo::gateway;
-
-// Quick way to switch between plugin debugging, where this main() is run
-// by hand, and normal operation.
-#define DEBUG 0
 
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
 //in the middle of the reactor event loop, which isn't always a good thing).
 class SigintHandler : public ACE_Event_Handler {
 public:
-  int handle_signal (int signum, siginfo_t * = 0, ucontext_t * = 0) {
-    if (signum == SIGINT || signum == SIGTERM) {
-      ACE_Reactor::instance()->end_reactor_event_loop();
-    }
+  int
+  handle_signal (int signum, siginfo_t * = 0, ucontext_t * = 0)
+  {
+    if (signum == SIGINT || signum == SIGTERM)
+      {
+        ACE_Reactor::instance ()->end_reactor_event_loop ();
+      }
+    
     return 0;
   }
 };
@@ -49,7 +48,7 @@ int main (int /* argc */, char ** /* argv */)
   LOG_DEBUG ("Creating location store receiver...");
   
   DataStoreReceiver *receiver = new DataStoreReceiver ();
-  
+
   GatewayConnector *gatewayConnector = new GatewayConnector (receiver);
 
   DataStoreConfigManager *config =
@@ -69,7 +68,7 @@ int main (int /* argc */, char ** /* argv */)
 /*
   std::string mime_t ("application/vnd.edu.vu.isis.ammo.private_contacts");
   std::string orig_user ("kyle.anderson");
-  std::string uri ("timbuktu");
+  std::string uri ("kokomo");
   std::string data ("{\"first_name\":\"Jimmy\",\"middle_initial\":\"I\",\"last_name\":\"Bork\",\"rank\":\"sgt\",\"call_sign\":\"\",\"branch\":\"\",\"unit\":\"\",\"email\":\"\",\"phone\":\"\"}");
   
   ammo::gateway::PushData pd;
@@ -83,9 +82,8 @@ int main (int /* argc */, char ** /* argv */)
 
   std::string requestUid ("requestUid");
   std::string pluginId ("pluginId");
-  std::string query ("kyle.anderson,Jimmy,,,,,,,,");
+  std::string query ("kyle.anderson,kokomo,Jimmy,,,,,,,,");
   std::string projection ("");
-//  std::string mime_t ("application/vnd.edu.vu.isis.ammo.%");//dash.event");
   
   ammo::gateway::PullRequest pr;
   pr.requestUid = requestUid;
@@ -99,11 +97,9 @@ int main (int /* argc */, char ** /* argv */)
   
   receiver->onPullRequestReceived (0, pr);
 
-  
   delete receiver;
 //===================================
 */
-
   // Get the process-wide ACE_Reactor (the one the acceptor should
   // have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance ();

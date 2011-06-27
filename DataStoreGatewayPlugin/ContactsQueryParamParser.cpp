@@ -8,6 +8,7 @@ void
 ContactsQueryParamParser::parse (const std::string &params)
 {
   tokenize (contact_owner_, params);
+  tokenize (uri_, params);
   tokenize (first_name_, params);
   tokenize (middle_initial_, params);
   tokenize (last_name_, params);
@@ -23,6 +24,12 @@ const std::string &
 ContactsQueryParamParser::contact_owner (void) const
 {
   return contact_owner_;
+}
+
+const std::string &
+ContactsQueryParamParser::uri (void) const
+{
+  return uri_;
 }
 
 const std::string &

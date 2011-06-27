@@ -85,7 +85,6 @@ QueryStatementBuilder::bindText (const std::string &token)
                                       token.length (),
                                       SQLITE_STATIC);
 
-LOG_TRACE ("QueryStatementBuilder::bindText: " << token.c_str ());
       if (status != SQLITE_OK)
         {
           LOG_ERROR ("Bind of text \""
