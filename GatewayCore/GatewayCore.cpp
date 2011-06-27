@@ -494,6 +494,16 @@ bool GatewayCore::pullResponseCrossGateway(std::string requestUid, std::string p
   return false;
 }
 
+bool GatewayCore::unregisterPullResponsePluginIdCrossGateway(std::string pluginId, std::string handler) {
+  PullRequestReturnIdMap::iterator it = cgPullRequestReturnIds.find(pluginId);
+  if ( it != cgPullRequestReturnIds.end() ) {
+    if(it->second == handler) {
+      cgPullRequestReturnIds.erase(it);
+    }
+  }
+  return true;
+}
+
 std::set<GatewayServiceHandler *> GatewayCore::getPushHandlersForType(std::string mimeType) {
   set<GatewayServiceHandler *> matchingHandlers;
   for(PushHandlerMap::iterator it = pushHandlers.begin(); it!= pushHandlers.end(); it++) {

@@ -74,6 +74,8 @@ public:
   bool pullRequestCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection, unsigned int maxResults, unsigned int startFromCount, bool liveQuery, std::string originHandlerId);
   bool pullResponseCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string &data, std::string originHandlerId);
   
+  bool unregisterPullResponsePluginIdCrossGateway(std::string pluginId, std::string handler);
+  
 private:
   std::set<GatewayServiceHandler *> getPushHandlersForType(std::string mimeType);
   

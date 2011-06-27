@@ -213,9 +213,12 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
     GatewayCore::getInstance()->pushCrossGateway(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), msg.push_data().origin_user(), gatewayId);
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG("Received Pull Request...");
-    GatewayCore::getInstance()->pullRequestCrossGateway(msg.pull_request().request_uid(), msg.pull_request().plugin_id(), msg.pull_request().mime_type(), msg.pull_request().query(),
+    bool result = GatewayCore::getInstance()->pullRequestCrossGateway(msg.pull_request().request_uid(), msg.pull_request().plugin_id(), msg.pull_request().mime_type(), msg.pull_request().query(),
                                                         msg.pull_request().projection(), msg.pull_request().max_results(), msg.pull_request().start_from_count(),
                                                         msg.pull_request().live_query(), gatewayId);
+    if(result == true) {
+      registeredPullResponsePluginIds.insert(msg.pull_request().plugin_id());
+    }
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
     LOG_DEBUG("Received Pull Response...");
     GatewayCore::getInstance()->pullResponseCrossGateway(msg.pull_response().request_uid(), msg.pull_response().plugin_id(), msg.pull_response().mime_type(),
@@ -364,6 +367,11 @@ CrossGatewayServiceHandler::~CrossGatewayServiceHandler() {
   LOG_DEBUG("Unregistering pull request handlers...");
   for(std::vector<std::string>::iterator it = registeredPullHandlers.begin(); it != registeredPullHandlers.end(); it++) {
     //GatewayCore::getInstance()->unregisterPullInterest(*it, this);
+  }
+  
+  LOG_DEBUG("Unregistering pull response plugin IDs...");
+  for(std::set<std::string>::iterator it = registeredPullResponsePluginIds.begin(); it != registeredPullResponsePluginIds.end(); it++) {
+    GatewayCore::getInstance()->unregisterPullResponsePluginIdCrossGateway(*it, gatewayId);
   }
 }
 
