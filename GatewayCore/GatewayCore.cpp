@@ -164,6 +164,16 @@ bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std
   return true;
 }
 
+bool GatewayCore::unregisterPullResponsePluginId(std::string pluginId, GatewayServiceHandler *handler) {
+  map<string,GatewayServiceHandler *>::iterator it = plugins.find(pluginId);
+  if ( it != plugins.end() ) {
+    if(it->second == handler) {
+      plugins.erase(it);
+    }
+  }
+  return true;
+}
+
 void GatewayCore::initCrossGateway() {
   GatewayConfigurationManager *config = GatewayConfigurationManager::getInstance();
   
