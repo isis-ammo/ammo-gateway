@@ -3,17 +3,10 @@
 
 #include <string>
 
-namespace Json
-{
-  class Value;
-}
-
-class StringParser;
-
 class ProjectionFilter
 {
 public:
-  ProjectionFilter (const Json::Value &root);
+  ProjectionFilter (void);
                                         
 protected:
   bool match_string (const std::string &token,
@@ -28,7 +21,6 @@ protected:
                    const bool lower_bound);
                        
 protected:
-  const Json::Value &root_;
   std::string digits_;
   std::string real_items_;
 };

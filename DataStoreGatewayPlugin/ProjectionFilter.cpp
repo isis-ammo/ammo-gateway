@@ -4,10 +4,8 @@
 
 #include "ProjectionFilter.h"
 
-ProjectionFilter::ProjectionFilter (
-      const Json::Value &root)
-  : root_ (root),
-    digits_ ("0123456789"),
+ProjectionFilter::ProjectionFilter (void)
+  : digits_ ("0123456789"),
     real_items_ (digits_ + '.')
 {
 }

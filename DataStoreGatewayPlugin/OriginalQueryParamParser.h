@@ -1,14 +1,14 @@
-#ifndef QUERY_PARAM_PARSER_H
-#define QUERY_PARAM_PARSER_H
+#ifndef ORIGINAL_QUERY_PARAM_PARSER_H
+#define ORIGINAL_QUERY_PARAM_PARSER_H
 
 #include <string>
 
 #include "StringParser.h"
 
-class QueryParamParser : public StringParser
+class OriginalQueryParamParser : public StringParser
 {
 public:
-  QueryParamParser (void);
+  OriginalQueryParamParser (void);
 
   void parse (const std::string &params);
 
@@ -27,4 +27,4 @@ private:
   std::string directed_user_;
 };
 
-#endif // QUERY_PARAM_PARSER_H
+#endif // ORIGINAL_QUERY_PARAM_PARSER_H
