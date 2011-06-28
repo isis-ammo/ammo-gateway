@@ -11,7 +11,9 @@ closeMutex(),
 newMessageMutex(),
 newMessageAvailable(newMessageMutex),
 commsHandler(serviceHandler),
-gatewayConnector(NULL)
+gatewayConnector(NULL),
+deviceId(""),
+deviceIdAuthenticated(false)
 {
   //need to initialize GatewayConnector in the main thread; the constructor always
   //happens in the main thread
@@ -84,7 +86,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     if(gatewayConnector != NULL) {
       ammo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
       gatewayConnector->associateDevice(authMessage.device_id(), authMessage.user_id(), authMessage.user_key());
-      //deviceId = authMessage.device_id();
+      this->deviceId = authMessage.device_id();
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE) {
     LOG_DEBUG(commsHandler << " Received Data Message...");
@@ -141,14 +143,14 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG(commsHandler << " Received Pull Request Message...");
-    if(gatewayConnector != NULL) {
+    if(gatewayConnector != NULL && deviceIdAuthenticated) {
       ammo::protocol::PullRequest pullRequest = msg.pull_request();
       // register for pull response - 
       gatewayConnector->registerPullResponseInterest(pullRequest.mime_type(), this);
       // now send request
       PullRequest req;
       req.requestUid = pullRequest.request_uid();
-      req.pluginId = pullRequest.plugin_id();
+      req.pluginId = this->deviceId;
       req.mimeType = pullRequest.mime_type();
       req.query = pullRequest.query();
       req.projection = pullRequest.projection();
@@ -156,7 +158,10 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       req.startFromCount = pullRequest.start_from_count();
       req.liveQuery = pullRequest.live_query();
       gatewayConnector->pullRequest(req);
-
+    } else {
+      if(!deviceIdAuthenticated) {
+        LOG_ERROR(commsHandler << " Attempted to send a pull request before authentication.");
+      }
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_HEARTBEAT) {
     LOG_DEBUG(commsHandler << " Received Heartbeat from device...");
@@ -220,6 +225,10 @@ void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, a
 
 void AndroidMessageProcessor::onAuthenticationResponse(GatewayConnector *sender, bool result) {
   LOG_DEBUG(commsHandler << " Delegate: onAuthenticationResponse");
+  if(result == true) {
+    deviceIdAuthenticated = true;
+  }
+  
   ammo::protocol::MessageWrapper *newMsg = new ammo::protocol::MessageWrapper();
   newMsg->set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
   newMsg->mutable_authentication_result()->set_result(result ? ammo::protocol::AuthenticationResult_Status_SUCCESS : ammo::protocol::AuthenticationResult_Status_SUCCESS);
