@@ -4,6 +4,7 @@
 #include "GWSecurityMgr.h"
 
 #include "log.h"
+#include <fstream>
 
 using namespace ammo::gateway;
 
@@ -115,6 +116,12 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
 
       std::string sigStr; 
       sigStr.assign (nonce.begin (), nonce.end ());
+
+      ofstream out("serverNonce");
+      out.write(sigStr.c_str(), sigStr.length());
+      out.close ();
+
+      LOG_DEBUG(commsHandler << "Server Nonce Length is " << sigStr.length());
 
       authRes->set_message(sigStr);
       

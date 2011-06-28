@@ -162,10 +162,13 @@ bool AMMO_Crypt::verify (
 
       cryptoplus::hash::message_digest_context ctx2;
 
+      std::cout << "Calling Initialize" << std::endl;
       ctx2.verify_initialize(algorithm);
       //		ctx2.verify_update(data.c_str(), data.size());
+      std::cout << "After Initialize" << std::endl;
       ctx2.verify_update(data, data_len);
       //		bool verification = ctx2.verify_finalize(&signature[0], signature.size(), pkey);
+      std::cout << "After update" << std::endl;
       bool verification = ctx2.verify_finalize(sig, sig_len, pkey);
 
       std::cout << "Verification: " << (verification ? "OK" : "FAILED") << std::endl;
@@ -199,9 +202,12 @@ std::vector<unsigned char> AMMO_Crypt::sign (uchar_ptr data, size_t data_len)
       cryptoplus::hash::message_digest_algorithm algorithm("SHA1");
       cryptoplus::hash::message_digest_context ctx;
 
+      std::cout << "Calling Initialize" << std::endl;
       ctx.sign_initialize(algorithm);
+      std::cout << "After Initialize" << std::endl;
 //      ctx.sign_update(data.c_str(), data.size());
       ctx.sign_update(data, data_len);
+      std::cout << "After update" << std::endl;
       std::vector<unsigned char> signature = ctx.sign_finalize<unsigned char>(pkey);
       
       std::cout << "Signature: print"  << std::endl;

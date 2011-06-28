@@ -8,6 +8,15 @@ GWSecurityMgr::GWSecurityMgr ()
   pass_keys[std::string("operator")] = string("operator");
   printf ("\n Inside the Constructor \n");
   operator_id = "operator";
+  // get the pubkey file of the phone from the device id ..
+  string pubkey_phn = "public_key_phone.pem";
+
+  string gw_pvtkey = "private_key_gateway.pem";
+
+  // Read the public and private keys
+  crp.read_public_key (pubkey_phn);
+
+  crp.read_private_key (gw_pvtkey);
 }
 
 bool GWSecurityMgr::Authenticate (ammo::protocol::MessageWrapper &msg)
@@ -20,15 +29,6 @@ bool GWSecurityMgr::Authenticate (ammo::protocol::MessageWrapper &msg)
   //get the phone id ... 
   string deviceId = authMessage.device_id ();
 
-  // get the pubkey file of the phone from the device id ..
-  string pubkey_phn = "public_key_phone.pem";
-
-  string gw_pvtkey = "private_key_gateway.pem";
-
-  // Read the public and private keys
-  crp.read_public_key (pubkey_phn);
-
-  crp.read_private_key (gw_pvtkey);
 
   // first decrypt the 
 //  unsigned char* decr = 
@@ -91,7 +91,12 @@ void GWSecurityMgr::set_phn_auth (string phnA)
 
 bool GWSecurityMgr::verify_phone_auth ()
 {
+  //string orig_data = keyXChange_ + client_nonce_;// + server_nonce_;
   string orig_data = keyXChange_ + client_nonce_ + server_nonce_;
+//  string orig_data = keyXChange_ + server_nonce_;
+//  string orig_data = keyXChange_;
+//  string orig_data = client_nonce_;
+//  string orig_data = server_nonce_;
   printf ("\n Before calling the verify function \n");
 
   return crp.verify ((unsigned char*)orig_data.c_str(),
