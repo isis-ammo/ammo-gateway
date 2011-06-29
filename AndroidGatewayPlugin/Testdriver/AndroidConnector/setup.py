@@ -58,11 +58,16 @@ if __name__ == '__main__':
     generate_proto("../../../common/protocol/AmmoMessages.proto")
     
   # Get project version from git (assumes this is in a git repo)
+  print "Getting version number...",
   version_number = VERSION_DEFAULT
-  try:
-    version_number = subprocess.check_output(["/bin/sh", "-c", "git describe --match release-\*  | sed 's/release-//' | cut -d- -f 1,2"])
-  except:
-    pass
+  versionProcess = subprocess.Popen(["/bin/sh", "-c", "git describe --match release-\*  | sed 's/release-//' | cut -d- -f 1,2"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  versionOutput = versionProcess.communicate()
+  if(versionProcess.returncode == 0):
+    version_number = versionOutput[0].replace("\n", "")
+    print "Got version", version_number
+  else:
+    print "An error occurred when getting version number...  using default."
+    print versionOutput[1]
   
   setup(
     name = "AndroidConnector",
