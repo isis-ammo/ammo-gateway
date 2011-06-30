@@ -26,14 +26,8 @@ public:
                 ammo::gateway::GatewayConnector *sender,
                 ammo::gateway::PullRequest &pr);
                 
-  virtual ~QueryHandler (void);
+  ~QueryHandler (void);
                 
-  virtual void handleQuery (void) = 0;
-  
-protected:
-  bool parseJson (const std::string &input,
-                  Json::Value& root);
-  
 protected:
   sqlite3 *db_;
   ammo::gateway::GatewayConnector *sender_;

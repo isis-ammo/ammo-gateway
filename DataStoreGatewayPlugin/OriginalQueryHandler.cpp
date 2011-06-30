@@ -1,4 +1,3 @@
-
 #include <stdexcept>
 #include <sqlite3.h>
 
@@ -7,6 +6,7 @@
 #include "GatewayConnector.h"
 
 #include "OriginalQueryHandler.h"
+#include "DataStoreUtils.h"
 
 OriginalQueryHandler::OriginalQueryHandler (
       sqlite3 *db,
@@ -56,7 +56,7 @@ OriginalQueryHandler::handleQuery (void)
           continue;
         }
         
-//      LOG_TRACE ("matched on: " << pr_.projection.c_str ());
+      LOG_TRACE ("matched on: " << pr_.projection.c_str ());
         
       if (sender_ == 0)
         {
@@ -103,7 +103,7 @@ OriginalQueryHandler::matchedData (const std::string &projection,
     
   Json::Value root;
   
-  if (!this->parseJson (data, root))
+  if (! DataStoreUtils::parseJson (data, root))
     {
       return false;
     }
@@ -113,8 +113,6 @@ OriginalQueryHandler::matchedData (const std::string &projection,
   // and (2) expressed as usec instead of sec, too large by a factor of 1000.
   // Since the value is out of range, Json::Value::asInt() will throw
   // std::runtime_error, with the message that we catch and output below.
-  // As of this date (2011-5-18), the Json-parsed entry is output (for
-  // debugging) so the offending field can be seen by inspection.
   try
     { 
       return this->matchedProjection (root, projection);

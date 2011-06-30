@@ -22,10 +22,7 @@ protected:
   bool addFilter (const std::string &token,
                   const char *stub,
                   bool is_int);
-
-  bool bindText (const std::string &token);
-  bool bindInteger (const std::string &token);
-
+                  
 protected:
   const std::string &params_;
   sqlite3 *db_;

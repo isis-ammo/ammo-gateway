@@ -19,16 +19,16 @@ SMSQueryHandler::matchedProjection (const Json::Value &root,
   parser.parse (projection);
   
   return
-    match_string (parser.sms_uri (), root["sms_uri"].asString ())
-    && match_string (parser.sender (), root["sender"].asString ())
-    && match_string (parser.recipient (), root["recipient"].asString ())
-    && match_int (parser.thread_min (), root["thread"].asInt (), true)
-    && match_int (parser.thread_max (), root["thread"].asInt (), false)
-    && match_string (parser.payload (), root["payload"].asString ())
-    && match_int (parser.createdDate_min (), root["createdDate"].asInt (), true)
-    && match_int (parser.createdDate_max (), root["createdDate"].asInt (), false)
-    && match_int (parser.modifiedDate_min (), root["modifiedDate"].asInt (), true)
-    && match_int (parser.modifiedDate_max (), root["modifiedDate"].asInt (), false);
+    match_string (parser.sms_uri_, root["sms_uri"].asString ())
+    && match_string (parser.sender_, root["sender"].asString ())
+    && match_string (parser.recipient_, root["recipient"].asString ())
+    && match_int (parser.thread_min_, root["thread"].asInt (), true)
+    && match_int (parser.thread_max_, root["thread"].asInt (), false)
+    && match_string (parser.payload_, root["payload"].asString ())
+    && match_int (parser.createdDate_min_, root["createdDate"].asInt (), true)
+    && match_int (parser.createdDate_max_, root["createdDate"].asInt (), false)
+    && match_int (parser.modifiedDate_min_, root["modifiedDate"].asInt (), true)
+    && match_int (parser.modifiedDate_max_, root["modifiedDate"].asInt (), false);
 }
 
 

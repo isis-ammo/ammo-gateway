@@ -1,12 +1,12 @@
-#include "DataStoreConfigManager.h"
-
-#include "log.h"
-#include "DataStore.h"
-
 #include <iostream>
 #include <fstream>
 
 #include <ace/OS_NS_sys_stat.h>
+
+#include "log.h"
+
+#include "DataStoreConfigManager.h"
+#include "DataStoreReceiver.h"
 
 const char *CONFIG_DIRECTORY = "ammo-gateway";
 const char *LOC_STORE_CONFIG_FILE = "DataStorePluginConfig.json";

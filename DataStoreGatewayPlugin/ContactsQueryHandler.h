@@ -13,7 +13,7 @@ public:
                         ammo::gateway::GatewayConnector *sender,
                         ammo::gateway::PullRequest &pr);
                         
-  virtual void handleQuery (void);
+  void handleQuery (void);
   
 private:
   void encode_row (sqlite3_stmt *stmt,

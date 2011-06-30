@@ -19,21 +19,21 @@ ReportQueryHandler::matchedProjection (const Json::Value &root,
   parser.parse (projection);
   
   return
-    match_string (parser.contentGuid (), root["contentGuid"].asString ())
-    && match_int (parser.reportTime_min (), root["reportTime"].asInt (), true)
-    && match_int (parser.reportTime_max (), root["reportTime"].asInt (),false)
-    && match_string (parser.reportingUnit (), root["reportingUnit"].asString ())
-    && match_int (parser.size_min (), root["size"].asInt (), true)
-    && match_int (parser.size_max (), root["size"].asInt (), false)
-    && match_string (parser.activity (), root["activity"].asString ())
-    && match_string (parser.locationUtm (), root["locationUtm"].asString ())
-    && match_string (parser.enemyUnit (), root["enemyUnit"].asString ())
-    && match_int (parser.observationTime_min (), root["observationTime"].asInt (), true)
-    && match_int (parser.observationTime_max (), root["observationTime"].asInt (), false)
-    && match_string (parser.equipment (), root["equipment"].asString ())
-    && match_string (parser.assessment (), root["assessment"].asString ())
-    && match_string (parser.narrative (), root["narrative"].asString ())
-    && match_string (parser.authentication (), root["authentication"].asString ());
+    match_string (parser.contentGuid_, root["contentGuid"].asString ())
+    && match_int (parser.reportTime_min_, root["reportTime"].asInt (), true)
+    && match_int (parser.reportTime_max_, root["reportTime"].asInt (),false)
+    && match_string (parser.reportingUnit_, root["reportingUnit"].asString ())
+    && match_int (parser.size_min_, root["size"].asInt (), true)
+    && match_int (parser.size_max_, root["size"].asInt (), false)
+    && match_string (parser.activity_, root["activity"].asString ())
+    && match_string (parser.locationUtm_, root["locationUtm"].asString ())
+    && match_string (parser.enemyUnit_, root["enemyUnit"].asString ())
+    && match_int (parser.observationTime_min_, root["observationTime"].asInt (), true)
+    && match_int (parser.observationTime_max_, root["observationTime"].asInt (), false)
+    && match_string (parser.equipment_, root["equipment"].asString ())
+    && match_string (parser.assessment_, root["assessment"].asString ())
+    && match_string (parser.narrative_, root["narrative"].asString ())
+    && match_string (parser.authentication_, root["authentication"].asString ());
 }
 
 

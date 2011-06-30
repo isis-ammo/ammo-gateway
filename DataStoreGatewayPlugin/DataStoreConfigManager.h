@@ -6,8 +6,10 @@
 
 class DataStoreReceiver;
 
-namespace ammo {
-  namespace gateway {
+namespace ammo
+{
+  namespace gateway
+  {
     class GatewayConnector;
   }
 }
