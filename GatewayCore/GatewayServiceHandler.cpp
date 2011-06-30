@@ -189,7 +189,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     case ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE: {
       LOG_DEBUG("Received Associate Device...");
       //TODO: split out into a different function and do more here
-      ammo::gateway::protocol::GatewayWrapper *newMsg;
+      ammo::gateway::protocol::GatewayWrapper *newMsg = new ammo::gateway::protocol::GatewayWrapper();
       newMsg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT);
       newMsg->mutable_associate_result()->set_result(ammo::gateway::protocol::AssociateResult_Status_SUCCESS);
       this->sendData(newMsg);
