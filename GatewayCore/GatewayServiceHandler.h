@@ -6,6 +6,7 @@
 #include "protocol/GatewayPrivateMessages.pb.h"
 #include <vector>
 #include <queue>
+#include <set>
 #include "Enumerations.h"
 
 class GatewayServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH> {
@@ -55,6 +56,7 @@ protected:
   std::vector<std::string> registeredPullRequestHandlers;
   
   std::queue<ammo::gateway::protocol::GatewayWrapper *> sendQueue;
+  std::set<std::string> registeredPullResponsePluginIds;
 };
 
 #endif        //  #ifndef GATEWAY_SERVICE_HANDLER_H

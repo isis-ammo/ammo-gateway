@@ -14,7 +14,7 @@
   
 } */
 
-int GatewayServiceHandler::open(void *ptr) {
+int ammo::gateway::internal::GatewayServiceHandler::open(void *ptr) {
   if(super::open(ptr) == -1) {
     return -1;
     
@@ -28,7 +28,7 @@ int GatewayServiceHandler::open(void *ptr) {
   return 0;
 }
 
-int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
+int ammo::gateway::internal::GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
   //LOG_TRACE("In handle_input");
   int count = 0;
   
@@ -63,7 +63,7 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
         //LOG_TRACE("Got all the data... processing");
         processData(collectedData, dataSize, checksum);
         //LOG_TRACE("Processsing complete.  Deleting buffer.");
-        delete collectedData;
+        delete[] collectedData;
         collectedData = NULL;
         dataSize = 0;
         position = 0;
@@ -81,7 +81,7 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
   return 0;
 }
 
-int GatewayServiceHandler::handle_output(ACE_HANDLE fd) {
+int ammo::gateway::internal::GatewayServiceHandler::handle_output(ACE_HANDLE fd) {
   int count = 0;
   
   do {
@@ -143,7 +143,7 @@ int GatewayServiceHandler::handle_output(ACE_HANDLE fd) {
   return 0;
 }
 
-void GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper *msg) {
+void ammo::gateway::internal::GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper *msg) {
   sendQueueMutex.acquire();
   sendQueue.push(msg);
   LOG_TRACE(this << " Queued a message to send.  " << sendQueue.size() << " messages in queue.");
@@ -152,7 +152,7 @@ void GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper *ms
   this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
 }
 
-ammo::gateway::protocol::GatewayWrapper *GatewayServiceHandler::getNextMessageToSend() {
+ammo::gateway::protocol::GatewayWrapper *ammo::gateway::internal::GatewayServiceHandler::getNextMessageToSend() {
   ammo::gateway::protocol::GatewayWrapper *msg = NULL;
   
   sendQueueMutex.acquire();
@@ -169,7 +169,7 @@ ammo::gateway::protocol::GatewayWrapper *GatewayServiceHandler::getNextMessageTo
 }
 
 
-int GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
+int ammo::gateway::internal::GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if(calculatedChecksum != messageChecksum) {
@@ -204,10 +204,10 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   return 0;
 }
 
-GatewayServiceHandler::~GatewayServiceHandler() {
+ammo::gateway::internal::GatewayServiceHandler::~GatewayServiceHandler() {
   LOG_TRACE("GatewayServiceHandler being destroyed!");
 }
 
-void GatewayServiceHandler::setParentConnector(GatewayConnector *parent) {
+void ammo::gateway::internal::GatewayServiceHandler::setParentConnector(GatewayConnector *parent) {
   this->parent = parent;
 }

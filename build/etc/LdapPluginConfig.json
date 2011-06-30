@@ -1,6 +1,6 @@
 {
   "LdapBaseAddress": "ldap://localhost", //Base address for the LDAP server (i.e. ldap://localhost)
-  "LdapUsername": "cn=Manager,dc=transapps,dc=darpa,dc=mil", //Username for the LDAP server
+  "LdapUsername": "cn=Manager,dc=ammo,dc=tdm", //Username for the LDAP server
   "LdapPassword": "ammmo"  //Password for the LDAP server
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)
