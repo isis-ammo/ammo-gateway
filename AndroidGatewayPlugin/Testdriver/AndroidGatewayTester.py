@@ -95,7 +95,6 @@ if __name__ == "__main__":
     m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
     m.pull_request.mime_type = "text/plain"
     m.pull_request.request_uid = "AGT_pull_request"
-    m.pull_request.plugin_id = "AndroidGatewayTester"
     m.pull_request.max_results = 0
     m.pull_request.query = ",,1300000000,1310000000"
     print "Sending pull request..."

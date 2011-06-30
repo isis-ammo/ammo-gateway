@@ -224,7 +224,6 @@ class AndroidConnector(threading.Thread):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
     m.pull_request.request_uid = uuid.uuid1().hex
-    m.pull_request.plugin_id = self._deviceId
     m.pull_request.mime_type = mimeType
     m.pull_request.query = query
     m.pull_request.projection = projection
