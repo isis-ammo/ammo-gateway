@@ -102,7 +102,6 @@ if __name__ == "__main__":
   m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
   m.pull_request.mime_type = "application/vnd.edu.vu.isis.ammo.sms.message"
   m.pull_request.request_uid = "PRT_pull_request"
-  m.pull_request.plugin_id = "PullRequestTester"
   # max_results is unlimited, but the use of the start time string
   # will limit responses to the 5 pushes above, no matter how many
   # times this test has been run previously.
