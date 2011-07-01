@@ -28,11 +28,11 @@ class AMMO_Crypt
  public:
   AMMO_Crypt ();
 
-  uchar_ptr encrypt(uchar_ptr data, size_t data_len);
+  vector<unsigned char> encrypt(uchar_ptr data, size_t data_len);
 
-  uchar_ptr decrypt(uchar_ptr encr, size_t encr_len);
+  vector<unsigned char> decrypt(uchar_ptr encr, size_t encr_len);
   
-  std::vector<unsigned char> sign(uchar_ptr data, size_t data_len);
+  vector<unsigned char> sign(uchar_ptr data, size_t data_len);
 
   bool verify (
                uchar_ptr data,
@@ -46,6 +46,14 @@ class AMMO_Crypt
    int read_private_key (std::string pvt_file);
 
    std::vector<unsigned char> get_random_bytes ();
+
+   vector<unsigned char> generate_digest (const std::string algo,const std::string& data );
+
+   string ucharVectorToString (vector<unsigned char> ucharV);
+
+   vector<unsigned char> stringToUcharVector (string);
+   
+   void dump_to_file (string file, string buffer);
 
   private:
     

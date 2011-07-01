@@ -34,6 +34,14 @@ class GWSecurityMgr {
 
     bool verify_phone_auth ();
 
+    void set_device_id (string device);
+    
+    void generate_master_secret();
+
+    string regenerate_phone_finish ();
+
+    bool verify_client_finish (string);
+
   private:
     // The Crypto object providing basic 
     // cryptographic functions such as encrypt, decrypt, sign,
@@ -50,6 +58,16 @@ class GWSecurityMgr {
    string phnAuth_;
 
    string server_nonce_;
+   
+   string pre_master_;
+
+   string master_secret_;
+
+   void extract_pre_master ();
+
+   string deviceId_;
+
+   string phone_finish_;
    
 };
 

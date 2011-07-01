@@ -108,6 +108,8 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
 
       std::vector<unsigned char> nonce = secP_->get_Server_Nonce ();
 
+      secP_->set_device_id(authMessage.device_id());
+
       ammo::protocol::AuthenticationMessage *authRes = outMsg->mutable_authentication_message();
       outMsg->set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE);
 
@@ -149,9 +151,25 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
 
       bool ver = secP_->verify_phone_auth ();
 
+      if (ver)
+        secP_->generate_master_secret ();
+
 
       LOG_TRACE(commsHandler << "Verified " << ((ver)? "OK": "FAILED"));
 
+    } else if (authMessage.type() == ammo::protocol::AuthenticationMessage_Type_CLIENT_FINISH) {
+      
+      LOG_TRACE(commsHandler << "Got the CLIENT FINISH MSG");
+
+      string clnt_fin = authMessage.message();
+
+      if(secP_->verify_client_finish (clnt_fin))
+      {
+      //  secP_->get_server_finish ();
+        LOG_TRACE(commsHandler << "Client Finish Verified OK"); 
+      }else {
+        LOG_TRACE(commsHandler << "Client Finish Verified False"); 
+      }
     }
 
 /*

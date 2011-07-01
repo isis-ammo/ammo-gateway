@@ -83,7 +83,18 @@ void GWSecurityMgr::set_client_nonce (string cl_nonce)
 void GWSecurityMgr::set_keyXchange (string keyX)
 {
   keyXChange_ = keyX;
+
+  extract_pre_master();
 }
+
+void GWSecurityMgr::extract_pre_master ()
+{
+  // decrypt the keyXchange 
+  pre_master_ = crp.ucharVectorToString(
+                              crp.decrypt ((unsigned char*)keyXChange_.c_str(), 
+                              keyXChange_.size()));
+}
+
 void GWSecurityMgr::set_phn_auth (string phnA)
 {
   phnAuth_ =  phnA;
@@ -103,4 +114,65 @@ bool GWSecurityMgr::verify_phone_auth ()
                      orig_data.size(), 
                      (unsigned char*)phnAuth_.c_str(),
                      phnAuth_.length ());
+}
+
+void GWSecurityMgr::generate_master_secret()
+{
+
+  // the master secret used nested digest ...
+  // the first digest is 
+  // SHA-256('A'||S||client_nonce||server_nonce)
+  // S is the premaster secret
+  
+  string content = "A";
+  content += pre_master_;
+  content += client_nonce_;
+  content += server_nonce_;
+  
+  string first_level = 
+              crp.ucharVectorToString(crp.generate_digest ("SHA256", content));
+
+  // the second level wiil have another message digest ... 
+  // SHA-256 (S||first_level)
+
+  content = pre_master_ + first_level;
+
+  master_secret_ = crp.ucharVectorToString(crp.generate_digest ("SHA256", content));
+
+  crp.dump_to_file("master_secret", master_secret_);
+}
+
+string GWSecurityMgr::regenerate_phone_finish ()
+{
+  // PhoneFinish = SHA-256(master_secret||pad2||
+  //    SHA-256(handshake_msg||sender||master_secret||pad1))
+
+  // handshake_msg = phoneauth + keyxchange + client_nonce + server_nonce 
+
+  // create the handshake msg 
+  string handshake_msg = phnAuth_ + keyXChange_ + client_nonce_ + server_nonce_;
+
+  // add the other stuff 
+  string content = handshake_msg + deviceId_ + master_secret_; // need to add pad1 here ....
+
+  string first_level = crp.ucharVectorToString(crp.generate_digest("SHA256", content));
+
+  // no create the outer level 
+  content = master_secret_ + first_level;
+
+  phone_finish_ = crp.ucharVectorToString(crp.generate_digest ("SHA256", content));
+
+  return phone_finish_;
+}
+
+void GWSecurityMgr::set_device_id (string device)
+{
+  deviceId_ = device;
+}
+
+bool GWSecurityMgr::verify_client_finish(string clientFin)
+{
+  string client_finish = regenerate_phone_finish();
+
+  return (clientFin == client_finish);
 }

@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <fstream>
 
 
 #include <cryptoplus/cryptoplus.hpp>
@@ -19,11 +20,12 @@ AMMO_Crypt::AMMO_Crypt ()
   ERR_load_crypto_strings();  
 }
 
-uchar_ptr AMMO_Crypt::encrypt (uchar_ptr data, size_t data_len)
+vector<unsigned char> AMMO_Crypt::encrypt (uchar_ptr data, size_t data_len)
 {
   //enc must point to RSA_size(rsa) bytes of memory. See man RSA_public_encrypt 
   uchar_ptr enc = new unsigned char[RSA_size(pub_RSAp_)];
 
+  vector<unsigned char> encV;
   //need to check this
   //  flen must be less than RSA_size(rsa) - 11 for the PKCS #1 v1.5 based padding modes
 
@@ -44,17 +46,20 @@ uchar_ptr AMMO_Crypt::encrypt (uchar_ptr data, size_t data_len)
 
     delete err;
 
-    return NULL;
+    return encV;
   }
   else
   {
     printf("Encrypted the message OK! = \n%s\n", enc);
   }
 
-  return enc; // sender should delete the buffer 
+  encV.assign(enc, enc+RSA_size(pub_RSAp_));
+
+//  return enc; // sender should delete the buffer 
+  return encV;
 }
 
-uchar_ptr AMMO_Crypt::decrypt (
+vector<unsigned char> AMMO_Crypt::decrypt (
                                 uchar_ptr encr,
                                 size_t encr_len)
 {
@@ -63,6 +68,8 @@ uchar_ptr AMMO_Crypt::decrypt (
   uchar_ptr decr = new unsigned char [RSA_size(pvt_RSAp_)*2];// need  to set 500 to RSA_size ()
 
   memset (decr, 0, RSA_size(pvt_RSAp_)*2);
+  
+  vector<unsigned char> decrV;
 
   if (RSA_private_decrypt(encr_len, encr, decr, pvt_RSAp_, RSA_PKCS1_PADDING) != -1)
   {
@@ -76,10 +83,14 @@ uchar_ptr AMMO_Crypt::decrypt (
     cout << err  << endl;
     delete err;
 
-    return NULL;
+    return decrV;
   }
 
-  return decr; // the calling function should delete this memory
+  //return decr; // the calling function should delete this memory
+  decrV.assign(decr, decr+RSA_size(pub_RSAp_)*2);
+
+//  return enc; // sender should delete the buffer 
+  return decrV;
 }
 
 int AMMO_Crypt::read_public_key (string pub_file)
@@ -247,4 +258,53 @@ std::string AMMO_Crypt::to_hex(const T& begin,const T& end)
 std::string AMMO_Crypt::to_hex(const void* buf, size_t buf_len)
 {
   //return to_hex(static_cast<const unsigned char*>(buf), static_cast<const unsigned char*>(buf) + buf_len);
+}
+
+vector<unsigned char> AMMO_Crypt::generate_digest (const std::string algo, const std::string& data )
+{
+  cryptoplus::crypto_initializer crypto_initializer;
+  cryptoplus::algorithms_initializer algorithms_initializer;
+  cryptoplus::error::error_strings_initializer error_strings_initializer;
+
+  try
+  {
+    cryptoplus::hash::message_digest_algorithm algorithm(algo);
+
+    cryptoplus::hash::message_digest_context ctx;
+
+    ctx.initialize(algorithm);
+    ctx.update(data.c_str(), data.size());
+    vector<unsigned char> message_digest = ctx.finalize<unsigned char>();
+    //  std::cout << name << ": " << to_hex(message_digest.begin(), message_digest.end()) << std::endl;
+
+    return message_digest;
+  }
+  catch (cryptoplus::error::cryptographic_exception& ex)
+  {
+    std::cerr << algo << ": " << ex.what() << std::endl;
+  }
+}
+
+string AMMO_Crypt::ucharVectorToString (vector<unsigned char> ucharV)
+{
+      std::string sigStr; 
+      sigStr.assign (ucharV.begin (), ucharV.end ());
+
+      return sigStr;
+}
+
+vector<unsigned char> AMMO_Crypt::stringToUcharVector (string str)
+{
+  vector<unsigned char> ucharV;
+  ucharV.assign (str.begin(), str.end());
+
+  return ucharV;
+}
+
+void AMMO_Crypt::dump_to_file (string file, string buffer)
+{
+  std::cout << "Writing to file" << std::endl;
+  ofstream out (file.c_str(), ios::binary);
+  out.write(buffer.data(), buffer.size());
+  out.close ();
 }
