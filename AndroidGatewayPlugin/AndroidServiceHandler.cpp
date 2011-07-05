@@ -70,7 +70,7 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
     count = this->peer().recv_n(&messageHeader, sizeof(messageHeader));
     //verify the message header (check its magic number and checksum)
     if(messageHeader.magicNumber == HEADER_MAGIC_NUMBER) {
-      unsigned int calculatedChecksum = ACE::crc32(&messageHeader, 3*sizeof(int));
+      unsigned int calculatedChecksum = ACE::crc32(&messageHeader, sizeof(messageHeader) - sizeof(messageHeader.headerChecksum));
       if(calculatedChecksum != messageHeader.headerChecksum) {
         LOG_ERROR("Invalid header checksum");
       }

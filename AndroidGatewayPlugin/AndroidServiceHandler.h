@@ -12,12 +12,14 @@ class AndroidMessageProcessor;
 
 const unsigned int HEADER_MAGIC_NUMBER = 0xfeedbeef;
 
-typedef struct _message_header {
+struct MessageHeader {
   unsigned int magicNumber;    //Always set to 0xfeedbeef
   unsigned int size;           //size of the data (does *not* include header)
+  char         priority;       //Message priority (larger numbers are higher priority, and will be processed first if messages are queued)
+  char         reserved[3];    //Reserved for future use, and to ensure header word alignment
   unsigned int checksum;       //CRC32 checksum of the data (does *not* include header)
-  unsigned int headerChecksum; //CRC32 checksum of the first 12 bytes of the header (magicNumber, size, and checksum).  Does *not* include data, or itself.
-} MessageHeader;
+  unsigned int headerChecksum; //CRC32 checksum of the header, less this checksum.  Does *not* include data, or itself.
+};
 
 class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>{
 public:
