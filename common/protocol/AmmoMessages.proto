@@ -164,6 +164,8 @@ message MessageWrapper {
   required MessageType type = 1;
   optional string session_uuid = 2;
   
+  optional sint32 message_priority = 12; //should match priority in the message header; range should be that of a signed char
+  
   optional DataMessage data_message = 3;
   optional AuthenticationMessage authentication_message= 4;
   optional AuthenticationResult authentication_result = 5;
