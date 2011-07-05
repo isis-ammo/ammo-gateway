@@ -8,59 +8,45 @@
 #include "AtsConfigMgr.h"
 
 class AtsHandler : 
-  public DataPushReceiverListener, 
-  public PullRequestReceiverListener,
-  public PullResponseReceiverListener,
-  public GatewayConnectorDelegate 
+  public ammo::gateway::DataPushReceiverListener, 
+  public ammo::gateway::PullRequestReceiverListener,
+  public ammo::gateway::PullResponseReceiverListener,
+  public ammo::gateway::GatewayConnectorDelegate 
 {
 public:
   AtsHandler(); 
   //GatewayConnectorDelegate methods
-  virtual void onConnect(GatewayConnector *sender);
-  virtual void onDisconnect(GatewayConnector *sender);
+  virtual void onConnect(ammo::gateway::GatewayConnector *sender);
+  virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
   
   // DataPushReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender,
-                              std::string uri,
-                              std::string mimeType,
-                              std::vector<char> &data,
-                              std::string originUser);
+  virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender,
+                              ammo::gateway::PushData &pushData);
 
   // PullRequestReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender,
-                              std::string requestUid,
-                              std::string pluginId,
-                              std::string mimeType, 
-                              std::string query,
-                              std::string projection,
-                              unsigned int maxResults,
-                              unsigned int startFromCount,
-                              bool liveQuery);
+  virtual void onPullRequestReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PullRequest &pullReq);
 
   // PullResponseReceiverListener
-  virtual void onDataReceived (GatewayConnector *sender,
-                               std::string requestUid,
-                               std::string pluginId,
-                               std::string mimeType, 
-                               std::string uri,
-                               std::vector< char > &data);
+  virtual void onPullResponseReceived (ammo::gateway::GatewayConnector *sender, ammo::gateway::PullResponse &response);
 private:
   char* baseServerAddr;
   AtsConfigMgr* config;
   std::pair<std::string, std::string> credentials;
 
-  std::string uploadMedia(CURL *curl, std::string mediaType, std::vector< char >& payload ); 
-  std::string inviteChat(CURL *curl, std::string mediaType, std::vector< char >& payload ); 
-  std::vector<char> listChannels(CURL *curl, std::string dataType, std::string query );
+  std::string uploadMedia(CURL *curl, std::string mediaType, std::string& payload ); 
+  std::string inviteChat(CURL *curl, std::string mediaType, std::string& payload ); 
+  std::string listChannels(CURL *curl, std::string dataType, std::string query );
+  std::string listUnits(CURL *curl, std::string dataType, std::string query );
+  std::string listMembers(CURL *curl, std::string dataType, std::string query );
+  std::string listLocations(CURL *curl, std::string dataType, std::string query );
+  std::string listPeople(CURL *curl, std::string dataType, std::string query ); 
+  std::string listPeople(CURL *curl, std::string dataType, std::vector<char>& query ); 
+  std::string channelCreate(CURL *curl, std::string dataType, std::string& payload ); 
 
-  std::vector<char> listPeople(CURL *curl, std::string dataType, std::string query ); 
-  std::vector<char> listPeople(CURL *curl, std::string dataType, std::vector<char>& query ); 
-  std::string channelCreate(CURL *curl, std::string dataType, std::vector< char >& payload ); 
+  std::string centerMap(CURL *curl, std::string dataType, std::string &query ); 
 
-  std::string centerMap(CURL *curl, std::string dataType, std::vector< char > &query ); 
-
-  std::string postLocation(CURL *curl, std::string mediaType, std::vector< char >& payload ); 
-  std::string postLocations(CURL *curl, std::string mediaType, std::vector< char >& payload ); 
+  std::string postLocation(CURL *curl, std::string mediaType, std::string& payload ); 
+  std::string postLocations(CURL *curl, std::string mediaType, std::string& payload ); 
 };
 
 #endif        //  #ifndef ATS_HANDLER_H

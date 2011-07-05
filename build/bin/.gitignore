@@ -2,11 +2,11 @@ AndroidGatewayPlugin
 GatewayCore
 SamplePushReceiverGatewayPlugin
 SamplePushTestDriverPlugin
-LocationStoreGatewayPlugin
+DataStoreGatewayPlugin
 AndroidGatewayPlugin.exe
 GatewayCore.exe
 SamplePushReceiverPlugin.exe
-LocationStoreGatewayPlugin
+DataStoreGatewayPlugin
 LdapGatewayPlugin
 TigrGatewayPlugin
 PassGatewayPlugin

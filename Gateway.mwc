@@ -6,7 +6,7 @@ workspace(AndroidGatewayPlugin) {
   AndroidGatewayPlugin/
   SamplePushReceiverGatewayPlugin/
   SamplePushTestDriverPlugin/
-  LocationStoreGatewayPlugin/
+  DataStoreGatewayPlugin/
   LDAPPlugin/
   SpotPushReceiverGatewayPlugin/
   AtsGatewayPlugin/

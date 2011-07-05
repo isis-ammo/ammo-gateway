@@ -7,8 +7,8 @@ Group:          Applications/Internet
 Source:         %{name}-%{version}.tar.gz
 URL:            http://ammo.isis.vanderbilt.edu
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-Requires:       ace = 6.0.1, gsoap, protobuf
-BuildRequires:  gcc-c++, ace-devel = 6.0.1, gsoap-devel, protobuf-compiler, protobuf-devel
+Requires:       ace = 6.0.2, protobuf
+BuildRequires:  gcc-c++, ace-devel = 6.0.2, protobuf-compiler, protobuf-devel
 
 %description
 Android Middleware Server
@@ -19,7 +19,7 @@ Android Middleware Server
 
 %build
 mwc.pl --type make Gateway.mwc
-cat install.mk >> Makefile
+cat install.mk >> GNUmakefile
 make PROTOBUF_ROOT=/usr GATEWAY_ROOT=`pwd`
 
 %install
@@ -36,13 +36,13 @@ rm -rf %{buildroot}
 /etc/ammo-gateway/AtsPluginConfig.json
 /etc/ammo-gateway/GatewayConfig.json
 /etc/ammo-gateway/LdapPluginConfig.json
-/etc/ammo-gateway/LocationStorePluginConfig.json
+/etc/ammo-gateway/DataStorePluginConfig.json
 /usr/bin/AndroidGatewayPlugin
 /usr/bin/AtsGatewayPlugin
 /usr/bin/GatewayCore
 /usr/bin/GatewayUsbTransfer
 /usr/bin/LdapGatewayPlugin
-/usr/bin/LocationStoreGatewayPlugin
+/usr/bin/DataStoreGatewayPlugin
 /usr/bin/SamplePushReceiverGatewayPlugin
 /usr/bin/SamplePushTestDriverPlugin
 /usr/bin/SpotPushReceiverGatewayPlugin
@@ -50,8 +50,11 @@ rm -rf %{buildroot}
 /usr/bin/launch_ammo_gateway.sh
 /usr/bin/launch_ammo_gateway_headless.sh
 /usr/lib/libgatewayconnector.so
+/usr/lib/libgatewayconnector.so.AMMO_VERSION-AMMO_RELEASE
 /usr/lib/libgeotrans-mgrs.so
+/usr/lib/libgeotrans-mgrs.so.AMMO_VERSION-AMMO_RELEASE
 /usr/lib/libjson.so
+/usr/lib/libjson.so.AMMO_VERSION-AMMO_RELEASE
 
 %changelog
 * BUILD_DATE John Williams <johnwilliams@isis.vanderbilt.edu> - AMMO_VERSION

@@ -1,9 +1,9 @@
-import AndroidConnector
+from ammo import AndroidConnector
 import uuid
 import sys
 import time
 import datetime
-import AmmoMessages_pb2
+from ammo import AmmoMessages_pb2
 
 from twisted.internet import reactor
 
