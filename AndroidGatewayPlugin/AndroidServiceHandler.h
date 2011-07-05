@@ -10,6 +10,15 @@
 
 class AndroidMessageProcessor;
 
+const unsigned int HEADER_MAGIC_NUMBER = 0xfeedbeef;
+
+typedef struct _message_header {
+  unsigned int magicNumber;    //Always set to 0xfeedbeef
+  unsigned int size;           //size of the data (does *not* include header)
+  unsigned int checksum;       //CRC32 checksum of the data (does *not* include header)
+  unsigned int headerChecksum; //CRC32 checksum of the first 12 bytes of the header (magicNumber, size, and checksum).  Does *not* include data, or itself.
+} MessageHeader;
+
 class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>{
 public:
   AndroidServiceHandler();
@@ -36,14 +45,12 @@ protected:
   typedef ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH> super;
   
   typedef enum {
-    READING_SIZE = 0,
-    READING_CHECKSUM = 1,
-    READING_DATA = 2
+    READING_HEADER = 0,
+    READING_DATA = 1
   } ReaderState;
   
   ReaderState state;
-  unsigned int dataSize;
-  unsigned int checksum;
+  MessageHeader messageHeader;
   char *collectedData;
   unsigned int position;
   

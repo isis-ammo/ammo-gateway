@@ -26,14 +26,17 @@ int AndroidServiceHandler::open(void *ptr) {
     return -1;
     
   }
-  state = READING_SIZE;
-  dataSize = 0;
-  checksum = 0;
+  state = READING_HEADER;
   collectedData = NULL;
   position = 0;
   
   dataToSend = NULL;
   position = 0;
+  
+  messageHeader.magicNumber = 0;
+  messageHeader.size = 0;
+  messageHeader.checksum = 0;
+  messageHeader.headerChecksum = 0;
   
   connectionClosing = false;
   
@@ -63,15 +66,20 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
   LOG_TRACE(this << " In handle_input");
   int count = 0;
   
-  if(state == READING_SIZE) {
-    count = this->peer().recv_n(&dataSize, sizeof(dataSize));
-    LOG_TRACE(this << " SIZE Read " << count << " bytes");
-  } else if(state == READING_CHECKSUM) {
-    count = this->peer().recv_n(&checksum, sizeof(checksum));
-    LOG_TRACE(this << " SUM Read " << count << " bytes");
+  if(state == READING_HEADER) {
+    count = this->peer().recv_n(&messageHeader, sizeof(messageHeader));
+    //verify the message header (check its magic number and checksum)
+    if(messageHeader.magicNumber == HEADER_MAGIC_NUMBER) {
+      unsigned int calculatedChecksum = ACE::crc32(&messageHeader, 3*sizeof(int));
+      if(calculatedChecksum != messageHeader.headerChecksum) {
+        LOG_ERROR("Invalid header checksum");
+      }
+    } else {
+      LOG_ERROR("Invalid magic number: 0x" << hex << messageHeader.magicNumber << dec);
+    }
   } else if(state == READING_DATA) {
-    count = this->peer().recv(collectedData + position, dataSize - position);
-    LOG_TRACE(this << " DATA Read " << count << " bytes");
+    count = this->peer().recv(collectedData + position, messageHeader.size - position);
+    //LOG_TRACE("DATA Read " << count << " bytes");
   } else {
     LOG_ERROR(this << " Invalid state!");
   }
@@ -79,26 +87,26 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
   
   
   if(count > 0) {
-    if(state == READING_SIZE) {
-      collectedData = new char[dataSize];
+    if(state == READING_HEADER) {
+      collectedData = new char[messageHeader.size];
       position = 0;
-      LOG_TRACE(this << " Got data size (" << dataSize << ")");
-      state = READING_CHECKSUM;
-    } else if(state == READING_CHECKSUM) {
-      LOG_TRACE(this << " Got data checksum (" << checksum << ")");
+      //LOG_TRACE("Got data size (" << dataSize << ")");
       state = READING_DATA;
     } else if(state == READING_DATA) {
       LOG_TRACE(this << " Got some data...");
       position += count;
-      if(position == dataSize) {
-        LOG_TRACE(this << " Got all the data... processing");
-        processData(collectedData, dataSize, checksum);
-        LOG_TRACE(this << " Processsing complete.  Deleting buffer.");
+      if(position == messageHeader.size) {
+        //LOG_TRACE("Got all the data... processing");
+        processData(collectedData, messageHeader.size, messageHeader.checksum);
+        //LOG_TRACE("Processsing complete.  Deleting buffer.");
         delete[] collectedData;
         collectedData = NULL;
-        dataSize = 0;
+        messageHeader.magicNumber = 0;
+        messageHeader.size = 0;
+        messageHeader.checksum = 0;
+        messageHeader.headerChecksum = 0;
         position = 0;
-        state = READING_SIZE;
+        state = READING_HEADER;
       }
     }
   } else if(count == 0) {
@@ -124,15 +132,17 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
           LOG_WARN(this << " Protocol Buffers message is missing a required element.");
         }
         unsigned int messageSize = msg->ByteSize();
-        sendBufferSize = messageSize + 2*sizeof(unsigned int);
+        sendBufferSize = messageSize + sizeof(MessageHeader);
         dataToSend = new char[sendBufferSize];
-        unsigned int *size = (unsigned int *) dataToSend;
-        unsigned int *messageChecksum = (unsigned int *) (dataToSend + sizeof(unsigned int));
-        char *protobufSerializedMessage = dataToSend + 2*sizeof(unsigned int);
+        MessageHeader *headerToSend = (MessageHeader *) dataToSend;
+        headerToSend->magicNumber = HEADER_MAGIC_NUMBER;
+        headerToSend->size = messageSize;
         
-        *size = messageSize;
+        char *protobufSerializedMessage = dataToSend + sizeof(MessageHeader);
         msg->SerializeToArray(protobufSerializedMessage, messageSize);
-        *messageChecksum = ACE::crc32(protobufSerializedMessage, messageSize);
+        
+        headerToSend->checksum = ACE::crc32(protobufSerializedMessage, messageSize);
+        headerToSend->headerChecksum = ACE::crc32(headerToSend, 3*sizeof(int));
         
         sendPosition = 0;
         
