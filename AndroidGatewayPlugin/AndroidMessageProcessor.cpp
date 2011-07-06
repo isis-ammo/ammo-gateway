@@ -15,14 +15,14 @@ newMessageMutex(),
 newMessageAvailable(newMessageMutex),
 commsHandler(serviceHandler),
 gatewayConnector(NULL),
-secP_(NULL)
+secP_(NULL) 
 {
   //need to initialize GatewayConnector in the main thread; the constructor always
   //happens in the main thread
   gatewayConnector = new GatewayConnector(this);
 
   // create the Security Manager ...
-  secP_ = new GWSecurityMgr();
+  secP_ = new GWSecurityMgr("GW01");// right now hard coding ... later get it properly 
 }
 
 AndroidMessageProcessor::~AndroidMessageProcessor() {
@@ -165,10 +165,22 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
 
       if(secP_->verify_client_finish (clnt_fin))
       {
-      //  secP_->get_server_finish ();
         LOG_TRACE(commsHandler << "Client Finish Verified OK"); 
+
+        // Client Finish verified ok ... so now send the gateway finish ...
+        ammo::protocol::AuthenticationMessage *authRes = outMsg->mutable_authentication_message();
+        outMsg->set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE);
+
+        authRes->set_result(ammo::protocol::AuthenticationMessage_Status_SUCCESS);
+        authRes->set_type(ammo::protocol::AuthenticationMessage_Type_SERVER_FINISH);
+
+        authRes->set_message(secP_->get_server_finish ());
+
+        LOG_DEBUG(commsHandler << " Returning from Authenticate after sending Gateway Finish...");
+        commsHandler->sendMessage(outMsg);
       }else {
         LOG_TRACE(commsHandler << "Client Finish Verified False"); 
+        // Client Finish verified false ... so now send, auth false ...
       }
     }
 

@@ -1,8 +1,9 @@
 #include "GWSecurityMgr.h"
 #include "AMMO_Crypto.h"
 
+const int GWSecurityMgr::PRE_MASTER_LENGTH = 48;
 
-GWSecurityMgr::GWSecurityMgr ()
+GWSecurityMgr::GWSecurityMgr (char* gatewayId):gatewayId_(gatewayId)
 {
   // Initialize the oper ids .... 
   pass_keys[std::string("operator")] = string("operator");
@@ -71,6 +72,8 @@ std::vector<unsigned char> GWSecurityMgr::get_Server_Nonce ()
 {
   std::vector<unsigned char> bytes = crp.get_random_bytes ();
   server_nonce_.assign (bytes.begin(), bytes.end());
+  //server_nonce_ = "Roy";
+  //std::vector<unsigned char> bytes (server_nonce_.begin(), server_nonce_.end());
   
   return bytes;
 }
@@ -90,9 +93,14 @@ void GWSecurityMgr::set_keyXchange (string keyX)
 void GWSecurityMgr::extract_pre_master ()
 {
   // decrypt the keyXchange 
+  /*
   pre_master_ = crp.ucharVectorToString(
                               crp.decrypt ((unsigned char*)keyXChange_.c_str(), 
                               keyXChange_.size()));
+                              */
+  vector<unsigned char> uchar = crp.decrypt ((unsigned char*)keyXChange_.c_str(), keyXChange_.size());
+
+  pre_master_.assign(uchar.begin(), uchar.begin() + PRE_MASTER_LENGTH); 
 }
 
 void GWSecurityMgr::set_phn_auth (string phnA)
@@ -124,13 +132,16 @@ void GWSecurityMgr::generate_master_secret()
   // SHA-256('A'||S||client_nonce||server_nonce)
   // S is the premaster secret
   
-  string content = "A";
-  content += pre_master_;
+//  string content;// = "A";
+//  content += pre_master_;
+  string content = pre_master_;
   content += client_nonce_;
   content += server_nonce_;
   
   string first_level = 
               crp.ucharVectorToString(crp.generate_digest ("SHA256", content));
+
+  crp.dump_to_file("master_secret", pre_master_);
 
   // the second level wiil have another message digest ... 
   // SHA-256 (S||first_level)
@@ -139,7 +150,7 @@ void GWSecurityMgr::generate_master_secret()
 
   master_secret_ = crp.ucharVectorToString(crp.generate_digest ("SHA256", content));
 
-  crp.dump_to_file("master_secret", master_secret_);
+//  crp.dump_to_file("master_secret", first_level);
 }
 
 string GWSecurityMgr::regenerate_phone_finish ()
@@ -175,4 +186,23 @@ bool GWSecurityMgr::verify_client_finish(string clientFin)
   string client_finish = regenerate_phone_finish();
 
   return (clientFin == client_finish);
+}
+
+
+string GWSecurityMgr::get_server_finish ()
+{
+  // create the handshake msg 
+  string handshake_msg = phnAuth_ + keyXChange_ + client_nonce_ + server_nonce_;
+
+  // add the other stuff 
+  string content = handshake_msg + gatewayId_ + master_secret_; // need to add pad1 here ....
+
+  string first_level = crp.ucharVectorToString(crp.generate_digest("SHA256", content));
+
+  // no create the outer level 
+  content = master_secret_ + first_level;
+
+  phone_finish_ = crp.ucharVectorToString(crp.generate_digest ("SHA256", content));
+
+  return phone_finish_;
 }

@@ -12,6 +12,8 @@ class GWSecurityMgr {
 
   public:
 
+    static const int PRE_MASTER_LENGTH;
+
 //  this is for the demo only
     char * operator_id;
 
@@ -22,7 +24,7 @@ class GWSecurityMgr {
 
     std::vector<unsigned char> get_gateway_sign ();
 
-    GWSecurityMgr ();
+    GWSecurityMgr (char* gatewayId);
     
     std::vector<unsigned char> get_Server_Nonce ();
     
@@ -41,6 +43,8 @@ class GWSecurityMgr {
     string regenerate_phone_finish ();
 
     bool verify_client_finish (string);
+    
+    string get_server_finish ();
 
   private:
     // The Crypto object providing basic 
@@ -68,7 +72,8 @@ class GWSecurityMgr {
    string deviceId_;
 
    string phone_finish_;
-   
+
+   string gatewayId_;
 };
 
 
