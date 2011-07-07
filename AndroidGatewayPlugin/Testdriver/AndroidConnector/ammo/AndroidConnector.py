@@ -64,7 +64,7 @@ class AndroidProtocol(stateful.StatefulProtocol):
     if self._onMessageAvailableCallback != None:
       self._onMessageAvailableCallback(msg)
     
-    return (self.receiveHeader, 8)
+    return (self.receiveHeader, 20)
     
   def sendMessageWrapper(self, msg):
     serializedMsg = msg.SerializeToString()
