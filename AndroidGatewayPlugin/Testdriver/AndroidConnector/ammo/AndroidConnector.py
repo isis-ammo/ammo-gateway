@@ -16,6 +16,11 @@ import uuid
 import AmmoMessages_pb2
 
 MAGIC_NUMBER = 0xfeedbeef
+DEFAULT_PRIORITY = 0
+DEFAULT_RESERVED1 = 0
+DEFAULT_RESERVED2 = 0
+DEFAULT_RESERVED3 = 0
+
 
 class AndroidProtocol(stateful.StatefulProtocol):
   '''
