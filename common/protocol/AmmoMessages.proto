@@ -134,7 +134,6 @@ message AuthenticationResult {
 */
 message PullRequest {
   required string request_uid = 1;
-  required string plugin_id = 2;
   required string mime_type = 3;
   required string query = 4;
   optional string projection = 5;

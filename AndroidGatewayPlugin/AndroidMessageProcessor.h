@@ -41,6 +41,9 @@ private:
   
   ammo::gateway::GatewayConnector *gatewayConnector;
   
+  std::string deviceId;
+  bool deviceIdAuthenticated;
+  
   bool isClosed();
   void processMessage(ammo::protocol::MessageWrapper &msg);
 
