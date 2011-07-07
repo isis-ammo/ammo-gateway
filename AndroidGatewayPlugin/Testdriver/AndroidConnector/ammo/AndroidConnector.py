@@ -45,8 +45,10 @@ class AndroidProtocol(stateful.StatefulProtocol):
     calculatedHeaderChecksum = zlib.crc32(data[:16])
     if magicNumber != MAGIC_NUMBER:
       print "Invalid magic number!"
-    if calculatedHeaderChecksum != self._headerChecksum:
+    if calculatedHeaderChecksum != headerChecksum:
       print "Header checksum error!"
+      print "Expected", headerChecksum
+      print "Calculated", calculatedHeaderChecksum
     self._messageSize = messageSize
     self._checksum = checksum
     
