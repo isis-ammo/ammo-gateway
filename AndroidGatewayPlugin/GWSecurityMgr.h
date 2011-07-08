@@ -4,11 +4,37 @@
 #include "protocol/AmmoMessages.pb.h"
 #include "AMMO_Crypto.h"
 
+#include <iostream>
+
+using namespace std;
+
 #include<map>
 
 using namespace std;
 
-class GWSecurityMgr {
+class GatewaySecHandler;
+
+struct AuthMessage 
+{
+
+  enum Type 
+  {
+    CLIENT_NONCE,
+    SERVER_NONCE,
+    CLIENT_KEYXCHANGE,
+    CLIENT_PHNAUTH,
+    CLIENT_FINISH,
+    SERVER_FINISH
+  };
+
+  Type type;
+  string message;
+  string device_id;
+  string user_id;
+};
+
+class GWSecurityMgr 
+{
 
   public:
 
@@ -20,7 +46,8 @@ class GWSecurityMgr {
     // This function checks the message and if it is 
     // genuine then sends back a return msg
     // If it is not then returns null
-    bool Authenticate (ammo::protocol::MessageWrapper &msg);
+//    bool Authenticate (ammo::protocol::MessageWrapper &msg);
+    bool Authenticate (AuthMessage &msg);
 
     std::vector<unsigned char> get_gateway_sign ();
 
@@ -74,6 +101,8 @@ class GWSecurityMgr {
    string phone_finish_;
 
    string gatewayId_;
+
+   GatewaySecHandler * handler_;
 };
 
 

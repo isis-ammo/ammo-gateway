@@ -1,5 +1,6 @@
 #include "GWSecurityMgr.h"
 #include "AMMO_Crypto.h"
+#include "GatewaySecHandler.h"
 
 const int GWSecurityMgr::PRE_MASTER_LENGTH = 48;
 
@@ -20,43 +21,93 @@ GWSecurityMgr::GWSecurityMgr (char* gatewayId):gatewayId_(gatewayId)
   crp.read_private_key (gw_pvtkey);
 }
 
-bool GWSecurityMgr::Authenticate (ammo::protocol::MessageWrapper &msg)
+//bool GWSecurityMgr::Authenticate (ammo::protocol::MessageWrapper &msg)
+bool GWSecurityMgr::Authenticate (AuthMessage &msg)
 {
  
   printf ("\n Inside the Authenticate Method.");
-  //LOG_DEBUG(commsHandler << " Inside the Authenticate Method...");
-  ammo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
 
-  //get the phone id ... 
-  string deviceId = authMessage.device_id ();
+  if (msg.type == AuthMessage::CLIENT_NONCE)
+  {
+    
+    set_client_nonce (msg.message);
+    set_device_id(msg.device_id);
 
+  //  LOG_TRACE(commsHandler << "Got the Client Nonce ");
+    cout << "Got the Client Nonce " << endl;
 
-  // first decrypt the 
-//  unsigned char* decr = 
-//            crp.decrypt ((unsigned char*)authMessage.user_key().c_str(), authMessage.user_key().length ());
+    std::vector<unsigned char> nonce = get_Server_Nonce ();
+    std::string sigStr; 
+    sigStr.assign (nonce.begin (), nonce.end ());
 
-  //char* data = "operator";
+    cout << "Server Nonce Length is " << endl;
+
+    AuthMessage outmsg;
+    outmsg.type = AuthMessage::SERVER_NONCE;
+    outmsg.message = sigStr;
+
+    cout << " Returning from Authenticate..." << endl;
+    handler_->sendMessage(outmsg);
+
+  } 
+  else if (msg.type == AuthMessage::CLIENT_KEYXCHANGE)
+  {
+    set_keyXchange (msg.message);
+
+  } 
+  else if (msg.type == AuthMessage::CLIENT_PHNAUTH)
+  {
+
+    string phnAuth = msg.message;
+
+    cout << "Got the Phone Auth" << endl;
+
+    set_phn_auth (phnAuth);
+
+    bool ver = verify_phone_auth ();
+    
+    cout << "Verified " << ((ver)? "OK": "FAILED") << endl;
+
+    if (ver)
+    {
+      generate_master_secret ();
+    }
+    else
+      return false;
   
-  printf ("Operator [operator] key [%s] length [%d]\n",
-            pass_keys[std::string("operator")].c_str (), 
-            pass_keys["operator"].size());
-  
-  //cout << pass_keys[std::string("operator")] << endl;
-  //printf ("strlen %d\n", strlen(data));
+  } 
+  else if (msg.type == AuthMessage::CLIENT_FINISH) 
+  {
 
-  bool verified = crp.verify ((unsigned char*)pass_keys[string("operator")].c_str()/*operator_id*/,
-                              pass_keys["operator"].size()/*strlen(operator_id)*/, 
-                               //8,
-                              (unsigned char*)authMessage.user_key().c_str(),
-                              authMessage.user_key().length ());
+    cout << "Got the CLIENT FINISH MSG" << endl;
 
- 
-//  printf ("\n The key is %s\n", decr);
-//  LOG_DEBUG(commsHandler << " The key is " << decr << "..");
+    string clnt_fin = msg.message;
 
-  printf ((verified)? "True Device":"Faulty Device");
+    if(verify_client_finish (clnt_fin))
+    {
+      cout << "Client Finish Verified OK" << endl;
 
-  return verified;
+      // Client Finish verified ok ... so now send the gateway finish ...
+
+//      LOG_DEBUG(commsHandler << " Returning from Authenticate after sending Gateway Finish...");
+      cout << " Returning from Authenticate after sending Gateway Finish..." << endl;
+
+      AuthMessage outmsg;
+      outmsg.type = AuthMessage::SERVER_FINISH;
+      outmsg.message = get_server_finish ();
+      
+      handler_->sendMessage(outmsg);
+
+    }else {
+      //LOG_TRACE(commsHandler << "Client Finish Verified False"); 
+      cout << "Client Finish Verified False" << endl;
+
+      // Client Finish verified false ... so now send, auth false ...
+      return false;
+    }
+  }  
+
+  return true;
 }
 
 std::vector<unsigned char> GWSecurityMgr::get_gateway_sign ()
