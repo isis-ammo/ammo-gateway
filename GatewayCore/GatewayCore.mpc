@@ -4,11 +4,11 @@ project(GatewayCore) : aceexe, protobuf, gatewaycommon {
   exename=GatewayCore
   
   includes += $(GATEWAY_ROOT)/LibJSON
-  includes += "../LibCryptoPlus/include"
+  includes += $(CRYPTOPLUS_ROOT)/include
 
   libpaths += $(GATEWAY_ROOT)/build/lib
 
-  libpaths += "../LibCryptoPlus/lib"
+  libpaths += $(CRYPTOPLUS_ROOT)/lib
 
   libs += json
 
