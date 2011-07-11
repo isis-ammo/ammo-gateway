@@ -4,10 +4,18 @@ project(GatewayCore) : aceexe, protobuf, gatewaycommon {
   exename=GatewayCore
   
   includes += $(GATEWAY_ROOT)/LibJSON
-  
+  includes += "../LibCryptoPlus/include"
+
   libpaths += $(GATEWAY_ROOT)/build/lib
+
+  libpaths += "../LibCryptoPlus/lib"
+
   libs += json
-  
+
+  libs += "crypto"
+
+  libs += "cryptoplus"
+
   specific(prop:windows) {
     macros += JSON_DLL_BUILD
   }
@@ -22,5 +30,7 @@ project(GatewayCore) : aceexe, protobuf, gatewaycommon {
     CrossGatewayServiceHandler.cpp
     GatewayCore.cpp
     GatewayConfigurationManager.cpp
+    AMMO_Crypto.cpp
+    GWSecurityMgr.cpp
   }
 }

@@ -1,8 +1,6 @@
 #include "AndroidMessageProcessor.h"
 #include "AndroidServiceHandler.h"
 
-#include "GWSecurityMgr.h"
-
 #include "log.h"
 #include <fstream>
 
@@ -16,15 +14,14 @@ newMessageAvailable(newMessageMutex),
 commsHandler(serviceHandler),
 gatewayConnector(NULL),
 deviceId(""),
-deviceIdAuthenticated(false),
-secP_(NULL) 
+deviceIdAuthenticated(false)
 {
   //need to initialize GatewayConnector in the main thread; the constructor always
   //happens in the main thread
   gatewayConnector = new GatewayConnector(this);
 
   // create the Security Manager ...
-  secP_ = new GWSecurityMgr("GW01");// right now hard coding ... later get it properly 
+//  secP_ = new GWSecurityMgr("GW01");// right now hard coding ... later get it properly 
 }
 
 AndroidMessageProcessor::~AndroidMessageProcessor() {
@@ -33,9 +30,9 @@ AndroidMessageProcessor::~AndroidMessageProcessor() {
     delete gatewayConnector;
   }
   
-  if(secP_) {
-    delete secP_;
-  }
+//  if(secP_) {
+//    delete secP_;
+//  }
 
 }
 
@@ -97,7 +94,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     LOG_DEBUG(commsHandler << " Received Authentication Message...");
 
     LOG_DEBUG(commsHandler << " Calling Authenticate...");
-    
+ /*   
     ammo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
     
     ammo::protocol::MessageWrapper *outMsg = new ammo::protocol::MessageWrapper();
@@ -203,6 +200,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       
       printf ("\n The sign is %s, and its length is %d\n", sigStr.c_str(), sigStr.size ());
 
+    */
       //send its own sign 
 
       // If Authenticated, let Gateway know about the new device ....
@@ -214,15 +212,16 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
                                           authMessage.user_key());
       }
 
-      this->deviceId = authMessage.device_id();
+      //this->deviceId = authMessage.device_id();
+/*      
     }
     else
     {
       // send failed 
       authRes->set_result(ammo::protocol::AuthenticationResult_Status_FAILED);
     }
-    */
-    
+ 
+ */
 
     // Send back Authenticated result to Gateway ...
 
