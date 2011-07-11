@@ -327,6 +327,7 @@ void GatewayServiceHandler::sendMessage(AuthMessage& msg) {
   authMsg->set_message(msg.message);
   authMsg->set_device_id(msg.device_id);
   authMsg->set_user_id(msg.user_id);
+  authMsg->set_result(ammo::gateway::protocol::AuthenticationMessage_Status_SUCCESS);
   
   LOG_DEBUG("Sending Authentication message to connected plugin");
   this->sendData(newMsg);

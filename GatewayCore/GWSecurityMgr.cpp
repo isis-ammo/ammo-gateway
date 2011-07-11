@@ -19,6 +19,7 @@ GWSecurityMgr::GWSecurityMgr (const char* gatewayId, GatewaySecHandler *handler)
   crp.read_public_key (pubkey_phn);
 
   crp.read_private_key (gw_pvtkey);
+  printf ("\n The Gateway ID is [%s]\n", gatewayId);
 }
 
 //bool GWSecurityMgr::Authenticate (ammo::protocol::MessageWrapper &msg)
@@ -97,6 +98,8 @@ bool GWSecurityMgr::Authenticate (AuthMessage &msg)
       outmsg.message = get_server_finish ();
       
       handler_->sendMessage(outmsg);
+
+      handler_->authenticationComplete ();
 
     }else {
       //LOG_TRACE(commsHandler << "Client Finish Verified False"); 
