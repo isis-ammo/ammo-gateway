@@ -1,6 +1,7 @@
 #include "GatewayServiceHandler.h"
 #include "GatewayCore.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
+#include "GatewayConfigurationManager.h"
 
 #include <iostream>
 
@@ -29,6 +30,8 @@ int GatewayServiceHandler::open(void *ptr) {
   usernameAuthenticated = false;
   
   this->peer().enable(ACE_NONBLOCK);
+  
+  securityManager = new GWSecurityMgr(GatewayConfigurationManager::getInstance()->getCrossGatewayId().c_str(), this);
   
   return 0;
 }
@@ -186,15 +189,33 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   //LOG_TRACE("Message Received: " << msg.DebugString());
   
   switch(msg.type()) {
-    case ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE: {
-      LOG_DEBUG("Received Associate Device...");
-      //TODO: split out into a different function and do more here
-      ammo::gateway::protocol::GatewayWrapper *newMsg = new ammo::gateway::protocol::GatewayWrapper();
-      newMsg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT);
-      newMsg->mutable_associate_result()->set_result(ammo::gateway::protocol::AssociateResult_Status_SUCCESS);
-      this->sendData(newMsg);
-      username = msg.associate_device().user();
-      usernameAuthenticated = true;
+    case ammo::gateway::protocol::GatewayWrapper_MessageType_AUTHENTICATION_MESSAGE: {
+      LOG_DEBUG("Received Authenticate Message...");
+      LOG_TRACE("Message: " << msg.DebugString());
+      
+      ammo::gateway::protocol::AuthenticationMessage authMsg = msg.authentication_message();
+      
+      AuthMessage auth;
+      auth.type = authMessageTypeFromProtobuf(authMsg.type());
+      auth.message = authMsg.message();
+      auth.device_id = authMsg.device_id();
+      auth.user_id = authMsg.user_id();
+      
+      bool result = securityManager->Authenticate(auth);
+      
+      if(result == false) {
+        LOG_ERROR("Authentication failed...");
+        ammo::gateway::protocol::GatewayWrapper *newMsg = new ammo::gateway::protocol::GatewayWrapper();
+        newMsg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_AUTHENTICATION_MESSAGE);
+        ammo::gateway::protocol::AuthenticationMessage *authMsg = newMsg->mutable_authentication_message();
+        authMsg->set_type(ammo::gateway::protocol::AuthenticationMessage_Type_STATUS);
+        authMsg->set_result(ammo::gateway::protocol::AuthenticationMessage_Status_FAILED);
+        
+        LOG_DEBUG("Sending Authentication failure to connected plugin");
+        this->sendData(newMsg);
+      }
+      
+      username = msg.authentication_message().user_id();
       break;
     }
     case ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST: {
@@ -298,6 +319,23 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   return 0;
 }
 
+void GatewayServiceHandler::sendMessage(AuthMessage& msg) {
+  ammo::gateway::protocol::GatewayWrapper *newMsg = new ammo::gateway::protocol::GatewayWrapper();
+  newMsg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_AUTHENTICATION_MESSAGE);
+  ammo::gateway::protocol::AuthenticationMessage *authMsg = newMsg->mutable_authentication_message();
+  authMsg->set_type(authMessageTypeToProtobuf(msg.type));
+  authMsg->set_message(msg.message);
+  authMsg->set_device_id(msg.device_id);
+  authMsg->set_user_id(msg.user_id);
+  
+  LOG_DEBUG("Sending Authentication message to connected plugin");
+  this->sendData(newMsg);
+}
+
+void GatewayServiceHandler::authenticationComplete() {
+  usernameAuthenticated = true;
+}
+
 bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
@@ -353,6 +391,62 @@ bool GatewayServiceHandler::sendPullResponse(std::string requestUid, std::string
   this->sendData(msg);
   
   return true;
+}
+
+ammo::gateway::protocol::AuthenticationMessage_Type GatewayServiceHandler::authMessageTypeToProtobuf(AuthMessage::Type type) {
+  ammo::gateway::protocol::AuthenticationMessage_Type result = ammo::gateway::protocol::AuthenticationMessage_Type_STATUS;
+  switch(type) {
+  case AuthMessage::CLIENT_NONCE:
+    result = ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_NONCE;
+    break;
+  case AuthMessage::SERVER_NONCE:
+    result = ammo::gateway::protocol::AuthenticationMessage_Type_SERVER_NONCE;
+    break;
+  case AuthMessage::CLIENT_KEYXCHANGE:
+    result = ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_KEYXCHANGE;
+    break;
+  case AuthMessage::CLIENT_PHNAUTH:
+    result = ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_PHNAUTH;
+    break;
+  case AuthMessage::CLIENT_FINISH:
+    result = ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_FINISH;
+    break;
+  case AuthMessage::SERVER_FINISH:
+    result = ammo::gateway::protocol::AuthenticationMessage_Type_SERVER_FINISH;
+    break;
+  }
+  
+  return result;
+}
+
+
+AuthMessage::Type GatewayServiceHandler::authMessageTypeFromProtobuf(ammo::gateway::protocol::AuthenticationMessage_Type type) {
+  AuthMessage::Type result = AuthMessage::CLIENT_NONCE;
+  switch(type) {
+  case ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_NONCE:
+    result = AuthMessage::CLIENT_NONCE;
+    break;
+  case ammo::gateway::protocol::AuthenticationMessage_Type_SERVER_NONCE:
+    result = AuthMessage::SERVER_NONCE;
+    break;
+  case ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_KEYXCHANGE:
+    result = AuthMessage::CLIENT_KEYXCHANGE;
+    break;
+  case ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_PHNAUTH:
+    result = AuthMessage::CLIENT_PHNAUTH;
+    break;
+  case ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_FINISH:
+    result = AuthMessage::CLIENT_FINISH;
+    break;
+  case ammo::gateway::protocol::AuthenticationMessage_Type_SERVER_FINISH:
+    result = AuthMessage::SERVER_FINISH;
+    break;
+  case ammo::gateway::protocol::AuthenticationMessage_Type_STATUS: //shouldn't happen
+    result = AuthMessage::SERVER_FINISH;
+    break;
+  }
+    
+  return result;
 }
 
 

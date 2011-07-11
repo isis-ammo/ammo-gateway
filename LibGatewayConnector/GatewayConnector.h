@@ -170,7 +170,7 @@ namespace ammo {
       * @return true if authentication was successful; false if authentication
       *         failed.
       */
-      bool associateDevice(std::string device, std::string user, std::string key);
+      bool sendAuthenticationMessage(AuthenticationMessageType type, std::string message, std::string deviceId, std::string userId);
       
       //--Data-Push support methods--
     
@@ -290,10 +290,13 @@ namespace ammo {
     private:
       void init(GatewayConnectorDelegate *delegate, ammo::gateway::internal::GatewayConfigurationManager *config); 
     
-      void onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg);
+      void onAuthenticationMessageReceived(const ammo::gateway::protocol::AuthenticationMessage &msg);
       void onPushDataReceived(const ammo::gateway::protocol::PushData &msg);
       void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg);
       void onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg);
+      
+      ammo::gateway::protocol::AuthenticationMessage_Type authMessageTypeToProtobuf(ammo::gateway::AuthenticationMessageType type);
+      ammo::gateway::AuthenticationMessageType authMessageTypeFromProtobuf(ammo::gateway::protocol::AuthenticationMessage_Type);
       
       GatewayConnectorDelegate *delegate;
       std::map<std::string, DataPushReceiverListener *> receiverListeners;
@@ -339,7 +342,7 @@ namespace ammo {
       * @param result true if authentication succeeded; false if authentication
       *               failed.
       */
-      virtual void onAuthenticationResponse(GatewayConnector *sender, bool result);
+      virtual void onAuthenticationResponse(GatewayConnector *sender, AuthenticationMessageType type, std::string message, std::string deviceId, std::string userId, bool authResult);
     };
     
     /**

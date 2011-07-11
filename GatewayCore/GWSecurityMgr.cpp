@@ -4,7 +4,7 @@
 
 const int GWSecurityMgr::PRE_MASTER_LENGTH = 48;
 
-GWSecurityMgr::GWSecurityMgr (char* gatewayId):gatewayId_(gatewayId)
+GWSecurityMgr::GWSecurityMgr (const char* gatewayId, GatewaySecHandler *handler):gatewayId_(gatewayId), handler_(handler)
 {
   // Initialize the oper ids .... 
   pass_keys[std::string("operator")] = string("operator");

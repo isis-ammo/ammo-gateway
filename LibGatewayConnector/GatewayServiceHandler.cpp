@@ -187,9 +187,9 @@ int ammo::gateway::internal::GatewayServiceHandler::processData(char *data, unsi
   }
   //LOG_INFO("Message Received: " << msg.DebugString());
   
-  if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
-    LOG_DEBUG("Received Associate Result...");
-    parent->onAssociateResultReceived(msg.associate_result());
+  if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_AUTHENTICATION_MESSAGE) {
+    LOG_DEBUG("Received Authentication Message...");
+    parent->onAuthenticationMessageReceived(msg.authentication_message());
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
     parent->onPushDataReceived(msg.push_data());

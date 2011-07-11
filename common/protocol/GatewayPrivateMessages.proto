@@ -1,9 +1,29 @@
 package ammo.gateway.protocol;
 
-message AssociateDevice {
-  required string device = 1;
-  required string user = 2;
-  required bytes key = 3;
+/**
+* Sent on initial connection to gateway to authenticate user.
+* 
+*/
+message AuthenticationMessage {
+  enum Type {
+    CLIENT_NONCE = 0;
+    SERVER_NONCE = 1;
+    CLIENT_KEYXCHANGE = 2;
+    CLIENT_PHNAUTH = 3;
+    CLIENT_FINISH = 4;
+    SERVER_FINISH = 5;
+    STATUS = 6;
+  }
+  enum Status {
+    FAILED = 0;
+    SUCCESS = 1;
+  }
+  required Type type = 1;
+  optional bytes message = 2;
+  optional string device_id = 3;
+  optional string user_id = 4;
+  optional bytes user_key = 5;
+  optional Status result = 6;
 }
 
 message AssociateCrossGateway {
@@ -72,7 +92,6 @@ message UnregisterDataInterest {
 
 message GatewayWrapper {
   enum MessageType {
-    ASSOCIATE_DEVICE = 0;
     ASSOCIATE_RESULT = 1;
     PUSH_DATA = 2;
     REGISTER_DATA_INTEREST = 3;
@@ -82,11 +101,11 @@ message GatewayWrapper {
     REGISTER_PULL_INTEREST = 7;
     UNREGISTER_PULL_INTEREST = 8;
     ASSOCIATE_CROSS_GATEWAY = 9;
+    AUTHENTICATION_MESSAGE = 10;
   }
   
   required MessageType type = 1;
   
-  optional AssociateDevice associate_device = 2;
   optional AssociateResult associate_result = 6;
   optional PushData push_data = 3;
   optional RegisterDataInterest register_data_interest = 4;
@@ -96,4 +115,5 @@ message GatewayWrapper {
   optional RegisterPullInterest register_pull_interest = 9;
   optional UnregisterPullInterest unregister_pull_interest = 10;
   optional AssociateCrossGateway associate_cross_gateway = 11;
+  optional AuthenticationMessage authentication_message = 12;
 }

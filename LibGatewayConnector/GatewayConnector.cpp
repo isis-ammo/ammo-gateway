@@ -46,14 +46,15 @@ ammo::gateway::GatewayConnector::~GatewayConnector() {
   delete connector;
 }
   
-bool ammo::gateway::GatewayConnector::associateDevice(string device, string user, string key) {
+bool ammo::gateway::GatewayConnector::sendAuthenticationMessage(ammo::gateway::AuthenticationMessageType type, string message, string deviceId, string userId) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
-  ammo::gateway::protocol::AssociateDevice *associateMsg = msg->mutable_associate_device();
-  associateMsg->set_device(device);
-  associateMsg->set_user(user);
-  associateMsg->set_key(key);
+  ammo::gateway::protocol::AuthenticationMessage *associateMsg = msg->mutable_authentication_message();
+  associateMsg->set_type(authMessageTypeToProtobuf(type));
+  associateMsg->set_message(message);
+  associateMsg->set_device_id(deviceId);
+  associateMsg->set_user_id(userId);
   
-  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE);
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_AUTHENTICATION_MESSAGE);
   
   LOG_DEBUG("Sending Associate Device message to gateway core");
   if(connected) {
@@ -232,10 +233,10 @@ bool ammo::gateway::GatewayConnector::unregisterPullResponseInterest(string mime
 }
 
 
-void ammo::gateway::GatewayConnector::onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg) {
+void ammo::gateway::GatewayConnector::onAuthenticationMessageReceived(const ammo::gateway::protocol::AuthenticationMessage &msg) {
   LOG_INFO("Got associate result of " << msg.result());
   if(delegate != NULL) {
-    delegate->onAuthenticationResponse(this, msg.result());
+    delegate->onAuthenticationResponse(this, authMessageTypeFromProtobuf(msg.type()), msg.message(), msg.device_id(), msg.user_id(), msg.result());
   }
 }
 
@@ -286,12 +287,69 @@ void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway
   }
 }
 
+ammo::gateway::protocol::AuthenticationMessage_Type ammo::gateway::GatewayConnector::authMessageTypeToProtobuf(ammo::gateway::AuthenticationMessageType type) {
+  ammo::gateway::protocol::AuthenticationMessage_Type result = ammo::gateway::protocol::AuthenticationMessage_Type_STATUS;
+  switch(type) {
+  case ammo::gateway::CLIENT_NONCE:
+    result = ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_NONCE;
+    break;
+  case ammo::gateway::SERVER_NONCE:
+    result = ammo::gateway::protocol::AuthenticationMessage_Type_SERVER_NONCE;
+    break;
+  case ammo::gateway::CLIENT_KEYXCHANGE:
+    result = ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_KEYXCHANGE;
+    break;
+  case ammo::gateway::CLIENT_PHNAUTH:
+    result = ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_PHNAUTH;
+    break;
+  case ammo::gateway::CLIENT_FINISH:
+    result = ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_FINISH;
+    break;
+  case ammo::gateway::SERVER_FINISH:
+    result = ammo::gateway::protocol::AuthenticationMessage_Type_SERVER_FINISH;
+    break;
+  case ammo::gateway::STATUS:
+    result = ammo::gateway::protocol::AuthenticationMessage_Type_STATUS;
+    break;
+  }
+  return result;
+}
+
+
+ammo::gateway::AuthenticationMessageType ammo::gateway::GatewayConnector::authMessageTypeFromProtobuf(ammo::gateway::protocol::AuthenticationMessage_Type type) {
+  ammo::gateway::AuthenticationMessageType result = ammo::gateway::STATUS;
+  switch(type) {
+  case ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_NONCE:
+    result = ammo::gateway::CLIENT_NONCE;
+    break;
+  case ammo::gateway::protocol::AuthenticationMessage_Type_SERVER_NONCE:
+    result = ammo::gateway::SERVER_NONCE;
+    break;
+  case ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_KEYXCHANGE:
+    result = ammo::gateway::CLIENT_KEYXCHANGE;
+    break;
+  case ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_PHNAUTH:
+    result = ammo::gateway::CLIENT_PHNAUTH;
+    break;
+  case ammo::gateway::protocol::AuthenticationMessage_Type_CLIENT_FINISH:
+    result = ammo::gateway::CLIENT_FINISH;
+    break;
+  case ammo::gateway::protocol::AuthenticationMessage_Type_SERVER_FINISH:
+    result = ammo::gateway::SERVER_FINISH;
+    break;
+  case ammo::gateway::protocol::AuthenticationMessage_Type_STATUS:
+    result = ammo::gateway::STATUS;
+    break;
+  }
+  return result;
+}
+
 
 
 
 //--GatewayConnectorDelegate default implementations (for optional delegate methods)
 
-void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayConnector *sender, bool result) {
+void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayConnector *sender, AuthenticationMessageType type, string message, string deviceId, string userId, bool authResult) {
   //LOG_INFO("GatewayConnectorDelegate::onAuthenticationResponse : result = " << result);
 }
 

@@ -51,7 +51,7 @@ class GWSecurityMgr
 
     std::vector<unsigned char> get_gateway_sign ();
 
-    GWSecurityMgr (char* gatewayId);
+    GWSecurityMgr (const char* gatewayId, GatewaySecHandler *handler);
     
     std::vector<unsigned char> get_Server_Nonce ();
     

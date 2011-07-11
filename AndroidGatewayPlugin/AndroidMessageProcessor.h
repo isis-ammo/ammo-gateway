@@ -22,7 +22,7 @@ public:
   //GatewayConnectorDelegate methods
   virtual void onConnect(ammo::gateway::GatewayConnector *sender);
   virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
-  virtual void onAuthenticationResponse(ammo::gateway::GatewayConnector *sender, bool result);
+  virtual void onAuthenticationResponse(ammo::gateway::GatewayConnector *sender, ammo::gateway::AuthenticationMessageType type, std::string message, std::string deviceId, std::string userId, bool authResult);
   
   //DataPushReceiverListener methods
   virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PushData &pushData);
@@ -45,9 +45,9 @@ private:
   
   bool isClosed();
   void processMessage(ammo::protocol::MessageWrapper &msg);
-
-  // The Security Manager code class ...
-//  GWSecurityMgr *secP_;
+  
+  ammo::protocol::AuthenticationMessage_Type authMessageTypeToProtobuf(ammo::gateway::AuthenticationMessageType type);
+  ammo::gateway::AuthenticationMessageType authMessageTypeFromProtobuf(ammo::protocol::AuthenticationMessage_Type);
 };
 
 #endif

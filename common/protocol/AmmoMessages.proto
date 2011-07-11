@@ -67,6 +67,7 @@ message AuthenticationMessage {
     CLIENT_PHNAUTH = 3;
     CLIENT_FINISH = 4;
     SERVER_FINISH = 5;
+    STATUS = 6;
   }
   enum Status {
     FAILED = 0;

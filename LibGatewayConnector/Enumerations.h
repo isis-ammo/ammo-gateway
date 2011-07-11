@@ -7,6 +7,16 @@ namespace ammo {
       SCOPE_GLOBAL = 0,
       SCOPE_LOCAL = 1
     };
+    
+    enum AuthenticationMessageType {
+      CLIENT_NONCE,
+      SERVER_NONCE,
+      CLIENT_KEYXCHANGE,
+      CLIENT_PHNAUTH,
+      CLIENT_FINISH,
+      SERVER_FINISH,
+      STATUS
+    };
   }
 }
 
