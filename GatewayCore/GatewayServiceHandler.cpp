@@ -28,6 +28,10 @@ int GatewayServiceHandler::open(void *ptr) {
   username = "";
   usernameAuthenticated = false;
   
+  dataToSend = NULL;
+  sendPosition = 0;
+  sendBufferSize = 0;
+  
   this->peer().enable(ACE_NONBLOCK);
   
   return 0;
