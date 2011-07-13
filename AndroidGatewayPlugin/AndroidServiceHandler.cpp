@@ -97,7 +97,7 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
       position += count;
       if(position == messageHeader.size) {
         //LOG_TRACE("Got all the data... processing");
-        processData(collectedData, messageHeader.size, messageHeader.checksum);
+        processData(collectedData, messageHeader.size, messageHeader.checksum, messageHeader.priority);
         //LOG_TRACE("Processsing complete.  Deleting buffer.");
         delete[] collectedData;
         collectedData = NULL;
@@ -184,7 +184,7 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
   return 0;
 }
 
-int AndroidServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
+int AndroidServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum, char priority) {
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if(calculatedChecksum != messageChecksum) {
@@ -202,16 +202,24 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
     delete msg;
     return -1;
   }
-  addReceivedMessage(msg);
+  addReceivedMessage(msg, priority);
   messageProcessor->signalNewMessageAvailable();
   
   return 0;
 }
 
-void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg) {
+void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg, char priority) {
+  QueuedMessage queuedMsg;
+  queuedMsg.priority = priority;
+  queuedMsg.message = msg;
+  
+  if(priority != msg->message_priority()) {
+    LOG_WARN("Priority mismatch when adding message to send queue: Header = " << priority << ", Message = " << msg->message_priority());
+  }
+  
   sendQueueMutex.acquire();
   if(!connectionClosing) {
-    sendQueue.push(msg);
+    sendQueue.push(queuedMsg);
     LOG_TRACE(this << " Queued a message to send.  " << sendQueue.size() << " messages in queue.");
   }
   sendQueueMutex.release();
@@ -224,14 +232,14 @@ ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextMessageToSend() {
   ammo::protocol::MessageWrapper *msg = NULL;
   sendQueueMutex.acquire();
   if(!sendQueue.empty()) {
-    msg = sendQueue.front();
+    msg = sendQueue.front().message;
     sendQueue.pop();
   }
+  
   int size = sendQueue.size();
   sendQueueMutex.release();
-  //if(size > 0) {
-    LOG_TRACE(this << " Dequeued a message to send.  " << size << " messages remain in queue.");
-  //}
+  LOG_TRACE(this << " Dequeued a message to send.  " << size << " messages remain in queue.");
+  
   return msg;
 }
 
@@ -239,7 +247,7 @@ ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextReceivedMessage() 
   ammo::protocol::MessageWrapper *msg = NULL;
   receiveQueueMutex.acquire();
   if(!receiveQueue.empty()) {
-    msg = receiveQueue.front();
+    msg = receiveQueue.front().message;
     receiveQueue.pop();
   }
   receiveQueueMutex.release();
@@ -247,9 +255,17 @@ ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextReceivedMessage() 
   return msg;
 }
 
-void AndroidServiceHandler::addReceivedMessage(ammo::protocol::MessageWrapper *msg) {
+void AndroidServiceHandler::addReceivedMessage(ammo::protocol::MessageWrapper *msg, char priority) {
+  QueuedMessage queuedMsg;
+  queuedMsg.priority = priority;
+  queuedMsg.message = msg;
+  
+  if(priority != msg->message_priority()) {
+    LOG_WARN("Priority mismatch on received message: Header = " << priority << ", Message = " << msg->message_priority());
+  }
+  
   receiveQueueMutex.acquire();
-  receiveQueue.push(msg);
+  receiveQueue.push(queuedMsg);
   receiveQueueMutex.release();
 }
 

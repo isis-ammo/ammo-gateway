@@ -5,6 +5,8 @@
 
 using namespace ammo::gateway;
 
+const char DEFAULT_PRIORITY = 50;
+
 AndroidMessageProcessor::AndroidMessageProcessor(AndroidServiceHandler *serviceHandler) :
 closed(false),
 closeMutex(),
@@ -110,7 +112,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       ack->set_uri(dataMessage.uri());
       ackMsg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
       LOG_DEBUG(commsHandler << " Sending push acknowledgment to connected device...");
-      commsHandler->sendMessage(ackMsg);
+      commsHandler->sendMessage(ackMsg, DEFAULT_PRIORITY);
       
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
@@ -173,7 +175,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     heartbeatAck->set_type(ammo::protocol::MessageWrapper_MessageType_HEARTBEAT);
     
     LOG_DEBUG(commsHandler << " Sending heartbeat acknowledgement to connected device...");
-    commsHandler->sendMessage(heartbeatAck);
+    commsHandler->sendMessage(heartbeatAck, DEFAULT_PRIORITY);
   }
 }
 
@@ -198,7 +200,7 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
   
   LOG_DEBUG(commsHandler << " Sending Data Push message to connected device");
-  commsHandler->sendMessage(msg);
+  commsHandler->sendMessage(msg, DEFAULT_PRIORITY);
 }
 
 void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, ammo::gateway::PullResponse &response) {
@@ -218,7 +220,7 @@ void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, a
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);
   
   LOG_DEBUG(commsHandler << " Sending Pull Response message to connected device");
-  commsHandler->sendMessage(msg);
+  commsHandler->sendMessage(msg, DEFAULT_PRIORITY);
 }
 
 
@@ -232,5 +234,5 @@ void AndroidMessageProcessor::onAuthenticationResponse(GatewayConnector *sender,
   ammo::protocol::MessageWrapper *newMsg = new ammo::protocol::MessageWrapper();
   newMsg->set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
   newMsg->mutable_authentication_result()->set_result(result ? ammo::protocol::AuthenticationResult_Status_SUCCESS : ammo::protocol::AuthenticationResult_Status_SUCCESS);
-  commsHandler->sendMessage(newMsg);
+  commsHandler->sendMessage(newMsg, DEFAULT_PRIORITY);
 }

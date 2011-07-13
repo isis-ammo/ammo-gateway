@@ -21,6 +21,11 @@ struct MessageHeader {
   unsigned int headerChecksum; //CRC32 checksum of the header, less this checksum.  Does *not* include data, or itself.
 };
 
+struct QueuedMessage {
+  char priority;
+  ammo::protocol::MessageWrapper *message;
+};
+
 class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>{
 public:
   AndroidServiceHandler();
@@ -33,13 +38,13 @@ public:
   
   int handle_output(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   
-  int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
+  int processData(char *collectedData, unsigned int dataSize, unsigned int checksum, char priority);
   
-  void sendMessage(ammo::protocol::MessageWrapper *msg);
+  void sendMessage(ammo::protocol::MessageWrapper *msg, char priority);
   ammo::protocol::MessageWrapper *getNextMessageToSend();
   
   ammo::protocol::MessageWrapper *getNextReceivedMessage();
-  void addReceivedMessage(ammo::protocol::MessageWrapper *msg);
+  void addReceivedMessage(ammo::protocol::MessageWrapper *msg, char priority);
   
   ~AndroidServiceHandler();
   
@@ -68,8 +73,9 @@ protected:
   ACE_Thread_Mutex sendQueueMutex;
   ACE_Thread_Mutex receiveQueueMutex;
   
-  std::queue<ammo::protocol::MessageWrapper *> sendQueue;
-  std::queue<ammo::protocol::MessageWrapper *> receiveQueue;
+  typedef std::queue<QueuedMessage> MessageQueue;
+  MessageQueue sendQueue;
+  MessageQueue receiveQueue;
 };
 
 #endif        //  #ifndef ANDROID_SERVICE_HANDLER_H
