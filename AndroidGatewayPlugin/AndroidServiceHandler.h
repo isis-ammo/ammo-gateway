@@ -23,7 +23,21 @@ struct MessageHeader {
 
 struct QueuedMessage {
   char priority;
+  unsigned long long messageCount; //messages of the same priority should come out in first-in first-out order (STL queue doesn't guarantee this)
   ammo::protocol::MessageWrapper *message;
+};
+
+class QueuedMessageComparison {
+public:
+  bool operator()(QueuedMessage &first, QueuedMessage &second) { //returns true if first is lower priority than second
+    if(first.priority < second.priority) {
+      return true;
+    } else if(first.priority == second.priority && first.messageCount > second.messageCount) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 };
 
 class AndroidServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>{
@@ -73,9 +87,12 @@ protected:
   ACE_Thread_Mutex sendQueueMutex;
   ACE_Thread_Mutex receiveQueueMutex;
   
-  typedef std::queue<QueuedMessage> MessageQueue;
+  typedef std::priority_queue<QueuedMessage, std::vector<QueuedMessage>, QueuedMessageComparison> MessageQueue;
   MessageQueue sendQueue;
   MessageQueue receiveQueue;
+  
+  unsigned long long sentMessageCount;
+  unsigned long long receivedMessageCount;
 };
 
 #endif        //  #ifndef ANDROID_SERVICE_HANDLER_H

@@ -38,6 +38,9 @@ int AndroidServiceHandler::open(void *ptr) {
   messageHeader.checksum = 0;
   messageHeader.headerChecksum = 0;
   
+  sentMessageCount = 0;
+  receivedMessageCount = 0;
+  
   connectionClosing = false;
   
   messageProcessor = new AndroidMessageProcessor(this);
@@ -218,6 +221,8 @@ void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg, cha
   }
   
   sendQueueMutex.acquire();
+  queuedMsg.messageCount = sentMessageCount;
+  sentMessageCount++;
   if(!connectionClosing) {
     sendQueue.push(queuedMsg);
     LOG_TRACE(this << " Queued a message to send.  " << sendQueue.size() << " messages in queue.");
@@ -232,7 +237,7 @@ ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextMessageToSend() {
   ammo::protocol::MessageWrapper *msg = NULL;
   sendQueueMutex.acquire();
   if(!sendQueue.empty()) {
-    msg = sendQueue.front().message;
+    msg = sendQueue.top().message;
     sendQueue.pop();
   }
   
@@ -247,7 +252,7 @@ ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextReceivedMessage() 
   ammo::protocol::MessageWrapper *msg = NULL;
   receiveQueueMutex.acquire();
   if(!receiveQueue.empty()) {
-    msg = receiveQueue.front().message;
+    msg = receiveQueue.top().message;
     receiveQueue.pop();
   }
   receiveQueueMutex.release();
@@ -265,6 +270,8 @@ void AndroidServiceHandler::addReceivedMessage(ammo::protocol::MessageWrapper *m
   }
   
   receiveQueueMutex.acquire();
+  queuedMsg.messageCount = receivedMessageCount;
+  receivedMessageCount++;
   receiveQueue.push(queuedMsg);
   receiveQueueMutex.release();
 }
