@@ -25,6 +25,10 @@ int ammo::gateway::internal::GatewayServiceHandler::open(void *ptr) {
   collectedData = NULL;
   position = 0;
   
+  dataToSend = NULL;
+  sendPosition = 0;
+  sendBufferSize = 0;
+  
   return 0;
 }
 
