@@ -76,15 +76,18 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
       unsigned int calculatedChecksum = ACE::crc32(&messageHeader, sizeof(messageHeader) - sizeof(messageHeader.headerChecksum));
       if(calculatedChecksum != messageHeader.headerChecksum) {
         LOG_ERROR("Invalid header checksum");
+        return -1;
       }
     } else {
-      LOG_ERROR("Invalid magic number: 0x" << hex << messageHeader.magicNumber << dec);
+      LOG_ERROR("Invalid magic number: " << hex << messageHeader.magicNumber << dec);
+      return -1;
     }
   } else if(state == READING_DATA) {
     count = this->peer().recv(collectedData + position, messageHeader.size - position);
     //LOG_TRACE("DATA Read " << count << " bytes");
   } else {
     LOG_ERROR(this << " Invalid state!");
+    return -1;
   }
   
   
