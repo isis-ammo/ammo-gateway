@@ -94,7 +94,12 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
   
   if(count > 0) {
     if(state == READING_HEADER) {
-      collectedData = new char[messageHeader.size];
+      try {
+        collectedData = new char[messageHeader.size];
+      } catch (std::bad_alloc &e) {
+        LOG_ERROR(this << " Couldn't allocate memory for message of size " << messageHeader.size);
+        return -1;
+      }
       position = 0;
       //LOG_TRACE("Got data size (" << dataSize << ")");
       state = READING_DATA;
