@@ -11,6 +11,9 @@
 class AndroidMessageProcessor;
 
 const unsigned int HEADER_MAGIC_NUMBER = 0xfeedbeef;
+/**
+ Must remain compatible with AmmoCore/src::edu.vu.isis.ammo.core.network::AmmoGatewayMessage.java
+*/
 
 struct MessageHeader {
   unsigned int magicNumber;    //Always set to 0xfeedbeef
