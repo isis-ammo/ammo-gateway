@@ -27,6 +27,7 @@ class AMMO_Crypt
 
  public:
   AMMO_Crypt ();
+  ~AMMO_Crypt ();
 
   vector<unsigned char> encrypt(uchar_ptr data, size_t data_len);
 
@@ -40,6 +41,13 @@ class AMMO_Crypt
                uchar_ptr sig,
                size_t sig_len);
 
+/*
+bool verify_wo_cryptoplus (
+                          uchar_ptr data,
+                          size_t data_len,
+                          uchar_ptr sig,
+                          size_t sig_len);
+                          */
 
    int read_public_key (std::string pub_file);
    
@@ -59,6 +67,10 @@ class AMMO_Crypt
     
     RSA * pub_RSAp_;
     RSA * pvt_RSAp_;
+
+    EVP_PKEY* pubkey_;
+    EVP_PKEY* pvtkey_;
+
 
     char* getErrorString ();
     

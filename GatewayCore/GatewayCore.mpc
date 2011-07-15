@@ -4,17 +4,12 @@ project(GatewayCore) : aceexe, protobuf, gatewaycommon {
   exename=GatewayCore
   
   includes += $(GATEWAY_ROOT)/LibJSON
-  includes += $(CRYPTOPLUS_ROOT)/include
 
   libpaths += $(GATEWAY_ROOT)/build/lib
-
-  libpaths += $(CRYPTOPLUS_ROOT)/lib
 
   libs += json
 
   libs += "crypto"
-
-  libs += "cryptoplus"
 
   specific(prop:windows) {
     macros += JSON_DLL_BUILD
