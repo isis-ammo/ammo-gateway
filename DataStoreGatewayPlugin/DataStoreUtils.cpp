@@ -76,6 +76,11 @@ DataStoreUtils::bind_int (sqlite3 *db,
                           int slot,
                           const std::string &val)
 {
+  if (val.empty ())
+    {
+      return true;
+    }
+
   long conversion = 0;
   
   if (safe_atol (val, conversion))
@@ -112,6 +117,11 @@ DataStoreUtils::bind_double (sqlite3 *db,
                              int slot,
                              const std::string &val)
 {
+  if (val.empty ())
+    {
+      return true;
+    }
+
   double conversion = 0;
   
   if (safe_atof (val, conversion))
@@ -129,6 +139,11 @@ DataStoreUtils::bind_text (sqlite3 *db,
                            const std::string &text,
                            bool is_insert)
 {
+  if (text.empty ())
+    {
+      return true;
+    }
+    
   int status =
 	  sqlite3_bind_text (stmt,
 					             slot,
