@@ -108,6 +108,12 @@ vector<unsigned char> AMMO_Crypt::decrypt (
 int AMMO_Crypt::read_public_key (string pub_file)
 {
   FILE *keyfile = fopen(pub_file.c_str (), "r");
+  
+  if (keyfile == NULL)
+  {
+    printf("No Public Key Found for Phone!\n");
+    return -1;
+  }
 
   pub_RSAp_ = PEM_read_RSA_PUBKEY(keyfile, NULL, 0, NULL);
   
@@ -134,6 +140,12 @@ int AMMO_Crypt::read_public_key (string pub_file)
 int AMMO_Crypt::read_private_key (string pvt_file)
 {
   FILE *keyfile = fopen(pvt_file.c_str (), "r");
+
+  if (keyfile == NULL)
+  {
+    printf("No Private Key Found for Phone!\n");
+    return -1;
+  }
 
   pvt_RSAp_ = PEM_read_RSAPrivateKey(keyfile, NULL, NULL, NULL);
 

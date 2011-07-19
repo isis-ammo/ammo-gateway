@@ -4,21 +4,15 @@
 
 const int GWSecurityMgr::PRE_MASTER_LENGTH = 48;
 
-GWSecurityMgr::GWSecurityMgr (const char* gatewayId, GatewaySecHandler *handler):gatewayId_(gatewayId), handler_(handler)
+GWSecurityMgr::GWSecurityMgr (const char* gatewayId, GatewaySecHandler *handler)
+  :gatewayId_(gatewayId), 
+   handler_(handler)
 {
   // Initialize the oper ids .... 
   pass_keys[std::string("operator")] = string("operator");
   printf ("\n Inside the Constructor \n");
   operator_id = "operator";
-  // get the pubkey file of the phone from the device id ..
-  string pubkey_phn = "public_key_phone.pem";
 
-  string gw_pvtkey = "private_key_gateway.pem";
-
-  // Read the public and private keys
-  crp.read_public_key (pubkey_phn);
-
-  crp.read_private_key (gw_pvtkey);
   printf ("\n The Gateway ID is [%s]\n", gatewayId);
 }
 
@@ -33,6 +27,37 @@ bool GWSecurityMgr::Authenticate (AuthMessage &msg)
     
     set_client_nonce (msg.message);
     set_device_id(msg.device_id);
+
+    // get the pubkey file of the phone from the device id ..
+/*    string pubkey_phn = "~/.ssh/";
+    pubkey_phn += msg.device_id;
+    pubkey_phn += string("_pub.pem");
+*/
+    string pubkey_phn = msg.device_id;
+    pubkey_phn += string("_pub.pem");
+    // Read the public and private keys
+    int res = crp.read_public_key (pubkey_phn);
+    
+    if (res == -1)
+    {
+      cout << "Error in reading/finding Phone ["
+           << msg.device_id
+           << "] Public Key" << endl;
+
+      return false;
+    }
+
+//    string gw_pvtkey = "~/.ssh/";
+    string gw_pvtkey = gatewayId_;
+    gw_pvtkey += string("_pvt.pem");
+
+    res = crp.read_private_key (gw_pvtkey);
+
+    if (res == -1)
+    {
+      cout << "Error in reading/finding Gateway Private Key" << endl;
+      return false;
+    }
 
   //  LOG_TRACE(commsHandler << "Got the Client Nonce ");
     cout << "Got the Client Nonce " << endl;
