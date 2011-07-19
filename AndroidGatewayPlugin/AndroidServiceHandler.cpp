@@ -233,7 +233,7 @@ void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg, cha
   queuedMsg.message = msg;
   
   if(priority != msg->message_priority()) {
-    LOG_WARN("Priority mismatch when adding message to send queue: Header = " << priority << ", Message = " << msg->message_priority());
+    LOG_WARN("Priority mismatch when adding message to send queue: Header = " << (int) priority << ", Message = " << msg->message_priority());
   }
   
   sendQueueMutex.acquire();
@@ -282,7 +282,7 @@ void AndroidServiceHandler::addReceivedMessage(ammo::protocol::MessageWrapper *m
   queuedMsg.message = msg;
   
   if(priority != msg->message_priority()) {
-    LOG_WARN("Priority mismatch on received message: Header = " << priority << ", Message = " << msg->message_priority());
+    LOG_WARN("Priority mismatch on received message: Header = " << (int) priority << ", Message = " << msg->message_priority());
   }
   
   receiveQueueMutex.acquire();
