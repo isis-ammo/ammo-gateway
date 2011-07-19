@@ -72,14 +72,22 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
   if(state == READING_HEADER) {
     count = this->peer().recv_n(&messageHeader, sizeof(messageHeader));
     //verify the message header (check its magic number and checksum)
-    if(messageHeader.magicNumber == HEADER_MAGIC_NUMBER) {
-      unsigned int calculatedChecksum = ACE::crc32(&messageHeader, sizeof(messageHeader) - sizeof(messageHeader.headerChecksum));
-      if(calculatedChecksum != messageHeader.headerChecksum) {
-        LOG_ERROR("Invalid header checksum");
+    if(count > 0) {
+      if(messageHeader.magicNumber == HEADER_MAGIC_NUMBER) {
+        unsigned int calculatedChecksum = ACE::crc32(&messageHeader, sizeof(messageHeader) - sizeof(messageHeader.headerChecksum));
+        if(calculatedChecksum != messageHeader.headerChecksum) {
+          LOG_ERROR("Invalid header checksum");
+          return -1;
+        }
+      } else {
+        LOG_ERROR("Invalid magic number: " << hex << messageHeader.magicNumber << dec);
         return -1;
       }
-    } else {
-      LOG_ERROR("Invalid magic number: " << hex << messageHeader.magicNumber << dec);
+    } else if(count == 0) {
+      LOG_INFO(this << " Connection closed.");
+      return -1;
+    } else if(count == -1) {
+      LOG_ERROR(this << " Socket error occurred. (" << ACE_OS::last_error() << ")");
       return -1;
     }
   } else if(state == READING_DATA) {
