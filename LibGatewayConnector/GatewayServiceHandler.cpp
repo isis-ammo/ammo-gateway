@@ -25,6 +25,10 @@ int ammo::gateway::internal::GatewayServiceHandler::open(void *ptr) {
   collectedData = NULL;
   position = 0;
   
+  dataToSend = NULL;
+  sendPosition = 0;
+  sendBufferSize = 0;
+  
   return 0;
 }
 
@@ -49,7 +53,12 @@ int ammo::gateway::internal::GatewayServiceHandler::handle_input(ACE_HANDLE fd) 
   
   if(count > 0) {
     if(state == READING_SIZE) {
-      collectedData = new char[dataSize];
+      try {
+        collectedData = new char[dataSize];
+      } catch (std::bad_alloc &e) {
+        LOG_ERROR(this << " Couldn't allocate memory for message of size " << dataSize);
+        return -1;
+      }
       position = 0;
       //LOG_TRACE("Got data size (" << dataSize << ")");
       state = READING_CHECKSUM;
