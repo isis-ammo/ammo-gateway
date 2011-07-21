@@ -5,6 +5,8 @@
 
 using namespace ammo::gateway;
 
+const char DEFAULT_PRIORITY = 50;
+
 AndroidMessageProcessor::AndroidMessageProcessor(AndroidServiceHandler *serviceHandler) :
 closed(false),
 closeMutex(),
@@ -112,7 +114,8 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       ack->set_uri(dataMessage.uri());
       ackMsg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
       LOG_DEBUG(commsHandler << " Sending push acknowledgment to connected device...");
-      commsHandler->sendMessage(ackMsg);
+      ackMsg->set_message_priority(DEFAULT_PRIORITY);
+      commsHandler->sendMessage(ackMsg, DEFAULT_PRIORITY);
       
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
@@ -173,9 +176,10 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     ammo::protocol::Heartbeat *ack = heartbeatAck->mutable_heartbeat();
     ack->set_sequence_number(heartbeat.sequence_number());
     heartbeatAck->set_type(ammo::protocol::MessageWrapper_MessageType_HEARTBEAT);
+    heartbeatAck->set_message_priority(DEFAULT_PRIORITY);
     
     LOG_DEBUG(commsHandler << " Sending heartbeat acknowledgement to connected device...");
-    commsHandler->sendMessage(heartbeatAck);
+    commsHandler->sendMessage(heartbeatAck, DEFAULT_PRIORITY);
   }
 }
 
@@ -198,9 +202,10 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
   dataMsg->set_data(dataString);
   
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
+  msg->set_message_priority(DEFAULT_PRIORITY);
   
   LOG_DEBUG(commsHandler << " Sending Data Push message to connected device");
-  commsHandler->sendMessage(msg);
+  commsHandler->sendMessage(msg, DEFAULT_PRIORITY);
 }
 
 void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, ammo::gateway::PullResponse &response) {
@@ -218,9 +223,10 @@ void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, a
   pullMsg->set_data(dataString);
   
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);
+  msg->set_message_priority(DEFAULT_PRIORITY);
   
   LOG_DEBUG(commsHandler << " Sending Pull Response message to connected device");
-  commsHandler->sendMessage(msg);
+  commsHandler->sendMessage(msg, DEFAULT_PRIORITY);
 }
 
 
@@ -244,7 +250,8 @@ void AndroidMessageProcessor::onAuthenticationResponse(GatewayConnector *sender,
     authMsg->set_result(ammo::protocol::AuthenticationMessage_Status_FAILED);
   }
   
-  commsHandler->sendMessage(newMsg);
+  newMsg->set_message_priority(DEFAULT_PRIORITY);
+  commsHandler->sendMessage(newMsg, DEFAULT_PRIORITY);
 }
 
 ammo::protocol::AuthenticationMessage_Type AndroidMessageProcessor::authMessageTypeToProtobuf(ammo::gateway::AuthenticationMessageType type) {

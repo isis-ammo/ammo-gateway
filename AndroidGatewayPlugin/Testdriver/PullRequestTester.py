@@ -11,20 +11,30 @@ import time
 import AmmoMessages_pb2
 
 class PullRequestTestClient:
+  HEADER_MAGIC_NUMBER = 0xfeedbeef
   def __init__(self, host, port):
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.sock.connect((host, int(port)))
     
   def sendMessageWrapper(self, msg):
     serializedMsg = msg.SerializeToString()
-    self.sock.sendall(struct.pack("<I", len(serializedMsg))) #little-endian byte order for now
-    self.sock.sendall(struct.pack("<i", zlib.crc32(serializedMsg)))
-#    print serializedMsg
-    self.sock.sendall(serializedMsg);
+    messageHeader = struct.pack("<IIi", self.HEADER_MAGIC_NUMBER, len(serializedMsg), zlib.crc32(serializedMsg))
+    self.sock.sendall(messageHeader) #little-endian byte order for now
+    self.sock.sendall(struct.pack("<i", zlib.crc32(messageHeader)))
+    print serializedMsg
+    self.sock.sendall(serializedMsg)
     
   def receiveMessage(self):
-    (messageSize,) = struct.unpack("<I", self.sock.recv(4));
-    (checksum,) = struct.unpack("<i", self.sock.recv(4));
+    messageHeader = self.sock.recv(3*4)
+    (magicNumber, messageSize, checksum) = struct.unpack("<IIi", messageHeader)
+    (headerChecksum,) = struct.unpack("<i", self.sock.recv(4))
+    
+    if magicNumber != self.HEADER_MAGIC_NUMBER:
+      raise IOError("Invalid magic number received from gateway: " + hex(magicNumber))
+      
+    if headerChecksum != zlib.crc32(messageHeader):
+      raise IOError("Invalid header checksum received from gateway")
+    
     protobufMsg = ""
     while len(protobufMsg) < messageSize:
       receivedData = self.sock.recv(messageSize - len(protobufMsg))

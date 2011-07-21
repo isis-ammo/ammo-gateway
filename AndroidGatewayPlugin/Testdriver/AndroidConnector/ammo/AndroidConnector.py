@@ -15,6 +15,13 @@ import uuid
 
 import AmmoMessages_pb2
 
+MAGIC_NUMBER = 0xfeedbeef
+DEFAULT_PRIORITY = 0
+DEFAULT_RESERVED1 = 0
+DEFAULT_RESERVED2 = 0
+DEFAULT_RESERVED3 = 0
+
+
 class AndroidProtocol(stateful.StatefulProtocol):
   '''
   This class implements the stateful Android <-> Gateway protocol.  It contains
@@ -31,10 +38,17 @@ class AndroidProtocol(stateful.StatefulProtocol):
   _onMessageAvailableCallback = None
   
   def getInitialState(self):
-    return (self.receiveHeader, 8) #initial state receives the header
+    return (self.receiveHeader, 20) #initial state receives the header
   
   def receiveHeader(self, data):
-    (messageSize, checksum) = struct.unpack("<Ii", data)
+    (magicNumber, messageSize, priority, reserved1, reserved2, reserved3, checksum, headerChecksum) = struct.unpack("<IIbbbbii", data)
+    calculatedHeaderChecksum = zlib.crc32(data[:16])
+    if magicNumber != MAGIC_NUMBER:
+      print "Invalid magic number!"
+    if calculatedHeaderChecksum != headerChecksum:
+      print "Header checksum error!"
+      print "Expected", headerChecksum
+      print "Calculated", calculatedHeaderChecksum
     self._messageSize = messageSize
     self._checksum = checksum
     
@@ -50,11 +64,15 @@ class AndroidProtocol(stateful.StatefulProtocol):
     if self._onMessageAvailableCallback != None:
       self._onMessageAvailableCallback(msg)
     
-    return (self.receiveHeader, 8)
+    return (self.receiveHeader, 20)
     
   def sendMessageWrapper(self, msg):
     serializedMsg = msg.SerializeToString()
-    self.transport.write(struct.pack("<Ii", len(serializedMsg), zlib.crc32(serializedMsg))) #little-endian byte order for now
+    messageHeader = struct.pack("<IIbbbbi", MAGIC_NUMBER, len(serializedMsg), DEFAULT_PRIORITY, DEFAULT_RESERVED1, DEFAULT_RESERVED2, DEFAULT_RESERVED3, zlib.crc32(serializedMsg))
+    headerChecksum = zlib.crc32(messageHeader)
+    messageHeader = messageHeader + struct.pack("i", headerChecksum)
+    
+    self.transport.write(messageHeader) #little-endian byte order for now
     self.transport.write(serializedMsg);
     
   def connectionMade(self):
