@@ -43,6 +43,15 @@ int AndroidServiceHandler::open(void *ptr) {
   
   connectionClosing = false;
   
+  ACE_INET_Addr remoteAddress;
+  int result = this->peer().get_remote_addr(remoteAddress);
+  if(result == 0) {
+    string printableRemoteAddress(remoteAddress.get_host_addr());
+    LOG_INFO("Got connection from " << printableRemoteAddress);
+  } else {
+    LOG_WARN("Got new connection, but couldn't determine remote address.");
+  }
+  
   messageProcessor = new AndroidMessageProcessor(this);
   messageProcessor->activate();
   
