@@ -19,10 +19,18 @@ struct MessageHeader {
   unsigned int magicNumber;    //Always set to 0xfeedbeef
   unsigned int size;           //size of the data (does *not* include header)
   char         priority;       //Message priority (larger numbers are higher priority, and will be processed first if messages are queued)
-  char         reserved[3];    //Reserved for future use, and to ensure header word alignment
+  char         error;          //Error code (if nonzero, size and message checksum should be zero)
+  char         reserved[2];    //Reserved for future use, and to ensure header word alignment
   unsigned int checksum;       //CRC32 checksum of the data (does *not* include header)
   unsigned int headerChecksum; //CRC32 checksum of the header, less this checksum.  Does *not* include data, or itself.
 };
+
+//error values for MessageHeader
+const char NO_ERROR = 0;
+const char INVALID_MAGIC_NUMBER = 1;
+const char INVALID_HEADER_CHECKSUM = 2;
+const char INVALID_MESSAGE_CHECKSUM = 3;
+const char MESSAGE_TOO_LARGE = 4;
 
 struct QueuedMessage {
   char priority;
@@ -66,6 +74,8 @@ public:
   ~AndroidServiceHandler();
   
 protected:
+  void sendErrorPacket(char errorCode);
+  
   typedef ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH> super;
   
   typedef enum {

@@ -165,6 +165,7 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
         MessageHeader *headerToSend = (MessageHeader *) dataToSend;
         headerToSend->magicNumber = HEADER_MAGIC_NUMBER;
         headerToSend->size = messageSize;
+        headerToSend->error = NO_ERROR;
         
         char *protobufSerializedMessage = dataToSend + sizeof(MessageHeader);
         msg->SerializeToArray(protobufSerializedMessage, messageSize);
@@ -256,6 +257,36 @@ void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg, cha
   if(!connectionClosing) {
     this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
   }
+}
+
+void AndroidServiceHandler::sendErrorPacket(char errorCode) {
+  LOG_WARN(this << " Sending error packet to connected device");
+  if(dataToSend != NULL) {
+    LOG_TRACE(this << " sendErrorPacket called; a message send is in progress, so we need to finish it.");
+    int count = this->peer().send_n(dataToSend + sendPosition, sendBufferSize - sendPosition);
+    if(count >= 0) {
+      sendPosition += count;
+    }
+    LOG_TRACE("Sent remaining " << count << " bytes of current message (current postition " << sendPosition << "/" << sendBufferSize << ")");
+    
+    if(sendPosition >= (sendBufferSize)) {
+      delete[] dataToSend;
+      dataToSend = NULL;
+      sendBufferSize = 0;
+      sendPosition = 0;
+    } else {
+      LOG_ERROR(this << " Couldn't flush send buffer before sending error packet.");
+    }
+  }
+  
+  MessageHeader headerToSend;
+  headerToSend.magicNumber = HEADER_MAGIC_NUMBER;
+  headerToSend.size = 0;
+  headerToSend.checksum = 0;
+  headerToSend.priority = 127;
+  headerToSend.error = errorCode;
+  headerToSend.headerChecksum = ACE::crc32(&headerToSend, sizeof(headerToSend) - sizeof(headerToSend.headerChecksum));
+  
 }
 
 ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextMessageToSend() {
