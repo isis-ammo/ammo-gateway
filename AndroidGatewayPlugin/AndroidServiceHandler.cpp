@@ -86,10 +86,12 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
         unsigned int calculatedChecksum = ACE::crc32(&messageHeader, sizeof(messageHeader) - sizeof(messageHeader.headerChecksum));
         if(calculatedChecksum != messageHeader.headerChecksum) {
           LOG_ERROR("Invalid header checksum");
+          sendErrorPacket(INVALID_HEADER_CHECKSUM);
           return -1;
         }
       } else {
         LOG_ERROR("Invalid magic number: " << hex << messageHeader.magicNumber << dec);
+        sendErrorPacket(INVALID_MAGIC_NUMBER);
         return -1;
       }
     } else if(count == 0) {
@@ -115,6 +117,7 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
         collectedData = new char[messageHeader.size];
       } catch (std::bad_alloc &e) {
         LOG_ERROR(this << " Couldn't allocate memory for message of size " << messageHeader.size);
+        sendErrorPacket(MESSAGE_TOO_LARGE);
         return -1;
       }
       position = 0;
@@ -166,6 +169,8 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
         headerToSend->magicNumber = HEADER_MAGIC_NUMBER;
         headerToSend->size = messageSize;
         headerToSend->error = NO_ERROR;
+        headerToSend->reserved[0] = 0;
+        headerToSend->reserved[1] = 0;
         
         char *protobufSerializedMessage = dataToSend + sizeof(MessageHeader);
         msg->SerializeToArray(protobufSerializedMessage, messageSize);
@@ -285,6 +290,8 @@ void AndroidServiceHandler::sendErrorPacket(char errorCode) {
   headerToSend.checksum = 0;
   headerToSend.priority = 127;
   headerToSend.error = errorCode;
+  headerToSend.reserved[0] = 0;
+  headerToSend.reserved[1] = 0;
   headerToSend.headerChecksum = ACE::crc32(&headerToSend, sizeof(headerToSend) - sizeof(headerToSend.headerChecksum));
   
 }
