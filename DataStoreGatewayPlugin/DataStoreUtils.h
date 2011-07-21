@@ -24,35 +24,35 @@ struct DataStoreUtils
   
   static bool bind_int (sqlite3 *db,
                         sqlite3_stmt *stmt,
-                        int slot,
+                        unsigned int &slot,
                         int val);
       
   // Converts or reports error if string is malformed.               
   static bool bind_int (sqlite3 *db,
                         sqlite3_stmt *stmt,
-                        int slot,
+                        unsigned int &slot,
                         const std::string &val);
                  
   static bool bind_double (sqlite3 *db,
                            sqlite3_stmt *stmt,
-                           int slot,
+                           unsigned int &slot,
                            double val);
                  
   // Converts or reports error if string is malformed.               
   static bool bind_double (sqlite3 *db,
                            sqlite3_stmt *stmt,
-                           int slot,
+                           unsigned int &slot,
                            const std::string &val);
                  
   static bool bind_text (sqlite3 *db,
                          sqlite3_stmt *stmt,
-                         int slot,
+                         unsigned int &slot,
                          const std::string &text,
                          bool is_insert);
                   
   static bool bind_blob (sqlite3 *db,
                          sqlite3_stmt *stmt,
-                         int slot,
+                         unsigned int &slot,
                          const void *val,
                          int size,
                          bool is_insert);

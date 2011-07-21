@@ -22,15 +22,8 @@ ContactsQueryStatementBuilder::build (void)
   
   // SQL table names can't contain [.:/]
   DataStoreUtils::legalize_tbl_name (tbl_name);
-  query_str_ += tbl_name;
-
-//  query_str_.resize (len + parser_.contact_owner_.length ());
-//  std::replace_copy_if (parser_.contact_owner_.begin (),
-//                        parser_.contact_owner_.end (),
-//                        query_str_.begin () + len,
-//                        std::bind2nd (std::equal_to<char> (), '.'),
-//                        '_');
   
+  query_str_ += tbl_name;
   query_str_ += " WHERE ";
 
 //  LOG_TRACE ("Querying for " << mime_type_);
@@ -74,17 +67,19 @@ ContactsQueryStatementBuilder::build (void)
 bool
 ContactsQueryStatementBuilder::bind (void)
 {
+  unsigned int index = 1;
+
   return
-    DataStoreUtils::bind_text (db_, stmt_, 1, parser_.uri_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, 2, parser_.first_name_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, 3, parser_.middle_initial_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, 4, parser_.last_name_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, 5, parser_.rank_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, 6, parser_.call_sign_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, 7, parser_.branch_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, 8, parser_.unit_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, 9, parser_.email_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, 10, parser_.phone_, false);
+    DataStoreUtils::bind_text (db_, stmt_, index, parser_.uri_, false)
+    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.first_name_, false)
+    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.middle_initial_, false)
+    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.last_name_, false)
+    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.rank_, false)
+    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.call_sign_, false)
+    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.branch_, false)
+    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.unit_, false)
+    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.email_, false)
+    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.phone_, false);
 }
 
 

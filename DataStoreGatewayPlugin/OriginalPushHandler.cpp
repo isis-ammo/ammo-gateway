@@ -35,13 +35,15 @@ OriginalPushHandler::handlePush (void)
       return false;
     }
     
+  unsigned int index = 1;
+  
   bool good_binds =
-    DataStoreUtils::bind_text (db_, stmt_, 1, pd_.uri, true)
-    && DataStoreUtils::bind_text (db_, stmt_, 2, pd_.mimeType, true)
-    && DataStoreUtils::bind_text (db_, stmt_, 3, pd_.originUsername, true)
-    && DataStoreUtils::bind_int (db_, stmt_, 4, tv.sec ())
-    && DataStoreUtils::bind_int (db_, stmt_, 5, tv.usec ())
-    && DataStoreUtils::bind_blob (db_, stmt_, 6, pd_.data.data (), pd_.data.length (), true);
+    DataStoreUtils::bind_text (db_, stmt_, index, pd_.uri, true)
+    && DataStoreUtils::bind_text (db_, stmt_, index, pd_.mimeType, true)
+    && DataStoreUtils::bind_text (db_, stmt_, index, pd_.originUsername, true)
+    && DataStoreUtils::bind_int (db_, stmt_, index, tv.sec ())
+    && DataStoreUtils::bind_int (db_, stmt_, index, tv.usec ())
+    && DataStoreUtils::bind_blob (db_, stmt_, index, pd_.data.data (), pd_.data.length (), true);
 
   if (good_binds)
     {	

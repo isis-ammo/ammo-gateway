@@ -73,17 +73,19 @@ ContactsPushHandler::handlePush (void)
       return false;
     }
     
+  unsigned int index = 1;
+    
   bool good_binds =
-    DataStoreUtils::bind_text (db_, stmt_, 1, pd_.uri, true)
-    && DataStoreUtils::bind_text (db_, stmt_, 2, root["first_name"].asString (), true)
-    && DataStoreUtils::bind_text (db_, stmt_, 3, root["middle_initial"].asString (), true)
-    && DataStoreUtils::bind_text (db_, stmt_, 4, root["last_name"].asString (), true)
-    && DataStoreUtils::bind_text (db_, stmt_, 5, root["rank"].asString (), true)
-    && DataStoreUtils::bind_text (db_, stmt_, 6, root["call_sign"].asString (), true)
-    && DataStoreUtils::bind_text (db_, stmt_, 7, root["branch"].asString (), true)
-    && DataStoreUtils::bind_text (db_, stmt_, 8, root["unit"].asString (), true)
-    && DataStoreUtils::bind_text (db_, stmt_, 9, root["email"].asString (), true)
-    && DataStoreUtils::bind_text (db_, stmt_, 10, root["phone"].asString (), true);
+    DataStoreUtils::bind_text (db_, stmt_, index, pd_.uri, true)
+    && DataStoreUtils::bind_text (db_, stmt_, index, root["first_name"].asString (), true)
+    && DataStoreUtils::bind_text (db_, stmt_, index, root["middle_initial"].asString (), true)
+    && DataStoreUtils::bind_text (db_, stmt_, index, root["last_name"].asString (), true)
+    && DataStoreUtils::bind_text (db_, stmt_, index, root["rank"].asString (), true)
+    && DataStoreUtils::bind_text (db_, stmt_, index, root["call_sign"].asString (), true)
+    && DataStoreUtils::bind_text (db_, stmt_, index, root["branch"].asString (), true)
+    && DataStoreUtils::bind_text (db_, stmt_, index, root["unit"].asString (), true)
+    && DataStoreUtils::bind_text (db_, stmt_, index, root["email"].asString (), true)
+    && DataStoreUtils::bind_text (db_, stmt_, index, root["phone"].asString (), true);
     
 	if (good_binds)
 	  {

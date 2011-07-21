@@ -49,7 +49,7 @@ DataStoreUtils::createTable (sqlite3 *db,
 bool
 DataStoreUtils::bind_int (sqlite3 *db,
                           sqlite3_stmt *stmt,
-                          int slot,
+                          unsigned int &slot,
                           int val)
 {
   int status = sqlite3_bind_int (stmt, slot, val);
@@ -60,16 +60,18 @@ DataStoreUtils::bind_int (sqlite3 *db,
                  << " with value " << val
                  << " failed: " << sqlite3_errmsg (db));
 		
+		  ++slot;
       return false;
     }
-    
+   
+  ++slot; 
   return true;
 }
                  
 bool
 DataStoreUtils::bind_int (sqlite3 *db,
                           sqlite3_stmt *stmt,
-                          int slot,
+                          unsigned int &slot,
                           const std::string &val)
 {
   if (val.empty ())
@@ -83,14 +85,14 @@ DataStoreUtils::bind_int (sqlite3 *db,
     {
       return bind_int (db, stmt, slot, conversion);
     }
-    
+   
   return false;
 }
 
 bool
 DataStoreUtils::bind_double (sqlite3 *db,
                              sqlite3_stmt *stmt,
-                             int slot,
+                             unsigned int &slot,
                              double val)
 {
   int status = sqlite3_bind_double (stmt, slot, val);
@@ -101,16 +103,18 @@ DataStoreUtils::bind_double (sqlite3 *db,
                  << " with value " << val
                  << " failed: " << sqlite3_errmsg (db));
 		
+		  ++slot;
       return false;
     }
     
+  ++slot;  
   return true;
 }
                  
 bool
 DataStoreUtils::bind_double (sqlite3 *db,
                              sqlite3_stmt *stmt,
-                             int slot,
+                             unsigned int &slot,
                              const std::string &val)
 {
   if (val.empty ())
@@ -131,7 +135,7 @@ DataStoreUtils::bind_double (sqlite3 *db,
 bool
 DataStoreUtils::bind_text (sqlite3 *db,
                            sqlite3_stmt *stmt,
-                           int slot,
+                           unsigned int &slot,
                            const std::string &text,
                            bool is_insert)
 {
@@ -152,14 +156,14 @@ DataStoreUtils::bind_text (sqlite3 *db,
   // scope, so we need to specify SQLITE_STATIC in that case.
   int status =
 	  sqlite3_bind_text (stmt,
-					             slot,
+					             slot++,
 					             text.c_str (),
 					             (text.empty () ? 1 : text.length ()),
 					             (is_insert ? SQLITE_TRANSIENT : SQLITE_STATIC));
 	
   if (status != SQLITE_OK)
     {
-      LOG_ERROR ("sqlite3_bind_text() at slot " << slot
+      LOG_ERROR ("sqlite3_bind_text() at slot " << slot - 1
                  << " with value " << text.c_str ()
                  << " failed: " << sqlite3_errmsg (db));
 		
@@ -172,7 +176,7 @@ DataStoreUtils::bind_text (sqlite3 *db,
 bool
 DataStoreUtils::bind_blob (sqlite3 *db,
                            sqlite3_stmt *stmt,
-                           int slot,
+                           unsigned int &slot,
                            const void *val,
                            int size,
                            bool is_insert)
@@ -185,14 +189,14 @@ DataStoreUtils::bind_blob (sqlite3 *db,
   // but just in case....
   int status =
 	  sqlite3_bind_blob (stmt,
-					             slot,
+					             slot++,
 					             val,
 					             size,
 					             (is_insert ? SQLITE_TRANSIENT : SQLITE_STATIC));
 	
   if (status != SQLITE_OK)
     {
-      LOG_ERROR ("sqlite3_bind_blob() at slot " << slot
+      LOG_ERROR ("sqlite3_bind_blob() at slot " << slot - 1
                  << " failed: " << sqlite3_errmsg (db));
 		
       return false;

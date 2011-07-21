@@ -16,9 +16,6 @@ if __name__ == "__main__":
     exit(-1)
   
   deviceName = "device:test/" + uuid.uuid1().hex
-  
-  # @@@@ Try changing this to include other non-alphanumeric characters
-  # like ':' and '/'. Not sure yet how SQLite restricts legal table names
   userName = "user:test/" + uuid.uuid1().hex
 #  userName = "kyle.anderson"
   

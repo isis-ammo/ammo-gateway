@@ -16,8 +16,7 @@ QueryStatementBuilder::QueryStatementBuilder (
     stmt_ (0),
     has_term_ (false),
     query_str_ (query_stub),
-    digits_ ("0123456789-"),
-    bind_index_ (1)
+    digits_ ("0123456789-")
 {
 }
 

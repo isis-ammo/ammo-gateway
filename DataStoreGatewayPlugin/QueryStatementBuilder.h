@@ -30,7 +30,6 @@ protected:
   bool has_term_;
   std::string query_str_;
   std::string digits_;
-  int bind_index_;
 };
 
 #endif // QUERY_STATEMENT_BUILDER_H
