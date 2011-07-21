@@ -84,8 +84,6 @@ DataStoreReceiver::init (void)
 			return false;
 	  }
 	  
-	LOG_DEBUG ("Data Store Service data table opened successfully...");
-	
   return true;
 }
 

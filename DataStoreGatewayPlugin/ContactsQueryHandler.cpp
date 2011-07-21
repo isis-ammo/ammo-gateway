@@ -44,7 +44,7 @@ ContactsQueryHandler::handleQuery (void)
           continue;
         }
         
-      LOG_TRACE ("matched on: " << pr_.query.c_str ());
+//      LOG_TRACE ("matched on: " << pr_.query.c_str ());
         
 	    // For insertion, column numbers are 1-based, for extraction
 	    // they're 0-based. SQLite retrieves text as const unsigned
@@ -53,9 +53,9 @@ ContactsQueryHandler::handleQuery (void)
 	    std::string uri (
 		    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0)));
 		
-      LOG_DEBUG ("Sending response to " << pr_.pluginId);
-      LOG_DEBUG ("  type: " << PVT_CONTACTS_DATA_TYPE);
-      LOG_DEBUG ("   uri: " << uri);
+      LOG_TRACE ("Sending response to " << pr_.pluginId);
+      LOG_TRACE ("  type: " << PVT_CONTACTS_DATA_TYPE);
+      LOG_TRACE ("   uri: " << uri);
       
       ammo::gateway::PullResponse response =
         ammo::gateway::PullResponse::createFromPullRequest (pr_);
@@ -63,8 +63,6 @@ ContactsQueryHandler::handleQuery (void)
       response.uri = uri;
       this->encode_row (stmt, response.data);
       
-//      LOG_TRACE ("row: " << response.data.c_str ());
-		
       if (sender_ == 0)
         {
           // No response can be sent, but we will still see the trace
@@ -110,9 +108,9 @@ ContactsQueryHandler::encode_row (sqlite3_stmt *stmt,
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 4));
   
   static const Json::StaticString cs ("call_sign");
-  value[cs] =
+  const char *test =
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 5));
-  
+    
   static const Json::StaticString br ("branch");
   value[br] =
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 6));
@@ -127,8 +125,10 @@ ContactsQueryHandler::encode_row (sqlite3_stmt *stmt,
   
   static const Json::StaticString ph ("phone");
   value[ph] =
-    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 8));
-  
+    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 9));
+    
+  LOG_TRACE ("matched row: " << value.toStyledString ());
+    
   Json::FastWriter writer;
   output = writer.write (value);
 }

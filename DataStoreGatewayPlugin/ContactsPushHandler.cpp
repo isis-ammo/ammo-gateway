@@ -16,15 +16,11 @@ ContactsPushHandler::ContactsPushHandler (sqlite3 *db,
 bool
 ContactsPushHandler::handlePush (void)
 {
-  // SQL table names can't contain '.', so we append the chars of
-  // the arg we use for the table name to the query string,
-  // while replacing '.' with '_'.
   std::string tbl_name = pd_.originUsername;
-  std::replace_if (tbl_name.begin (),
-                   tbl_name.end (),
-                   std::bind2nd (std::equal_to<char> (), '.'),
-                   '_');
 
+  // SQL table names can't contain [.:/]
+  DataStoreUtils::legalize_tbl_name (tbl_name);
+                
   // 2011-06-21 - not using the last 2 columns at this point.
 	std::string contacts_tbl_str ("CREATE TABLE IF NOT EXISTS ");
 	contacts_tbl_str += tbl_name;
@@ -56,7 +52,7 @@ ContactsPushHandler::handlePush (void)
   insert_str += tbl_name;
   insert_str += " values (?,?,?,?,?,?,?,?,?,?,?,?)";
   
-  LOG_TRACE ("insert str: " << insert_str.c_str ());
+  //LOG_TRACE ("insert str: " << insert_str.c_str ());
 	
   int status =
 	  sqlite3_prepare_v2 (db_, insert_str.c_str (), -1, &stmt_, 0);

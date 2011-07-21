@@ -18,17 +18,18 @@ ContactsQueryStatementBuilder::build (void)
 {
   parser_.parse (params_);
   
-  std::string::size_type len = query_str_.length ();
+  std::string tbl_name (parser_.contact_owner_);
   
-  // SQL table names can't contain '.', so append the chars of
-  // the token we parsed for the table name to the query string,
-  // while replacing '.' with '_'.
-  query_str_.resize (len + parser_.contact_owner_.length ());
-  std::replace_copy_if (parser_.contact_owner_.begin (),
-                        parser_.contact_owner_.end (),
-                        query_str_.begin () + len,
-                        std::bind2nd (std::equal_to<char> (), '.'),
-                        '_');
+  // SQL table names can't contain [.:/]
+  DataStoreUtils::legalize_tbl_name (tbl_name);
+  query_str_ += tbl_name;
+
+//  query_str_.resize (len + parser_.contact_owner_.length ());
+//  std::replace_copy_if (parser_.contact_owner_.begin (),
+//                        parser_.contact_owner_.end (),
+//                        query_str_.begin () + len,
+//                        std::bind2nd (std::equal_to<char> (), '.'),
+//                        '_');
   
   query_str_ += " WHERE ";
 

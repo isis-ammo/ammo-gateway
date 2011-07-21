@@ -24,7 +24,7 @@ void
 DataStoreDispatcher::dispatchPushData (sqlite3 *db,
                                        PushData &pd)
 {
-  LOG_TRACE ("Received " << pd);
+//  LOG_TRACE ("Received " << pd);
   bool good_data_store = true;
   
   if (pd.mimeType == PVT_CONTACTS_DATA_TYPE)
@@ -40,7 +40,7 @@ DataStoreDispatcher::dispatchPushData (sqlite3 *db,
 	
 	if (good_data_store)
 	  {
-      LOG_DEBUG ("data store successful");
+      LOG_TRACE ("data store successful");
     }
 }
 
@@ -49,14 +49,12 @@ DataStoreDispatcher::dispatchPullRequest (sqlite3 *db,
                                           GatewayConnector *sender,
                                           PullRequest &pr)
 {
-  LOG_TRACE ("pull request received");
-
   if (sender == 0)
     {
       LOG_WARN ("Sender is null, no responses will be sent");
     }
 		
-  LOG_DEBUG ("Data type: " << pr.mimeType);
+  //LOG_DEBUG ("pull request data type: " << pr.mimeType);
   
   // Incoming SMS mime types have the destination user name appended to this
   // base string, which we then pass to std::string::find instead of checking

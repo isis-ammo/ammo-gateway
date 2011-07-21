@@ -43,10 +43,6 @@ DataStoreUtils::createTable (sqlite3 *db,
 			return false;
 	  }
 	  
-	LOG_DEBUG ("Data Store Service "
-	           << msg
-	           << " table opened successfully...");
-	
   return true;
 }
 
@@ -139,16 +135,26 @@ DataStoreUtils::bind_text (sqlite3 *db,
                            const std::string &text,
                            bool is_insert)
 {
-  if (text.empty ())
+  // For a data push, we want to go ahead and store an empty string,
+  // see comment below for more details.
+  if (text.empty () && !is_insert)
     {
       return true;
     }
     
+  // If the text string is empty, passing its length (0), will
+  // result in a NULL char* being extracted on a match. Passing
+  // a 1 instead will produce an empty string upon extraction,
+  // which is what we want to put into the Json::Value response.
+  // Also, insert statement values are copied right away, so
+  // they don't have to hang around, but query statement values
+  // take a longer path, and the original value goes out of
+  // scope, so we need to specify SQLITE_STATIC in that case.
   int status =
 	  sqlite3_bind_text (stmt,
 					             slot,
 					             text.c_str (),
-					             text.length (),
+					             (text.empty () ? 1 : text.length ()),
 					             (is_insert ? SQLITE_TRANSIENT : SQLITE_STATIC));
 	
   if (status != SQLITE_OK)
@@ -171,6 +177,12 @@ DataStoreUtils::bind_blob (sqlite3 *db,
                            int size,
                            bool is_insert)
 {
+  // Insert statement values are copied right away, so
+  // they don't have to hang around, but query statement values
+  // take a longer path, and the original value goes out of
+  // scope, so we need to specify SQLITE_STATIC in that case.
+  // Not that we're likely to query on a binary blob value,
+  // but just in case....
   int status =
 	  sqlite3_bind_blob (stmt,
 					             slot,
@@ -221,6 +233,14 @@ DataStoreUtils::safe_atof (const std::string &val,
     
   result = ACE_OS::atof (val.c_str ());
   return true;
+}
+
+void
+DataStoreUtils::legalize_tbl_name (std::string &name)
+{
+  std::replace (name.begin (), name.end (), '.', '_');
+  std::replace (name.begin (), name.end (), ':', '_');
+  std::replace (name.begin (), name.end (), '/', '_');
 }
 
 

@@ -62,6 +62,8 @@ struct DataStoreUtils
                          
   static bool safe_atof (const std::string &val,
                          double &result);
+                         
+  static void legalize_tbl_name (std::string &name);
 };
 
 #endif // #ifndef DATA_STORE_UTILS_H

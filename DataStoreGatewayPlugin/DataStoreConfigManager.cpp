@@ -44,7 +44,7 @@ DataStoreConfigManager::DataStoreConfigManager (
                        i != root_["MimeTypes"].end ();
                        ++i)
                     {
-                      const char *mime_type = (*i).asString ().c_str ();
+                      string mime_type = (*i).asString ();
                       LOG_DEBUG ("Registering interest in " << mime_type);
                       connector_->registerDataInterest (mime_type, receiver_);
                       connector_->registerPullInterest (mime_type, receiver_);

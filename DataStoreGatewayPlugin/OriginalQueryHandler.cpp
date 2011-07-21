@@ -49,14 +49,10 @@ OriginalQueryHandler::handleQuery (void)
 	    size_t len = sqlite3_column_bytes (stmt, 5);
       std::string data ((char *) sqlite3_column_blob (stmt, 5), len);
       
-      LOG_TRACE ("Data type: " << pr_.mimeType);
-  
       if (!this->matchedData (pr_.projection, data))
         {
           continue;
         }
-        
-      LOG_TRACE ("matched on: " << pr_.projection.c_str ());
         
       if (sender_ == 0)
         {
@@ -72,9 +68,9 @@ OriginalQueryHandler::handleQuery (void)
 	    std::string uri (
 		    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0)));
 		
-      LOG_DEBUG ("Sending response to " << pr_.pluginId);
-      LOG_DEBUG ("  type: " << pr_.mimeType);
-      LOG_DEBUG ("   uri: " << uri);
+      LOG_TRACE ("Sending response to " << pr_.pluginId);
+      LOG_TRACE ("  type: " << pr_.mimeType);
+      LOG_TRACE ("   uri: " << uri);
       
       ammo::gateway::PullResponse response =
         ammo::gateway::PullResponse::createFromPullRequest (pr_);
