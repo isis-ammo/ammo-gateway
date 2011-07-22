@@ -293,7 +293,10 @@ void AndroidServiceHandler::sendErrorPacket(char errorCode) {
   headerToSend.reserved[0] = 0;
   headerToSend.reserved[1] = 0;
   headerToSend.headerChecksum = ACE::crc32(&headerToSend, sizeof(headerToSend) - sizeof(headerToSend.headerChecksum));
-  
+  int count = this->peer().send_n(&headerToSend, sizeof(headerToSend));
+  if(count != sizeof(headerToSend)) {
+    LOG_WARN(this << " Unable to send full error packet.");
+  }
 }
 
 ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextMessageToSend() {

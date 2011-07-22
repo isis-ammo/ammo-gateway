@@ -41,7 +41,7 @@ class AndroidProtocol(stateful.StatefulProtocol):
     return (self.receiveHeader, 20) #initial state receives the header
   
   def receiveHeader(self, data):
-    (magicNumber, messageSize, priority, reserved1, reserved2, reserved3, checksum, headerChecksum) = struct.unpack("<IIbbbbii", data)
+    (magicNumber, messageSize, priority, error, reserved2, reserved3, checksum, headerChecksum) = struct.unpack("<IIbbbbii", data)
     calculatedHeaderChecksum = zlib.crc32(data[:16])
     if magicNumber != MAGIC_NUMBER:
       print "Invalid magic number!"
@@ -49,10 +49,25 @@ class AndroidProtocol(stateful.StatefulProtocol):
       print "Header checksum error!"
       print "Expected", headerChecksum
       print "Calculated", calculatedHeaderChecksum
-    self._messageSize = messageSize
-    self._checksum = checksum
-    
-    return (self.receiveData, self._messageSize)
+      
+    if error != 0 and messageSize == 0 and checksum == 0:
+      print "Error received from gateway:"
+      print " ", error,
+      if error == 1:
+        print "Invalid magic number"
+      elif error == 2:
+        print "Invalid header checksum"
+      elif error == 3:
+        print "Invalid message checksum"
+      elif error == 4:
+        print "Message too large"
+      else:
+        print "Unknown error"
+      return (self.receiveHeader, 20)
+    else:
+      self._messageSize = messageSize
+      self._checksum = checksum
+      return (self.receiveData, self._messageSize)
     
   def receiveData(self, data):
     calculatedChecksum = zlib.crc32(data)
