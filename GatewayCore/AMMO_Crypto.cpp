@@ -107,6 +107,8 @@ vector<unsigned char> AMMO_Crypt::decrypt (
 
 int AMMO_Crypt::read_public_key (string pub_file)
 {
+  
+
   FILE *keyfile = fopen(pub_file.c_str (), "r");
   
   if (keyfile == NULL)

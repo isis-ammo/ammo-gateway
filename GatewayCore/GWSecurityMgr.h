@@ -40,6 +40,10 @@ class GWSecurityMgr
 
     static const int PRE_MASTER_LENGTH;
 
+    static const string DEVICE_KEYS_SUBDIR;
+    
+    static const string GATEWAY_KEYS_SUBDIR;
+
 //  this is for the demo only
     char * operator_id;
 

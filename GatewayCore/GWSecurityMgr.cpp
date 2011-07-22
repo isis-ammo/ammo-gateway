@@ -2,7 +2,13 @@
 #include "AMMO_Crypto.h"
 #include "GatewaySecHandler.h"
 
+#include "ace/OS_NS_unistd.h"
+
 const int GWSecurityMgr::PRE_MASTER_LENGTH = 48;
+
+const string GWSecurityMgr::DEVICE_KEYS_SUBDIR = "/build/etc/keys/Devices/";
+
+const string GWSecurityMgr::GATEWAY_KEYS_SUBDIR = "/build/etc/keys/Gateways/";
 
 GWSecurityMgr::GWSecurityMgr (const char* gatewayId, GatewaySecHandler *handler)
   :gatewayId_(gatewayId), 
@@ -29,11 +35,22 @@ bool GWSecurityMgr::Authenticate (AuthMessage &msg)
     set_device_id(msg.device_id);
 
     // get the pubkey file of the phone from the device id ..
-/*    string pubkey_phn = "~/.ssh/";
+    
+    string gatewayRoot;
+
+    char *gatewayRootC = ACE_OS::getenv("GATEWAY_ROOT");
+
+    if(gatewayRootC == NULL) {
+      gatewayRoot = "";
+    } else {
+      gatewayRoot = gatewayRootC;
+    }
+
+
+    string pubkey_phn = gatewayRoot;
+    pubkey_phn += DEVICE_KEYS_SUBDIR;
+
     pubkey_phn += msg.device_id;
-    pubkey_phn += string("_pub.pem");
-*/
-    string pubkey_phn = msg.device_id;
     pubkey_phn += string("_pub.pem");
     // Read the public and private keys
     int res = crp.read_public_key (pubkey_phn);
@@ -47,8 +64,9 @@ bool GWSecurityMgr::Authenticate (AuthMessage &msg)
       return false;
     }
 
-//    string gw_pvtkey = "~/.ssh/";
-    string gw_pvtkey = gatewayId_;
+    string gw_pvtkey = gatewayRoot;
+    gw_pvtkey += GATEWAY_KEYS_SUBDIR;
+    gw_pvtkey += gatewayId_;
     gw_pvtkey += string("_pvt.pem");
 
     res = crp.read_private_key (gw_pvtkey);
@@ -78,6 +96,7 @@ bool GWSecurityMgr::Authenticate (AuthMessage &msg)
   } 
   else if (msg.type == AuthMessage::CLIENT_KEYXCHANGE)
   {
+    cout << "Got the Key Exchange " << endl;
     set_keyXchange (msg.message);
 
   } 
