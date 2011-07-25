@@ -51,6 +51,9 @@ namespace ammo {
       ammo::gateway::MessageScope scope;///< The scope of this object (determines how many gateways to send
                                         ///  this object to in a multiple gateway configuration).  Optional,
                                         ///  will default to SCOPE_GLOBAL.
+      char priority;                    ///< The priority of this object.  Objects with a higher priority
+                                        ///  will be pushed to the device before objects with a lower priority,
+                                        ///  if messages are queued.
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PushData &pushData) {
         os << "URI: " << pushData.uri << " type: " << pushData.mimeType;
