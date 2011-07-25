@@ -86,10 +86,12 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
         unsigned int calculatedChecksum = ACE::crc32(&messageHeader, sizeof(messageHeader) - sizeof(messageHeader.headerChecksum));
         if(calculatedChecksum != messageHeader.headerChecksum) {
           LOG_ERROR("Invalid header checksum");
+          sendErrorPacket(INVALID_HEADER_CHECKSUM);
           return -1;
         }
       } else {
         LOG_ERROR("Invalid magic number: " << hex << messageHeader.magicNumber << dec);
+        sendErrorPacket(INVALID_MAGIC_NUMBER);
         return -1;
       }
     } else if(count == 0) {
@@ -115,6 +117,7 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
         collectedData = new char[messageHeader.size];
       } catch (std::bad_alloc &e) {
         LOG_ERROR(this << " Couldn't allocate memory for message of size " << messageHeader.size);
+        sendErrorPacket(MESSAGE_TOO_LARGE);
         return -1;
       }
       position = 0;
@@ -165,6 +168,10 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
         MessageHeader *headerToSend = (MessageHeader *) dataToSend;
         headerToSend->magicNumber = HEADER_MAGIC_NUMBER;
         headerToSend->size = messageSize;
+        headerToSend->priority = msg->message_priority();
+        headerToSend->error = NO_ERROR;
+        headerToSend->reserved[0] = 0;
+        headerToSend->reserved[1] = 0;
         
         char *protobufSerializedMessage = dataToSend + sizeof(MessageHeader);
         msg->SerializeToArray(protobufSerializedMessage, messageSize);
@@ -255,6 +262,41 @@ void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg, cha
   sendQueueMutex.release();
   if(!connectionClosing) {
     this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+  }
+}
+
+void AndroidServiceHandler::sendErrorPacket(char errorCode) {
+  LOG_WARN(this << " Sending error packet to connected device");
+  if(dataToSend != NULL) {
+    LOG_TRACE(this << " sendErrorPacket called; a message send is in progress, so we need to finish it.");
+    int count = this->peer().send_n(dataToSend + sendPosition, sendBufferSize - sendPosition);
+    if(count >= 0) {
+      sendPosition += count;
+    }
+    LOG_TRACE("Sent remaining " << count << " bytes of current message (current postition " << sendPosition << "/" << sendBufferSize << ")");
+    
+    if(sendPosition >= (sendBufferSize)) {
+      delete[] dataToSend;
+      dataToSend = NULL;
+      sendBufferSize = 0;
+      sendPosition = 0;
+    } else {
+      LOG_ERROR(this << " Couldn't flush send buffer before sending error packet.");
+    }
+  }
+  
+  MessageHeader headerToSend;
+  headerToSend.magicNumber = HEADER_MAGIC_NUMBER;
+  headerToSend.size = 0;
+  headerToSend.checksum = 0;
+  headerToSend.priority = 127;
+  headerToSend.error = errorCode;
+  headerToSend.reserved[0] = 0;
+  headerToSend.reserved[1] = 0;
+  headerToSend.headerChecksum = ACE::crc32(&headerToSend, sizeof(headerToSend) - sizeof(headerToSend.headerChecksum));
+  int count = this->peer().send_n(&headerToSend, sizeof(headerToSend));
+  if(count != sizeof(headerToSend)) {
+    LOG_WARN(this << " Unable to send full error packet.");
   }
 }
 
