@@ -111,6 +111,8 @@ int AMMO_Crypt::read_public_key (string pub_file)
 
   FILE *keyfile = fopen(pub_file.c_str (), "r");
   
+  printf("Pub key path :[%s]\n", pub_file.c_str());
+  
   if (keyfile == NULL)
   {
     printf("No Public Key Found for Phone!\n");
@@ -142,6 +144,8 @@ int AMMO_Crypt::read_public_key (string pub_file)
 int AMMO_Crypt::read_private_key (string pvt_file)
 {
   FILE *keyfile = fopen(pvt_file.c_str (), "r");
+
+  printf("Pvt key path :[%s]\n", pvt_file.c_str());
 
   if (keyfile == NULL)
   {

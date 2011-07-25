@@ -6,9 +6,9 @@
 
 const int GWSecurityMgr::PRE_MASTER_LENGTH = 48;
 
-const string GWSecurityMgr::DEVICE_KEYS_SUBDIR = "/build/etc/keys/Devices/";
+const string GWSecurityMgr::DEVICE_KEYS_SUBDIR = "/etc/ammo-gateway/keys/Devices/";
 
-const string GWSecurityMgr::GATEWAY_KEYS_SUBDIR = "/build/etc/keys/Gateways/";
+const string GWSecurityMgr::GATEWAY_KEYS_SUBDIR = "/etc/ammo-gateway/keys/Gateways/";
 
 GWSecurityMgr::GWSecurityMgr (const char* gatewayId, GatewaySecHandler *handler)
   :gatewayId_(gatewayId), 
