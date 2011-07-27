@@ -56,7 +56,7 @@ int ammo::gateway::internal::GatewayServiceHandler::handle_input(ACE_HANDLE fd) 
       try {
         collectedData = new char[dataSize];
       } catch (std::bad_alloc &e) {
-        LOG_ERROR(" Couldn't allocate memory for message of size " << dataSize);
+        LOG_ERROR("Couldn't allocate memory for message of size " << dataSize);
         return -1;
       }
       position = 0;
@@ -99,7 +99,7 @@ int ammo::gateway::internal::GatewayServiceHandler::handle_output(ACE_HANDLE fd)
       if(msg != NULL) {
         LOG_TRACE("Getting a new message to send");
         if(!msg->IsInitialized()) {
-          LOG_WARN(" Protocol Buffers message is missing a required element.");
+          LOG_WARN("Protocol Buffers message is missing a required element.");
         }
         unsigned int messageSize = msg->ByteSize();
         sendBufferSize = messageSize + 2*sizeof(unsigned int);
@@ -145,7 +145,7 @@ int ammo::gateway::internal::GatewayServiceHandler::handle_output(ACE_HANDLE fd)
     LOG_TRACE("Received EWOULDBLOCK");
     this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
   } else {
-    LOG_ERROR(" Socket error occurred. (" << ACE_OS::last_error() << ")");
+    LOG_ERROR("Socket error occurred. (" << ACE_OS::last_error() << ")");
     return -1;
   }
   
@@ -155,7 +155,7 @@ int ammo::gateway::internal::GatewayServiceHandler::handle_output(ACE_HANDLE fd)
 void ammo::gateway::internal::GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper *msg) {
   sendQueueMutex.acquire();
   sendQueue.push(msg);
-  LOG_TRACE(" Queued a message to send.  " << sendQueue.size() << " messages in queue.");
+  LOG_TRACE("Queued a message to send.  " << sendQueue.size() << " messages in queue.");
   sendQueueMutex.release();
   
   this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
@@ -173,7 +173,7 @@ ammo::gateway::protocol::GatewayWrapper *ammo::gateway::internal::GatewayService
   int size = sendQueue.size();
   sendQueueMutex.release();
   
-  LOG_TRACE(" Dequeued a message to send.  " << size << " messages remain in queue.");
+  LOG_TRACE("Dequeued a message to send.  " << size << " messages remain in queue.");
   return msg;
 }
 
