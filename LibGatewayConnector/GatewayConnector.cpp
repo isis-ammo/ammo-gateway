@@ -54,6 +54,7 @@ bool ammo::gateway::GatewayConnector::associateDevice(string device, string user
   associateMsg->set_key(key);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE);
+  msg->set_message_priority(ammo::gateway::PRIORITY_AUTH);
   
   LOG_DEBUG("Sending Associate Device message to gateway core");
   if(connected) {
@@ -79,6 +80,7 @@ bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData
   }
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
+  msg->set_message_priority(pushData.priority);
   
   LOG_DEBUG("Sending Data Push message to gateway core");
   if(connected) {
@@ -103,6 +105,7 @@ bool ammo::gateway::GatewayConnector::pullRequest(PullRequest &request) {
   pullMsg->set_live_query(request.liveQuery);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
+  msg->set_message_priority(ammo::gateway::PRIORITY_CTRL);
   
   LOG_DEBUG("Sending Pull Request message to gateway core");
   if(connected) {
@@ -124,6 +127,7 @@ bool ammo::gateway::GatewayConnector::pullResponse(PullResponse &response) {
   pullMsg->set_data(response.data);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
+  msg->set_message_priority(ammo::gateway::PRIORITY_CTRL);
   
   LOG_DEBUG("Sending Pull Response message to gateway core");
   if(connected) {
@@ -147,6 +151,7 @@ bool ammo::gateway::GatewayConnector::registerDataInterest(string mime_type, Dat
   }
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST);
+  msg->set_message_priority(ammo::gateway::PRIORITY_CTRL);
   
   LOG_DEBUG("Sending RegisterDataInterest message to gateway core");
   if(connected) {
@@ -172,6 +177,7 @@ bool ammo::gateway::GatewayConnector::unregisterDataInterest(string mime_type, M
   }
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST);
+  msg->set_message_priority(ammo::gateway::PRIORITY_CTRL);
   
   LOG_DEBUG("Sending UnregisterDataInterest message to gateway core");
   if(connected) {
@@ -190,6 +196,7 @@ bool ammo::gateway::GatewayConnector::registerPullInterest(string mime_type, Pul
   di->set_mime_type(mime_type);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST);
+  msg->set_message_priority(ammo::gateway::PRIORITY_CTRL);
   
   LOG_DEBUG("Sending RegisterPullInterest message to gateway core");
   if(connected) {
@@ -209,6 +216,7 @@ bool ammo::gateway::GatewayConnector::unregisterPullInterest(string mime_type) {
   di->set_mime_type(mime_type);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST);
+  msg->set_message_priority(ammo::gateway::PRIORITY_CTRL);
   
   LOG_DEBUG("Sending UnregisterPullInterest message to gateway core");
   if(connected) {
