@@ -47,9 +47,9 @@ int AndroidServiceHandler::open(void *ptr) {
   int result = this->peer().get_remote_addr(remoteAddress);
   if(result == 0) {
     string printableRemoteAddress(remoteAddress.get_host_addr());
-    LOG_INFO("Got connection from " << printableRemoteAddress);
+    LOG_INFO((long) this << " Got connection from " << printableRemoteAddress);
   } else {
-    LOG_WARN("Got new connection, but couldn't determine remote address.");
+    LOG_WARN((long) this << " Got new connection, but couldn't determine remote address.");
   }
   
   messageProcessor = new AndroidMessageProcessor(this);
@@ -62,20 +62,20 @@ int AndroidServiceHandler::open(void *ptr) {
 
 int AndroidServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
   connectionClosing = true;
-  LOG_TRACE(this << " Closing Message Processor");
+  LOG_TRACE((long) this << " Closing Message Processor");
   messageProcessor->close(0);
-  LOG_TRACE(this << " Waiting for message processor thread to finish...");
+  LOG_TRACE((long) this << " Waiting for message processor thread to finish...");
   this->reactor()->lock().release(); //release the lock, or we'll hang if other threads try to do stuff with the reactor while we're waiting
   messageProcessor->wait();
   this->reactor()->lock().acquire(); //and put it back like it was
-  LOG_TRACE(this << " Message processor finished.");
+  LOG_TRACE((long) this << " Message processor finished.");
   super::handle_close(fd, m);
   
   return 0;
 }
 
 int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
-  LOG_TRACE(this << " In handle_input");
+  LOG_TRACE((long) this << " In handle_input");
   int count = 0;
   
   if(state == READING_HEADER) {
@@ -85,27 +85,27 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
       if(messageHeader.magicNumber == HEADER_MAGIC_NUMBER) {
         unsigned int calculatedChecksum = ACE::crc32(&messageHeader, sizeof(messageHeader) - sizeof(messageHeader.headerChecksum));
         if(calculatedChecksum != messageHeader.headerChecksum) {
-          LOG_ERROR("Invalid header checksum");
+          LOG_ERROR((long) this << " Invalid header checksum");
           sendErrorPacket(INVALID_HEADER_CHECKSUM);
           return -1;
         }
       } else {
-        LOG_ERROR("Invalid magic number: " << hex << messageHeader.magicNumber << dec);
+        LOG_ERROR((long) this << " Invalid magic number: " << hex << messageHeader.magicNumber << dec);
         sendErrorPacket(INVALID_MAGIC_NUMBER);
         return -1;
       }
     } else if(count == 0) {
-      LOG_INFO(this << " Connection closed.");
+      LOG_INFO((long) this << " Connection closed.");
       return -1;
     } else if(count == -1) {
-      LOG_ERROR(this << " Socket error occurred. (" << ACE_OS::last_error() << ")");
+      LOG_ERROR((long) this << " Socket error occurred. (" << ACE_OS::last_error() << ")");
       return -1;
     }
   } else if(state == READING_DATA) {
     count = this->peer().recv(collectedData + position, messageHeader.size - position);
     //LOG_TRACE("DATA Read " << count << " bytes");
   } else {
-    LOG_ERROR(this << " Invalid state!");
+    LOG_ERROR((long) this << " Invalid state!");
     return -1;
   }
   
@@ -116,7 +116,7 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
       try {
         collectedData = new char[messageHeader.size];
       } catch (std::bad_alloc &e) {
-        LOG_ERROR(this << " Couldn't allocate memory for message of size " << messageHeader.size);
+        LOG_ERROR((long) this << " Couldn't allocate memory for message of size " << messageHeader.size);
         sendErrorPacket(MESSAGE_TOO_LARGE);
         return -1;
       }
@@ -124,7 +124,7 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
       //LOG_TRACE("Got data size (" << dataSize << ")");
       state = READING_DATA;
     } else if(state == READING_DATA) {
-      LOG_TRACE(this << " Got some data...");
+      LOG_TRACE((long) this << " Got some data...");
       position += count;
       if(position == messageHeader.size) {
         //LOG_TRACE("Got all the data... processing");
@@ -141,13 +141,13 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
       }
     }
   } else if(count == 0) {
-    LOG_INFO(this << " Connection closed.");
+    LOG_INFO((long) this << " Connection closed.");
     return -1;
   } else if(count == -1 && ACE_OS::last_error () != EWOULDBLOCK) {
-    LOG_ERROR(this << " Socket error occurred. (" << ACE_OS::last_error() << ")");
+    LOG_ERROR((long) this << " Socket error occurred. (" << ACE_OS::last_error() << ")");
     return -1;
   }
-  LOG_TRACE(this << " Leaving handle_input()");
+  LOG_TRACE((long) this << " Leaving handle_input()");
   return 0;
 }
 
@@ -158,9 +158,9 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
     if(dataToSend == NULL) {
       ammo::protocol::MessageWrapper *msg = getNextMessageToSend();
       if(msg != NULL) {
-        LOG_TRACE("Getting a new message to send");
+        LOG_TRACE((long) this << " Getting a new message to send");
         if(!msg->IsInitialized()) {
-          LOG_WARN(this << " Protocol Buffers message is missing a required element.");
+          LOG_WARN((long) this << " Protocol Buffers message is missing a required element.");
         }
         unsigned int messageSize = msg->ByteSize();
         sendBufferSize = messageSize + sizeof(MessageHeader);
@@ -198,7 +198,7 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
     if(count >= 0) {
       sendPosition += count;
     }
-    LOG_TRACE("Sent " << count << " bytes (current postition " << sendPosition << "/" << sendBufferSize);
+    LOG_TRACE((long) this << " Sent " << count << " bytes (current postition " << sendPosition << "/" << sendBufferSize);
     
     if(sendPosition >= (sendBufferSize)) {
       delete[] dataToSend;
@@ -209,10 +209,10 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
   } while(count != -1);
   
   if(count == -1 && ACE_OS::last_error () == EWOULDBLOCK) {
-    LOG_TRACE("Received EWOULDBLOCK");
+    LOG_TRACE((long) this << " Received EWOULDBLOCK");
     this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
   } else {
-    LOG_ERROR(this << " Socket error occurred. (" << ACE_OS::last_error() << ")");
+    LOG_ERROR((long) this << " Socket error occurred. (" << ACE_OS::last_error() << ")");
     return -1;
   }
   
@@ -223,8 +223,8 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if(calculatedChecksum != messageChecksum) {
-    LOG_ERROR(this << " Mismatched checksum " << std::hex << calculatedChecksum << " : " << messageChecksum);
-    LOG_ERROR(this << " size " << std::dec << messageSize ); // << " payload: " < );
+    LOG_ERROR((long) this << " Mismatched checksum " << std::hex << calculatedChecksum << " : " << messageChecksum);
+    LOG_ERROR((long) this << " size " << std::dec << messageSize ); // << " payload: " < );
     return -1;
   }
   
@@ -232,8 +232,8 @@ int AndroidServiceHandler::processData(char *data, unsigned int messageSize, uns
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper();
   bool result = msg->ParseFromArray(data, messageSize);
   if(result == false) {
-    LOG_ERROR(this << " MessageWrapper could not be deserialized.");
-    LOG_ERROR(this << " Client must have sent something that isn't a protocol buffer (or the wrong type).");
+    LOG_ERROR((long) this << " MessageWrapper could not be deserialized.");
+    LOG_ERROR((long) this << " Client must have sent something that isn't a protocol buffer (or the wrong type).");
     delete msg;
     return -1;
   }
@@ -249,7 +249,7 @@ void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg, cha
   queuedMsg.message = msg;
   
   if(priority != msg->message_priority()) {
-    LOG_WARN("Priority mismatch when adding message to send queue: Header = " << (int) priority << ", Message = " << msg->message_priority());
+    LOG_WARN((long) this << " Priority mismatch when adding message to send queue: Header = " << (int) priority << ", Message = " << msg->message_priority());
   }
   
   sendQueueMutex.acquire();
@@ -257,7 +257,7 @@ void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg, cha
   sentMessageCount++;
   if(!connectionClosing) {
     sendQueue.push(queuedMsg);
-    LOG_TRACE(this << " Queued a message to send.  " << sendQueue.size() << " messages in queue.");
+    LOG_TRACE((long) this << " Queued a message to send.  " << sendQueue.size() << " messages in queue.");
   }
   sendQueueMutex.release();
   if(!connectionClosing) {
@@ -266,14 +266,14 @@ void AndroidServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg, cha
 }
 
 void AndroidServiceHandler::sendErrorPacket(char errorCode) {
-  LOG_WARN(this << " Sending error packet to connected device");
+  LOG_WARN((long) this << " Sending error packet to connected device");
   if(dataToSend != NULL) {
-    LOG_TRACE(this << " sendErrorPacket called; a message send is in progress, so we need to finish it.");
+    LOG_TRACE((long) this << " sendErrorPacket called; a message send is in progress, so we need to finish it.");
     int count = this->peer().send_n(dataToSend + sendPosition, sendBufferSize - sendPosition);
     if(count >= 0) {
       sendPosition += count;
     }
-    LOG_TRACE("Sent remaining " << count << " bytes of current message (current postition " << sendPosition << "/" << sendBufferSize << ")");
+    LOG_TRACE((long) this << " Sent remaining " << count << " bytes of current message (current postition " << sendPosition << "/" << sendBufferSize << ")");
     
     if(sendPosition >= (sendBufferSize)) {
       delete[] dataToSend;
@@ -281,7 +281,7 @@ void AndroidServiceHandler::sendErrorPacket(char errorCode) {
       sendBufferSize = 0;
       sendPosition = 0;
     } else {
-      LOG_ERROR(this << " Couldn't flush send buffer before sending error packet.");
+      LOG_ERROR((long) this << " Couldn't flush send buffer before sending error packet.");
     }
   }
   
@@ -296,7 +296,7 @@ void AndroidServiceHandler::sendErrorPacket(char errorCode) {
   headerToSend.headerChecksum = ACE::crc32(&headerToSend, sizeof(headerToSend) - sizeof(headerToSend.headerChecksum));
   int count = this->peer().send_n(&headerToSend, sizeof(headerToSend));
   if(count != sizeof(headerToSend)) {
-    LOG_WARN(this << " Unable to send full error packet.");
+    LOG_WARN((long) this << " Unable to send full error packet.");
   }
 }
 
@@ -310,7 +310,7 @@ ammo::protocol::MessageWrapper *AndroidServiceHandler::getNextMessageToSend() {
   
   int size = sendQueue.size();
   sendQueueMutex.release();
-  LOG_TRACE(this << " Dequeued a message to send.  " << size << " messages remain in queue.");
+  LOG_TRACE((long) this << " Dequeued a message to send.  " << size << " messages remain in queue.");
   
   return msg;
 }
@@ -333,7 +333,7 @@ void AndroidServiceHandler::addReceivedMessage(ammo::protocol::MessageWrapper *m
   queuedMsg.message = msg;
   
   if(priority != msg->message_priority()) {
-    LOG_WARN("Priority mismatch on received message: Header = " << (int) priority << ", Message = " << msg->message_priority());
+    LOG_WARN((long) this << " Priority mismatch on received message: Header = " << (int) priority << ", Message = " << msg->message_priority());
   }
   
   receiveQueueMutex.acquire();
@@ -344,6 +344,6 @@ void AndroidServiceHandler::addReceivedMessage(ammo::protocol::MessageWrapper *m
 }
 
 AndroidServiceHandler::~AndroidServiceHandler() {
-  LOG_TRACE(this << " In ~AndroidServiceHandler");
+  LOG_TRACE((long) this << " In ~AndroidServiceHandler");
   delete messageProcessor;
 }
