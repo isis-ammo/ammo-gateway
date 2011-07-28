@@ -79,28 +79,7 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
   int count = 0;
   
   if(state == READING_HEADER) {
-    count = this->peer().recv_n(&messageHeader, sizeof(messageHeader));
-    //verify the message header (check its magic number and checksum)
-    if(count > 0) {
-      if(messageHeader.magicNumber == HEADER_MAGIC_NUMBER) {
-        unsigned int calculatedChecksum = ACE::crc32(&messageHeader, sizeof(messageHeader) - sizeof(messageHeader.headerChecksum));
-        if(calculatedChecksum != messageHeader.headerChecksum) {
-          LOG_ERROR((long) this << " Invalid header checksum");
-          sendErrorPacket(INVALID_HEADER_CHECKSUM);
-          return -1;
-        }
-      } else {
-        LOG_ERROR((long) this << " Invalid magic number: " << hex << messageHeader.magicNumber << dec);
-        sendErrorPacket(INVALID_MAGIC_NUMBER);
-        return -1;
-      }
-    } else if(count == 0) {
-      LOG_INFO((long) this << " Connection closed.");
-      return -1;
-    } else if(count == -1) {
-      LOG_ERROR((long) this << " Socket error occurred. (" << ACE_OS::last_error() << ")");
-      return -1;
-    }
+    count = this->peer().recv(&messageHeader, sizeof(messageHeader) - position);
   } else if(state == READING_DATA) {
     count = this->peer().recv(collectedData + position, messageHeader.size - position);
     //LOG_TRACE("DATA Read " << count << " bytes");
@@ -113,16 +92,32 @@ int AndroidServiceHandler::handle_input(ACE_HANDLE fd) {
   
   if(count > 0) {
     if(state == READING_HEADER) {
-      try {
-        collectedData = new char[messageHeader.size];
-      } catch (std::bad_alloc &e) {
-        LOG_ERROR((long) this << " Couldn't allocate memory for message of size " << messageHeader.size);
-        sendErrorPacket(MESSAGE_TOO_LARGE);
-        return -1;
+      position += count;
+      if(position == sizeof(messageHeader)) {
+        if(messageHeader.magicNumber == HEADER_MAGIC_NUMBER) {
+          unsigned int calculatedChecksum = ACE::crc32(&messageHeader, sizeof(messageHeader) - sizeof(messageHeader.headerChecksum));
+          if(calculatedChecksum != messageHeader.headerChecksum) {
+            LOG_ERROR((long) this << " Invalid header checksum");
+            sendErrorPacket(INVALID_HEADER_CHECKSUM);
+            return -1;
+          }
+        } else {
+          LOG_ERROR((long) this << " Invalid magic number: " << hex << messageHeader.magicNumber << dec);
+          sendErrorPacket(INVALID_MAGIC_NUMBER);
+          return -1;
+        }
+        
+        try {
+          collectedData = new char[messageHeader.size];
+        } catch (std::bad_alloc &e) {
+          LOG_ERROR((long) this << " Couldn't allocate memory for message of size " << messageHeader.size);
+          sendErrorPacket(MESSAGE_TOO_LARGE);
+          return -1;
+        }
+        position = 0;
+        //LOG_TRACE("Got data size (" << dataSize << ")");
+        state = READING_DATA;
       }
-      position = 0;
-      //LOG_TRACE("Got data size (" << dataSize << ")");
-      state = READING_DATA;
     } else if(state == READING_DATA) {
       LOG_TRACE((long) this << " Got some data...");
       position += count;
