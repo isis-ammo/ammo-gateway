@@ -88,6 +88,11 @@ void
 DataStoreReceiver::db_filepath (const std::string &path)
 {
   db_filepath_ = path;
+  
+  if (db_filepath_[db_filepath_.size () - 1] != '/')
+    {
+      db_filepath_.push_back ('/');
+    }
 }
 
 bool
