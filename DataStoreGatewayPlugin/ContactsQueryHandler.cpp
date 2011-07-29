@@ -108,7 +108,7 @@ ContactsQueryHandler::encode_row (sqlite3_stmt *stmt,
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 4));
   
   static const Json::StaticString cs ("call_sign");
-  const char *test =
+  value[cs] =
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 5));
     
   static const Json::StaticString br ("branch");
