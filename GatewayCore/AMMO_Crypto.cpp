@@ -19,17 +19,19 @@ AMMO_Crypt::AMMO_Crypt ():
 
 AMMO_Crypt::~AMMO_Crypt ()
 {
+
   if (pubkey_ != NULL)
   {
     EVP_PKEY_free (pubkey_);
-    EVP_cleanup ();
   }
 
   if (pvtkey_ != NULL)
   {
     EVP_PKEY_free (pvtkey_);
-    EVP_cleanup ();
   }
+  
+  EVP_cleanup ();
+  ERR_free_strings();
 }
 
 vector<unsigned char> AMMO_Crypt::encrypt (uchar_ptr data, size_t data_len)
@@ -67,6 +69,8 @@ vector<unsigned char> AMMO_Crypt::encrypt (uchar_ptr data, size_t data_len)
 
   encV.assign(enc, enc+RSA_size(pub_RSAp_));
 
+  delete [] enc;
+
 //  return enc; // sender should delete the buffer 
   return encV;
 }
@@ -98,8 +102,9 @@ vector<unsigned char> AMMO_Crypt::decrypt (
     return decrV;
   }
 
-  //return decr; // the calling function should delete this memory
   decrV.assign(decr, decr+RSA_size(pub_RSAp_)*2);
+
+  delete [] decr;
 
 //  return enc; // sender should delete the buffer 
   return decrV;
@@ -120,6 +125,8 @@ int AMMO_Crypt::read_public_key (string pub_file)
   }
 
   pub_RSAp_ = PEM_read_RSA_PUBKEY(keyfile, NULL, 0, NULL);
+
+  fclose(keyfile);
   
   if (pub_RSAp_ == NULL)
   {
@@ -132,9 +139,25 @@ int AMMO_Crypt::read_public_key (string pub_file)
 
     // assign the EVP key 
     pubkey_ = EVP_PKEY_new ();
-    EVP_PKEY_set1_RSA(pubkey_, pub_RSAp_);
+    
+    if (pubkey_ == NULL)
+    {
+      std::cout << "Fatal Error: Cannot allocate memory for EVP_PKEY_new" 
+                << std::endl;
 
-    std::cout << "Checking that the type is correct: " << ((EVP_PKEY_type(pubkey_->type) == EVP_PKEY_RSA) ? "OK" : "FAILURE") << std::endl;
+      return -1;
+    }
+
+    if(!EVP_PKEY_set1_RSA(pubkey_, pub_RSAp_))
+    {
+      std::cout << "Fatal Error: Error on EVP_PKEY_set1RSA" << std::endl;
+      return -1;
+    }
+
+    std::cout << "Checking that the type is correct: " 
+              << ((EVP_PKEY_type(pubkey_->type) == EVP_PKEY_RSA) ? "OK" : "FAILURE") 
+              << std::endl;
+
     return 0;
   }
 }
@@ -165,7 +188,18 @@ int AMMO_Crypt::read_private_key (string pvt_file)
     printf("Opened the key file OK!\n");
     // assign the EVP key 
     pvtkey_ = EVP_PKEY_new ();
-    EVP_PKEY_set1_RSA(pvtkey_, pvt_RSAp_);
+    
+    if (pvtkey_ == NULL)
+    {
+      std::cout << "Fatal Error: Cannot allocate memory for EVP_PKEY_new" << std::endl;
+      return -1;
+    }
+
+    if (!EVP_PKEY_set1_RSA(pvtkey_, pvt_RSAp_))
+    {
+      std::cout << "Fatal Error: Error on EVP_PKEY_set1RSA" << std::endl;
+      return -1;
+    }
 
     std::cout << "Checking that the type is correct: " << ((EVP_PKEY_type(pvtkey_->type) == EVP_PKEY_RSA) ? "OK" : "FAILURE") << std::endl;
     return 0;
@@ -176,66 +210,16 @@ char* AMMO_Crypt::getErrorString ()
 {
   long err = ERR_get_error ();
 
+  if (err == 0) // no error present
+    return NULL;
+
   char buf[1024];
   memset(buf, 0 , 1024);
   ERR_error_string(err, buf);
 
   return buf;
 }
-/*
-bool AMMO_Crypt::verify (
-			 uchar_ptr data,
-			 size_t data_len,
-			 uchar_ptr sig,
-			 size_t sig_len)
-{
-  cryptoplus::crypto_initializer crypto_initializer;
-  cryptoplus::algorithms_initializer algorithms_initializer;
-  cryptoplus::error::error_strings_initializer error_strings_initializer;
 
-  std::cout << "Message digest signature sample" << std::endl;
-  std::cout << "===============================" << std::endl;
-  std::cout << std::endl;
-
-  try
-    {
-      std::cout << "Data: " << data << std::endl;
-      
-      cryptoplus::pkey::rsa_key rsa_key = 
-	cryptoplus::pkey::rsa_key::take_ownership (pub_RSAp_);
-
-      cryptoplus::pkey::pkey pkey = 
-	cryptoplus::pkey::pkey::from_rsa_key(rsa_key);
-
-      std::cout << "Checking that the type is correct: " << (pkey.is_rsa() ? "OK" : "FAILURE") << std::endl;
-      
-
-      cryptoplus::hash::message_digest_algorithm algorithm("SHA1");
-
-      cryptoplus::hash::message_digest_context ctx2;
-
-      std::cout << "Calling Initialize" << std::endl;
-      ctx2.verify_initialize(algorithm);
-      //		ctx2.verify_update(data.c_str(), data.size());
-      std::cout << "After Initialize" << std::endl;
-      ctx2.verify_update(data, data_len);
-      //		bool verification = ctx2.verify_finalize(&signature[0], signature.size(), pkey);
-      std::cout << "After update" << std::endl;
-      bool verification = ctx2.verify_finalize(sig, sig_len, pkey);
-
-      std::cout << "Verification: " << (verification ? "OK" : "FAILED") << std::endl;
-
-      return verification;
-    }
-  catch (cryptoplus::error::cryptographic_exception& ex)
-    {
-      std::cerr << ex.what() << std::endl;
-    }
-
-
-}
-*/
-//bool AMMO_Crypt::verify_wo_cryptoplus (
 bool AMMO_Crypt::verify (
                         uchar_ptr data,
                         size_t data_len,
@@ -251,6 +235,12 @@ bool AMMO_Crypt::verify (
 
   //      cryptoplus::hash::message_digest_algorithm algorithm("SHA1");
   const EVP_MD* messageDigestPtr = EVP_get_digestbyname("SHA1");
+
+  if (messageDigestPtr == NULL)
+  {
+    std::cout << "Error in EVP_get_digestbyname: Cannot Verify" << std::endl;
+    return false;
+  }
 
   //      cryptoplus::hash::message_digest_context ctx;
   EVP_MD_CTX ctx;
@@ -271,6 +261,8 @@ bool AMMO_Crypt::verify (
 
   int result = EVP_VerifyFinal(&ctx, sig, sig_len, pubkey_);
 
+  EVP_MD_CTX_cleanup(&ctx);
+
   if (result < 0)
     cout << "Error in Verify Final" << endl;
 
@@ -290,6 +282,11 @@ std::vector<unsigned char> AMMO_Crypt::sign (uchar_ptr data, size_t data_len)
 
   //      cryptoplus::hash::message_digest_algorithm algorithm("SHA1");
   const EVP_MD* messageDigestPtr = EVP_get_digestbyname("SHA1");
+  
+  if (messageDigestPtr == NULL)
+  {
+    std::cout << "Error in EVP_get_digestbyname: Error in Signing" << std::endl;
+  }
 
   //      cryptoplus::hash::message_digest_context ctx;
   EVP_MD_CTX ctx;
@@ -347,17 +344,8 @@ std::string AMMO_Crypt::to_hex(const void* buf, size_t buf_len)
 
 vector<unsigned char> AMMO_Crypt::generate_digest (const std::string algo, const std::string& data )
 {
-/*
-  cryptoplus::crypto_initializer crypto_initializer;
-  cryptoplus::algorithms_initializer algorithms_initializer;
-  cryptoplus::error::error_strings_initializer error_strings_initializer;
-*/
-
-    //cryptoplus::hash::message_digest_algorithm algorithm(algo);
     const EVP_MD* messageDigestPtr = EVP_get_digestbyname(algo.c_str());
 
-    //cryptoplus::hash::message_digest_context ctx;
-    
     EVP_MD_CTX ctx;
     EVP_MD_CTX_init(&ctx);
 
@@ -378,41 +366,13 @@ vector<unsigned char> AMMO_Crypt::generate_digest (const std::string algo, const
     
     EVP_DigestFinal_ex(&ctx, dgst, &len);
     
-    //  std::cout << name << ": " << to_hex(message_digest.begin(), message_digest.end()) << std::endl;
-
+    EVP_MD_CTX_cleanup(&ctx);
+    
     vector<unsigned char> msg_digest(dgst, dgst + len);
 
     return msg_digest;
 }
 
-/*
-vector<unsigned char> AMMO_Crypt::generate_digest_wo_CP (const std::string algo, const std::string& data )
-{
-  cryptoplus::crypto_initializer crypto_initializer;
-  cryptoplus::algorithms_initializer algorithms_initializer;
-  cryptoplus::error::error_strings_initializer error_strings_initializer;
-
-  try
-  {
-    cryptoplus::hash::message_digest_algorithm algorithm(algo);
-    const EVP_MD* messageDigestPtr = EVP_get_digestbyname(algo.c_str());
-
-    cryptoplus::hash::message_digest_context ctx;
-
-    ctx.initialize(algorithm);
-    ctx.update(data.c_str(), data.size());
-    vector<unsigned char> message_digest = ctx.finalize<unsigned char>();
-    //  std::cout << name << ": " << to_hex(message_digest.begin(), message_digest.end()) << std::endl;
-
-    return message_digest;
-  }
-  catch (cryptoplus::error::cryptographic_exception& ex)
-  {
-    std::cerr << algo << ": " << ex.what() << std::endl;
-  }
-}
-
-  */
 string AMMO_Crypt::ucharVectorToString (vector<unsigned char> ucharV)
 {
       std::string sigStr; 
