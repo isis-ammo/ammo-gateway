@@ -73,6 +73,7 @@ DataStoreReceiver::onPullRequestReceived (GatewayConnector *sender,
     }
 		
   LOG_DEBUG ("Data type: " << pullReq.mimeType);
+  LOG_DEBUG ("query string: " << pullReq.query);
   
   QueryHandlerFactory factory;
   QueryHandler *handler = factory.createHandler (db_, sender, pullReq);
