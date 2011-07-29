@@ -92,6 +92,7 @@ DataStoreReceiver::db_filepath (const std::string &path)
   if (db_filepath_[db_filepath_.size () - 1] != '/')
     {
       db_filepath_.push_back ('/');
+      LOG_TRACE ("Added trailing forward slash to db file path name");
     }
 }
 
