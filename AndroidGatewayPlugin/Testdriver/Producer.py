@@ -3,6 +3,7 @@ import uuid
 import sys
 import time
 import datetime
+import os
 from ammo import AmmoMessages_pb2
 
 from twisted.internet import reactor
@@ -13,8 +14,8 @@ def onDataReceived(connector, msg):
 
 if __name__ == "__main__":
   print "Android Gateway Tester"
-  if len(sys.argv) != 4 and len(sys.argv) != 5:
-    print "Usage: ", sys.argv[0], "host port rate [scope]"
+  if len(sys.argv) != 5 and len(sys.argv) != 6:
+    print "Usage: ", sys.argv[0], "host port rate size [scope]"
     exit(-1)
   
   deviceName = "device:test/" + uuid.uuid1().hex
@@ -25,10 +26,10 @@ if __name__ == "__main__":
   connector.registerMessageCallback(onDataReceived)
   
   scope = AndroidConnector.MessageScope.GLOBAL
-  if len(sys.argv) == 5:
-    if sys.argv[4] == "local":
+  if len(sys.argv) == 6:
+    if sys.argv[5] == "local":
       scope = AndroidConnector.MessageScope.LOCAL
-    elif sys.argv[4] == "global":
+    elif sys.argv[5] == "global":
       scope = AndroidConnector.MessageScope.GLOBAL
     else:
       print "scope must be one of: local global"
@@ -44,7 +45,7 @@ if __name__ == "__main__":
     while True:
       postTime = time.time()
       formattedTime = "{0:.6f}".format(postTime)
-      connector.push("item:" + str(sequenceNumber), "application/vnd.edu.vu.isis.ammo.test.TestData", str(sequenceNumber) + "/" + formattedTime, scope)
+      connector.push("item:" + str(sequenceNumber), "application/vnd.edu.vu.isis.ammo.test.TestData", str(sequenceNumber) + "/" + formattedTime + "/" + os.urandom(int(sys.argv[4])), scope)
       print "Pushed sequence number", sequenceNumber, "at", "{0:.6f}".format(time.time())
       sequenceNumber = sequenceNumber + 1
       time.sleep(float(sys.argv[3]))
