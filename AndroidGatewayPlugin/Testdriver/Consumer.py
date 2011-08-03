@@ -3,17 +3,22 @@ import uuid
 import sys
 import time
 import datetime
+import math
 from ammo import AmmoMessages_pb2
 
 from twisted.internet import reactor
 
+latencies = []
+
 def onDataReceived(connector, msg):
   receivedTime = time.time()
   if msg.type == AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE:
-    sequenceNumber = int(msg.data_message.data.split("/")[0])
-    sentTime = float(msg.data_message.data.split("/")[1])
+    splitMessage = msg.data_message.data.split("/")
+    sequenceNumber = int(splitMessage[0])
+    sentTime = float(splitMessage[1])
     timeDifference = receivedTime - sentTime
     print "{0},{1:.9f}".format(sequenceNumber, timeDifference)
+    latencies.append(timeDifference)
 
 if __name__ == "__main__":
   print "Android Gateway Tester"
@@ -52,6 +57,15 @@ if __name__ == "__main__":
   except KeyboardInterrupt:
     print "Got ^C...  Closing"
     reactor.callFromThread(reactor.stop)
+    print "MeanLatency,StdDev,Samples"
+    if len(latencies) > 0:
+      meanLatency = sum(latencies) / len(latencies)
+      squaredDifferences = [(x - meanLatency) ** 2 for x in latencies]
+      variance = sum(squaredDifferences) / len(latencies)
+      stddev = math.sqrt(variance)
+      print str(meanLatency) + "," + str(stddev) + "," + str(len(latencies))
+    else:
+      print "0,0"
   except:
     print "Unexpected error...  dying."
     reactor.callFromThread(reactor.stop)
