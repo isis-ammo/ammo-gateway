@@ -74,6 +74,7 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
       //LOG_TRACE("Got some data...");
       position += count;
       if(position == dataSize) {
+        LOG_TRACE("Got a whole message...  processing");
         //LOG_TRACE("Got all the data... processing");
         processData(collectedData, dataSize, checksum);
         //LOG_TRACE("Processsing complete.  Deleting buffer.");
@@ -177,6 +178,7 @@ ammo::gateway::protocol::GatewayWrapper *GatewayServiceHandler::getNextMessageTo
 }
 
 int GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
+  LOG_TRACE("Processing checksum");
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if(calculatedChecksum != messageChecksum) {
@@ -184,6 +186,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     return -1;
   }
   
+  LOG_TRACE("Deserializing protobuf message");
   //checksum is valid; parse the data
   ammo::gateway::protocol::GatewayWrapper msg;
   bool result = msg.ParseFromArray(data, messageSize);
