@@ -9,6 +9,9 @@ URL:            http://ammo.isis.vanderbilt.edu
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Requires:       ace = 6.0.2, protobuf, openldap-servers
 Requires(pre):  glibc-common, shadow-utils
+Requires(post): chkconfig
+Requires(preun): chkconfig
+Requires(preun): initscripts
 BuildRequires:  gcc-c++, ace-devel = 6.0.2, protobuf-compiler, protobuf-devel
 
 %define USERNAME  ammo-gateway
@@ -38,6 +41,16 @@ getent passwd %{USERNAME} >/dev/null || \
 exit 0
 
 %post -p /sbin/ldconfig
+/sbin/chkconfig --add ammo-gateway
+/sbin/service ammo-gateway start >/dev/null 2>&1
+
+%preun
+if [ $1 -eq 0 ] ; then
+    /sbin/service ammo-gateway stop >/dev/null 2>&1
+    /sbin/chkconfig --del ammo-gateway
+fi
+
+
 %postun -p /sbin/ldconfig
 
 %clean
