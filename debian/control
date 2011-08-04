@@ -10,5 +10,5 @@ Homepage: http://ammo.isis.vanderbilt.edu
 
 Package: ammo-gateway
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, slapd
 Description: Android Middleware Server
