@@ -8,7 +8,12 @@ Source:         %{name}-%{version}.tar.gz
 URL:            http://ammo.isis.vanderbilt.edu
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Requires:       ace = 6.0.2, protobuf
+Requires(pre):  glibc-common, shadow-utils
 BuildRequires:  gcc-c++, ace-devel = 6.0.2, protobuf-compiler, protobuf-devel
+
+%define USERNAME  ammo-gateway
+%define GROUPNAME ammo-gateway
+%define HOMEDIR   /var/run/ammo-gateway
 
 %description
 Android Middleware Server
@@ -24,6 +29,13 @@ make PROTOBUF_ROOT=/usr GATEWAY_ROOT=`pwd`
 
 %install
 make DESTDIR=%{buildroot} PROTOBUF_ROOT=/usr GATEWAY_ROOT=`pwd` install
+
+%pre
+getent group %{GROUPNAME} >/dev/null || groupadd -r %{GROUPNAME}
+getent passwd %{USERNAME} >/dev/null || \
+    useradd -r -g %{GROUPNAME} -d %{HOMEDIR} -s /sbin/nologin \
+    -c "AMMO Gateway User" %{USERNAME}
+exit 0
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
