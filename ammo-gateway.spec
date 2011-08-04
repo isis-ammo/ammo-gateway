@@ -45,6 +45,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-, root, root, -)
+/etc/init.d/ammo-gateway
 /etc/ammo-gateway/AtsPluginConfig.json
 /etc/ammo-gateway/GatewayConfig.json
 /etc/ammo-gateway/LdapPluginConfig.json

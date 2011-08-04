@@ -22,6 +22,7 @@ install: all
 	mkdir -p $(INSTALL_DIR)
 	mkdir -p $(INSTALL_DIR)/bin
 	mkdir -p $(INSTALL_DIR)/lib
+	mkdir -p $(DESTDIR)/etc/init.d
 	mkdir -p $(DESTDIR)/etc/ammo-gateway
 	echo "Installing binaries ..."
 	install -m 755 build/bin/AndroidGatewayPlugin $(INSTALL_DIR)/bin
@@ -41,6 +42,7 @@ install: all
 	install -m 644 build/lib/libjson.so.$(VERSION) $(INSTALL_DIR)/lib
 	ln -s $(INSTALL_DIR_BASE)/lib/libjson.so.$(VERSION) $(INSTALL_DIR)/lib/libjson.so
 	echo "Installing scripts ..."
+	install -m 755 debian/init.d $(DESTDIR)/etc/init.d/ammo-gateway
 	install -m 755 dist/template/bin/launch_ammo_gateway_headless.sh $(INSTALL_DIR)/bin
 	install -m 755 dist/template/bin/launch_ammo_gateway.sh $(INSTALL_DIR)/bin
 	install -m 755 dist/template/bin/kill_all_gateway.sh $(INSTALL_DIR)/bin
