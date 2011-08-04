@@ -43,7 +43,8 @@ if [ $1 -eq 2 ] ; then
 fi
 exit 0
 
-%post -p /sbin/ldconfig
+%post
+/sbin/ldconfig
 if [ $1 -eq 1 ] ; then
     /sbin/chkconfig --add ammo-gateway
 fi
