@@ -10,6 +10,8 @@
 #include "ace/OS_NS_unistd.h"
 #include "ace/Signal.h"
 
+#include "ace/High_Res_Timer.h"
+
 #include "ace/Acceptor.h"
 #include "ace/Reactor.h"
 
@@ -35,6 +37,10 @@ public:
 };
 
 int main(int argc, char **argv) {
+  unsigned int scale = ACE_High_Res_Timer::calibrate();
+  
+  LOG_INFO("Timer scale value is " << scale);
+  
   LOG_INFO("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
