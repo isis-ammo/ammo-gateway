@@ -8,7 +8,7 @@ HOMEDIR=/var/run/ammo-gateway
 
 getent group $GROUPNAME >/dev/null || groupadd -r $GROUPNAME
 getent passwd $SERNAME>/dev/null || \
-    useradd -r -g $GROUPNAME-d $HOMEDIR-s /sbin/nologin \
+    useradd -r -g $GROUPNAME -d $HOMEDIR-s /sbin/nologin \
     -c "AMMO Gateway User" $USERNAME
 
 exit 0
