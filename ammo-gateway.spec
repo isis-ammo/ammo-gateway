@@ -87,6 +87,9 @@ rm -rf %{buildroot}
 /usr/lib/libgeotrans-mgrs.so.AMMO_VERSION_STRING
 /usr/lib/libjson.so
 /usr/lib/libjson.so.AMMO_VERSION_STRING
+/var/log/ammo-gateway
+/var/db/ammo-gateway
+/var/run/ammo-gateway
 
 %changelog
 * BUILD_DATE John Williams <johnwilliams@isis.vanderbilt.edu> - AMMO_VERSION
