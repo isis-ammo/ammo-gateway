@@ -5,6 +5,6 @@
       "application/vnd.edu.vu.isis.ammo.sms.message",
       "application/vnd.edu.vu.isis.ammo.report.report_base",
       "application/vnd.edu.vu.isis.ammo.private_contacts" ],
-  "DatabasePath": "/var/db/ammo-gateway"
+  "DatabasePath": "/var/db/ammo-gateway/"
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)
