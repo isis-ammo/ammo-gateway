@@ -24,6 +24,9 @@ install: all
 	mkdir -p $(INSTALL_DIR)/lib
 	mkdir -p $(DESTDIR)/etc/init.d
 	mkdir -p $(DESTDIR)/etc/ammo-gateway
+	mkdir -p $(DESTDIR)/var/log/ammo-gateway
+	mkdir -p $(DESTDIR)/var/db/ammo-gateway
+	mkdir -p $(DESTDIR)/var/run/ammo-gateway
 	echo "Installing binaries ..."
 	install -m 755 build/bin/AndroidGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/AtsGatewayPlugin $(INSTALL_DIR)/bin

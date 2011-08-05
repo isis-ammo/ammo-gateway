@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOGDIR="/tmp/gatewaylogs"
+LOGDIR="/var/log/ammo-gateway"
 
 if pgrep -l slapd > /dev/null 2>&1 ; then
   echo "LDAP server: running"

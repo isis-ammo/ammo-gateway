@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOGDIR="/tmp/gatewaylogs"
+LOGDIR="/var/log/ammo-gateway"
 
 export GATEWAY_ROOT="$PWD"
 export LD_LIBRARY_PATH=$GATEWAY_ROOT/lib:$LD_LIBRARY_PATH
