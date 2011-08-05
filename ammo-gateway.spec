@@ -45,6 +45,7 @@ exit 0
 
 %post
 /sbin/ldconfig
+chown ammo-gateway:ammo-gateway /var/log/ammo-gateway /var/run/ammo-gateway /var/db/ammo-gateway
 if [ $1 -eq 1 ] ; then
     /sbin/chkconfig --add ammo-gateway
 fi
