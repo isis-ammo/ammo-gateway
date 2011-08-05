@@ -45,7 +45,8 @@ exit 0
 
 %post
 /sbin/ldconfig
-chown ammo-gateway:ammo-gateway /var/log/ammo-gateway /var/run/ammo-gateway /var/db/ammo-gateway
+chown ammo-gateway:ammo-gateway /var/log/ammo-gateway /var/run/ammo-gateway /var/db/ammo-gateway /etc/ammo-gateway/keys
+chown 700 /etc/ammo-gateway/keys
 if [ $1 -eq 1 ] ; then
     /sbin/chkconfig --add ammo-gateway
 fi
@@ -70,6 +71,7 @@ rm -rf %{buildroot}
 /etc/ammo-gateway/GatewayConfig.json
 /etc/ammo-gateway/LdapPluginConfig.json
 /etc/ammo-gateway/DataStorePluginConfig.json
+/etc/ammo-gateway/keys
 /usr/bin/AndroidGatewayPlugin
 /usr/bin/AtsGatewayPlugin
 /usr/bin/GatewayCore

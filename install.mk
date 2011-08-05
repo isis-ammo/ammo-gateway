@@ -24,6 +24,7 @@ install: all
 	mkdir -p $(INSTALL_DIR)/lib
 	mkdir -p $(DESTDIR)/etc/init.d
 	mkdir -p $(DESTDIR)/etc/ammo-gateway
+	mkdir -p $(DESTDIR)/etc/ammo-gateway/keys
 	mkdir -p $(DESTDIR)/var/log/ammo-gateway
 	mkdir -p $(DESTDIR)/var/db/ammo-gateway
 	mkdir -p $(DESTDIR)/var/run/ammo-gateway
