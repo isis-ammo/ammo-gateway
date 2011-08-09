@@ -182,13 +182,14 @@ class AndroidConnector(threading.Thread):
     if self._messageQueueEnabled:
       self._messageQueue.put((msg, time))
     
-  def _sendAuthMessage(self):
+  def _sendAuthMessage(self, messageType, message):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.AUTHENTICATION_MESSAGE
+    m.authentication_message.type = messageType
+    m.authentication_message.message = message
     m.authentication_message.device_id = self._deviceId
     m.authentication_message.user_id = self._userId
-    m.authentication_message.user_key = self._userKey
-    print "Sending auth message"
+    m.authentication_message.user_key = ""
     self._protocol.sendMessageWrapper(m)
     
   def dequeueMessage(self):
