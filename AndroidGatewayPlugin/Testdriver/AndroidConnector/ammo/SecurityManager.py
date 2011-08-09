@@ -1,6 +1,10 @@
 import AmmoMessages_pb2
 
 from M2Crypto import Rand
+from M2Crypto import RSA
+from M2Crypto import EVP
+
+import hashlib
 
 NONCE_LENGTH = 20
 PRE_MASTER_SECRET_LENGTH = 48
@@ -41,13 +45,15 @@ class SecurityManager:
     elif messageType == AmmoMessages_pb2.AuthenticationMessage.SERVER_NONCE:
       if self._state != SecurityManagerState.WAITING_FOR_SERVER_NONCE:
         raise InvalidStateException("Received server nonce at the wrong time")
-      #do some stuff here:
-      #store the server nonce
-      
-      #send Client KeyExchange
+        
+      self._serverNonce = message
+      self._sendKeyExchange()
       #send Client PhoneAuth
+      self._sendPhoneAuth()
       #calculate master_secret
+      self._calculateMasterSecret()
       #send Client Finish
+      self._sendClientFinish()
       self._state == SecurityManagerState.WAITING_FOR_SERVER_FINISH
     elif messageType == AmmoMessages_pb2.AuthenticationMessage.SERVER_FINISH:
       if self._state != SecurityManagerState.WAITING_FOR_SERVER_FINISH:
@@ -60,3 +66,28 @@ class SecurityManager:
         raise AuthenticationException("Authentication failed.")
     else:
       raise InvalidStateException("Got an unhandled type of message.")  
+      
+  def _sendKeyExchange(self):
+    self._preMasterSecret = Rand.rand_bytes(PRE_MASTER_SECRET_LENGTH)
+    #load the gateway's public key
+    gatewayKey = RSA.load_pub_key(self.gatewayId + "_pub.pem")
+    self._keyExchange = gatewayKey.public_encrypt(self._preMasterSecret, RSA.pkcs1_padding)
+    self._sendMessage(AmmoMessages_pb2.AuthenticationMessage.CLIENT_KEYXCHANGE, self._keyExchange)
+    
+  def _sendPhoneAuth(self):
+    unsignedPhoneAuth = self._keyExchange + self._clientNonce + self._serverNonce
+    deviceKey = EVP.load_key(self.deviceId + "_pvt.pem")
+    deviceKey.reset_context("sha1")
+    deviceKey.sign_init()
+    deviceKey.sign_update(unsignedPhoneAuth)
+    self._phoneAuth = deviceKey.sign_final()
+    self._sendMessage(AmmoMessages_pb2.AuthenticationMessage.CLIENT_PHNAUTH, self._phoneAuth)
+    
+  def _calculateMasterSecret(self):
+    h = hashlib.sha256()
+    h.update(self._preMasterSecret + self._clientNonce + self._serverNonce)
+    firstStageHash = h.digest()
+    
+    h2 = hashlib.sha256()
+    h2.update(self._preMasterSecret + firstStageHash)
+    self._masterSecret = h2.digest()
