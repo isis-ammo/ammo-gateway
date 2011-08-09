@@ -59,6 +59,7 @@ class SecurityManager:
       if self._state != SecurityManagerState.WAITING_FOR_SERVER_FINISH:
         raise InvalidStateException("Received server finish at the wrong time")
       #validate the GatewayFinish
+      self._verifyServerFinish()
       #tell the AndroidConnector that everything's done
       self._state == SecurityManagerState.AUTH_COMPLETE
     elif messageType == AmmoMessages_pb2.AuthenticationMessage.STATUS:
@@ -91,3 +92,30 @@ class SecurityManager:
     h2 = hashlib.sha256()
     h2.update(self._preMasterSecret + firstStageHash)
     self._masterSecret = h2.digest()
+    
+  def _sendClientFinish(self):
+    handshake = self_phoneAuth + self._keyExchange + self._clientNonce + self._serverNonce
+    content = handshake + self._deviceId + self._masterSecret
+    
+    h = hashlib.sha256()
+    h.update(content)
+    firstStageHash = h.digest()
+    
+    h2 = hashlib.sha256()
+    h2.update(masterSecret + content)
+    self._clientFinish = h2.digest()
+    self._sendMessage(AmmoMessages_pb2.AuthenticationMessage.CLIENT_FINISH, self._clientFinish)
+    
+  def verifyServerFinish(self, serverFinish):
+    handshake = self_phoneAuth + self._keyExchange + self._clientNonce + self._serverNonce
+    content = handshake + self._gatewayId + self._masterSecret
+    
+    h = hashlib.sha256()
+    h.update(content)
+    firstStageHash = h.digest()
+    
+    h2 = hashlib.sha256()
+    h2.update(masterSecret + content)
+    computedServerFinish = h2.digest()
+    if serverFinish != computedServerFinish:
+      raise AuthenticationException("Server finish doesn't match computed value")
