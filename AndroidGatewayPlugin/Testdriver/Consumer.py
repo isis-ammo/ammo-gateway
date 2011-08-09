@@ -31,7 +31,7 @@ if __name__ == "__main__":
       print "scope must be one of: local global"
       exit(-1)
   
-  deviceName = "device:test/" + uuid.uuid1().hex
+  deviceName = "test-consumer"
   userName = "user:test/" + uuid.uuid1().hex
   
   connector = AndroidConnector.AndroidConnector(sys.argv[1], int(sys.argv[2]), deviceName, userName, "")

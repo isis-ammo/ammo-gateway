@@ -35,20 +35,8 @@ bool GWSecurityMgr::Authenticate (AuthMessage &msg)
     set_device_id(msg.device_id);
 
     // get the pubkey file of the phone from the device id ..
-    
-    string gatewayRoot;
 
-    char *gatewayRootC = ACE_OS::getenv("GATEWAY_ROOT");
-
-    if(gatewayRootC == NULL) {
-      gatewayRoot = "";
-    } else {
-      gatewayRoot = gatewayRootC;
-    }
-
-
-    string pubkey_phn = gatewayRoot;
-    pubkey_phn += DEVICE_KEYS_SUBDIR;
+    string pubkey_phn = DEVICE_KEYS_SUBDIR;
 
     pubkey_phn += msg.device_id;
     pubkey_phn += string("_pub.pem");
@@ -64,8 +52,7 @@ bool GWSecurityMgr::Authenticate (AuthMessage &msg)
       return false;
     }
 
-    string gw_pvtkey = gatewayRoot;
-    gw_pvtkey += GATEWAY_KEYS_SUBDIR;
+    string gw_pvtkey = GATEWAY_KEYS_SUBDIR;
     gw_pvtkey += gatewayId_;
     gw_pvtkey += string("_pvt.pem");
 

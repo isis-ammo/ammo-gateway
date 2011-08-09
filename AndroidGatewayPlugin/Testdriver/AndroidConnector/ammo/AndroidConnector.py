@@ -163,7 +163,7 @@ class AndroidConnector(threading.Thread):
     
   def _onConnect(self):
     self._protocol.setOnMessageAvailableCallback(self._onMessageAvailable)
-    self._sendAuthMessage()
+    self._securityManager.sendNonce()
     
   def _onMessageAvailable(self, msg):
     if self._authenticated == False:
