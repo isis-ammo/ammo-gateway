@@ -4,6 +4,7 @@ from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
 from datetime import datetime
+from SecurityManager import SecurityManager
 
 import sys
 import struct
@@ -134,6 +135,8 @@ class AndroidConnector(threading.Thread):
     self._messageQueueEnabled = True
     self._messageQueue = Queue.Queue()
     self._messageCallback = None
+    # TODO:  Get GatewayId from calling script
+    self._securityManager = SecurityManager(self._deviceId, self._userId, "MainGateway", self)
     
   def _gotProtocol(self, p):
     self._protocol = p
@@ -164,23 +167,17 @@ class AndroidConnector(threading.Thread):
     
   def _onMessageAvailable(self, msg):
     if self._authenticated == False:
-      if msg.type == AmmoMessages_pb2.MessageWrapper.AUTHENTICATION_RESULT:
-        if msg.authentication_result.result == AmmoMessages_pb2.AuthenticationResult.SUCCESS:
-          print "Authentication succeeded."
-          self._authCondition.acquire()
-          self._authenticated = True
-          self._authCondition.notifyAll()
-          self._authCondition.release()
-        else:
-          print "Authentication failed."
-          raise AuthenticationFailure("Auth failed: " + msg.authentication_result.message)
-    
-    time = datetime.now()
-    if self._messageCallback != None:
-      self._messageCallback(self, msg)
-    
-    if self._messageQueueEnabled:
-      self._messageQueue.put((msg, time))
+      if msg.type == AmmoMessages_pb2.MessageWrapper.AUTHENTICATION_MESSAGE:
+        self._securityManager.onMessageReceived(msg.authentication_message.type, msg.authentication_message.message, msg.authentication_message.result)
+      else:
+        print "Got non-auth message during auth process...  dropping."
+    else:
+      time = datetime.now()
+      if self._messageCallback != None:
+        self._messageCallback(self, msg)
+      
+      if self._messageQueueEnabled:
+        self._messageQueue.put((msg, time))
     
   def _sendAuthMessage(self, messageType, message):
     m = AmmoMessages_pb2.MessageWrapper()
@@ -191,6 +188,14 @@ class AndroidConnector(threading.Thread):
     m.authentication_message.user_id = self._userId
     m.authentication_message.user_key = ""
     self._protocol.sendMessageWrapper(m)
+    
+  def _authenticationFinished(self):
+    print "Authentication succeeded."
+    
+    self._authCondition.acquire()
+    self._authenticated = True
+    self._authCondition.notifyAll()
+    self._authCondition.release()
     
   def dequeueMessage(self):
     '''

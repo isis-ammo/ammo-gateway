@@ -106,7 +106,7 @@ class SecurityManager:
     self._clientFinish = h2.digest()
     self._sendMessage(AmmoMessages_pb2.AuthenticationMessage.CLIENT_FINISH, self._clientFinish)
     
-  def verifyServerFinish(self, serverFinish):
+  def _verifyServerFinish(self, serverFinish):
     handshake = self_phoneAuth + self._keyExchange + self._clientNonce + self._serverNonce
     content = handshake + self._gatewayId + self._masterSecret
     
