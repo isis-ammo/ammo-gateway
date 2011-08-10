@@ -226,7 +226,7 @@ void GWSecurityMgr::generate_master_secret()
   string first_level = 
               crp.ucharVectorToString(crp.generate_digest ("SHA256", content));
 
-  crp.dump_to_file("master_secret", pre_master_);
+  //crp.dump_to_file("master_secret", pre_master_);
 
   // the second level wiil have another message digest ... 
   // SHA-256 (S||first_level)
