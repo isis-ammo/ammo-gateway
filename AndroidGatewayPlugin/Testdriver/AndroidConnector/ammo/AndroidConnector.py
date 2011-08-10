@@ -121,7 +121,7 @@ class AndroidConnector(threading.Thread):
   _messageQueue = None
   _messageCallback = None
   
-  def __init__(self, address, port, deviceId, userId, userKey):
+  def __init__(self, address, port, deviceId, userId, userKey, gatewayId = "MainGateway"):
     threading.Thread.__init__(self)
     self._address = address
     self._port = port
@@ -135,8 +135,7 @@ class AndroidConnector(threading.Thread):
     self._messageQueueEnabled = True
     self._messageQueue = Queue.Queue()
     self._messageCallback = None
-    # TODO:  Get GatewayId from calling script
-    self._securityManager = SecurityManager(self._deviceId, self._userId, "MainGateway", self)
+    self._securityManager = SecurityManager(self._deviceId, self._userId, gatewayId, self)
     
   def _gotProtocol(self, p):
     self._protocol = p
