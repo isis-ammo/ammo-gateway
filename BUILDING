@@ -1,6 +1,6 @@
 Build prerequisites (tested version):
   * Google Protocol Buffers (2.3.0)
-  * ACE (6.0.1)
+  * ACE (6.0.3)
   * Perl (Linux: 5.10.1, Windows 5.12.1)
   * libcurl (OpenSSL) (7.2.1)
    
@@ -27,7 +27,7 @@ Building on Linux:
   3) Download and extract ACE+TAO+CIAO to a location of your choice.
         http://download.dre.vanderbilt.edu/
         e.g.
-        http://download.dre.vanderbilt.edu/previous_versions/ACE+TAO+CIAO-6.0.2.tar.bz2
+        http://download.dre.vanderbilt.edu/previous_versions/ACE+TAO+CIAO-6.0.3.tar.bz2
   
   4) Set environment variables (in .bashrc or similar):
         export ACE_ROOT=(ACE_wrappers directory)
