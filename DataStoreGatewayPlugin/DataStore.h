@@ -34,8 +34,13 @@ public:
   virtual void onPullRequestReceived (ammo::gateway::GatewayConnector *sender,
                                       ammo::gateway::PullRequest &pullReq);
                                
-  void db_filepath (const std::string &path);
+  bool db_filepath (const std::string &path);
   bool init (void);
+  
+private:
+  // Create all directories that don't exist, expanding
+  // environment variables if necessary.
+  bool check_path (void);
 
 private:
   // Dispatcher class that handles all pushes and pulls.
