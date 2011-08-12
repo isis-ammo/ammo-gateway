@@ -4,6 +4,7 @@ from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint
 
 from datetime import datetime
+from SecurityManager import SecurityManager
 
 import sys
 import struct
@@ -120,7 +121,7 @@ class AndroidConnector(threading.Thread):
   _messageQueue = None
   _messageCallback = None
   
-  def __init__(self, address, port, deviceId, userId, userKey):
+  def __init__(self, address, port, deviceId, userId, userKey, gatewayId = "MainGateway"):
     threading.Thread.__init__(self)
     self._address = address
     self._port = port
@@ -134,6 +135,7 @@ class AndroidConnector(threading.Thread):
     self._messageQueueEnabled = True
     self._messageQueue = Queue.Queue()
     self._messageCallback = None
+    self._securityManager = SecurityManager(self._deviceId, self._userId, gatewayId, self)
     
   def _gotProtocol(self, p):
     self._protocol = p
@@ -160,36 +162,39 @@ class AndroidConnector(threading.Thread):
     
   def _onConnect(self):
     self._protocol.setOnMessageAvailableCallback(self._onMessageAvailable)
-    self._sendAuthMessage()
+    self._securityManager.sendNonce()
     
   def _onMessageAvailable(self, msg):
     if self._authenticated == False:
-      if msg.type == AmmoMessages_pb2.MessageWrapper.AUTHENTICATION_RESULT:
-        if msg.authentication_result.result == AmmoMessages_pb2.AuthenticationResult.SUCCESS:
-          print "Authentication succeeded."
-          self._authCondition.acquire()
-          self._authenticated = True
-          self._authCondition.notifyAll()
-          self._authCondition.release()
-        else:
-          print "Authentication failed."
-          raise AuthenticationFailure("Auth failed: " + msg.authentication_result.message)
+      if msg.type == AmmoMessages_pb2.MessageWrapper.AUTHENTICATION_MESSAGE:
+        self._securityManager.onMessageReceived(msg.authentication_message.type, msg.authentication_message.message, msg.authentication_message.result)
+      else:
+        print "Got non-auth message during auth process...  dropping."
+    else:
+      time = datetime.now()
+      if self._messageCallback != None:
+        self._messageCallback(self, msg)
+      
+      if self._messageQueueEnabled:
+        self._messageQueue.put((msg, time))
     
-    time = datetime.now()
-    if self._messageCallback != None:
-      self._messageCallback(self, msg)
-    
-    if self._messageQueueEnabled:
-      self._messageQueue.put((msg, time))
-    
-  def _sendAuthMessage(self):
+  def _sendAuthMessage(self, messageType, message):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.AUTHENTICATION_MESSAGE
+    m.authentication_message.type = messageType
+    m.authentication_message.message = message
     m.authentication_message.device_id = self._deviceId
     m.authentication_message.user_id = self._userId
-    m.authentication_message.user_key = self._userKey
-    print "Sending auth message"
+    m.authentication_message.user_key = ""
     self._protocol.sendMessageWrapper(m)
+    
+  def _authenticationFinished(self):
+    print "Authentication succeeded."
+    
+    self._authCondition.acquire()
+    self._authenticated = True
+    self._authCondition.notifyAll()
+    self._authCondition.release()
     
   def dequeueMessage(self):
     '''

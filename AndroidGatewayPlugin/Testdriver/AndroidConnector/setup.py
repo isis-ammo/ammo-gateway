@@ -73,6 +73,6 @@ if __name__ == '__main__':
     name = "AndroidConnector",
     version = version_number,
     packages = find_packages(),
-    install_requires = ['twisted>=10.0'],
+    install_requires = ['twisted>=10.0', 'M2Crypto>=0.21.1'],
   )
 
