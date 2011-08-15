@@ -1,6 +1,7 @@
 #include "GWSecurityMgr.h"
 #include "AMMO_Crypto.h"
 #include "GatewaySecHandler.h"
+#include "log.h"
 
 #include "ace/OS_NS_unistd.h"
 
@@ -16,17 +17,16 @@ GWSecurityMgr::GWSecurityMgr (const char* gatewayId, GatewaySecHandler *handler)
 {
   // Initialize the oper ids .... 
   pass_keys[std::string("operator")] = string("operator");
-  printf ("\n Inside the Constructor \n");
-  operator_id = "operator";
+  //operator_id = "operator";
 
-  printf ("\n The Gateway ID is [%s]\n", gatewayId);
+  LOG_TRACE("The Gateway ID is " << gatewayId);
 }
 
 //bool GWSecurityMgr::Authenticate (ammo::protocol::MessageWrapper &msg)
 bool GWSecurityMgr::Authenticate (AuthMessage &msg)
 {
  
-  printf ("\n Inside the Authenticate Method.");
+  LOG_TRACE("Inside the Authenticate Method.");
 
   if (msg.type == AuthMessage::CLIENT_NONCE)
   {
@@ -45,9 +45,9 @@ bool GWSecurityMgr::Authenticate (AuthMessage &msg)
     
     if (res == -1)
     {
-      cout << "Error in reading/finding Phone ["
+      LOG_ERROR("Error in reading/finding Phone ["
            << msg.device_id
-           << "] Public Key" << endl;
+           << "] Public Key");
 
       return false;
     }
@@ -60,30 +60,30 @@ bool GWSecurityMgr::Authenticate (AuthMessage &msg)
 
     if (res == -1)
     {
-      cout << "Error in reading/finding Gateway Private Key" << endl;
+      LOG_ERROR("Error in reading/finding Gateway Private Key");
       return false;
     }
 
   //  LOG_TRACE(commsHandler << "Got the Client Nonce ");
-    cout << "Got the Client Nonce " << endl;
+    LOG_TRACE("Got the Client Nonce ");
 
     std::vector<unsigned char> nonce = get_Server_Nonce ();
     std::string sigStr; 
     sigStr.assign (nonce.begin (), nonce.end ());
 
-    cout << "Server Nonce Length is " << endl;
+    LOG_TRACE("Server Nonce Length is ");
 
     AuthMessage outmsg;
     outmsg.type = AuthMessage::SERVER_NONCE;
     outmsg.message = sigStr;
 
-    cout << " Returning from Authenticate..." << endl;
+    LOG_TRACE(" Returning from Authenticate...");
     handler_->sendMessage(outmsg);
 
   } 
   else if (msg.type == AuthMessage::CLIENT_KEYXCHANGE)
   {
-    cout << "Got the Key Exchange " << endl;
+    LOG_TRACE("Got the Key Exchange ");
     set_keyXchange (msg.message);
 
   } 
@@ -92,13 +92,13 @@ bool GWSecurityMgr::Authenticate (AuthMessage &msg)
 
     string phnAuth = msg.message;
 
-    cout << "Got the Phone Auth" << endl;
+    LOG_TRACE("Got the Phone Auth");
 
     set_phn_auth (phnAuth);
 
     bool ver = verify_phone_auth ();
     
-    cout << "Verified " << ((ver)? "OK": "FAILED") << endl;
+    LOG_TRACE("Verified " << ((ver)? "OK": "FAILED"));
 
     if (ver)
     {
@@ -111,18 +111,18 @@ bool GWSecurityMgr::Authenticate (AuthMessage &msg)
   else if (msg.type == AuthMessage::CLIENT_FINISH) 
   {
 
-    cout << "Got the CLIENT FINISH MSG" << endl;
+    LOG_TRACE("Got the CLIENT FINISH MSG");
 
     string clnt_fin = msg.message;
 
     if(verify_client_finish (clnt_fin))
     {
-      cout << "Client Finish Verified OK" << endl;
+      LOG_TRACE("Client Finish Verified OK");
 
       // Client Finish verified ok ... so now send the gateway finish ...
 
 //      LOG_DEBUG(commsHandler << " Returning from Authenticate after sending Gateway Finish...");
-      cout << " Returning from Authenticate after sending Gateway Finish..." << endl;
+      LOG_TRACE(" Returning from Authenticate after sending Gateway Finish...");
 
       AuthMessage outmsg;
       outmsg.type = AuthMessage::SERVER_FINISH;
@@ -134,7 +134,7 @@ bool GWSecurityMgr::Authenticate (AuthMessage &msg)
 
     }else {
       //LOG_TRACE(commsHandler << "Client Finish Verified False"); 
-      cout << "Client Finish Verified False" << endl;
+      LOG_ERROR("Client Finish Verified False");
 
       // Client Finish verified false ... so now send, auth false ...
       return false;
@@ -146,7 +146,7 @@ bool GWSecurityMgr::Authenticate (AuthMessage &msg)
 
 std::vector<unsigned char> GWSecurityMgr::get_gateway_sign ()
 {
-  printf ("\n Inside the get_gateway_sign Method.");
+  LOG_TRACE("Inside the get_gateway_sign Method.");
   //char* data = "operator";
 
 //  return crp.sign ((unsigned char*)operator_id, strlen(operator_id));
@@ -201,7 +201,7 @@ bool GWSecurityMgr::verify_phone_auth ()
 //  string orig_data = keyXChange_;
 //  string orig_data = client_nonce_;
 //  string orig_data = server_nonce_;
-  printf ("\n Before calling the verify function \n");
+  LOG_TRACE("Before calling the verify function");
 
   return crp.verify ((unsigned char*)orig_data.c_str(),
                      orig_data.size(), 

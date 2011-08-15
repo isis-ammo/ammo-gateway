@@ -4,6 +4,7 @@
 #include "GatewayConfigurationManager.h"
 
 #include <iostream>
+#include <google/protobuf/descriptor.h>
 
 #include "log.h"
 
@@ -203,9 +204,9 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   switch(msg.type()) {
     case ammo::gateway::protocol::GatewayWrapper_MessageType_AUTHENTICATION_MESSAGE: {
       LOG_DEBUG("Received Authenticate Message...");
-      LOG_TRACE("Message: " << msg.DebugString());
       
       ammo::gateway::protocol::AuthenticationMessage authMsg = msg.authentication_message();
+      LOG_TRACE("  Auth message type: " << authMsg.Type_descriptor()->FindValueByNumber(authMsg.type())->name());
       
       AuthMessage auth;
       auth.type = authMessageTypeFromProtobuf(authMsg.type());

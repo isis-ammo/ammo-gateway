@@ -45,7 +45,7 @@ class GWSecurityMgr
     static const string GATEWAY_KEYS_SUBDIR;
 
 //  this is for the demo only
-    char * operator_id;
+    //char * operator_id;
 
     // This function checks the message and if it is 
     // genuine then sends back a return msg
