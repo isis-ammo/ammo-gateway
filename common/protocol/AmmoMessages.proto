@@ -79,6 +79,8 @@ message AuthenticationMessage {
   optional string user_id = 4;
   optional bytes user_key = 5;
   optional Status result = 6;
+  
+  optional bool authentication_enabled = 7 [default = false];
 }
 
 /**
