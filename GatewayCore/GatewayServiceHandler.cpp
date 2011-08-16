@@ -213,6 +213,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       auth.message = authMsg.message();
       auth.device_id = authMsg.device_id();
       auth.user_id = authMsg.user_id();
+      auth.authentication_enabled = authMsg.authentication_enabled();
       
       bool result = securityManager->Authenticate(auth);
       

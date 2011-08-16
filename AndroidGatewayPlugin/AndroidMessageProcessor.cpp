@@ -91,7 +91,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     ammo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
     
     if(gatewayConnector != NULL) {
-      gatewayConnector->sendAuthenticationMessage(authMessageTypeFromProtobuf(authMessage.type()), authMessage.message(), authMessage.device_id(), authMessage.user_id());
+      gatewayConnector->sendAuthenticationMessage(authMessageTypeFromProtobuf(authMessage.type()), authMessage.message(), authMessage.device_id(), authMessage.user_id(), authMessage.authentication_enabled());
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE) {
     LOG_DEBUG((long) commsHandler << " Received Data Message...");
@@ -233,7 +233,7 @@ void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, a
 
 
 
-void AndroidMessageProcessor::onAuthenticationResponse(GatewayConnector *sender, ammo::gateway::AuthenticationMessageType type, std::string message, std::string deviceId, std::string userId, bool authResult) {
+void AndroidMessageProcessor::onAuthenticationResponse(GatewayConnector *sender, ammo::gateway::AuthenticationMessageType type, std::string message, std::string deviceId, std::string userId, bool authenticationEnabled, bool authResult) {
 
   LOG_DEBUG((long) commsHandler << " Delegate: onAuthenticationResponse");
   if(authResult == true && type == ammo::gateway::SERVER_FINISH) {
@@ -247,6 +247,7 @@ void AndroidMessageProcessor::onAuthenticationResponse(GatewayConnector *sender,
   authMsg->set_message(message);
   authMsg->set_device_id(deviceId);
   authMsg->set_user_id(userId);
+  authMsg->set_authentication_enabled(authenticationEnabled);
   if(authResult == true) {
     authMsg->set_result(ammo::protocol::AuthenticationMessage_Status_SUCCESS);
   } else {

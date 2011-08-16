@@ -85,7 +85,7 @@ namespace ammo {
         os << "Pull << " << pullReq.requestUid << " from " << pullReq.pluginId << " for type " << pullReq.mimeType << " query: " << pullReq.query;
         return os;
       }
-    };
+    };      
     
     /**
      * A response to a pull request.
@@ -170,7 +170,7 @@ namespace ammo {
       * @return true if authentication was successful; false if authentication
       *         failed.
       */
-      bool sendAuthenticationMessage(AuthenticationMessageType type, std::string message, std::string deviceId, std::string userId);
+      bool sendAuthenticationMessage(AuthenticationMessageType type, std::string message, std::string deviceId, std::string userId, bool authenticationEnabled);
       
       //--Data-Push support methods--
     
@@ -342,7 +342,7 @@ namespace ammo {
       * @param result true if authentication succeeded; false if authentication
       *               failed.
       */
-      virtual void onAuthenticationResponse(GatewayConnector *sender, AuthenticationMessageType type, std::string message, std::string deviceId, std::string userId, bool authResult);
+      virtual void onAuthenticationResponse(GatewayConnector *sender, AuthenticationMessageType type, std::string message, std::string deviceId, std::string userId, bool authenticationEnabled, bool authResult);
     };
     
     /**

@@ -22,7 +22,7 @@ public:
   //GatewayConnectorDelegate methods
   virtual void onConnect(ammo::gateway::GatewayConnector *sender);
   virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
-  virtual void onAuthenticationResponse(ammo::gateway::GatewayConnector *sender, ammo::gateway::AuthenticationMessageType type, std::string message, std::string deviceId, std::string userId, bool authResult);
+  virtual void onAuthenticationResponse(ammo::gateway::GatewayConnector *sender, ammo::gateway::AuthenticationMessageType type, std::string message, std::string deviceId, std::string userId, bool authenticationEnabled, bool authResult);
   
   //DataPushReceiverListener methods
   virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PushData &pushData);

@@ -31,6 +31,7 @@ struct AuthMessage
   string message;
   string device_id;
   string user_id;
+  bool authentication_enabled;
 };
 
 class GWSecurityMgr 

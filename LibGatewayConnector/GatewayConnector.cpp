@@ -46,13 +46,14 @@ ammo::gateway::GatewayConnector::~GatewayConnector() {
   delete connector;
 }
   
-bool ammo::gateway::GatewayConnector::sendAuthenticationMessage(ammo::gateway::AuthenticationMessageType type, string message, string deviceId, string userId) {
+bool ammo::gateway::GatewayConnector::sendAuthenticationMessage(ammo::gateway::AuthenticationMessageType type, string message, string deviceId, string userId, bool authenticationEnabled) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::AuthenticationMessage *associateMsg = msg->mutable_authentication_message();
   associateMsg->set_type(authMessageTypeToProtobuf(type));
   associateMsg->set_message(message);
   associateMsg->set_device_id(deviceId);
   associateMsg->set_user_id(userId);
+  associateMsg->set_authentication_enabled(authenticationEnabled);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_AUTHENTICATION_MESSAGE);
   
@@ -236,7 +237,7 @@ bool ammo::gateway::GatewayConnector::unregisterPullResponseInterest(string mime
 void ammo::gateway::GatewayConnector::onAuthenticationMessageReceived(const ammo::gateway::protocol::AuthenticationMessage &msg) {
   LOG_INFO("Got associate result of " << msg.result());
   if(delegate != NULL) {
-    delegate->onAuthenticationResponse(this, authMessageTypeFromProtobuf(msg.type()), msg.message(), msg.device_id(), msg.user_id(), msg.result());
+    delegate->onAuthenticationResponse(this, authMessageTypeFromProtobuf(msg.type()), msg.message(), msg.device_id(), msg.user_id(), msg.authentication_enabled(), msg.result());
   }
 }
 
@@ -349,7 +350,7 @@ ammo::gateway::AuthenticationMessageType ammo::gateway::GatewayConnector::authMe
 
 //--GatewayConnectorDelegate default implementations (for optional delegate methods)
 
-void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayConnector *sender, AuthenticationMessageType type, string message, string deviceId, string userId, bool authResult) {
+void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayConnector *sender, AuthenticationMessageType type, string message, string deviceId, string userId, bool authenticationEnabled, bool authResult) {
   //LOG_INFO("GatewayConnectorDelegate::onAuthenticationResponse : result = " << result);
 }
 
