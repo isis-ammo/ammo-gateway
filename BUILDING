@@ -40,7 +40,6 @@ Building on Linux:
         export LD_LIBRARY_PATH=$GATEWAY_ROOT/build/lib:$PROTOBUF_ROOT/lib:$ACE_ROOT/lib:$LD_LIBRARY_PATH
   
   5) Create a file called "config.h" in $ACE_ROOT/ace/ containing:
-        #define __ACE_INLINE__ 1
         #include "ace/config-linux.h"
         
   6) Create a symbolic link called platform_macros.GNU in $ACE_ROOT/include/makeinclude
