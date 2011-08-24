@@ -29,7 +29,7 @@ install: all
 	install -m 755 build/bin/GatewayCore $(INSTALL_DIR)/bin
 	install -m 755 build/bin/GatewayUsbTransfer $(INSTALL_DIR)/bin
 	install -m 755 build/bin/LdapGatewayPlugin $(INSTALL_DIR)/bin
-	install -m 755 build/bin/LocationStoreGatewayPlugin $(INSTALL_DIR)/bin
+	install -m 755 build/bin/DataStoreGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SamplePushReceiverGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SamplePushTestDriverPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SpotPushReceiverGatewayPlugin $(INSTALL_DIR)/bin
@@ -48,5 +48,5 @@ install: all
 	install -m 644 build/etc/AtsPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/GatewayConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/LdapPluginConfig.json $(DESTDIR)/etc/ammo-gateway
-	install -m 644 build/etc/LocationStorePluginConfig.json $(DESTDIR)/etc/ammo-gateway
+	install -m 644 build/etc/DataStorePluginConfig.json $(DESTDIR)/etc/ammo-gateway
 

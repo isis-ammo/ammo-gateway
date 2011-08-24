@@ -11,20 +11,30 @@ import time
 import AmmoMessages_pb2
 
 class PullRequestTestClient:
+  HEADER_MAGIC_NUMBER = 0xfeedbeef
   def __init__(self, host, port):
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.sock.connect((host, int(port)))
     
   def sendMessageWrapper(self, msg):
     serializedMsg = msg.SerializeToString()
-    self.sock.sendall(struct.pack("<I", len(serializedMsg))) #little-endian byte order for now
-    self.sock.sendall(struct.pack("<i", zlib.crc32(serializedMsg)))
-#    print serializedMsg
-    self.sock.sendall(serializedMsg);
+    messageHeader = struct.pack("<IIi", self.HEADER_MAGIC_NUMBER, len(serializedMsg), zlib.crc32(serializedMsg))
+    self.sock.sendall(messageHeader) #little-endian byte order for now
+    self.sock.sendall(struct.pack("<i", zlib.crc32(messageHeader)))
+    print serializedMsg
+    self.sock.sendall(serializedMsg)
     
   def receiveMessage(self):
-    (messageSize,) = struct.unpack("<I", self.sock.recv(4));
-    (checksum,) = struct.unpack("<i", self.sock.recv(4));
+    messageHeader = self.sock.recv(3*4)
+    (magicNumber, messageSize, checksum) = struct.unpack("<IIi", messageHeader)
+    (headerChecksum,) = struct.unpack("<i", self.sock.recv(4))
+    
+    if magicNumber != self.HEADER_MAGIC_NUMBER:
+      raise IOError("Invalid magic number received from gateway: " + hex(magicNumber))
+      
+    if headerChecksum != zlib.crc32(messageHeader):
+      raise IOError("Invalid header checksum received from gateway")
+    
     protobufMsg = ""
     while len(protobufMsg) < messageSize:
       receivedData = self.sock.recv(messageSize - len(protobufMsg))
@@ -65,15 +75,30 @@ if __name__ == "__main__":
   # that stores the timestamp in the database.
   start = int(time.time())
   
-  # Send 5 data pushes, each one numbered.
+  # Send 5 text message pushes, each one with a recipient string containing the
+  # index. This field is what the pull request fill filter on. The data message
+  # emulates the JSON encoding of the SMS data format.
   while n <= 5:
     time.sleep(0.5)
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
-    m.data_message.mime_type = "application/vnd.edu.vu.isis.ammo.report.report_base"
-    m.data_message.data = "Message #"
+    m.data_message.mime_type = "application/vnd.edu.vu.isis.ammo.sms.message"
+    m.data_message.data = "{ \"sms_uri\" : \"type:edu.vanderbilt.isis.ammo.Test\", "
+    m.data_message.data += "\"sender\" : \"sgt_kill_em_all@151st.mil\", "
+    m.data_message.data += "\"recipient\" : \"soldier_"
     m.data_message.data += str(n)
+    m.data_message.data += "\", "
+    m.data_message.data += "\"thread\" : 14, "
+    m.data_message.data += "\"payload\" : \"hey soldier_"
+    m.data_message.data += str(n)
+    m.data_message.data += ", meet me at the PX\", "
+    m.data_message.data += "\"createdDate\" : "
+    m.data_message.data += str(start)
+    m.data_message.data += ", "
+    m.data_message.data += "\"modifiedDate\" : "
+    m.data_message.data += str(start)
+    m.data_message.data += "}"
     output_msg = "Sending data message "
     output_msg += str(n)
     print output_msg
@@ -85,20 +110,24 @@ if __name__ == "__main__":
   # Send a single pull request.
   m = AmmoMessages_pb2.MessageWrapper()
   m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
-  m.pull_request.mime_type = "application/vnd.edu.vu.isis.ammo.report.report_base"
+  m.pull_request.mime_type = "application/vnd.edu.vu.isis.ammo.sms.message"
   m.pull_request.request_uid = "PRT_pull_request"
-  m.pull_request.plugin_id = "PullRequestTester"
   # max_results is unlimited, but the use of the start time string
   # will limit responses to the 5 pushes above, no matter how many
   # times this test has been run previously.
   m.pull_request.max_results = 0
   m.pull_request.query = ",,"
   m.pull_request.query += str(start)
-  m.pull_request.query += ","
+  m.pull_request.query += ",,"
+  
+  # This string will filter the responses to a single message.
+  m.pull_request.projection = ",,soldier_2,,,,,,,"
+  
   print "Sending pull request..."
   client.sendMessageWrapper(m)
   
   # Receive and print out all the pullResponse() callbacks.
+  # We should get only one response, the text message sent to soldier_2.
   while True:
     msg = client.receiveMessage()
     print msg

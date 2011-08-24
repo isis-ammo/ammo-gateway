@@ -140,7 +140,6 @@ message AuthenticationResult {
 */
 message PullRequest {
   required string request_uid = 1;
-  required string plugin_id = 2;
   required string mime_type = 3;
   required string query = 4;
   optional string projection = 5;
@@ -187,6 +186,8 @@ message MessageWrapper {
   required MessageType type = 1;
   optional string session_uuid = 2;
   
+  optional sint32 message_priority = 12 [default = 0]; //should match priority in the message header; range should be that of a signed char
+  
   optional DataMessage data_message = 3;
   optional AuthenticationMessage authentication_message= 4;
   optional AuthenticationResult authentication_result = 5;
@@ -196,5 +197,5 @@ message MessageWrapper {
   optional PullResponse pull_response = 9;
   optional Heartbeat heartbeat = 10;
   optional UnsubscribeMessage unsubscribe_message = 11;
-  optional DirectedMessage directed_message = 12;
+  optional DirectedMessage directed_message = 13;
 }

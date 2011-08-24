@@ -29,6 +29,12 @@ int GatewayServiceHandler::open(void *ptr) {
   usernameAuthenticated = false;
   usernameRegistered = false;
   
+  dataToSend = NULL;
+  sendPosition = 0;
+  sendBufferSize = 0;
+  
+  this->peer().enable(ACE_NONBLOCK);
+  
   return 0;
 }
 
@@ -53,7 +59,12 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
   
   if(count > 0) {
     if(state == READING_SIZE) {
-      collectedData = new char[dataSize];
+      try {
+        collectedData = new char[dataSize];
+      } catch (std::bad_alloc &e) {
+        LOG_ERROR(this << " Couldn't allocate memory for message of size " << dataSize);
+        return -1;
+      }
       position = 0;
       //LOG_TRACE("Got data size (" << dataSize << ")");
       state = READING_CHECKSUM;
@@ -64,6 +75,7 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
       //LOG_TRACE("Got some data...");
       position += count;
       if(position == dataSize) {
+        LOG_TRACE("Got a whole message...  processing");
         //LOG_TRACE("Got all the data... processing");
         processData(collectedData, dataSize, checksum);
         //LOG_TRACE("Processsing complete.  Deleting buffer.");
@@ -85,71 +97,89 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
   return 0;
 }
 
-// This method comes stright from ACE sample code:  see ace_wrappers/examples/APG/Reactor/Client.cpp
-int GatewayServiceHandler::handle_output(ACE_HANDLE) {
-  ACE_Message_Block *mb;
-  ACE_Time_Value nowait(ACE_OS::gettimeofday ());
+int GatewayServiceHandler::handle_output(ACE_HANDLE fd) {
+  int count = 0;
   
-  while (-1 != this->getq(mb, &nowait)) {
-    ssize_t send_cnt = this->peer().send(mb->rd_ptr(), mb->length());
-    if (send_cnt == -1) {
-      LOG_ERROR("Send error...");
-    } else {
-      mb->rd_ptr(static_cast<size_t>(send_cnt));
+  do {
+    if(dataToSend == NULL) {
+      ammo::gateway::protocol::GatewayWrapper *msg = getNextMessageToSend();
+      if(msg != NULL) {
+        LOG_TRACE("Getting a new message to send");
+        if(!msg->IsInitialized()) {
+          LOG_WARN(this << " Protocol Buffers message is missing a required element.");
+        }
+        unsigned int messageSize = msg->ByteSize();
+        sendBufferSize = messageSize + 2*sizeof(unsigned int);
+        dataToSend = new char[sendBufferSize];
+        unsigned int *size = (unsigned int *) dataToSend;
+        unsigned int *messageChecksum = (unsigned int *) (dataToSend + sizeof(unsigned int));
+        char *protobufSerializedMessage = dataToSend + 2*sizeof(unsigned int);
+        
+        *size = messageSize;
+        msg->SerializeToArray(protobufSerializedMessage, messageSize);
+        *messageChecksum = ACE::crc32(protobufSerializedMessage, messageSize);
+        
+        sendPosition = 0;
+        
+        delete msg;
+      } else {
+        //don't wake up the reactor when there's no data that needs to be sent
+        //(wake-up will be rescheduled when data becomes available in sendMessage
+        //below)
+        this->reactor()->cancel_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+        return 0;
+      }
     }
-    if (mb->length() > 0) {
-      this->ungetq(mb);
-      break;
+      
+    //timeout after ten seconds when sending data (in case connection drops
+    //in the middle, we don't want to wait until the socket connection dies)
+    //ACE_Time_Value timeout(10);
+    count = this->peer().send(dataToSend + sendPosition, sendBufferSize - sendPosition);
+    if(count >= 0) {
+      sendPosition += count;
     }
-    mb->release();
-  }
+    LOG_TRACE("Sent " << count << " bytes (current postition " << sendPosition << "/" << sendBufferSize);
+    
+    if(sendPosition >= (sendBufferSize)) {
+      delete[] dataToSend;
+      dataToSend = NULL;
+      sendBufferSize = 0;
+      sendPosition = 0;
+    }
+  } while(count != -1);
   
-  if (this->msg_queue ()->is_empty ()) {
-    this->reactor()->cancel_wakeup(this, ACE_Event_Handler::WRITE_MASK);
-  } else {
+  if(count == -1 && ACE_OS::last_error () == EWOULDBLOCK) {
+    LOG_TRACE("Received EWOULDBLOCK");
     this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+  } else {
+    LOG_ERROR(this << " Socket error occurred. (" << ACE_OS::last_error() << ")");
+    return -1;
   }
   
   return 0;
 }
 
-void GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper &msg) {
-  /*Fixme: potential deadlock here
-  unsigned int messageSize = msg.ByteSize();
-  char *messageToSend = new char[messageSize];
-  msg.SerializeToArray(messageToSend, messageSize);
-  unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
+void GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper *msg) {
+  sendQueue.push(msg);
+  LOG_TRACE(this << " Queued a message to send.  " << sendQueue.size() << " messages in queue.");
   
-  ACE_Message_Block *messageSizeBlock = new ACE_Message_Block(sizeof(messageSize));
-  messageSizeBlock->copy((char *) &messageSize, sizeof(messageSize));
-  this->putq(messageSizeBlock);
-  
-  ACE_Message_Block *messageChecksumBlock = new ACE_Message_Block(sizeof(messageChecksum));
-  messageChecksumBlock->copy((char *) &messageChecksum, sizeof(messageChecksum));
-  this->putq(messageChecksumBlock);
-  
-  ACE_Message_Block *messageToSendBlock = new ACE_Message_Block(messageSize);
-  messageToSendBlock->copy(messageToSend, messageSize);
-  this->putq(messageToSendBlock);
-  
-  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);*/
-  
-  unsigned int messageSize = msg.ByteSize();
-  char *messageToSend = new char[messageSize];
-  
-  if(msg.IsInitialized()) { //Don't send a message if it's missing required fields (SerializeToArray is supposed to check for this, but doesn't)
-    msg.SerializeToArray(messageToSend, messageSize);
-    unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
-    
-    this->peer().send_n(&messageSize, sizeof(messageSize));
-    this->peer().send_n(&messageChecksum, sizeof(messageChecksum));
-    this->peer().send_n(messageToSend, messageSize);
-  } else {
-    LOG_ERROR("SEND ERROR:  Message is missing a required element.");
+  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+}
+
+ammo::gateway::protocol::GatewayWrapper *GatewayServiceHandler::getNextMessageToSend() {
+  ammo::gateway::protocol::GatewayWrapper *msg = NULL;
+  if(!sendQueue.empty()) {
+    msg = sendQueue.front();
+    sendQueue.pop();
   }
+
+  int size = sendQueue.size();
+  LOG_TRACE(this << " Dequeued a message to send.  " << size << " messages remain in queue.");
+  return msg;
 }
 
 int GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
+  LOG_TRACE("Processing checksum");
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if(calculatedChecksum != messageChecksum) {
@@ -157,6 +187,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     return -1;
   }
   
+  LOG_TRACE("Deserializing protobuf message");
   //checksum is valid; parse the data
   ammo::gateway::protocol::GatewayWrapper msg;
   bool result = msg.ParseFromArray(data, messageSize);
@@ -171,9 +202,9 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
     case ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_DEVICE: {
       LOG_DEBUG("Received Associate Device...");
       //TODO: split out into a different function and do more here
-      ammo::gateway::protocol::GatewayWrapper newMsg;
-      newMsg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT);
-      newMsg.mutable_associate_result()->set_result(ammo::gateway::protocol::AssociateResult_Status_SUCCESS);
+      ammo::gateway::protocol::GatewayWrapper *newMsg = new ammo::gateway::protocol::GatewayWrapper();
+      newMsg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT);
+      newMsg->mutable_associate_result()->set_result(ammo::gateway::protocol::AssociateResult_Status_SUCCESS);
       this->sendData(newMsg);
       username = msg.associate_device().user();
       usernameAuthenticated = true;
@@ -233,8 +264,11 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       LOG_TRACE("  " << msg.DebugString());
       
       ammo::gateway::protocol::PullRequest pullMsg = msg.pull_request();
-      GatewayCore::getInstance()->pullRequest(pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
+      bool result = GatewayCore::getInstance()->pullRequest(pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
         pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), this);
+      if(result == true) {
+        registeredPullResponsePluginIds.insert(pullMsg.plugin_id());
+      }
       break;
     } 
     case ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE: {
@@ -299,14 +333,14 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
 }
 
 bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope scope) {
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
   pushMsg->set_uri(uri);
   pushMsg->set_mime_type(mimeType);
   pushMsg->set_data(data);
   pushMsg->set_origin_user(originUser);
   
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   
   LOG_DEBUG("Sending Data Push message to connected plugin");
   this->sendData(msg);
@@ -317,8 +351,8 @@ bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType
 bool GatewayServiceHandler::sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, 
                                            std::string query, std::string projection, unsigned int maxResults, 
                                            unsigned int startFromCount, bool liveQuery) {
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::PullRequest *pullMsg = msg.mutable_pull_request();
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::PullRequest *pullMsg = msg->mutable_pull_request();
   pullMsg->set_request_uid(requestUid);
   pullMsg->set_plugin_id(pluginId);
   pullMsg->set_mime_type(mimeType);
@@ -328,25 +362,26 @@ bool GatewayServiceHandler::sendPullRequest(std::string requestUid, std::string 
   pullMsg->set_start_from_count(startFromCount);
   pullMsg->set_live_query(liveQuery);
   
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
   
   LOG_DEBUG("Sending Pull Request message to connected plugin");
   this->sendData(msg);
+  
   
   return true;
 }
 
 bool GatewayServiceHandler::sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType,
 					     std::string uri, const std::string& data) {
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::PullResponse *pullRsp = msg.mutable_pull_response();
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::PullResponse *pullRsp = msg->mutable_pull_response();
   pullRsp->set_request_uid(requestUid);
   pullRsp->set_plugin_id(pluginId);
   pullRsp->set_mime_type(mimeType);
   pullRsp->set_uri(uri);
   pullRsp->set_data(data);
   
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
   
   LOG_DEBUG("Sending Pull Response message to connected plugin");
   this->sendData(msg);
@@ -357,15 +392,15 @@ bool GatewayServiceHandler::sendPullResponse(std::string requestUid, std::string
 bool GatewayServiceHandler::sendDirectedMessage(const std::string &uri, const std::string &destinationUser, const std::string &mimeType, 
                                                 const std::string &data, const std::string &originUser, const MessageScope messageScope) {
 
-  ammo::gateway::protocol::GatewayWrapper msg;
-  ammo::gateway::protocol::DirectedMessage *directedMsg = msg.mutable_directed_message();
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::DirectedMessage *directedMsg = msg->mutable_directed_message();
   directedMsg->set_uri(uri);
   directedMsg->set_destination_user(destinationUser);
   directedMsg->set_mime_type(mimeType);
   directedMsg->set_data(data);
   directedMsg->set_origin_user(originUser);
   
-  msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_DIRECTED_MESSAGE);
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_DIRECTED_MESSAGE);
   
   LOG_DEBUG("Sending Directed Message to connected plugin");
   this->sendData(msg);
@@ -390,6 +425,11 @@ GatewayServiceHandler::~GatewayServiceHandler() {
   
   if(usernameRegistered) {
     GatewayCore::getInstance()->unregisterUser(username, this);
+  }
+  
+  LOG_DEBUG("Unregistering pull response plugin IDs...");
+  for(std::set<std::string>::iterator it = registeredPullResponsePluginIds.begin(); it != registeredPullResponsePluginIds.end(); it++) {
+    GatewayCore::getInstance()->unregisterPullResponsePluginId(*it, this);
   }
 }
 

@@ -22,7 +22,7 @@ LdapConfigurationManager *LdapConfigurationManager::sharedInstance = NULL;
 //
 // Use the default config file if none specified
 //============================================================
-LdapConfigurationManager::LdapConfigurationManager() : ldapBaseAddress("localhost"), ldapUsername("cn=Manager,dc=transapps,dc=darpa,dc=mil"), ldapPassword("ammmo")
+LdapConfigurationManager::LdapConfigurationManager() : ldapBaseAddress("localhost"), ldapUsername("cn=Manager,dc=ammo,dc=tdm"), ldapPassword("ammmo")
 {
   string configFilename = findConfigFile(LDAP_CONFIG_FILE);
   

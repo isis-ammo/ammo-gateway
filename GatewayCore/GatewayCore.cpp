@@ -163,6 +163,16 @@ bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std
   }
   return true;
 }
+  
+bool GatewayCore::unregisterPullResponsePluginId(std::string pluginId, GatewayServiceHandler *handler) {
+  map<string,GatewayServiceHandler *>::iterator it = plugins.find(pluginId);
+  if ( it != plugins.end() ) {
+    if(it->second == handler) {
+      plugins.erase(it);
+    }
+  }
+  return true;
+}
 
 bool GatewayCore::directedMessage(const std::string &uri, const std::string &destinationUser, const std::string &mimeType, const std::string &data, const std::string &originUser, const MessageScope messageScope) {
   LOG_DEBUG("  Sending directed message with uri: " << uri);
