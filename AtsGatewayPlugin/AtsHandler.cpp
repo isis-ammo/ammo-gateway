@@ -670,7 +670,7 @@ std::string AtsHandler::listChannels(CURL *curl, std::string dataType, std::stri
    // parse the serialized packet
    Json::Value meta;
    std::vector<NamedBlob> media;
-   int rc = parse_query(query, meta);
+   parse_query(query, meta);
 
    //if (rc < 0) {
    //   return std::vector<char>();
