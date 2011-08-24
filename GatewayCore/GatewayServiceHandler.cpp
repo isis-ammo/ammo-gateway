@@ -1,7 +1,6 @@
 #include "GatewayServiceHandler.h"
 #include "GatewayCore.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
-#include "ace/High_Res_Timer.h"
 
 #include <iostream>
 
@@ -189,14 +188,8 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   
   LOG_TRACE("Deserializing protobuf message");
   //checksum is valid; parse the data
-  ACE_High_Res_Timer timer;
-  timer.start();
   ammo::gateway::protocol::GatewayWrapper msg;
   bool result = msg.ParseFromArray(data, messageSize);
-  timer.stop();
-  ACE_hrtime_t nsecElapsed = 0;
-  timer.elapsed_time(nsecElapsed);
-  LOG_TRACE(nsecElapsed << " ns spent deserializing protocol buffers message");
   if(result == false) {
     LOG_ERROR("GatewayWrapper could not be deserialized.");
     LOG_ERROR("Client must have sent something that isn't a protocol buffer (or the wrong type).");
