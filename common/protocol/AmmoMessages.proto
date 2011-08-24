@@ -39,6 +39,11 @@ message DataMessage {
   optional MessageScope scope = 4 [default = GLOBAL];
 }
 
+message TerseMessage {
+  optional byte mime_type = 1;
+  optional bytes data = 2;
+}
+
 /**
 * Sent from the Android plugin to the device when a DataMessage is
 * received.
@@ -159,6 +164,7 @@ message MessageWrapper {
     PULL_RESPONSE = 7;
     HEARTBEAT = 8;
     UNSUBSCRIBE_MESSAGE = 9;
+    TERSE_MESSAGE = 10;
   }
 
   required MessageType type = 1;
@@ -175,4 +181,5 @@ message MessageWrapper {
   optional PullResponse pull_response = 9;
   optional Heartbeat heartbeat = 10;
   optional UnsubscribeMessage unsubscribe_message = 11;
+  optional TerseMessage terse_message = 13;
 }
