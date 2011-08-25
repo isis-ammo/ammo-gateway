@@ -80,8 +80,7 @@ Building on Mac OS X (10.6):
   1) Download and install Homebrew:
         ruby -e "$(curl -fsSLk https://gist.github.com/raw/323731/install_homebrew.rb)"
         
-  2) Install Google Protocol Buffers and Boost (note that Boost can take a long
-     time to build and install):
+  2) Install Google Protocol Buffers:
         brew install protobuf
         
   3) Download and extract ACE+TAO+CIAO to a location of your choice.
