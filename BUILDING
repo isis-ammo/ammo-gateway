@@ -103,7 +103,7 @@ Building on Mac OS X (10.6):
         #include "ace/config-macosx-snowleopard.h"
         
   6) Create a symbolic link called platform_macros.GNU in $ACE_ROOT/include/makeinclude
-     pointing to the file platform_snowleopard.GNU
+     pointing to the file platform_macosx_snowleopard.GNU
      i.e. ln -s platform_macosx_snowleopard.GNU platform_macros.GNU
      (If platform_macros.GNU already exists you will need to remove it.)
         
