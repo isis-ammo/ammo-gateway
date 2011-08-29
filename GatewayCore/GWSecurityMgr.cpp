@@ -22,11 +22,23 @@ GWSecurityMgr::GWSecurityMgr (const char* gatewayId, GatewaySecHandler *handler)
   LOG_TRACE("The Gateway ID is " << gatewayId);
 }
 
-//bool GWSecurityMgr::Authenticate (ammo::protocol::MessageWrapper &msg)
 bool GWSecurityMgr::Authenticate (AuthMessage &msg)
 {
- 
   LOG_TRACE("Inside the Authenticate Method.");
+
+  if (msg.authentication_enabled == false)
+  {
+    // No security ... return with a true ...
+    AuthMessage outmsg;
+    outmsg.type = AuthMessage::SERVER_FINISH;
+
+    handler_->sendMessage(outmsg);
+
+    handler_->authenticationComplete ();
+
+    return true;
+  }
+
 
   if (msg.type == AuthMessage::CLIENT_NONCE)
   {
