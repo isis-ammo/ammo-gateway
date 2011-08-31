@@ -360,11 +360,14 @@ std::string AtsHandler::uploadMedia(CURL *curl, std::string mediaType, std::stri
                 CURLFORM_COPYNAME, "channelName",
                 CURLFORM_COPYCONTENTS, meta["channelName"].asString().c_str(),
                 CURLFORM_END);
+   
+   char *fileBuff = NULL;
+   char *clipBuff = NULL;
 
    std::vector<NamedBlob>::iterator fileIt = std::find_if(media.begin(), media.end(), isFileBlob);
    if (fileIt != media.end()) {
       NamedBlob fileBlob = *fileIt;
-      char fileBuff[fileBlob.second.second - fileBlob.second.first];
+      fileBuff = new char[fileBlob.second.second - fileBlob.second.first];
       std::copy(fileBlob.second.first, fileBlob.second.second, fileBuff);
       curl_formadd(&formpost, &lastptr,
                    CURLFORM_COPYNAME, "file",
@@ -374,11 +377,11 @@ std::string AtsHandler::uploadMedia(CURL *curl, std::string mediaType, std::stri
                    CURLFORM_CONTENTTYPE, mediaType.c_str(),
                    CURLFORM_END);
    }
-
+   
    std::vector<NamedBlob>::iterator clipIt = std::find_if(media.begin(), media.end(), isClipBlob);
    if (clipIt != media.end()) {
       NamedBlob clipBlob = *clipIt; 
-      char clipBuff[clipBlob.second.second - clipBlob.second.first];
+      clipBuff = new char[clipBlob.second.second - clipBlob.second.first];
       std::copy(clipBlob.second.first, clipBlob.second.second, clipBuff);
       curl_formadd(&formpost, &lastptr,
                    CURLFORM_COPYNAME, "clip",
@@ -404,6 +407,13 @@ std::string AtsHandler::uploadMedia(CURL *curl, std::string mediaType, std::stri
 
    curl_easy_cleanup(curl);
    curl_formfree(formpost);
+   
+   if(fileBuff != NULL) {
+     delete[] fileBuff;
+   }
+   if(clipBuff != NULL) {
+     delete[] clipBuff;
+   }
 
    LOG_DEBUG("Returned data from POST: " << returnedData);
    return returnedData;
@@ -670,7 +680,7 @@ std::string AtsHandler::listChannels(CURL *curl, std::string dataType, std::stri
    // parse the serialized packet
    Json::Value meta;
    std::vector<NamedBlob> media;
-   int rc = parse_query(query, meta);
+   parse_query(query, meta);
 
    //if (rc < 0) {
    //   return std::vector<char>();
