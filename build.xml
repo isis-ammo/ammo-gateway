@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Gateway" default="build">
 
+    <target name="help">
+        <echo message="To see available targets run 'ant -p' or 'ant -projecthelp' " />
+    </target>
+
     <property name="project" value="${ant.project.name}"/>
     <property name="build" location="build"/>
     <property name="dist" location="dist"/>
@@ -8,15 +12,19 @@
     <property name="gatewayversion.file" value=".build-version" />
     <property name="gatewayversion.template" value="common/version.h.in" />
     <property name="gatewayversion.out" value="common/version.h" />
+    <property name="gatewayversion-mpb.template" value="gatewayversion.mpb.in" />
+    <property name="gatewayversion-mpb.out" value="gatewayversion.mpb" />
 
     <description>
         Build file for the AMMO ${project}
+
     </description>
     
     <target name="-clean-gatewayversion">
         <delete>
           <fileset file="${gatewayversion.file}" />
           <fileset file="${gatewayversion.out}" />
+          <fileset file="${gatewayversion-mpb.out}" />
         </delete>
     </target>
 
@@ -27,6 +35,12 @@
           <arg value="describe" />
           <arg value="--match" />
           <arg value="release-*" />
+        </exec>
+        <exec executable="sh" dir="."
+              searchpath="true"
+              outputproperty="gatewayversion-stripped">
+           <arg value="-c" />
+           <arg value="git describe --match release-\*  | sed 's/release-//' | cut -d- -f 1,2" />
         </exec>
 
         <loadfile property="gateway-reversion" srcFile="${gatewayversion.file}" failonerror="false"/>
@@ -39,15 +53,19 @@
         <echo message="${gatewayversion}" file="${gatewayversion.file}"/>
         <copy file="${gatewayversion.template}" tofile="${gatewayversion.out}"/>
         <replace file="${gatewayversion.out}" token="&lt;VERSION&gt;" value="${gatewayversion}"/>
+        <copy file="${gatewayversion-mpb.template}" tofile="${gatewayversion-mpb.out}"/>
+        <replace file="${gatewayversion-mpb.out}" token="&lt;VERSION&gt;" value="${gatewayversion-stripped}"/>
     </target>
 
-    <target name="build" depends="configure">
+    <target name="build" depends="configure"
+        description="Build the ${project}" >
         <echo message="Building ${project}..."/>
         <exec executable="make" dir="." searchpath="true" failonerror="true">
         </exec>
     </target>
 
-    <target name="dist" depends="build">
+    <target name="dist" depends="build"
+        description="Tar the ${project} for release into ${dist}">
         <!-- versioning of tarballs includes setting the
              version to indicate the git checkout that tags
              the current release. This allows us to rebuild
@@ -82,7 +100,8 @@
             <arg value="cp -r ${build}/* ${dist}/temp/gateway-${gwversion}" />
         </exec>
         <!--Create the buildinfo file, with versioning and OS info-->
-        <echo file="${dist}/temp/gateway-${gwversion}/buildinfo" append="false">AMMO Gateway, version ${gwversion}, built ${build_time}
+        <echo file="${dist}/temp/gateway-${gwversion}/buildinfo" 
+              append="false">AMMO Gateway, version ${gwversion}, built ${build_time}
 
 Built on ${os.arch} ${os.name} ${os.version}
 </echo>
@@ -95,21 +114,24 @@ Built on ${os.arch} ${os.name} ${os.version}
         <delete dir="${dist}/temp/gateway-${gwversion}" />
     </target>
 
-    <target name="clean-dist">
+    <target name="clean-dist"
+        description="clean ${dist} only" >
         <echo message="Cleaning ${project} ${dist} dir..."/>
         <delete>
             <fileset dir="${dist}" includes="*.tar.gz" />
         </delete>
     </target>
 
-    <target name="clean" depends="-clean-gatewayversion,clean-dist">
+    <target name="clean" depends="-clean-gatewayversion,clean-dist"
+        description="clean ${build} and ${dist} dirs" >
         <echo message="Cleaning ${project}"/>
         <exec executable="make" dir="." searchpath="true">
            <arg value="clean"/>
         </exec>
     </target>
     
-    <target name="realclean" depends="-clean-gatewayversion,clean-dist">
+    <target name="realclean" depends="-clean-gatewayversion,clean-dist"
+        description="clean all build products and generated code" >
         <echo message="Cleaning ${project}"/>
         <exec executable="make" dir="." searchpath="true">
            <arg value="realclean"/>
@@ -117,21 +139,11 @@ Built on ${os.arch} ${os.name} ${os.version}
     </target>
 
     <target name="configure"
-        description="constructing makefiles" depends="-update-gatewayversion">
+        description="build the  makefiles" depends="-update-gatewayversion">
         <exec executable="mwc.pl" dir="." searchpath="true">
-           <arg value="--type"/> <arg value="make"/>
+           <arg value="--type"/> <arg value="gnuace"/>
            <arg value="Gateway.mwc"/>
         </exec>
-    </target>
-
-    <target name="help">
-        <echo message="Targets for ${project} are the following:" />
-        <echo message="configure - build the makefiles" />
-        <echo message="build - Build the ${project}" />
-        <echo message="dist  - Tar the ${project} for release into ${dist}" />
-        <echo message="clean - Clean ${build} and ${dist} dirs" />
-        <echo message="clean-dist - Clean ${dist} only" />
-        <echo message="realclean - Clean all build products and generated code" />
     </target>
 
 </project>

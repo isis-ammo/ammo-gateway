@@ -2,13 +2,13 @@
 
 LOGDIR="/tmp/gatewaylogs"
 
-if pgrep -l slapd > /dev/null 2>&1 ; then
-  echo "LDAP server: running"
-else
-  echo "ERROR:  LDAP server is not running...  run it with"
-  echo "'sudo ~/ldap/ldap.sh', then rerun this script."
-  exit 1
-fi
+#if pgrep -l slapd > /dev/null 2>&1 ; then
+#  echo "LDAP server: running"
+#else
+#  echo "ERROR:  LDAP server is not running...  run it with"
+#  echo "'sudo ~/ldap/ldap.sh', then rerun this script."
+#  exit 1
+#fi
 
 if [ ! -d $LOGDIR ]; then
   mkdir $LOGDIR
@@ -19,8 +19,7 @@ datesuffix=`date "+%Y.%m.%d.%H.%M.%S"`
 
 gatewaycorelog="$LOGDIR/GatewayCore.log.$datesuffix"
 androidpluginlog="$LOGDIR/AndroidGatewayPlugin.log.$datesuffix"
-tigrpluginlog="$LOGDIR/TigrGatewayPlugin.log.$datesuffix"
-passpluginlog="$LOGDIR/PassGatewayPlugin.log.$datesuffix"
+datastorepluginlog="$LOGDIR/DataStoreGatewayPlugin.log.$datesuffix"
 ldappluginlog="$LOGDIR/LdapGatewayPlugin.log.$datesuffix"
 
 . ~/.bashrc
@@ -41,17 +40,10 @@ xterm -bg black -fg cyan -sb -title "Android Gateway Plugin ($HOSTNAME)" -e "tai
 
 sleep 5
 
-echo "Launching TIGR Gateway Plugin..."
-echo "  Log file in $tigrpluginlog"
-./TigrGatewayPlugin > $tigrpluginlog 2>&1 &
-xterm -bg black -fg yellow -sb -title "TIGR Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $tigrpluginlog" &
-
-sleep 5
-
-echo "Launching PASS Gateway Plugin..."
-echo "  Log file in $passpluginlog"
-./PassGatewayPlugin > $passpluginlog 2>&1 &
-xterm -bg black -fg gray -sb -title "PASS Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $passpluginlog" &
+echo "Launching Data Store Gateway Plugin..."
+echo "  Log file in $datastorepluginlog"
+./DataStoreGatewayPlugin > $datastorepluginlog 2>&1 &
+xterm -bg black -fg gray -sb -title "Data Store Gateway Plugin ($HOSTNAME)" -e "tail -n+0 -f $datastorepluginlog" &
 
 sleep 5
 
@@ -68,9 +60,7 @@ echo "Terminating Gateway Core..."
 kill %./Gatewa
 echo "Terminating Android Gateway Plugin..."
 kill %./AndroidGat
-echo "Terminating TIGR Gateway Plugin..."
-kill %./TigrGat
-echo "Terminating PASS Gateway Plugin..."
-kill %./PassGat
+echo "Terminating Data Store Gateway Plugin..."
+kill %./DataStoreGat
 echo "Terminating LDAP Gateway Plugin..."
 kill %./LdapGat

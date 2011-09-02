@@ -12,7 +12,7 @@
 
 Makefile: Gateway.mwc
 	mwc.pl --type make Gateway.mwc
-	cat install.mk >> Makefile
+	cat install.mk >> GNUmakefile
 
 #.PHONY: build
 #build: Makefile
@@ -24,6 +24,9 @@ override_dh_auto_build: Makefile
 override_dh_auto_clean: Makefile
 	dh_auto_clean
 	rm -f Makefile
+	
+override_dh_strip:
+	echo "Leaving debug symbols in package binaries"
 
 %:
 	dh  $@

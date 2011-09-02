@@ -9,11 +9,11 @@
 
 const int SLEEP_TIME = 3;
 
-GatewayConnectionManager::GatewayConnectionManager(GatewayConnector *connector) : gatewayConnector(connector), connector(NULL), handler(NULL), cancelMutex(), cancelled(false) {
+ammo::gateway::internal::GatewayConnectionManager::GatewayConnectionManager(GatewayConnector *connector) : gatewayConnector(connector), connector(NULL), handler(NULL), cancelMutex(), cancelled(false) {
   
 }
   
-int GatewayConnectionManager::svc() {
+int ammo::gateway::internal::GatewayConnectionManager::svc() {
   GatewayConfigurationManager *config = GatewayConfigurationManager::getInstance();
   
   bool connected = false;
@@ -43,19 +43,19 @@ int GatewayConnectionManager::svc() {
   return 0;
 }
 
-int GatewayConnectionManager::handle_input(ACE_HANDLE fd) {
+int ammo::gateway::internal::GatewayConnectionManager::handle_input(ACE_HANDLE fd) {
   handler->setParentConnector(gatewayConnector);
   gatewayConnector->onConnect(connector, handler);
   return 0;
 }
 
-void GatewayConnectionManager::cancel() {
+void ammo::gateway::internal::GatewayConnectionManager::cancel() {
   cancelMutex.acquire();
   cancelled = true;
   cancelMutex.release();
 }
 
-bool GatewayConnectionManager::isCancelled() {
+bool ammo::gateway::internal::GatewayConnectionManager::isCancelled() {
   cancelMutex.acquire();
   volatile bool ret = cancelled;
   cancelMutex.release();

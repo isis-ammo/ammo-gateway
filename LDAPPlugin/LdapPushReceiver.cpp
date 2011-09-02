@@ -15,6 +15,7 @@
 
 
 using namespace std;
+using namespace ammo::gateway;
 
 /*
  * LDAPPlugin
@@ -102,18 +103,15 @@ void LdapPushReceiver::onDisconnect(GatewayConnector *sender)
 // Data Push from the Device
 // User has edited his own contact information - do an ldapadd/modify on the LDAPServer
 //============================================================
-void LdapPushReceiver::onDataReceived(GatewayConnector *sender,
-                                      std::string uri, std::string mimeType,
-                                      std::vector<char> &data, std::string originUser)
+void LdapPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData)
 {
   cout << "Got data." << endl;
-  cout << "  URI: " << uri << endl;
-  cout << "  Mime type: " << mimeType << endl;
+  cout << "  " << pushData << endl;;
 
-  if(mimeType == CONTACT_MIME_TYPE)
+  if(pushData.mimeType == CONTACT_MIME_TYPE)
     {
       // Extract JSON string from message payload
-      std::string json = payloadToJson(data);
+      std::string json = payloadToJson(pushData.data);
 
       // Populate contact object from data in JSON
       LdapContact* contact = NULL;
@@ -142,19 +140,18 @@ void LdapPushReceiver::onDataReceived(GatewayConnector *sender,
 // Pull Request
 // Query containing LDAP search parameters
 //============================================================
-void LdapPushReceiver::onDataReceived(GatewayConnector *sender,
-                                      std::string requestUid, std::string pluginId,
-                                      std::string mimeType, std::string query,
-                                      std::string projection, unsigned int maxResults,
-                                      unsigned int startFromCount, bool liveQuery)
+void LdapPushReceiver::onPullRequestReceived(GatewayConnector *sender, ammo::gateway::PullRequest &pullReq)
 {
   string response = "asdf";
   vector<string> jsonResults;
-  get(query, jsonResults);
+  get(pullReq.query, jsonResults);
   for(vector<string>::iterator it = jsonResults.begin(); it != jsonResults.end(); it++)
     {
-      vector<char> data(it->begin(), it->end());
-      sender->pullResponse(requestUid, pluginId, mimeType, "ammo-demo:test-object", data);
+      string data = *it;
+      PullResponse resp = PullResponse::createFromPullRequest(pullReq);
+      resp.uri = "ammo-demo:test-object";
+      resp.data = data;
+      sender->pullResponse(resp);
     }
 }
 
@@ -166,7 +163,7 @@ void LdapPushReceiver::onDataReceived(GatewayConnector *sender,
 bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResults)
 {
 
-  LdapConfigurationManager *config = LdapConfigurationManager::getInstance();
+  //LdapConfigurationManager *config = LdapConfigurationManager::getInstance();
 
   LDAPMessage *results;
   //std::string filter = "(& (objectClass=x-MilitaryPerson) (objectClass=inetOrgPerson)";
@@ -224,12 +221,12 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   struct timeval timeout = { 5, 0 };
 
   LDAPControl *serverctrls = NULL, *clientctrls = NULL;
-  char *attrs[] = { "*", NULL };
+  char *attrs[] = { const_cast<char *>("*"), NULL };
 
   cout << "LDAP Starting Search for: " << filter << endl;
 
   int ret = ldap_search_ext_s(ldapServer,
-                              "dc=transapps,dc=darpa,dc=mil", /* LDAP search base dn (distinguished name) */
+                              "dc=ammo,dc=tdm", /* LDAP search base dn (distinguished name) */
                               LDAP_SCOPE_SUBTREE, /* scope - root and all descendants */
                               filter.c_str(), /* filter - query expression */
                               attrs, /* requested attributes (white-space seperated list, * = ALL) */
@@ -275,11 +272,11 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
 // payloadToJson()
 //
 //============================================================
-std::string LdapPushReceiver::payloadToJson(std::vector<char> &data)
+std::string LdapPushReceiver::payloadToJson(std::string &data)
 {
   //cout << "Extracting JSON metadata..." << endl << flush;
   unsigned int jsonEnd = 0;
-  for(vector<char>::iterator it = data.begin(); it != data.end(); it++)
+  for(string::iterator it = data.begin(); it != data.end(); it++)
     {
       jsonEnd++;
       if((*it) == 0) break;
@@ -475,6 +472,8 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
     }
 
 
+  // This block is outdated and overwriting the unit info -- comment out
+  /*
   char *dn = ldap_get_dn(ldapServer, entry);
   char **edn = ldap_explode_dn(dn, 0);
   string unit;
@@ -493,7 +492,7 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
         unit = string(oval) + string("/") + unit;
     }
   root["unit"] = unit;
-
+  */
 
 
 #ifdef TEST_PHOTO
@@ -602,7 +601,7 @@ bool LdapPushReceiver::editContact(const LdapContact& contact)
 // write_callback()
 //
 //============================================================
-static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData)
+/*static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData)
 {
   if(writerData == NULL)
     {
@@ -610,4 +609,4 @@ static int write_callback(char *data, size_t size, size_t nmemb, std::string *wr
     }
   writerData->append(data, size*nmemb);
   return size * nmemb;
-}
+}*/

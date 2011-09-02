@@ -26,28 +26,22 @@ public:
 };
 
 
-class LdapPushReceiver : public DataPushReceiverListener, 
-			 public GatewayConnectorDelegate, 
-			 public PullRequestReceiverListener
+class LdapPushReceiver : public ammo::gateway::DataPushReceiverListener, 
+			 public ammo::gateway::GatewayConnectorDelegate, 
+			 public ammo::gateway::PullRequestReceiverListener
 {
 public:
   LdapPushReceiver();
   
   // virtual method from GatewayConnectorDelegate
-  virtual void onConnect(GatewayConnector *sender);
-  virtual void onDisconnect(GatewayConnector *sender);
+  virtual void onConnect(ammo::gateway::GatewayConnector *sender);
+  virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
 
   // virtual method from DataPushReceiverListener 
-  virtual void onDataReceived(GatewayConnector *sender, std::string uri, 
-			      std::string mimeType, std::vector<char> &data, 
-			      std::string originUser);
+  virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PushData &pushData);
 
   // virtual method from PullRequestReceiverListener
-  virtual void onDataReceived(GatewayConnector *sender,
-                              std::string requestUid, std::string pluginId,
-                              std::string mimeType, std::string query,
-                              std::string projection, unsigned int maxResults,
-                              unsigned int startFromCount, bool liveQuery);
+  virtual void onPullRequestReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PullRequest &pullReq);
 
 
 private:
@@ -55,7 +49,7 @@ private:
   bool editContact(const LdapContact& );
   std::string jsonForObject(LDAPMessage *entry);
   LdapContact* objectFromJson(std::string input);
-  std::string payloadToJson(std::vector<char> &data);
+  std::string payloadToJson(std::string &data);
   bool parseJson(std::string input, Json::Value& jsonRoot);
 
 private:
@@ -63,6 +57,6 @@ private:
   LDAP *ldapServer;
 };
 
-static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData);
+//static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData);
 
 #endif  // LDAP_PUSH_RECEIVER_H

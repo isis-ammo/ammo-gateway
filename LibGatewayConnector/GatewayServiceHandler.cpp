@@ -14,11 +14,11 @@
   
 } */
 
-GatewayServiceHandler::GatewayServiceHandler() : opened(false) {
+ammo::gateway::internal::GatewayServiceHandler::GatewayServiceHandler() : opened(false) {
   
 }
 
-int GatewayServiceHandler::open(void *ptr) {
+int ammo::gateway::internal::GatewayServiceHandler::open(void *ptr) {
   if(super::open(ptr) == -1) {
     return -1;
     
@@ -29,6 +29,10 @@ int GatewayServiceHandler::open(void *ptr) {
   collectedData = NULL;
   position = 0;
   
+  dataToSend = NULL;
+  sendPosition = 0;
+  sendBufferSize = 0;
+  
   opened = true;
   
   LOG_DEBUG("GatewayServiceHandler::open() called");
@@ -36,7 +40,7 @@ int GatewayServiceHandler::open(void *ptr) {
   return 0;
 }
 
-int GatewayServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask mask) {
+int ammo::gateway::internal::GatewayServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask mask) {
   LOG_DEBUG("GatewayServiceHandler::close() called");
   if(opened) {
     parent->onDisconnect();
@@ -45,7 +49,7 @@ int GatewayServiceHandler::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask mask) {
   return super::handle_close(fd, mask);
 }
 
-int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
+int ammo::gateway::internal::GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
   //LOG_TRACE("In handle_input");
   int count = 0;
   
@@ -66,7 +70,12 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
   
   if(count > 0) {
     if(state == READING_SIZE) {
-      collectedData = new char[dataSize];
+      try {
+        collectedData = new char[dataSize];
+      } catch (std::bad_alloc &e) {
+        LOG_ERROR("Couldn't allocate memory for message of size " << dataSize);
+        return -1;
+      }
       position = 0;
       //LOG_TRACE("Got data size (" << dataSize << ")");
       state = READING_CHECKSUM;
@@ -80,7 +89,7 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
         //LOG_TRACE("Got all the data... processing");
         processData(collectedData, dataSize, checksum);
         //LOG_TRACE("Processsing complete.  Deleting buffer.");
-        delete collectedData;
+        delete[] collectedData;
         collectedData = NULL;
         dataSize = 0;
         position = 0;
@@ -98,73 +107,95 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
   return 0;
 }
 
-// This method comes stright from ACE sample code:  see ace_wrappers/examples/APG/Reactor/Client.cpp
-int GatewayServiceHandler::handle_output(ACE_HANDLE) {
-  ACE_Message_Block *mb;
-  ACE_Time_Value nowait(ACE_OS::gettimeofday ());
+int ammo::gateway::internal::GatewayServiceHandler::handle_output(ACE_HANDLE fd) {
+  int count = 0;
   
-  while (-1 != this->getq(mb, &nowait)) {
-    ssize_t send_cnt = this->peer().send(mb->rd_ptr(), mb->length());
-    if (send_cnt == -1) {
-      LOG_ERROR("Send error...");
-    } else {
-      mb->rd_ptr(static_cast<size_t>(send_cnt));
+  do {
+    if(dataToSend == NULL) {
+      ammo::gateway::protocol::GatewayWrapper *msg = getNextMessageToSend();
+      if(msg != NULL) {
+        LOG_TRACE("Getting a new message to send");
+        if(!msg->IsInitialized()) {
+          LOG_WARN("Protocol Buffers message is missing a required element.");
+        }
+        unsigned int messageSize = msg->ByteSize();
+        sendBufferSize = messageSize + 2*sizeof(unsigned int);
+        dataToSend = new char[sendBufferSize];
+        unsigned int *size = (unsigned int *) dataToSend;
+        unsigned int *messageChecksum = (unsigned int *) (dataToSend + sizeof(unsigned int));
+        char *protobufSerializedMessage = dataToSend + 2*sizeof(unsigned int);
+        
+        *size = messageSize;
+        msg->SerializeToArray(protobufSerializedMessage, messageSize);
+        *messageChecksum = ACE::crc32(protobufSerializedMessage, messageSize);
+        
+        sendPosition = 0;
+        
+        delete msg;
+      } else {
+        //don't wake up the reactor when there's no data that needs to be sent
+        //(wake-up will be rescheduled when data becomes available in sendMessage
+        //below)
+        this->reactor()->cancel_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+        return 0;
+      }
     }
-    if (mb->length() > 0) {
-      this->ungetq(mb);
-      break;
+      
+    //timeout after ten seconds when sending data (in case connection drops
+    //in the middle, we don't want to wait until the socket connection dies)
+    //ACE_Time_Value timeout(10);
+    count = this->peer().send(dataToSend + sendPosition, sendBufferSize - sendPosition);
+    if(count >= 0) {
+      sendPosition += count;
     }
-    mb->release();
-  }
+    LOG_TRACE("Sent " << count << " bytes (current postition " << sendPosition << "/" << sendBufferSize);
+    
+    if(sendPosition >= (sendBufferSize)) {
+      delete[] dataToSend;
+      dataToSend = NULL;
+      sendBufferSize = 0;
+      sendPosition = 0;
+    }
+  } while(count != -1);
   
-  if (this->msg_queue ()->is_empty ()) {
-    this->reactor()->cancel_wakeup(this, ACE_Event_Handler::WRITE_MASK);
-  } else {
+  if(count == -1 && ACE_OS::last_error () == EWOULDBLOCK) {
+    LOG_TRACE("Received EWOULDBLOCK");
     this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+  } else {
+    LOG_ERROR("Socket error occurred. (" << ACE_OS::last_error() << ")");
+    return -1;
   }
   
   return 0;
 }
 
-void GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper &msg) {
-  /*//this is bad--  if the message queue gets filled, putq will block forever
-  //because there's not another thread pulling objects out of the queue.
-  //TODO: figure out how to queue data infinitely without blocking
-  unsigned int messageSize = msg.ByteSize();
-  char *messageToSend = new char[messageSize];
-  msg.SerializeToArray(messageToSend, messageSize);
-  unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
+void ammo::gateway::internal::GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper *msg) {
+  sendQueueMutex.acquire();
+  sendQueue.push(msg);
+  LOG_TRACE("Queued a message to send.  " << sendQueue.size() << " messages in queue.");
+  sendQueueMutex.release();
   
-  ACE_Message_Block *messageSizeBlock = new ACE_Message_Block(sizeof(messageSize));
-  messageSizeBlock->copy((char *) &messageSize, sizeof(messageSize));
-  this->putq(messageSizeBlock);
-  
-  ACE_Message_Block *messageChecksumBlock = new ACE_Message_Block(sizeof(messageChecksum));
-  messageChecksumBlock->copy((char *) &messageChecksum, sizeof(messageChecksum));
-  this->putq(messageChecksumBlock);
-  
-  ACE_Message_Block *messageToSendBlock = new ACE_Message_Block(messageSize);
-  messageToSendBlock->copy(messageToSend, messageSize);
-  this->putq(messageToSendBlock);
-  
-  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);*/
-  
-  unsigned int messageSize = msg.ByteSize();
-  char *messageToSend = new char[messageSize];
-  
-  if(msg.IsInitialized()) { //Don't send a message if it's missing required fields (SerializeToArray is supposed to check for this, but doesn't)
-    msg.SerializeToArray(messageToSend, messageSize);
-    unsigned int messageChecksum = ACE::crc32(messageToSend, messageSize);
-    
-    this->peer().send_n(&messageSize, sizeof(messageSize));
-    this->peer().send_n(&messageChecksum, sizeof(messageChecksum));
-    this->peer().send_n(messageToSend, messageSize);
-  } else {
-    LOG_ERROR("SEND ERROR (LibGatewayConnector):  Message is missing a required element.");
-  }
+  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
 }
 
-int GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
+ammo::gateway::protocol::GatewayWrapper *ammo::gateway::internal::GatewayServiceHandler::getNextMessageToSend() {
+  ammo::gateway::protocol::GatewayWrapper *msg = NULL;
+  
+  sendQueueMutex.acquire();
+  if(!sendQueue.empty()) {
+    msg = sendQueue.front();
+    sendQueue.pop();
+  }
+  
+  int size = sendQueue.size();
+  sendQueueMutex.release();
+  
+  LOG_TRACE("Dequeued a message to send.  " << size << " messages remain in queue.");
+  return msg;
+}
+
+
+int ammo::gateway::internal::GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if(calculatedChecksum != messageChecksum) {
@@ -199,10 +230,10 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   return 0;
 }
 
-GatewayServiceHandler::~GatewayServiceHandler() {
+ammo::gateway::internal::GatewayServiceHandler::~GatewayServiceHandler() {
   LOG_TRACE("GatewayServiceHandler being destroyed!");
 }
 
-void GatewayServiceHandler::setParentConnector(GatewayConnector *parent) {
+void ammo::gateway::internal::GatewayServiceHandler::setParentConnector(GatewayConnector *parent) {
   this->parent = parent;
 }

@@ -11,20 +11,30 @@ import time
 import AmmoMessages_pb2
 
 class GatewayTestClient:
+  HEADER_MAGIC_NUMBER = 0xfeedbeef
   def __init__(self, host, port):
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.sock.connect((host, int(port)))
     
   def sendMessageWrapper(self, msg):
     serializedMsg = msg.SerializeToString()
-    self.sock.sendall(struct.pack("<I", len(serializedMsg))) #little-endian byte order for now
-    self.sock.sendall(struct.pack("<i", zlib.crc32(serializedMsg)))
+    messageHeader = struct.pack("<IIi", self.HEADER_MAGIC_NUMBER, len(serializedMsg), zlib.crc32(serializedMsg))
+    self.sock.sendall(messageHeader) #little-endian byte order for now
+    self.sock.sendall(struct.pack("<i", zlib.crc32(messageHeader)))
     print serializedMsg
-    self.sock.sendall(serializedMsg);
+    self.sock.sendall(serializedMsg)
     
   def receiveMessage(self):
-    (messageSize,) = struct.unpack("<I", self.sock.recv(4));
-    (checksum,) = struct.unpack("<i", self.sock.recv(4));
+    messageHeader = self.sock.recv(3*4)
+    (magicNumber, messageSize, checksum) = struct.unpack("<IIi", messageHeader)
+    (headerChecksum,) = struct.unpack("<i", self.sock.recv(4))
+    
+    if magicNumber != self.HEADER_MAGIC_NUMBER:
+      raise IOError("Invalid magic number received from gateway: " + hex(magicNumber))
+      
+    if headerChecksum != zlib.crc32(messageHeader):
+      raise IOError("Invalid header checksum received from gateway")
+    
     protobufMsg = ""
     while len(protobufMsg) < messageSize:
       receivedData = self.sock.recv(messageSize - len(protobufMsg))
@@ -50,6 +60,8 @@ if __name__ == "__main__":
 '''
     exit(-1)
   
+  count = 0
+  
   print "Creating client"
   client = GatewayTestClient(sys.argv[1], sys.argv[2])
   print "Generating message"
@@ -70,7 +82,8 @@ if __name__ == "__main__":
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
     m.data_message.mime_type = "text/plain"
-    m.data_message.data = "This is some text being pushed out to the gateway."
+    m.data_message.data = "This is some text being pushed out to the gateway." + str(count)
+    count = count + 1
     print "Sending data message"
     client.sendMessageWrapper(m)
   elif sys.argv[3] == "subscribe": 
@@ -92,22 +105,23 @@ if __name__ == "__main__":
     m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
     m.pull_request.mime_type = "text/plain"
     m.pull_request.request_uid = "AGT_pull_request"
-    m.pull_request.plugin_id = "AndroidGatewayTester"
     m.pull_request.max_results = 0
-    m.pull_request.query = ",,1298478000,1300000000"
+    m.pull_request.query = ",,1300000000,1310000000"
     print "Sending pull request..."
     client.sendMessageWrapper(m)
   
   while True:
     msg = client.receiveMessage()
     print msg
-    time.sleep(0.5)
+    
     if(sys.argv[3] == "push"):
+      time.sleep(0.5)
       m = AmmoMessages_pb2.MessageWrapper()
       m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
       m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
       m.data_message.mime_type = "text/plain"
-      m.data_message.data = "This is some text being pushed out to the gateway."
+      m.data_message.data = "This is some text being pushed out to the gateway." + str(count)
+      count = count + 1
       print "Sending data message"
       client.sendMessageWrapper(m)
   

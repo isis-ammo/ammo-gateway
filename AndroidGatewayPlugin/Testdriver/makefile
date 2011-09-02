@@ -3,6 +3,8 @@ PB_DIR:=./../../common/protocol
 SRC_DIR:=.
 DST_DIR:=.
 
+default: build
+
 run: build 
 	python AndroidGatewayTester.py localhost 32869 pull	
 

@@ -5,6 +5,9 @@
 #include "ace/SOCK_Stream.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
 #include <vector>
+#include <queue>
+#include <set>
+#include "Enumerations.h"
 
 class GatewayServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH> {
 public:
@@ -14,10 +17,12 @@ public:
   int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   int handle_output(ACE_HANDLE fd = ACE_INVALID_HANDLE);
   
-  void sendData(ammo::gateway::protocol::GatewayWrapper &msg);
+  void sendData(ammo::gateway::protocol::GatewayWrapper *msg);
+  ammo::gateway::protocol::GatewayWrapper *getNextMessageToSend();
+  
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
   
-  bool sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser);
+  bool sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope scope);
   bool sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
 		       unsigned int maxResults, unsigned int startFromCount, bool liveQuery);
   bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string& data);
@@ -40,11 +45,18 @@ protected:
   char *collectedData;
   unsigned int position;
   
+  char *dataToSend;
+  unsigned int sendPosition;
+  unsigned int sendBufferSize;
+  
   std::string username;
   bool usernameAuthenticated;
   
   std::vector<std::string> registeredHandlers;
   std::vector<std::string> registeredPullRequestHandlers;
+  
+  std::queue<ammo::gateway::protocol::GatewayWrapper *> sendQueue;
+  std::set<std::string> registeredPullResponsePluginIds;
 };
 
 #endif        //  #ifndef GATEWAY_SERVICE_HANDLER_H

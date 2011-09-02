@@ -15,12 +15,11 @@ if [ ! -d $LOGDIR ]; then
 fi
 
 hostname=`hostname`
-datesuffix=`date "+%Y.%M.%d.%H.%M.%S"`
+datesuffix=`date "+%Y.%m.%d.%H.%M.%S"`
 
 gatewaycorelog="$LOGDIR/GatewayCore.log.$datesuffix"
 androidpluginlog="$LOGDIR/AndroidGatewayPlugin.log.$datesuffix"
-tigrpluginlog="$LOGDIR/TigrGatewayPlugin.log.$datesuffix"
-passpluginlog="$LOGDIR/PassGatewayPlugin.log.$datesuffix"
+datastorepluginlog="$LOGDIR/DataStoreGatewayPlugin.log.$datesuffix"
 ldappluginlog="$LOGDIR/LdapGatewayPlugin.log.$datesuffix"
 
 echo "Launching Gateway Core..."
@@ -35,15 +34,9 @@ AndroidGatewayPlugin --listenPort 33289 > $androidpluginlog 2>&1 &
 
 sleep 5
 
-echo "Launching TIGR Gateway Plugin..."
-echo "  Log file in $tigrpluginlog"
-TigrGatewayPlugin > $tigrpluginlog 2>&1 &
-
-sleep 5
-
-echo "Launching PASS Gateway Plugin..."
-echo "  Log file in $passpluginlog"
-PassGatewayPlugin > $passpluginlog 2>&1 &
+echo "Launching Data Store Gateway Plugin..."
+echo "  Log file in $datastorepluginlog"
+DataStoreGatewayPlugin > $datastorepluginlog 2>&1 &
 
 sleep 5
 

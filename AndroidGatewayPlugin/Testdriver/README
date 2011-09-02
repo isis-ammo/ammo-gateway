@@ -1,0 +1,22 @@
+The AndroidConnector module is now an installable Python package, to allow it to
+be reused without having to copy code around a lot of different places (or set
+Python's PATH in every script that uses it).
+
+Installation on Ubuntu (the version of Twisted in Ubuntu's repository is out of
+date):
+
+1) Install python-setuptools and python-dev:
+     sudo apt-get install python-setuptools python-dev
+     
+2) Install AndroidConnector:
+     cd AndroidConnector
+     sudo ./setup.py install
+     
+You will need to reinstall AndroidConnector if it changes, or if
+AmmoMessages.proto changes.
+
+---
+
+To run the non-AndroidConnector based testdrivers in this directory, you'll need
+to build AmmoMessages.proto.  You can do this by running 'make' in this
+directory.

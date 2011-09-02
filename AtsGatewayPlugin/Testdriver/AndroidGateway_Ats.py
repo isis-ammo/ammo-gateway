@@ -10,20 +10,30 @@ import zlib
 import AmmoMessages_pb2
 
 class GatewayTestClient:
+  HEADER_MAGIC_NUMBER = 0xfeedbeef
   def __init__(self, host, port):
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.sock.connect((host, int(port)))
     
   def sendMessageWrapper(self, msg):
     serializedMsg = msg.SerializeToString()
-    self.sock.sendall(struct.pack("<I", len(serializedMsg))) #little-endian byte order for now
-    self.sock.sendall(struct.pack("<i", zlib.crc32(serializedMsg)))
+    messageHeader = struct.pack("<IIi", self.HEADER_MAGIC_NUMBER, len(serializedMsg), zlib.crc32(serializedMsg))
+    self.sock.sendall(messageHeader) #little-endian byte order for now
+    self.sock.sendall(struct.pack("<i", zlib.crc32(messageHeader)))
     print serializedMsg
-    self.sock.sendall(serializedMsg);
+    self.sock.sendall(serializedMsg)
     
   def receiveMessage(self):
-    (messageSize,) = struct.unpack("<I", self.sock.recv(4));
-    (checksum,) = struct.unpack("<i", self.sock.recv(4));
+    messageHeader = self.sock.recv(3*4)
+    (magicNumber, messageSize, checksum) = struct.unpack("<IIi", messageHeader)
+    (headerChecksum,) = struct.unpack("<i", self.sock.recv(4))
+    
+    if magicNumber != self.HEADER_MAGIC_NUMBER:
+      raise IOError("Invalid magic number received from gateway: " + hex(magicNumber))
+      
+    if headerChecksum != zlib.crc32(messageHeader):
+      raise IOError("Invalid header checksum received from gateway")
+    
     protobufMsg = ""
     while len(protobufMsg) < messageSize:
       receivedData = self.sock.recv(messageSize - len(protobufMsg))
@@ -46,6 +56,8 @@ if __name__ == "__main__":
     subscribe : subscribe to type:urn:aterrasys.com:/api/chat/msg
     pull : pull type:urn:aterrasys.com:/api/rtc/people/list
     push : send a data message of topic type:urn:aterrasys.com:/api/chat/invite
+    pushLoc : send a data message of topic type:urn:aterrasys.com:/api/location/post
+    pushLocs : send a data message of topic type:urn:aterrasys.com:/api/locations/post
 '''
     exit(-1)
   
@@ -59,12 +71,14 @@ if __name__ == "__main__":
   m.authentication_message.user_key = "secret"
   print "Sending message"
   client.sendMessageWrapper(m)
+
+  print "Waiting for Authentication Response"
+    #wait for auth response, then send a data push message
+  response = client.receiveMessage()
+  if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
+    print "Authentication failed..."
   
   if(sys.argv[3] == "push"):
-    #wait for auth response, then send a data push message
-    response = client.receiveMessage()
-    if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
-      print "Authentication failed..."
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.data_message.uri = "type:urn:aterrasys.com:/api/chat/invite"
@@ -72,21 +86,33 @@ if __name__ == "__main__":
     m.data_message.data = "This is a message intended for the Aterrasys service."
     print "Sending data message", m.data_message.data
     client.sendMessageWrapper(m)
+
+  elif(sys.argv[3] == "pushLoc"):
+    m = AmmoMessages_pb2.MessageWrapper()
+    m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
+    m.data_message.uri = "type:urn:aterrasys.com:/api/location/post/"
+    m.data_message.mime_type = "urn:aterrasys.com:/api/location/post/"
+    m.data_message.data = '{"lat":2000000,"lon":2000000}'
+    print "Sending data message", m.data_message.data
+    client.sendMessageWrapper(m)
+
+  elif(sys.argv[3] == "pushLocs"):
+    m = AmmoMessages_pb2.MessageWrapper()
+    m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
+    m.data_message.uri = "type:urn:aterrasys.com:/api/locations/post/"
+    m.data_message.mime_type = "urn:aterrasys.com:/api/locations/post/"
+    m.data_message.data = '[{"user":"sbasu","lat":2000000,"lon":2000000},{"user":"dutch","lat":2000000,"lon":2000000}]'
+    print "Sending data message", m.data_message.data
+    client.sendMessageWrapper(m)
+
   elif sys.argv[3] == "subscribe": 
-    #wait for auth response, then send a data push message
-    response = client.receiveMessage()
-    if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
-      print "Authentication failed..."
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
     m.subscribe_message.mime_type = "urn:aterrasys.com:/api/rtc/people/add"
     print "Sending subscription request..."
     client.sendMessageWrapper(m)
+
   elif sys.argv[3] == "pull":
-    #wait for auth response, then send a data push message
-    response = client.receiveMessage()
-    if response.authentication_result.result != AmmoMessages_pb2.AuthenticationResult.SUCCESS:
-      print "Authentication failed..."
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
     m.pull_request.request_uid = "ats-people-req-1"

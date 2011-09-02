@@ -7,7 +7,7 @@
 
 class AndroidServiceHandler;
 
-class AndroidMessageProcessor : public ACE_Task <ACE_MT_SYNCH>, public GatewayConnectorDelegate, public DataPushReceiverListener, public PullResponseReceiverListener {
+class AndroidMessageProcessor : public ACE_Task <ACE_MT_SYNCH>, public ammo::gateway::GatewayConnectorDelegate, public ammo::gateway::DataPushReceiverListener, public ammo::gateway::PullResponseReceiverListener {
 public:
   AndroidMessageProcessor(AndroidServiceHandler *serviceHandler);
   virtual ~AndroidMessageProcessor();
@@ -20,17 +20,15 @@ public:
   void signalNewMessageAvailable();
   
   //GatewayConnectorDelegate methods
-  virtual void onConnect(GatewayConnector *sender);
-  virtual void onDisconnect(GatewayConnector *sender);
-  virtual void onAuthenticationResponse(GatewayConnector *sender, bool result);
+  virtual void onConnect(ammo::gateway::GatewayConnector *sender);
+  virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
+  virtual void onAuthenticationResponse(ammo::gateway::GatewayConnector *sender, bool result);
   
   //DataPushReceiverListener methods
-  virtual void onDataReceived(GatewayConnector *sender, std::string uri, std::string mimeType, std::vector<char> &data, std::string originUser);
+  virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PushData &pushData);
 
   //PullResponseReceiverListener method
-  virtual void onDataReceived(GatewayConnector *sender, 
-			      std::string requestUid, std::string pluginId, std::string mimeType,
-			      std::string uri, std::vector<char> &data);
+  virtual void onPullResponseReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PullResponse &response);
   
 private:
   bool closed;
@@ -40,7 +38,10 @@ private:
   
   AndroidServiceHandler *commsHandler;
   
-  GatewayConnector *gatewayConnector;
+  ammo::gateway::GatewayConnector *gatewayConnector;
+  
+  std::string deviceId;
+  bool deviceIdAuthenticated;
   
   bool isClosed();
   void processMessage(ammo::protocol::MessageWrapper &msg);
