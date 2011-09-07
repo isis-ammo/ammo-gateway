@@ -112,7 +112,7 @@ int ammo::gateway::internal::GatewayServiceHandler::handle_output(ACE_HANDLE fd)
   
   do {
     if(dataToSend == NULL) {
-      ammo::gateway::protocol::GatewayWrapper *msg = getNextMessageToSend();
+      ammo::gateway::protocol::GatewayWrapper *msg = parent->getNextMessageToSend();
       if(msg != NULL) {
         LOG_TRACE("Getting a new message to send");
         if(!msg->IsInitialized()) {
@@ -151,6 +151,8 @@ int ammo::gateway::internal::GatewayServiceHandler::handle_output(ACE_HANDLE fd)
     LOG_TRACE("Sent " << count << " bytes (current postition " << sendPosition << "/" << sendBufferSize);
     
     if(sendPosition >= (sendBufferSize)) {
+      //full message has been sent
+      parent->removeSentMessageFromQueue();
       delete[] dataToSend;
       dataToSend = NULL;
       sendBufferSize = 0;
@@ -168,32 +170,6 @@ int ammo::gateway::internal::GatewayServiceHandler::handle_output(ACE_HANDLE fd)
   
   return 0;
 }
-
-void ammo::gateway::internal::GatewayServiceHandler::sendData(ammo::gateway::protocol::GatewayWrapper *msg) {
-  sendQueueMutex.acquire();
-  sendQueue.push(msg);
-  LOG_TRACE("Queued a message to send.  " << sendQueue.size() << " messages in queue.");
-  sendQueueMutex.release();
-  
-  this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
-}
-
-ammo::gateway::protocol::GatewayWrapper *ammo::gateway::internal::GatewayServiceHandler::getNextMessageToSend() {
-  ammo::gateway::protocol::GatewayWrapper *msg = NULL;
-  
-  sendQueueMutex.acquire();
-  if(!sendQueue.empty()) {
-    msg = sendQueue.front();
-    sendQueue.pop();
-  }
-  
-  int size = sendQueue.size();
-  sendQueueMutex.release();
-  
-  LOG_TRACE("Dequeued a message to send.  " << size << " messages remain in queue.");
-  return msg;
-}
-
 
 int ammo::gateway::internal::GatewayServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum) {
   //Validate checksum

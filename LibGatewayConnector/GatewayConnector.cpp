@@ -11,11 +11,11 @@
 using namespace std;
 using namespace ammo::gateway::internal;
 
-ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : delegate(delegate), handler(NULL), connected(false), connectionManager(NULL) {
+ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : delegate(delegate), connector(NULL), handler(NULL), connected(false), closing(false), connectionManager(NULL) {
   init(delegate, GatewayConfigurationManager::getInstance());
 }
 
-ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate, std::string configFile) : delegate(delegate), handler(NULL), connected(false), connectionManager(NULL) {
+ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate, std::string configFile) : delegate(delegate), connector(NULL), handler(NULL), connected(false), closing(false), connectionManager(NULL) {
   init(delegate, GatewayConfigurationManager::getInstance(configFile.c_str()));
 }
 
@@ -34,12 +34,10 @@ void ammo::gateway::GatewayConnector::onConnect(ACE_Connector<GatewayServiceHand
   this->connector = connector;
   this->handler = handler;
   
-  LOG_DEBUG("Sending queued messages");
+  LOG_DEBUG("Restarting reactor to send queued messages");
   
-  while(connected && !messageQueue.empty()) {
-    ammo::gateway::protocol::GatewayWrapper *msg = messageQueue.front();
-    handler->sendData(msg);
-    messageQueue.pop();
+  if(connected && !sendQueue.empty()) {
+    handler->reactor()->schedule_wakeup(handler, ACE_Event_Handler::WRITE_MASK);
   }
   
   if(delegate) {
@@ -55,13 +53,15 @@ void ammo::gateway::GatewayConnector::onDisconnect() {
   if(delegate) {
     delegate->onDisconnect(this);
   }
-  LOG_DEBUG("Restarting reconnection loop...");
-  connectionManager->activate();
+  if(!closing) {
+    LOG_DEBUG("Restarting reconnection loop...");
+    connectionManager->activate();
+  }
 }
 
 ammo::gateway::GatewayConnector::~GatewayConnector() {
   //LOG_DEBUG("Deleting GatewayConnector()");
-  
+  closing = true;
   
   if(connected) {
     if(handler != NULL) {
@@ -69,14 +69,19 @@ ammo::gateway::GatewayConnector::~GatewayConnector() {
     } else {
       LOG_WARN("handler was null while deleting GatewayConnector");
     }
-    if(handler != NULL) {
+    if(connector != NULL) {
       connector->close();
     } else {
       LOG_WARN("connector was null while deleting GatewayConnector");
     }
   }
   if(handler) {
+    delete handler;
+    handler = 0;
+  }
+  if(connector) {
     delete connector;
+    connector = 0;
   }
   connectionManager->cancel();
   connectionManager->wait();
@@ -84,12 +89,45 @@ ammo::gateway::GatewayConnector::~GatewayConnector() {
 }
 
 void ammo::gateway::GatewayConnector::sendMessage(ammo::gateway::protocol::GatewayWrapper *msg) {
-  if(connected) {
-    handler->sendData(msg);
-  } else {
-    LOG_DEBUG("No connection...  queueing message");
-    messageQueue.push(msg);
+  sendQueueMutex.acquire();
+  sendQueue.push(msg);
+  LOG_TRACE("Queued a message to send.  " << sendQueue.size() << " messages in queue.");
+  sendQueueMutex.release();
+  
+  if(connected) { //TODO: is this thread-safe?  Maybe not (depends on where connected gets changed and where sendMessage gets called)
+    handler->reactor()->schedule_wakeup(handler, ACE_Event_Handler::WRITE_MASK);
   }
+}
+
+/* Gets the next message to be sent (but doesn't remove it from the queue).  It's
+   removed from the queue after it's been completely sent (so that we can resend
+   the message if our connection is disrupted during send).
+*/
+ammo::gateway::protocol::GatewayWrapper *ammo::gateway::GatewayConnector::getNextMessageToSend() {
+  ammo::gateway::protocol::GatewayWrapper *msg = NULL;
+  
+  sendQueueMutex.acquire();
+  if(!sendQueue.empty()) {
+    msg = sendQueue.front();
+  }
+  sendQueueMutex.release();
+  
+  LOG_TRACE("Got a message to send.");
+  return msg;
+}
+
+void ammo::gateway::GatewayConnector::removeSentMessageFromQueue() {  
+  sendQueueMutex.acquire();
+  if(!sendQueue.empty()) {
+    sendQueue.pop();
+  } else {
+    LOG_WARN("Send queue is empty...  send queue shouldn't be empty when this method is called.");
+  }
+  
+  int size = sendQueue.size();
+  sendQueueMutex.release();
+  
+  LOG_TRACE("Finished sending and removed a message from queue.  " << size << " messages remain in queue.");
 }
   
 bool ammo::gateway::GatewayConnector::associateDevice(string device, string user, string key) {

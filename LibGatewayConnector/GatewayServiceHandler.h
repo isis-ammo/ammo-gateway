@@ -22,9 +22,6 @@ namespace ammo {
         int handle_input(ACE_HANDLE fd = ACE_INVALID_HANDLE);
         int handle_output(ACE_HANDLE fd = ACE_INVALID_HANDLE);
         
-        void sendData(ammo::gateway::protocol::GatewayWrapper *msg);
-        ammo::gateway::protocol::GatewayWrapper *getNextMessageToSend();
-        
         int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
         
         void setParentConnector(GatewayConnector *parent);
@@ -53,8 +50,6 @@ namespace ammo {
         bool opened;
         
         GatewayConnector *parent;
-        
-        std::queue<ammo::gateway::protocol::GatewayWrapper *> sendQueue;
       };
     }
   }

@@ -301,6 +301,8 @@ namespace ammo {
       void onDisconnect();
       
       void sendMessage(ammo::gateway::protocol::GatewayWrapper *msg);
+      ammo::gateway::protocol::GatewayWrapper *getNextMessageToSend();
+      void removeSentMessageFromQueue();
       
       GatewayConnectorDelegate *delegate;
       std::map<std::string, DataPushReceiverListener *> receiverListeners;
@@ -310,9 +312,11 @@ namespace ammo {
       ACE_Connector<ammo::gateway::internal::GatewayServiceHandler, ACE_SOCK_Connector> *connector;
       ammo::gateway::internal::GatewayServiceHandler *handler;
       
-      std::queue<ammo::gateway::protocol::GatewayWrapper *> messageQueue;
+      ACE_Thread_Mutex sendQueueMutex;
+      std::queue<ammo::gateway::protocol::GatewayWrapper *> sendQueue;
       
       bool connected;
+      bool closing;
       ammo::gateway::internal::GatewayConnectionManager *connectionManager;
       
       friend class ammo::gateway::internal::GatewayServiceHandler;
