@@ -163,7 +163,7 @@ void LdapPushReceiver::onPullRequestReceived(GatewayConnector *sender, ammo::gat
 bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResults)
 {
 
-  LdapConfigurationManager *config = LdapConfigurationManager::getInstance();
+  //LdapConfigurationManager *config = LdapConfigurationManager::getInstance();
 
   LDAPMessage *results;
   //std::string filter = "(& (objectClass=x-MilitaryPerson) (objectClass=inetOrgPerson)";
@@ -221,7 +221,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   struct timeval timeout = { 5, 0 };
 
   LDAPControl *serverctrls = NULL, *clientctrls = NULL;
-  char *attrs[] = { "*", NULL };
+  char *attrs[] = { const_cast<char *>("*"), NULL };
 
   cout << "LDAP Starting Search for: " << filter << endl;
 
@@ -601,7 +601,7 @@ bool LdapPushReceiver::editContact(const LdapContact& contact)
 // write_callback()
 //
 //============================================================
-static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData)
+/*static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData)
 {
   if(writerData == NULL)
     {
@@ -609,4 +609,4 @@ static int write_callback(char *data, size_t size, size_t nmemb, std::string *wr
     }
   writerData->append(data, size*nmemb);
   return size * nmemb;
-}
+}*/

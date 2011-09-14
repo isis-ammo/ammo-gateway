@@ -80,8 +80,7 @@ Building on Mac OS X (10.6):
   1) Download and install Homebrew:
         ruby -e "$(curl -fsSLk https://gist.github.com/raw/323731/install_homebrew.rb)"
         
-  2) Install Google Protocol Buffers and Boost (note that Boost can take a long
-     time to build and install):
+  2) Install Google Protocol Buffers:
         brew install protobuf
         
   3) Download and extract ACE+TAO+CIAO to a location of your choice.
@@ -104,7 +103,7 @@ Building on Mac OS X (10.6):
         #include "ace/config-macosx-snowleopard.h"
         
   6) Create a symbolic link called platform_macros.GNU in $ACE_ROOT/include/makeinclude
-     pointing to the file platform_snowleopard.GNU
+     pointing to the file platform_macosx_snowleopard.GNU
      i.e. ln -s platform_macosx_snowleopard.GNU platform_macros.GNU
      (If platform_macros.GNU already exists you will need to remove it.)
         

@@ -8,4 +8,10 @@ project(LibGeotransMgrs) : aceexe, gatewaycommon {
     ups.c
     utm.c
   }
+  
+  //Turn off warnings (Geotrans is not our code; we don't change it)
+  verbatim(gnuace, bottom) {
+    CPPFLAGS+=-w
+    CFLAGS+=-w
+  }
 }
