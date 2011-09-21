@@ -299,6 +299,7 @@ void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayCo
 ammo::gateway::PushData::PushData() :
   uri(""),
   mimeType(""),
+  encoding("json"),
   data(),
   originUsername(""),
   scope(ammo::gateway::SCOPE_GLOBAL)
@@ -324,6 +325,7 @@ ammo::gateway::PullResponse::PullResponse() :
   pluginId(""),
   mimeType(""),
   uri(""),
+  encoding("json"),
   data()
 {
   

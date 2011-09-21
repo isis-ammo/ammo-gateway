@@ -42,6 +42,8 @@ namespace ammo {
       std::string mimeType;             ///< The MIME type of this piece of data.  This MIME type is used to
                                         ///  determine which other gateway plugins will receive this pushed
                                         ///  data.
+      std::string encoding              ///< The encoding of the data in this message (optional; defaults
+                                        ///  to "json" if not specified).
       std::string data;                 ///< The data to be pushed to the gateway.  Represented as a C++ string,
                                         ///  but can contain any arbitrary binary data (the gateway will 
                                         ///  accept strings with bytes invalid in C-strings such as embedded
@@ -100,6 +102,8 @@ namespace ammo {
                               ///  will not be routed correctly.
       std::string mimeType;   ///< The data type of the data in this response.
       std::string uri;        ///< The URI of the data in this response.
+      std::string encoding    ///< The encoding of the data in this response (optional; defaults
+                              ///  to "json" if not specified).
       std::string data;       ///< The data to be sent to the requestor.
       
       /**
