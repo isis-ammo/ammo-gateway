@@ -50,11 +50,11 @@ rm -rf %{buildroot}
 /usr/bin/launch_ammo_gateway.sh
 /usr/bin/launch_ammo_gateway_headless.sh
 /usr/lib/libgatewayconnector.so
-/usr/lib/libgatewayconnector.so.AMMO_VERSION-AMMO_RELEASE
+/usr/lib/libgatewayconnector.so.AMMO_VERSION_STRING
 /usr/lib/libgeotrans-mgrs.so
-/usr/lib/libgeotrans-mgrs.so.AMMO_VERSION-AMMO_RELEASE
+/usr/lib/libgeotrans-mgrs.so.AMMO_VERSION_STRING
 /usr/lib/libjson.so
-/usr/lib/libjson.so.AMMO_VERSION-AMMO_RELEASE
+/usr/lib/libjson.so.AMMO_VERSION_STRING
 
 %changelog
 * BUILD_DATE John Williams <johnwilliams@isis.vanderbilt.edu> - AMMO_VERSION

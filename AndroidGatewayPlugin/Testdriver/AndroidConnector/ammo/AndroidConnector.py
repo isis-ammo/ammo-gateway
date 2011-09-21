@@ -15,6 +15,13 @@ import uuid
 
 import AmmoMessages_pb2
 
+MAGIC_NUMBER = 0xfeedbeef
+DEFAULT_PRIORITY = 0
+DEFAULT_RESERVED1 = 0
+DEFAULT_RESERVED2 = 0
+DEFAULT_RESERVED3 = 0
+
+
 class AndroidProtocol(stateful.StatefulProtocol):
   '''
   This class implements the stateful Android <-> Gateway protocol.  It contains
@@ -31,14 +38,36 @@ class AndroidProtocol(stateful.StatefulProtocol):
   _onMessageAvailableCallback = None
   
   def getInitialState(self):
-    return (self.receiveHeader, 8) #initial state receives the header
+    return (self.receiveHeader, 20) #initial state receives the header
   
   def receiveHeader(self, data):
-    (messageSize, checksum) = struct.unpack("<Ii", data)
-    self._messageSize = messageSize
-    self._checksum = checksum
-    
-    return (self.receiveData, self._messageSize)
+    (magicNumber, messageSize, priority, error, reserved2, reserved3, checksum, headerChecksum) = struct.unpack("<IIbbbbii", data)
+    calculatedHeaderChecksum = zlib.crc32(data[:16])
+    if magicNumber != MAGIC_NUMBER:
+      print "Invalid magic number!"
+    if calculatedHeaderChecksum != headerChecksum:
+      print "Header checksum error!"
+      print "Expected", headerChecksum
+      print "Calculated", calculatedHeaderChecksum
+      
+    if error != 0 and messageSize == 0 and checksum == 0:
+      print "Error received from gateway:"
+      print " ", error,
+      if error == 1:
+        print "Invalid magic number"
+      elif error == 2:
+        print "Invalid header checksum"
+      elif error == 3:
+        print "Invalid message checksum"
+      elif error == 4:
+        print "Message too large"
+      else:
+        print "Unknown error"
+      return (self.receiveHeader, 20)
+    else:
+      self._messageSize = messageSize
+      self._checksum = checksum
+      return (self.receiveData, self._messageSize)
     
   def receiveData(self, data):
     calculatedChecksum = zlib.crc32(data)
@@ -50,11 +79,15 @@ class AndroidProtocol(stateful.StatefulProtocol):
     if self._onMessageAvailableCallback != None:
       self._onMessageAvailableCallback(msg)
     
-    return (self.receiveHeader, 8)
+    return (self.receiveHeader, 20)
     
   def sendMessageWrapper(self, msg):
     serializedMsg = msg.SerializeToString()
-    self.transport.write(struct.pack("<Ii", len(serializedMsg), zlib.crc32(serializedMsg))) #little-endian byte order for now
+    messageHeader = struct.pack("<IIbbbbi", MAGIC_NUMBER, len(serializedMsg), DEFAULT_PRIORITY, DEFAULT_RESERVED1, DEFAULT_RESERVED2, DEFAULT_RESERVED3, zlib.crc32(serializedMsg))
+    headerChecksum = zlib.crc32(messageHeader)
+    messageHeader = messageHeader + struct.pack("i", headerChecksum)
+    
+    self.transport.write(messageHeader) #little-endian byte order for now
     self.transport.write(serializedMsg);
     
   def connectionMade(self):
@@ -224,7 +257,6 @@ class AndroidConnector(threading.Thread):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
     m.pull_request.request_uid = uuid.uuid1().hex
-    m.pull_request.plugin_id = self._deviceId
     m.pull_request.mime_type = mimeType
     m.pull_request.query = query
     m.pull_request.projection = projection

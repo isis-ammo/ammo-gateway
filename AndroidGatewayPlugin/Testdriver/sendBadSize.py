@@ -17,7 +17,7 @@ class GatewayTestClient:
     
   def sendMessageWrapper(self, msg):
     serializedMsg = msg.SerializeToString()
-    self.sock.sendall(struct.pack("<I", 4000000000)) #little-endian byte order for now
+    self.sock.sendall(struct.pack("<I", 4294967295)) #little-endian byte order for now
     self.sock.sendall(struct.pack("<i", zlib.crc32(serializedMsg)))
     print serializedMsg
     self.sock.sendall(serializedMsg);

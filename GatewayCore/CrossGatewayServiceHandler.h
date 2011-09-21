@@ -20,11 +20,11 @@ public:
   
   bool sendSubscribeMessage(std::string mime_type);
   bool sendUnsubscribeMessage(std::string mime_type);
-  
-  bool sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser);
+
+  bool sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser);
   
   bool sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection, unsigned int maxResults, unsigned int startFromCount, bool liveQuery);
-  bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string &data);
+  bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data);
   
   bool sendRegisterPullInterest(std::string mimeType);
   bool sendUnregisterPullInterest(std::string mimeType);

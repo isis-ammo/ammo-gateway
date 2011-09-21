@@ -19,5 +19,9 @@ project : gatewayversion {
         CPPFLAGS+=-Wno-type-limits
       endif
     endif
+    
+    ifeq ($(CXX), ${CROSS_COMPILE}clang++)
+      CPPFLAGS+=-Wall
+    endif
   }
 }

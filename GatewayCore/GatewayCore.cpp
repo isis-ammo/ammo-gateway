@@ -124,7 +124,7 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, MessageScope sco
   return foundSubscription;
 }
 
-bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope messageScope) {
+bool GatewayCore::pushData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope) {
   LOG_DEBUG("  Pushing data with uri: " << uri);
   LOG_DEBUG("                    type: " << mimeType);
   LOG_DEBUG("                    scope: " << messageScope);
@@ -133,7 +133,7 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::str
   set<GatewayServiceHandler *> handlers = getPushHandlersForType(mimeType);
   
   for(it = handlers.begin(); it != handlers.end(); ++it) {
-    (*it)->sendPushedData(uri, mimeType, data, originUser, messageScope);
+    (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, messageScope);
   }
   
   if(messageScope == SCOPE_GLOBAL) {
@@ -146,7 +146,7 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::str
 
       for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
         LOG_TRACE("Sending cross-gateway data");
-        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, data, originUser);
+        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, encoding, data, originUser);
       }
     }
   }
@@ -188,21 +188,21 @@ bool GatewayCore::pullRequest(std::string requestUid, std::string pluginId, std:
   return true;
 }
 
-bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string& data) {
+bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string& data) {
   LOG_DEBUG("  Sending pull response with type: " << mimeType);
   LOG_DEBUG("                        pluginId: " << pluginId);
 
   map<string,GatewayServiceHandler *>::iterator it = plugins.find(pluginId);
   if ( it != plugins.end() ) {
     //check for something here?
-    (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uri, data);
+    (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uri, encoding, data);
     return true;
   } else {
     PullRequestReturnIdMap::iterator it2 = cgPullRequestReturnIds.find(pluginId);
     if(it2 != cgPullRequestReturnIds.end()) {
       std::map<std::string, CrossGatewayServiceHandler *>::iterator cgHandlerIt = crossGatewayHandlers.find(it2->second);
       if(cgHandlerIt != crossGatewayHandlers.end()) {
-        (*cgHandlerIt).second->sendPullResponse(requestUid, pluginId, mimeType, uri, data);
+        (*cgHandlerIt).second->sendPullResponse(requestUid, pluginId, mimeType, uri, encoding, data);
       }
       return true;
     }
@@ -393,7 +393,7 @@ bool GatewayCore::unregisterPullInterestCrossGateway(std::string mimeType, std::
   return false;
 }
 
-bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const std::string &data, std::string originUser, std::string originHandlerId) {
+bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originHandlerId) {
   LOG_DEBUG("  Received cross-gateway push data with uri: " << uri);
   LOG_DEBUG("                                       type: " << mimeType);
   LOG_DEBUG("                                       from: " << originHandlerId);
@@ -408,7 +408,7 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const 
     for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
       if((*it).second.scope == SCOPE_GLOBAL) {
         LOG_TRACE("Sending push data");
-        (*it).second.handler->sendPushedData(uri, mimeType, data, originUser, SCOPE_GLOBAL);
+        (*it).second.handler->sendPushedData(uri, mimeType, encoding, data, originUser, SCOPE_GLOBAL);
       }
     }
   }
@@ -423,7 +423,7 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const 
     for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
       if(originHandlerId != (*it).second.handlerId) {
         LOG_TRACE("Sending cross-gateway data");
-        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, data, originUser);
+        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, encoding, data, originUser);
       }
     }
   }
@@ -469,12 +469,12 @@ bool GatewayCore::pullRequestCrossGateway(std::string requestUid, std::string pl
   return true;
 }
 
-bool GatewayCore::pullResponseCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string &data, std::string originHandlerId) {
+bool GatewayCore::pullResponseCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data, std::string originHandlerId) {
   //check for a local plugin with this ID
   map<string,GatewayServiceHandler *>::iterator it = plugins.find(pluginId);
   if ( it != plugins.end() ) {
     //check for something here?
-    (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uri, data);
+    (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uri, encoding, data);
     return true;
   } else {
     PullRequestReturnIdMap::iterator it2 = cgPullRequestReturnIds.find(pluginId);
@@ -484,7 +484,7 @@ bool GatewayCore::pullResponseCrossGateway(std::string requestUid, std::string p
       } else {
         std::map<std::string, CrossGatewayServiceHandler *>::iterator cgHandlerIt = crossGatewayHandlers.find(it2->second);
         if(cgHandlerIt != crossGatewayHandlers.end()) {
-          (*cgHandlerIt).second->sendPullResponse(requestUid, pluginId, mimeType, uri, data);
+          (*cgHandlerIt).second->sendPullResponse(requestUid, pluginId, mimeType, uri, encoding, data);
         }
         return true;
       }
