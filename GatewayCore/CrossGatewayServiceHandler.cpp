@@ -215,7 +215,7 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
     }
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
-    GatewayCore::getInstance()->pushCrossGateway(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), msg.push_data().origin_user(), gatewayId);
+    GatewayCore::getInstance()->pushCrossGateway(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().encoding(), msg.push_data().data(), msg.push_data().origin_user(), gatewayId);
   }
   
   return 0;
@@ -247,12 +247,13 @@ bool CrossGatewayServiceHandler::sendUnsubscribeMessage(std::string mime_type) {
   return true;
 }
 
-bool CrossGatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser) {
+bool CrossGatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
   pushMsg->set_uri(uri);
   pushMsg->set_mime_type(mimeType);
   pushMsg->set_data(data);
+  pushMsg->set_encoding(encoding);
   pushMsg->set_origin_user(originUser);
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);

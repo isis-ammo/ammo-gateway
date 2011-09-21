@@ -254,7 +254,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       } else {
         scope = SCOPE_LOCAL;
       }
-      GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), this->username, scope);
+      GatewayCore::getInstance()->pushData(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().encoding(), msg.push_data().data(), this->username, scope);
       break;
     } 
     case ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST: {
@@ -274,7 +274,7 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
       LOG_TRACE("  " << msg.DebugString());
       
       ammo::gateway::protocol::PullResponse pullRsp = msg.pull_response();
-      GatewayCore::getInstance()->pullResponse( pullRsp.request_uid(), pullRsp.plugin_id(), pullRsp.mime_type(), pullRsp.uri(), pullRsp.data() );
+      GatewayCore::getInstance()->pullResponse( pullRsp.request_uid(), pullRsp.plugin_id(), pullRsp.mime_type(), pullRsp.uri(), pullRsp.encoding(), pullRsp.data() );
       break;
     }
     case ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST: {
@@ -310,11 +310,12 @@ int GatewayServiceHandler::processData(char *data, unsigned int messageSize, uns
   return 0;
 }
 
-bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope scope) {
+bool GatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
   pushMsg->set_uri(uri);
   pushMsg->set_mime_type(mimeType);
+  pushMsg->set_encoding(encoding);
   pushMsg->set_data(data);
   pushMsg->set_origin_user(originUser);
   
@@ -350,13 +351,14 @@ bool GatewayServiceHandler::sendPullRequest(std::string requestUid, std::string 
 }
 
 bool GatewayServiceHandler::sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType,
-					     std::string uri, const std::string& data) {
+                                              std::string uri, std::string encoding, const std::string& data) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PullResponse *pullRsp = msg->mutable_pull_response();
   pullRsp->set_request_uid(requestUid);
   pullRsp->set_plugin_id(pluginId);
   pullRsp->set_mime_type(mimeType);
   pullRsp->set_uri(uri);
+  pullRsp->set_encoding(encoding);
   pullRsp->set_data(data);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
