@@ -454,6 +454,13 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
     root["tigruid"] = vals[0]->bv_val;
     ldap_value_free_len(vals);
   }
+  
+  // Numerical user ID
+  vals = ldap_get_values_len(ldapServer, entry, "userIdNumber");
+  if (vals) {
+    root["userIdNum"] = vals[0]->bv_val;
+    ldap_value_free_len(vals);
+  }
 
   // email
   vals = ldap_get_values_len(ldapServer, entry, "mail");
