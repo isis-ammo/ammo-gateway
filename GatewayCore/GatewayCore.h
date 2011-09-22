@@ -40,11 +40,11 @@ public:
   bool registerPullInterest(std::string mime_type, GatewayServiceHandler *handler);
   bool unregisterPullInterest(std::string mime_type, GatewayServiceHandler *handler);
   
-  bool pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope messageScope);
+  bool pushData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope);
   
   bool pullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
                    unsigned int maxResults, unsigned int startFromCount, bool liveQuery, GatewayServiceHandler *originatingPlugin);
-  bool pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string &data);
+  bool pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data);
   
   bool unregisterPullResponsePluginId(std::string pluginId, GatewayServiceHandler *handler);
   
@@ -57,7 +57,7 @@ public:
   bool subscribeCrossGateway(std::string mimeType, std::string originHandlerId);
   bool unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId);
   
-  bool pushCrossGateway(std::string uri, std::string mimeType, const std::string &data, std::string originUser, std::string originHandlerId);
+  bool pushCrossGateway(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originHandlerId);
   
 private:
   std::set<GatewayServiceHandler *> getPushHandlersForType(std::string mimeType);
