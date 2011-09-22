@@ -36,7 +36,8 @@ int CrossGatewayConnectionManager::svc() {
       LOG_INFO("Connection to gateway established.");
       connected = true;
       ACE_Reactor *reactor = ACE_Reactor::instance();
-      reactor->notify(this, ACE_Event_Handler::READ_MASK);
+      reactor->notify(this, ACE_Event_Handler::READ_MASK); //runs handle_input in the reactor's thread (so we don't have
+                                                           //to worry about a bunch of synchronization junk).
     }
   }
   return 0;

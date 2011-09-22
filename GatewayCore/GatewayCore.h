@@ -17,6 +17,7 @@
 #include "Enumerations.h"
 
 class GatewayServiceHandler;
+class CrossGatewayConnectionManager;
 
 struct SubscriptionInfo {
   std::string handlerId;
@@ -71,9 +72,10 @@ private:
   std::map<std::string, GatewayServiceHandler *> plugins;
   
   std::map<std::string, CrossGatewayServiceHandler *> crossGatewayHandlers;
-  std::multimap<std::string, SubscriptionInfo> subscriptions;
+  typedef std::multimap<std::string, SubscriptionInfo> CrossGatewaySubscriptionMap;
+  CrossGatewaySubscriptionMap subscriptions;
   
-  ACE_Connector<CrossGatewayServiceHandler, ACE_SOCK_Connector> *parentConnector;
+  CrossGatewayConnectionManager *connectionManager;
   CrossGatewayServiceHandler *parentHandler;
   
   ACE_Acceptor<CrossGatewayServiceHandler, ACE_SOCK_Acceptor> *crossGatewayAcceptor;
