@@ -198,6 +198,10 @@ void GatewayCore::initCrossGateway() {
     LOG_INFO("Acting as cross-gateway root node.");
   }
 }
+
+void GatewayCore::setParentHandler(CrossGatewayServiceHandler *handler) {
+  this->parentHandler = handler;
+}
   
 bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGatewayServiceHandler *handler) {
   LOG_DEBUG("Registering cross-gateway handler " << handlerId);
@@ -228,7 +232,15 @@ bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGat
 
 bool GatewayCore::unregisterCrossGatewayConnection(std::string handlerId) {
   LOG_DEBUG("Unregistering cross-gateway handler " << handlerId);
+  CrossGatewayServiceHandler *handler = crossGatewayHandlers[handlerId];
   crossGatewayHandlers.erase(handlerId);
+  
+  if(handler == parentHandler) {
+    parentHandler = NULL;
+    //we're responsible for reconnecting this connection
+    connectionManager->activate();
+  }
+  
   return false;
 }
 

@@ -52,6 +52,8 @@ public:
   //Methods for cross-gateway communication
   void initCrossGateway();
   
+  void setParentHandler(CrossGatewayServiceHandler *handler);
+  
   bool registerCrossGatewayConnection(std::string handlerId, CrossGatewayServiceHandler *handler);
   bool unregisterCrossGatewayConnection(std::string handlerId);
   

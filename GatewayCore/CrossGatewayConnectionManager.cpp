@@ -1,5 +1,6 @@
 #include "CrossGatewayConnectionManager.h"
 #include "CrossGatewayServiceHandler.h"
+#include "GatewayCore.h"
 #include "GatewayConfigurationManager.h"
 #include "log.h"
 
@@ -44,8 +45,11 @@ int CrossGatewayConnectionManager::svc() {
 }
 
 int CrossGatewayConnectionManager::handle_input(ACE_HANDLE fd) {
-  //handler->setParentConnector(gatewayConnector);
-  //gatewayConnector->onConnect(connector, handler);
+  //Tell the GatewayCore which handler we created, so it can restart the
+  //connection loop when it disconnects (once connections are established,
+  //there's no other way to tell which handler is our parent and which are
+  //children)
+  GatewayCore::getInstance()->setParentHandler(handler);
   return 0;
 }
 
