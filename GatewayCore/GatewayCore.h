@@ -35,6 +35,7 @@ public:
   
   static GatewayCore* getInstance();
   
+  
   bool registerDataInterest(std::string mime_type, MessageScope messageScope,  GatewayServiceHandler *handler);
   bool unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayServiceHandler *handler);
   
@@ -61,6 +62,10 @@ public:
   bool unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId);
   
   bool pushCrossGateway(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originHandlerId);
+  
+  void terminate();
+  
+  virtual ~GatewayCore();
   
 private:
   std::set<GatewayServiceHandler *> getPushHandlersForType(std::string mimeType);

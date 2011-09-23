@@ -221,7 +221,7 @@ bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGat
   //for this so we don't send as many messages)
   for(CrossGatewaySubscriptionMap::iterator it = subscriptions.begin(); it != subscriptions.end(); it++) {
     if(it->second.handlerId != handlerId) {
-      for(unsigned int i = 0; i < it->second.references; it++) {
+      for(unsigned int i = 0; i < it->second.references; i++) {
         handler->sendSubscribeMessage(it->first);
       }
     }
@@ -354,4 +354,19 @@ std::set<GatewayServiceHandler *> GatewayCore::getPushHandlersForType(std::strin
     }
   }
   return matchingHandlers;
+}
+
+void GatewayCore::terminate() {
+  if(connectionManager) {
+    connectionManager->cancel();
+    connectionManager->wait();
+  }
+}
+
+GatewayCore::~GatewayCore() {
+  LOG_DEBUG("Destroying GatewayCore.");
+  if(connectionManager) {
+    connectionManager->cancel();
+    connectionManager->wait();
+  }
 }
