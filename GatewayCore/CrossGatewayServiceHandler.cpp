@@ -268,7 +268,7 @@ bool CrossGatewayServiceHandler::sendPushedData(std::string uri, std::string mim
 
 
 CrossGatewayServiceHandler::~CrossGatewayServiceHandler() {
-  LOG_DEBUG("CrossGatewayServiceHandler " << (long) this << " being destroyed!");
+  LOG_DEBUG("CrossGatewayServiceHandler " << this << " being destroyed!");
   LOG_DEBUG("Unregistering data handlers...");
   for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
     GatewayCore::getInstance()->unsubscribeCrossGateway(*it, gatewayId);
