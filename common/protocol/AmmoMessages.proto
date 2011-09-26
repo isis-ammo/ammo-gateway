@@ -35,6 +35,7 @@ enum MessageScope {
 message DataMessage {
   required string uri = 1;
   optional string mime_type = 3;
+  optional string encoding = 5 [default = "json"];
   optional bytes data = 2;
   optional MessageScope scope = 4 [default = GLOBAL];
 }
@@ -137,6 +138,7 @@ message PullResponse {
   required string plugin_id = 2;
   required string mime_type = 3;
   required string uri = 4;
+  optional string encoding = 6 [default = "json"];
   required bytes data = 5;
 }
 

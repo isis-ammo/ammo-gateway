@@ -28,6 +28,7 @@ int CrossGatewayServiceHandler::open(void *ptr) {
   position = 0;
   gatewayId = "";
   gatewayIdAuthenticated = false;
+  registeredWithGateway = false;
   
   //send an authentication message to the other gateway
   ammo::gateway::protocol::GatewayWrapper newMsg;
@@ -80,7 +81,7 @@ int CrossGatewayServiceHandler::handle_input(ACE_HANDLE fd) {
         //LOG_TRACE("Got all the data... processing");
         processData(collectedData, dataSize, checksum);
         //LOG_TRACE("Processsing complete.  Deleting buffer.");
-        delete collectedData;
+        delete[] collectedData;
         collectedData = NULL;
         dataSize = 0;
         position = 0;
@@ -192,6 +193,7 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
     gatewayId = msg.associate_cross_gateway().gateway_id();
     gatewayIdAuthenticated = true;
     GatewayCore::getInstance()->registerCrossGatewayConnection(gatewayId, this);
+    registeredWithGateway = true;
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
     
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST) {
@@ -215,7 +217,7 @@ int CrossGatewayServiceHandler::processData(char *data, unsigned int messageSize
     }
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
-    GatewayCore::getInstance()->pushCrossGateway(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().data(), msg.push_data().origin_user(), gatewayId);
+    GatewayCore::getInstance()->pushCrossGateway(msg.push_data().uri(), msg.push_data().mime_type(), msg.push_data().encoding(), msg.push_data().data(), msg.push_data().origin_user(), gatewayId);
   }
   
   return 0;
@@ -247,12 +249,13 @@ bool CrossGatewayServiceHandler::sendUnsubscribeMessage(std::string mime_type) {
   return true;
 }
 
-bool CrossGatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser) {
+bool CrossGatewayServiceHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser) {
   ammo::gateway::protocol::GatewayWrapper msg;
   ammo::gateway::protocol::PushData *pushMsg = msg.mutable_push_data();
   pushMsg->set_uri(uri);
   pushMsg->set_mime_type(mimeType);
   pushMsg->set_data(data);
+  pushMsg->set_encoding(encoding);
   pushMsg->set_origin_user(originUser);
   
   msg.set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
@@ -265,17 +268,19 @@ bool CrossGatewayServiceHandler::sendPushedData(std::string uri, std::string mim
 
 
 CrossGatewayServiceHandler::~CrossGatewayServiceHandler() {
-  LOG_DEBUG("CrossGatewayServiceHandler being destroyed!");
+  LOG_DEBUG("CrossGatewayServiceHandler " << this << " being destroyed!");
   LOG_DEBUG("Unregistering data handlers...");
   for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
     GatewayCore::getInstance()->unsubscribeCrossGateway(*it, gatewayId);
   }
   
-  GatewayCore::getInstance()->unregisterCrossGatewayConnection(gatewayId);
-  
-  LOG_DEBUG("Unregistering pull request handlers...");
+  /*LOG_DEBUG("Unregistering pull request handlers...");
   for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
     //GatewayCore::getInstance()->unregisterPullInterest(*it, this);
+  }*/
+  
+  if(registeredWithGateway) {
+    GatewayCore::getInstance()->unregisterCrossGatewayConnection(gatewayId);
   }
 }
 

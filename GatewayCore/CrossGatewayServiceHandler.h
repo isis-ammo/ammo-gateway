@@ -20,7 +20,7 @@ public:
   bool sendSubscribeMessage(std::string mime_type);
   bool sendUnsubscribeMessage(std::string mime_type);
   
-  bool sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser);
+  bool sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser);
 
   friend std::ostream& operator<< (std::ostream& out, const CrossGatewayServiceHandler& handler);
   friend std::ostream& operator<< (std::ostream& out, const CrossGatewayServiceHandler* handler);
@@ -42,6 +42,8 @@ protected:
   
   std::string gatewayId;
   bool gatewayIdAuthenticated;
+  
+  bool registeredWithGateway;
   
   std::vector<std::string> registeredHandlers;
   std::vector<std::string> registeredPullRequestHandlers;
