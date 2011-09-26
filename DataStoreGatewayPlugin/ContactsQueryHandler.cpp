@@ -8,7 +8,7 @@
 #include "GatewayConnector.h"
 
 #include "ContactsQueryHandler.h"
-#include "DataStoreConstants.h"
+#include "DataStoreConfigManager.h"
 
 ContactsQueryHandler::ContactsQueryHandler (
       sqlite3 *db,
@@ -35,6 +35,9 @@ ContactsQueryHandler::handleQuery (void)
   unsigned int index = 0;
   
   sqlite3_stmt *stmt = builder_.query ();
+  
+  std::string my_mime_type =
+    DataStoreConfigManager::getInstance ()->getPrivateContactsMimeType ();
 
   while (sqlite3_step (stmt) == SQLITE_ROW
          && index < resultLimit)
@@ -54,12 +57,12 @@ ContactsQueryHandler::handleQuery (void)
 		    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0)));
 		
       LOG_TRACE ("Sending response to " << pr_.pluginId);
-      LOG_TRACE ("  type: " << PVT_CONTACTS_DATA_TYPE);
+      LOG_TRACE ("  type: " << my_mime_type);
       LOG_TRACE ("   uri: " << uri);
       
       ammo::gateway::PullResponse response =
         ammo::gateway::PullResponse::createFromPullRequest (pr_);
-      response.mimeType = PVT_CONTACTS_DATA_TYPE;
+      response.mimeType = my_mime_type;
       response.uri = uri;
       this->encode_row (stmt, response.data);
       

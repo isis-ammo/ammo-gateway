@@ -11,7 +11,6 @@
 #include "json/value.h"
 
 #include "DataStore.h"
-#include "DataStoreConstants.h"
 
 using namespace ammo::gateway;
 

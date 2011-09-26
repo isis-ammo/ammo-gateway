@@ -3,7 +3,7 @@
 #include "log.h"
 
 #include "DataStoreDispatcher.h"
-#include "DataStoreConstants.h"
+#include "DataStoreConfigManager.h"
 
 #include "EventQueryHandler.h"
 #include "MediaQueryHandler.h"
@@ -17,6 +17,7 @@
 using namespace ammo::gateway;
 
 DataStoreDispatcher::DataStoreDispatcher (void)
+  : cfg_mgr_ (DataStoreConfigManager::getInstance ())
 {
 }
 
@@ -27,7 +28,7 @@ DataStoreDispatcher::dispatchPushData (sqlite3 *db,
 //  LOG_TRACE ("Received " << pd);
   bool good_data_store = true;
   
-  if (pd.mimeType == PVT_CONTACTS_DATA_TYPE)
+  if (pd.mimeType == cfg_mgr_->getPrivateContactsMimeType ())
     {
       ContactsPushHandler handler (db, pd);
       good_data_store = handler.handlePush ();
@@ -59,27 +60,27 @@ DataStoreDispatcher::dispatchPullRequest (sqlite3 *db,
   // Incoming SMS mime types have the destination user name appended to this
   // base string, which we then pass to std::string::find instead of checking
   // for equality.
-  if (pr.mimeType.find (SMS_MSG_DATA_TYPE) == 0)
+  if (pr.mimeType.find (cfg_mgr_->getSMSMimeType ()) == 0)
     {
       SMSQueryHandler handler (db, sender, pr);
       handler.handleQuery ();
     }
-  else if (pr.mimeType == REPORT_DATA_TYPE)
+  else if (pr.mimeType == cfg_mgr_->getReportMimeType ())
     {
       ReportQueryHandler handler (db, sender, pr);
       handler.handleQuery ();
     }
-  else if (pr.mimeType == EVENT_DATA_TYPE)
+  else if (pr.mimeType == cfg_mgr_->getEventMimeType ())
     {
       EventQueryHandler handler (db, sender, pr);
       handler.handleQuery ();
     }
-  else if (pr.mimeType == MEDIA_DATA_TYPE)
+  else if (pr.mimeType == cfg_mgr_->getMediaMimeType ())
     {
       MediaQueryHandler handler (db, sender, pr);
       handler.handleQuery ();
     }
-  else if (pr.mimeType == PVT_CONTACTS_DATA_TYPE)
+  else if (pr.mimeType == cfg_mgr_->getPrivateContactsMimeType ())
     {
       ContactsQueryHandler handler (db, sender, pr);
       handler.handleQuery ();

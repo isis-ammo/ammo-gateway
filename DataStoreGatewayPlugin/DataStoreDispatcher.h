@@ -3,6 +3,7 @@
 
 class QueryHandler;
 class sqlite3;
+class DataStoreConfigManager;
 
 namespace ammo
 {
@@ -24,6 +25,9 @@ public:
   void dispatchPullRequest (sqlite3 *db,
                             ammo::gateway::GatewayConnector *sender,
                             ammo::gateway::PullRequest &pr);
+                            
+private:
+  DataStoreConfigManager *cfg_mgr_;
 };
 
 #endif /* DATA_STORE_DISPATCHER_H */

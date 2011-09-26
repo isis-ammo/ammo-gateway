@@ -13,9 +13,10 @@
 
 using namespace ammo::gateway;
 
-//Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
-//in the middle of the reactor event loop, which isn't always a good thing).
-class SigintHandler : public ACE_Event_Handler {
+// Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
+// in the middle of the reactor event loop, which isn't always a good thing).
+class SigintHandler : public ACE_Event_Handler
+{
 public:
   int
   handle_signal (int signum, siginfo_t * = 0, ucontext_t * = 0)
@@ -61,47 +62,6 @@ int main (int /* argc */, char ** /* argv */)
 	    // Error msg already output, just exit w/o starting reactor.
 	    return -1;
 	  }
-	  
-//====================================
-/*
-  std::string mime_t ("application/vnd.edu.vu.isis.ammo.private_contacts");
-//  std::string mime_t ("application/vnd.edu.vu.isis.ammo.dash.media");
-  std::string orig_user ("kyle.anderson");
-  std::string uri ("kakama");
-  std::string data ("{\"first_name\":\"Jimmy\",\"middle_initial\":\"I\",\"last_name\":\"Bork\",\"rank\":\"sgt\",\"call_sign\":\"\",\"branch\":\"\",\"unit\":\"\",\"email\":\"\",\"phone\":\"\"}");
-//  std::string data ("{\"eventId\":\"booga\",\"dataType\":\"POD\",\"data\":\"xxx\",\"createdDate\":0,\"modifiedDate\":0}");
-  
-  ammo::gateway::PushData pd;
-  pd.mimeType = mime_t;
-  pd.originUsername = orig_user;
-  pd.uri = uri;
-  pd.data = data;
-
-  receiver->onPushDataReceived (0, pd);
-
-
-  std::string requestUid ("requestUid");
-  std::string pluginId ("pluginId");
-  std::string query ("kyle.anderson,kakama,Jimmy,,,,,,,,");
-//  std::string query ("kakama,,,,");
-//  std::string projection (",POD,,,,,");
-  std::string projection ("");
-  
-  ammo::gateway::PullRequest pr;
-  pr.requestUid = requestUid;
-  pr.pluginId = pluginId;
-  pr.mimeType = mime_t;
-  pr.query = query;
-  pr.projection = projection;
-  pr.maxResults = 0;
-  pr.startFromCount = 0;
-  pr.liveQuery = false;
-  
-  receiver->onPullRequestReceived (0, pr);
-
-  delete receiver;
-  */
-//===================================
 
   // Get the process-wide ACE_Reactor (the one the acceptor should
   // have registered with)

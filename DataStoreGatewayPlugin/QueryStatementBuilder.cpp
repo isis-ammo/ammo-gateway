@@ -3,9 +3,9 @@
 #include "ace/OS_NS_stdlib.h"
 #include "ace/OS_NS_sys_time.h"
 
-#include "QueryStatementBuilder.h"
-#include "DataStoreConstants.h"
 #include "log.h"
+
+#include "QueryStatementBuilder.h"
 
 QueryStatementBuilder::QueryStatementBuilder (
       const std::string &params,
