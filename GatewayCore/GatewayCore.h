@@ -17,6 +17,7 @@
 #include "Enumerations.h"
 
 class GatewayServiceHandler;
+class CrossGatewayConnectionManager;
 
 struct SubscriptionInfo {
   std::string handlerId;
@@ -33,6 +34,7 @@ public:
   GatewayCore();
   
   static GatewayCore* getInstance();
+  
   
   bool registerDataInterest(std::string mime_type, MessageScope messageScope,  GatewayServiceHandler *handler);
   bool unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayServiceHandler *handler);
@@ -51,6 +53,8 @@ public:
   //Methods for cross-gateway communication
   void initCrossGateway();
   
+  void setParentHandler(CrossGatewayServiceHandler *handler);
+  
   bool registerCrossGatewayConnection(std::string handlerId, CrossGatewayServiceHandler *handler);
   bool unregisterCrossGatewayConnection(std::string handlerId);
   
@@ -58,6 +62,10 @@ public:
   bool unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId);
   
   bool pushCrossGateway(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originHandlerId);
+  
+  void terminate();
+  
+  virtual ~GatewayCore();
   
 private:
   std::set<GatewayServiceHandler *> getPushHandlersForType(std::string mimeType);
@@ -71,9 +79,10 @@ private:
   std::map<std::string, GatewayServiceHandler *> plugins;
   
   std::map<std::string, CrossGatewayServiceHandler *> crossGatewayHandlers;
-  std::multimap<std::string, SubscriptionInfo> subscriptions;
+  typedef std::multimap<std::string, SubscriptionInfo> CrossGatewaySubscriptionMap;
+  CrossGatewaySubscriptionMap subscriptions;
   
-  ACE_Connector<CrossGatewayServiceHandler, ACE_SOCK_Connector> *parentConnector;
+  CrossGatewayConnectionManager *connectionManager;
   CrossGatewayServiceHandler *parentHandler;
   
   ACE_Acceptor<CrossGatewayServiceHandler, ACE_SOCK_Acceptor> *crossGatewayAcceptor;
