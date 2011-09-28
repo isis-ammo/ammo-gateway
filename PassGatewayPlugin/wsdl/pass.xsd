@@ -1,0 +1,856 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XMLSPY v2004 rel. 3 U (http://www.xmlspy.com) by Leo McNeill (The Mitre Corporation) and Marc Richard Krigel (NGC) -->
+<!--  $Id: pass.xsd,v 1.24 2003/10/06 15:46:12 dgardner Exp $  -->
+<!-- pass.xsd  2004/02/20   Leo McNeill.  This version of the PASS Schema changes the item_data element from a direct element implementation to one that creates and uses an "item_data" type to define the element.  The structure definition is identical to the old pass schema  -->
+<!-- 2004/05/05 Marc Krigel. Per CR2004#16  In order to support the use of "References" in type="item_data", imported xlinks.xsd and added the xmlns of xlink to the schema definition.  "references added to the type="item_data".-->
+<!-- 2004/05/14 Marc Krigel. Per CR2004# 11 & 16, added security attributes for "item_data" item_data_classification, control_mark, release_mark, declass_exemption_code, declass_dateTime.  Also added "item_data_version" to "item_data" which helps in removing attributes in XMP schemas, which are to be removed in support of CR 2004#16.  The XMPs are now removed from the schema library.  The attribute "item_data_version" is in the file "version.xml" which will be an integral part of the schema library as of schema_library_version 1.2.3. -->
+<!-- 2004/05/20 Christopher Mahon.  Change Request 2004#16 ERB removed item_data_version -->
+<!--
+
+====================================================================================================
+
+-->
+<xs:schema targetNamespace="http://peoc3t.us.army.mil/PASS" xmlns="http://peoc3t.us.army.mil/PASS" xmlns:a="http://peoc3t.us.army.mil/abcs" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.4">
+	<xs:import namespace="http://www.w3.org/1999/xlink" schemaLocation="xlinks.xsd"/>
+	<xs:annotation>
+		<xs:documentation>
+         The XML Schema for the Publish and Subscribe Service (PASS).
+      </xs:documentation>
+	</xs:annotation>
+	<!--
+	      ***********************************************
+	      				Simple Types 
+	      ***********************************************
+	-->
+	<xs:simpleType name="latitude">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="-90"/>
+			<xs:maxInclusive value="90"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="longitude">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="-180"/>
+			<xs:maxInclusive value="180"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="item_TTL">
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="-1"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:element name="AOI_rectangle">
+		<xs:complexType>
+			<xs:attribute name="aoi_n_lat" type="latitude" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                   The north latitude of the bounding rectangle.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="aoi_w_long" type="longitude" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                   The west longitude of the bounding rectangle.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="aoi_s_lat" type="latitude" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                   The south latitude of the bounding rectangle.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="aoi_e_long" type="longitude" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                   The east longitude of the bounding rectangle.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<!--
+	      ***********************************************
+	      				References 
+	      ***********************************************
+	-->
+	<xs:element name="References">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>A set of hypelinks that reference information available via the web.</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="ReferenceObj" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>General purpose mixed mode element with xlink attributes.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType mixed="true">
+						<xs:attributeGroup ref="xlink:simpleLink"/>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<!-- 
+		***********************************************
+ 					Publish Command 
+ 		***********************************************
+ 	-->
+	<xs:element name="publish">
+		<xs:annotation>
+			<xs:documentation>
+             Publish data to the PASS.
+             This message type is also used to deliver published data to subscribers. 
+         </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="item" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>
+                       A published item.
+                     </xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="topic" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                   The topic on which to publish the item(s).
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="subscription_id" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>
+                    Used to specify to the subsciber the id of the subscription 
+                    which caused this data to be delivered to it. This attribute is
+                    only valid for messages delivered from the PASS to the subscriber.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="publisher_id" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                    The id of the element publishing the data. For a publish message 
+                    within a sync response, this id should identify the PASS itself.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<!--  
+		***********************************************
+				Retract Item Command
+ 		***********************************************
+ -->
+	<xs:element name="retract_item">
+		<xs:annotation>
+			<xs:documentation>
+           Retract an item from the topic cache. 
+           This message type is also used to  notify subscribers that the item has been removed.
+         </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="publisher_id" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                        The id of the entity retracting this item.
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="item_id" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                        The id of the item to retract.
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="topic" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                       The topic from which to retract the item.
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<!--  
+		***********************************************
+				Retract Topic Command 
+		***********************************************
+ -->
+	<xs:element name="retract_topic">
+		<xs:annotation>
+			<xs:documentation>
+           Retract a topic from the PASS. All items in the cache will be removed.
+           This message type is also used to notify subscribers that the topic has been removed.
+         </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="owner_id" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                        The id of the entity retracting this topic. This id must
+                        match the id of the entity which created this topic.
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="topic" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                       The topic wich to retract.
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<!-- 
+		***********************************************
+				Unsubscribe Command 
+		***********************************************
+ -->
+	<xs:element name="unsubscribe">
+		<xs:annotation>
+			<xs:documentation>
+            Remove a subscription or all owned subscriptions from the PASS.
+            This message type is also used to notify subscribers that a subscription has 
+              expired.
+         </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="subscriber_id" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                       The id of the entity removing the subscription(s).
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="subscription_id" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>
+                       The subscription to remove. If unspecified, remove all subscriptions
+                        owned by the specified subscriber_id.
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<!-- 
+		***********************************************
+				Status Command
+ 		***********************************************
+ -->
+	<xs:element name="status" type="status">
+		<xs:annotation>
+			<xs:documentation>
+          Used to indicate the status of a PASS request.
+         </xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="pass_fault" type="pass_fault">
+		<xs:annotation>
+			<xs:documentation>
+          Used to indicate the faulure of a PASS request.
+         </xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!--
+ 		***********************************************
+ 			Subscribe Command 
+		***********************************************
+ -->
+	<xs:element name="subscribe">
+		<xs:annotation>
+			<xs:documentation>
+           Create a PASS subscription.
+         </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="return_address" type="xs:anyURI">
+					<xs:annotation>
+						<xs:documentation>
+                            The web service endpoint of the subscriber.  
+                        </xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element ref="AOI_rectangle" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>
+                            The area of interest of the subscriber.  If the intersection of
+                            this AOI and the published item's AOI is not empty, the item
+                            will be delivered to this subscriber.  If unspecified, the
+                            AOI of the subscriber is assumed to be global (whole earth).
+                        </xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="item_id" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Specific item to subscribe.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="duration_secs" type="xs:nonNegativeInteger" use="optional">
+				<xs:annotation>
+					<xs:documentation> 
+                        The duration (in seconds) of the subscription.  If this
+                        subscription is not removed by the subscriber before this
+                        time (using unsubscribe) or the the topic owner (via
+                        retract_topic), the subscription will be removed by the
+                        PASS at this time and the subscriber will be notified via
+                        an unsubscribe message. If this value is not specified, the
+                        subscription will not expire.
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="subscription_id" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>
+                        The id of the subscription being refreshed.  This
+                        attribute is not currently used and should be omitted,
+                        since the PASS ICD does not currently describe the
+                        refresh of a subscription.
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="topic" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                       The topic being subscribed to.  This topic must either be a
+                       static topic or must have been previously created by
+                       create_topic.
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="subscriber_id" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                       The id of the entity subscribing.
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="compression" type="xs:boolean" use="optional" default="false">
+				<xs:annotation>
+					<xs:documentation>
+                       If set to true, the PASS should compress the body of the HTTP message
+                       delivered to this subscriber.
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<!--  
+		***********************************************
+					 Sync Command  
+		***********************************************
+ -->
+	<xs:element name="sync">
+		<xs:annotation>
+			<xs:documentation>
+           Retrieve items from the topic cache. This command can also be used
+           to retrieve the current existing topics or subscriptions.
+         </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="AOI_rectangle" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>
+                           The area of interest of the requester.  If the
+                           intersection of this AOI and the published item's AOI is
+                           not empty, the item will be retrieved.  If unspecified,
+                           the AOI of the requester is assumed to be global (whole
+                           earth).
+                     </xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="item_id" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Specific item(s) to sync.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="since_dtg" type="xs:dateTime" use="optional">
+				<xs:annotation>
+					<xs:documentation>
+                      The PASS will not return cached items stored beore this
+                      date.  If this attribute is not specified, storage time
+                      will not be used as an item selection criterion.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="topic" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                     The topic from which to retrieved data items.  If the
+                     topic specified here is the special name 'topics' this
+                     command will retrieve a list of the topics in the PASS.
+                     If the topic specified here is the special name
+                     'subscriptions' this command will retrieve a list of the
+                     subscriptions in the PASS.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="requester_id" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                   The id of the entity making the sync request.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="compression" type="xs:boolean" use="optional" default="false">
+				<xs:annotation>
+					<xs:documentation>
+                       If set to true, the PASS should compress the body of the HTTP response
+                       to this request. 
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="xpath_filter" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>
+                   An xpath expression that specifies the desired itemdata to be returned.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="item_id_only" type="xs:boolean" use="optional" default="false">
+				<xs:annotation>
+					<xs:documentation>
+                   If true, the itemdata will be filtered out from the response.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<!--  
+		***********************************************
+				Sync Response Command  
+		***********************************************
+ -->
+	<xs:element name="sync_response">
+		<xs:annotation>
+			<xs:documentation>
+            A response to a sync command.
+         </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="status">
+					<xs:annotation>
+						<xs:documentation>
+                      Status information.
+                    </xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:choice>
+					<xs:element ref="publish" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>
+                           A publish command containing a series of items matching the specified sync
+                           query (since_dtg and AOI_rectangle).
+                        </xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element ref="create_topic" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>
+                           If the sync command specified the topic 'topics', a
+                           create_topic command per topic.
+                        </xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element ref="subscribe" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>
+                           If the sync command specified the topic 'subscriptions', a
+                           subscribe command per subscription.
+                        </xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:choice>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<!--  
+		***********************************************
+				 Create Topic Command  
+		***********************************************
+	 -->
+	<xs:element name="create_topic">
+		<xs:annotation>
+			<xs:documentation>
+             Create a new PASS topic.
+             This message type is also used in sync_response to enumerate the existing topics.
+         </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="description" type="xs:string" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>
+                       A human readable description of the topic.
+                     </xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:all>
+			<xs:attribute name="publish_mode" use="optional" default="locked">
+				<xs:annotation>
+					<xs:documentation>
+                    An attribute indicating whether (open) or not (locked) an entity other than the publisher
+                    may publish to this topic.
+                 </xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="locked">
+							<xs:annotation>
+								<xs:documentation>
+                                Only the owner may publish to this topic.
+                             </xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="open">
+							<xs:annotation>
+								<xs:documentation>
+                                Any entity may publish to this topic.
+                             </xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="retractable" type="xs:boolean" use="optional" default="true">
+				<xs:annotation>
+					<xs:documentation>
+                    Indicates whether or not this topic is retractable.  If set the false, only
+                    the PASS administrator may remove this topic.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="topic" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                    The name of the topic.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="owner_id" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>
+                    The id of the entity creating this topic.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<!--   
+		***********************************************
+					 Status   
+		***********************************************
+-->
+	<xs:complexType name="status">
+		<xs:annotation>
+			<xs:documentation>
+          Used to indicate the status of a PASS request.
+         </xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="command" use="required">
+			<xs:annotation>
+				<xs:documentation>
+                Echo the command.
+             </xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="create_topic"/>
+					<xs:enumeration value="sync"/>
+					<xs:enumeration value="publish"/>
+					<xs:enumeration value="subscribe"/>
+					<xs:enumeration value="unsubscribe"/>
+					<xs:enumeration value="retract_topic"/>
+					<xs:enumeration value="retract_item"/>
+					<xs:enumeration value="unknown"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="topic" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>
+               Echo the topic.
+             </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="item_id" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+               Echo the item_id.
+             </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="subscription_id" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+               Echo the subscription_id.
+             </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="status_phrase" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+               A human readable string describing the status_code.
+             </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="status_code" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:int">
+					<xs:enumeration value="1000">
+						<xs:annotation>
+							<xs:documentation>
+                            Success.
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1100">
+						<xs:annotation>
+							<xs:documentation>
+                            Bad Request 
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1101">
+						<xs:annotation>
+							<xs:documentation>
+                            Invalid Request 
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1102">
+						<xs:annotation>
+							<xs:documentation>
+                            Topic Already Exists
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1103">
+						<xs:annotation>
+							<xs:documentation>
+                            Topic Does Not Exist
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1104">
+						<xs:annotation>
+							<xs:documentation>
+                            Item Does Not Exist
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1105">
+						<xs:annotation>
+							<xs:documentation>
+                            Subscription Does No Exist 
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1106">
+						<xs:annotation>
+							<xs:documentation>
+                            Invalid AOI 
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1107">
+						<xs:annotation>
+							<xs:documentation>
+                            Invalid Return Addres 
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1108">
+						<xs:annotation>
+							<xs:documentation>
+                            Invalid DTTM 
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1109">
+						<xs:annotation>
+							<xs:documentation>
+                            Message Too Large 
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1110">
+						<xs:annotation>
+							<xs:documentation>
+                            Unauthorized 
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1111">
+						<xs:annotation>
+							<xs:documentation>
+                            Command Not Allowed 
+                         				</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1200">
+						<xs:annotation>
+							<xs:documentation>
+                            Internal Server Error
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1201">
+						<xs:annotation>
+							<xs:documentation>
+                            Not Implemented 
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="1202">
+						<xs:annotation>
+							<xs:documentation>
+                            Service Unavailable 
+                         </xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<!--  
+	      ***********************************************
+				 pass_fault
+	      ***********************************************
+-->
+	<xs:complexType name="pass_fault">
+		<xs:annotation>
+			<xs:documentation>
+          Used to indicate the faulure of a PASS request.
+         </xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="status" type="status">
+				<xs:annotation>
+					<xs:documentation>
+                   Failure code and phrase.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="error_details" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>
+                   A human readable string giving details of the error.
+                 </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- 
+	      ***********************************************
+				item 
+            ***********************************************
+	-->
+	<xs:element name="item" type="item"/>
+	<xs:element name="item_data" type="item_data"/>
+	<!--
+	-->
+	<xs:complexType name="item">
+		<xs:annotation>
+			<xs:documentation>
+            An item published to the PASS.
+         </xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element ref="AOI_rectangle" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>
+                  The area of influence of the item. If unspecified, the AOI
+                  considered to be empty (no area).  
+               </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="description" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>
+                       A description of the item.
+                     </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element ref="item_data"/>
+			<!-- <xs:element name="item_data" type="item_data"/> -->
+		</xs:sequence>
+		<xs:attribute name="item_dtg" type="xs:dateTime" use="required">
+			<xs:annotation>
+				<xs:documentation>
+              The publisher defined item date.
+           </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="item_TTL_secs" type="item_TTL" use="optional" default="0">
+			<xs:annotation>
+				<xs:documentation>
+             The duration (in seconds) that this item should be held in the PASS persistent store. 
+             If unspecified, the item will not be persisted. If set to -1, the item will be held
+             until it is explicitly retracted.
+           </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="item_id" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>
+              The unique id of this item.  If an item exists in the cache, it
+              will be overwritten if this item's item_dtg is later than that
+              of the existing item.
+           </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<!-- 
+	      ***********************************************
+				item data
+            ***********************************************
+	-->
+	<xs:complexType name="item_data">
+		<xs:annotation>
+			<xs:documentation>
+                  User defined item data.
+               </xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element ref="References" minOccurs="0"/>
+			<xs:any processContents="skip"/>
+		</xs:sequence>
+		<xs:attribute name="item_data_classification" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="SECRET"/>
+					<xs:enumeration value="CONFIDENTIAL"/>
+					<xs:enumeration value="UNCLASSIFIED"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="control_mark" type="xs:string" use="optional"/>
+		<xs:attribute name="release_mark" type="xs:string" use="optional"/>
+		<xs:attribute name="declass_exemption_code" type="xs:string" use="optional"/>
+		<xs:attribute name="declass_dateTime" type="xs:dateTime" use="optional"/>
+		<xs:attribute name="item_data_category" use="optional">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="256"/>
+				</xs:restriction>
+			</xs:simpleType>
+			<!-- Examples values for "item_data_category" are ABCSTarget, 
+			acoMessages,  AMDTrack,. CounterTerrorismForceProtection, EnemySituation, Graphics, 
+			IndicationsAndWarning, ObservedPosition, OplanOpord, OrgStatus, PositionReport, 
+			SitrepCombatPower, TaskOrg, and WarnAndFcst.  These coorelate with available 
+			object schemas. -->
+		</xs:attribute>
+		<xs:anyAttribute processContents="skip"/>
+	</xs:complexType>
+</xs:schema>

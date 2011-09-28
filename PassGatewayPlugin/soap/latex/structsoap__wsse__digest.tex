@@ -1,0 +1,62 @@
+\hypertarget{structsoap__wsse__digest}{
+\section{soap\_\-wsse\_\-digest Struct Reference}
+\label{structsoap__wsse__digest}\index{soap\_\-wsse\_\-digest@{soap\_\-wsse\_\-digest}}
+}
+
+
+Digest dictionary: linked list of ID-\/hash pairs.  
+
+
+
+
+{\ttfamily \#include $<$wsseapi.h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structsoap__wsse__digest}{soap\_\-wsse\_\-digest} $\ast$ \hyperlink{structsoap__wsse__digest_a13360889b01e19791f5f28884f0a22a8}{next}
+\item 
+unsigned int \hyperlink{structsoap__wsse__digest_a37bf7969173878e54c311b6484af54fb}{level}
+\item 
+struct \hyperlink{structsoap__smd__data}{soap\_\-smd\_\-data} \hyperlink{structsoap__wsse__digest_a15e6a918067d5f6d575478751733523f}{smd}
+\item 
+unsigned char \hyperlink{structsoap__wsse__digest_a3f5c0f80cb1f005193388aadcacd18f5}{hash} \mbox{[}SOAP\_\-SMD\_\-MAX\_\-SIZE\mbox{]}
+\item 
+char \hyperlink{structsoap__wsse__digest_a544c388eef37eee69c7682d66c2fdd4f}{id} \mbox{[}1\mbox{]}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Digest dictionary: linked list of ID-\/hash pairs. The digest dictionary is populated by the soap\_\-wsse\_\-preparesend callback. The callback intercepts XML elements with wsu:Id attributes and computes the digest during the preprocessing of a message transmission. The 'level' field is used to determine when the end of an element is reached by handling inner wsu:Id attributed elements, so that the outer wsu:Id attributed element can be hashed. 
+
+\subsection{Member Data Documentation}
+\hypertarget{structsoap__wsse__digest_a3f5c0f80cb1f005193388aadcacd18f5}{
+\index{soap\_\-wsse\_\-digest@{soap\_\-wsse\_\-digest}!hash@{hash}}
+\index{hash@{hash}!soap_wsse_digest@{soap\_\-wsse\_\-digest}}
+\subsubsection[{hash}]{\setlength{\rightskip}{0pt plus 5cm}unsigned char {\bf soap\_\-wsse\_\-digest::hash}\mbox{[}SOAP\_\-SMD\_\-MAX\_\-SIZE\mbox{]}}}
+\label{structsoap__wsse__digest_a3f5c0f80cb1f005193388aadcacd18f5}
+Digest hash value \hypertarget{structsoap__wsse__digest_a544c388eef37eee69c7682d66c2fdd4f}{
+\index{soap\_\-wsse\_\-digest@{soap\_\-wsse\_\-digest}!id@{id}}
+\index{id@{id}!soap_wsse_digest@{soap\_\-wsse\_\-digest}}
+\subsubsection[{id}]{\setlength{\rightskip}{0pt plus 5cm}char {\bf soap\_\-wsse\_\-digest::id}\mbox{[}1\mbox{]}}}
+\label{structsoap__wsse__digest_a544c388eef37eee69c7682d66c2fdd4f}
+String flows down the struct \hypertarget{structsoap__wsse__digest_a37bf7969173878e54c311b6484af54fb}{
+\index{soap\_\-wsse\_\-digest@{soap\_\-wsse\_\-digest}!level@{level}}
+\index{level@{level}!soap_wsse_digest@{soap\_\-wsse\_\-digest}}
+\subsubsection[{level}]{\setlength{\rightskip}{0pt plus 5cm}unsigned int {\bf soap\_\-wsse\_\-digest::level}}}
+\label{structsoap__wsse__digest_a37bf7969173878e54c311b6484af54fb}
+XML parser depth level \hypertarget{structsoap__wsse__digest_a13360889b01e19791f5f28884f0a22a8}{
+\index{soap\_\-wsse\_\-digest@{soap\_\-wsse\_\-digest}!next@{next}}
+\index{next@{next}!soap_wsse_digest@{soap\_\-wsse\_\-digest}}
+\subsubsection[{next}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf soap\_\-wsse\_\-digest}$\ast$ {\bf soap\_\-wsse\_\-digest::next}}}
+\label{structsoap__wsse__digest_a13360889b01e19791f5f28884f0a22a8}
+Next in list \hypertarget{structsoap__wsse__digest_a15e6a918067d5f6d575478751733523f}{
+\index{soap\_\-wsse\_\-digest@{soap\_\-wsse\_\-digest}!smd@{smd}}
+\index{smd@{smd}!soap_wsse_digest@{soap\_\-wsse\_\-digest}}
+\subsubsection[{smd}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf soap\_\-smd\_\-data} {\bf soap\_\-wsse\_\-digest::smd}}}
+\label{structsoap__wsse__digest_a15e6a918067d5f6d575478751733523f}
+smdevp engine context 
+
+The documentation for this struct was generated from the following file:\begin{DoxyCompactItemize}
+\item 
+wsseapi.h\end{DoxyCompactItemize}

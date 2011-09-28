@@ -1,0 +1,11 @@
+{
+  "PassServerAddress": "https://192.168.0.252:7443/PASS", 
+  "PassTopic": "POS-RPT:MCS:US/ARMY/BFT",
+  "PassSubscriberId": "ammosub@isis",
+  "PassPublisherId": "ammopub@isis",
+  "PassSubscriberInterface": "0.0.0.0",
+  "PassSubscriberPort": 8045,
+  "PassSubscriberAddress": "http://192.168.0.50:8045/",
+  "ContentTopic": "application/vnd.com.aterrasys.nevada.locations"
+}
+//:mode=javascript: (jEdit modeline for syntax highlighting)
