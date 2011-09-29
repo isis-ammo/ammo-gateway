@@ -23,12 +23,13 @@ using namespace ammo::gateway;
 // AFTER the existing call to PassConfigurationManager:;getInstance().
 void testPublish (void)
 {
+  static int id = 0;
   ostringstream json;
   json << "{";
   json << "\"lid\": \"" << "0" << "\", ";
-  json << "\"userid\": \"" << "TestID#11" << "\", ";
+  json << "\"userid\": \"" << "TestID#" << id++ << "\", ";
   json << "\"unitid\": \"" << "0" << "\", ";
-  json << "\"name\": \"" << "TestName#11" << "\", ";
+  json << "\"name\": \"" << "TestName#" << id << "\", ";
   json << "\"lat\": \"" << "55.3276" << "\", ";
   json << "\"lon\": \"" << "87.1298" << "\",";
   json << "\"created\": \"" << time(0) << "\", ";
@@ -104,7 +105,7 @@ main (int /* argc */, char ** /* argv */)
   PassAmmmoPublisher::connector = gatewayConnector;
   
   LOG_DEBUG ("Creating new subscriber task...");
-  
+
   // Spawn the subscriber task.
   PassSubscriberTask subscriber;
   subscriber.activate ();

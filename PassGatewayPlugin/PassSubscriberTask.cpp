@@ -88,10 +88,6 @@ PassSubscriberTask::svc (void)
             }
         }
 
-#if 0 // TEST     
-      sleep (2);
-      testPublish ();
-#endif
     }
 
   LOG_DEBUG ("Unsubscribing...");

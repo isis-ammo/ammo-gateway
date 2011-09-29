@@ -1,4 +1,5 @@
 #include "log.h"
+#include <sstream>
 
 #include "json/reader.h"
 #include "json/value.h"
@@ -8,6 +9,7 @@
 
 #include "soap/soapPASSPortBindingProxy.h"
 
+using namespace std;
 using namespace ammo::gateway;
 
 PassGatewayReceiver::PassGatewayReceiver (void)
@@ -79,11 +81,20 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   unit.add (service);
   
   position_report.add (unit);
-  
-  soap_dom_element latitude (0, "", "Latitude", root["lat"].asCString ());
+
+  const char *lat = root["lat"].asCString ();;
+  const char *lon = root["lon"].asCString ();;
+  double llat = (double) strtol(lat, 0, 10) / 1.0e6 ;
+  double llon = (double) strtol(lon, 0, 10) / 1.0e6 ;
+
+  ostringstream lats, lons;
+  lats << llat;
+  lons << llon;
+
+  soap_dom_element latitude (0, "", "Latitude", lats.str().c_str() );
   position_report.add (latitude);
   
-  soap_dom_element longitude (0, "", "Longitude", root["lon"].asCString ());
+  soap_dom_element longitude (0, "", "Longitude", lons.str().c_str() );
   position_report.add (longitude);
   
   soap_dom_element report_date (0, "", "ReportDate", root["created"].asCString ());
@@ -116,7 +127,7 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   
   item.item_USCOREdtg = time (0);
   item.item_USCOREdata = &item_data;
-  item.item_USCORETTL_USCOREsecs = "0";
+  item.item_USCORETTL_USCOREsecs = "1000";
   
   pass_publish.item.push_back (&item);
   
