@@ -156,7 +156,7 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
     }
   else
     {
-      LOG_DEBUG ("Published: " << status.status_USCOREcode);
+      LOG_DEBUG ("Publish succeeded");
       
       if (status.status_USCOREphrase != 0)
         {
