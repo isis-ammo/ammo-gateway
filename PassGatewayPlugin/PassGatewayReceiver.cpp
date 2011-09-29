@@ -34,9 +34,9 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
                                          PushData &pushData)
 {
   LOG_TRACE ("PASS data push received");
-  
+
   _pass__publish pass_publish;
-  
+
   pass_publish.topic = cfg_mgr_->getPassTopic ();
   
   pass_publish.publisher_USCOREid = cfg_mgr_->getPassPublisherId ();
@@ -124,7 +124,7 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   
   LOG_DEBUG ("Publishing...");
   
-  PASSPortBindingProxy proxy;
+  PASSPortBindingProxy proxy(SOAP_XML_DEFAULTNS, SOAP_XML_DEFAULTNS);
   
   // At least until we have a valid SSL certificate on the server.
   proxy.ssl_flags = SOAP_SSL_SKIP_HOST_CHECK;

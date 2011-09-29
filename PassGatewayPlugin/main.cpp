@@ -38,6 +38,29 @@ public:
   }
 };
 
+PassGatewayReceiver *gReceiver = 0;
+void testPublish()
+{
+  ostringstream json;
+  json << "{";
+  json << "\"lid\": \"" << "0" << "\", ";
+  json << "\"userid\": \"" << "TestID#11" << "\", ";
+  json << "\"unitid\": \"" << "0" << "\", ";
+  json << "\"name\": \"" << "TestName#11" << "\", ";
+  json << "\"lat\": \"" << "55.3276" << "\", ";
+  json << "\"lon\": \"" << "87.1298" << "\",";
+  json << "\"created\": \"" << time(0) << "\", ";
+  json << "\"modified\": \"" << "0" << "\"";
+  json << "}";
+  
+  PushData pd;
+  pd.uri = "my_uri";
+  pd.mimeType = "application/vnd.com.aterrasys.nevada.locations";
+  pd.data = json.str ();
+
+  gReceiver->onPushDataReceived (0, pd);
+}
+
 int
 main (int /* argc */, char ** /* argv */)
 {  
@@ -58,6 +81,7 @@ main (int /* argc */, char ** /* argv */)
   LOG_DEBUG ("Creating Pass gateway receiver...");
   
   PassGatewayReceiver *receiver = new PassGatewayReceiver ();
+  gReceiver = receiver;
   
   LOG_DEBUG ("Creating gateway connector...");
   
@@ -69,29 +93,7 @@ main (int /* argc */, char ** /* argv */)
   // Nothing further is done with 'config' since everything happens
   // in the constructor. This macro avoids the 'unused' warning.  
   ACE_UNUSED_ARG (config);
-
-  ostringstream json;
-  json << "{";
-  json << "\"lid\": \"" << "0" << "\", ";
-  json << "\"userid\": \"" << "TestID#11" << "\", ";
-  json << "\"unitid\": \"" << "0" << "\", ";
-  json << "\"name\": \"" << "TestName#11" << "\", ";
-  json << "\"lat\": \"" << "55.3276" << "\", ";
-  json << "\"lon\": \"" << "87.1298" << "\",";
-  json << "\"created\": \"" << time(0) << "\", ";
-  json << "\"modified\": \"" << "0" << "\"";
-  json << "}";
   
-  PushData pd;
-  pd.uri = "my_uri";
-  pd.mimeType = "application/vnd.com.aterrasys.nevada.locations";
-  pd.data = json.str ();
-
-  receiver->onPushDataReceived (0, pd);
-  
-//  cout << ACE_Utils::UUID_GENERATOR->generate_UUID ()->to_string ()->c_str () << endl;
-  
-/*
   // Connector is thread-safe so we can share one for
   // both incoming and outgoing.
   PassAmmmoPublisher::connector = gatewayConnector;
@@ -113,6 +115,7 @@ main (int /* argc */, char ** /* argv */)
   subscriber.close (0);
   LOG_DEBUG ("Waiting for subscription server to unsubscribe...");
   subscriber.wait ();
-*/
+
+
   return 0;
 }

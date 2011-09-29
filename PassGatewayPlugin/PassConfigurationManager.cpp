@@ -192,6 +192,16 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
                   LOG_ERROR ("ContentTopic is missing or "
                              << "wrong type (should be string)");
                 }
+
+              if (root["PassPluginID"].isString ())
+                {
+                  this->passPluginId = root["PassPluginID"].asString ();
+                  LOG_DEBUG ("PASS Plugin ID set to " << this->passPluginId);
+                }
+              else
+                {
+                  LOG_ERROR ("PASS Plugin ID defaults to UUID " << this->passPluginId);
+                }
             }
           else
             {
