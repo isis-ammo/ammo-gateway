@@ -24,14 +24,14 @@ PassAmmmoPublisher::pushPli (const string &lid,
 {
   ostringstream json;
   json << "{";
-  json << "\"lid\": \"" << lid << "\", ";
-  json << "\"userid\": \"" << userid << "\", ";
-  json << "\"unitid\": \"" << unitid << "\", ";
+  json << "\"lid\": " << lid << ", ";
+  json << "\"userid\": " << userid << ", ";
+  json << "\"unitid\": " << unitid << ", ";
   json << "\"name\": \"" << name << "\", ";
-  json << "\"lat\": \"" << lat << "\", ";
-  json << "\"lon\": \"" << lon << "\",";
-  json << "\"created\": \"" << created << "\", ";
-  json << "\"modified\": \"" << modified << "\"";
+  json << "\"lat\": " << lat << ", ";
+  json << "\"lon\": " << lon << ",";
+  json << "\"created\": " << created << ", ";
+  json << "\"modified\": " << modified;
   json << "}";
   
   PushData pd;
