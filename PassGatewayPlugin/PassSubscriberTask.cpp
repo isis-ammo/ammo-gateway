@@ -57,7 +57,8 @@ PassSubscriberTask::svc (void)
     {
       LOG_ERROR ("Error while subscribing...");
     }
-  
+    
+
   while (!closed_)
     {
       LOG_DEBUG ("Accepting connections...");
@@ -87,7 +88,7 @@ PassSubscriberTask::svc (void)
             }
         }
     }
-  
+
   LOG_DEBUG ("Unsubscribing...");
   status = unsubscribe ();
   
