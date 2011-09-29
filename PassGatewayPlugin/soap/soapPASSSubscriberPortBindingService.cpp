@@ -404,6 +404,7 @@ PASSSubscriberPortBindingService::publish (_pass__publish *pass__publish,
               // Don't re-publish messages that originated locally.
               if (item_id.substr (0, plugin_prefix.size ()) == plugin_prefix)
                 {
+                  LOG_DEBUG ("Skipping locally published message " << item_id);
                   continue;
                 }
               
