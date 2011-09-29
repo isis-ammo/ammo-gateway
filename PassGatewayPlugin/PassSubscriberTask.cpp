@@ -89,7 +89,7 @@ PassSubscriberTask::svc (void)
             }
         }
 
-#if 1 // TEST     
+#if 0 // TEST     
       sleep(2);
       testPublish();
 #endif
