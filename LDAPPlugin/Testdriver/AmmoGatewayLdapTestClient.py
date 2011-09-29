@@ -90,7 +90,7 @@ class AmmoGatewayLdapTestClient:
         m = AmmoMessages_pb2.MessageWrapper()
         m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
         m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
-        m.data_message.mime_type = "application/vnd.edu.vu.isis.ammo.launcher.contact"
+        m.data_message.mime_type = "ammo/edu.vu.isis.ammo.launcher.contact"
         
         # The .data element should be a JSON string
         #m.data_message.data = "This is non-JSON text"
@@ -111,7 +111,7 @@ class AmmoGatewayLdapTestClient:
         m.pull_request.plugin_id = "android-plugin-test"
         m.pull_request.query = "Callsign=Apache*"
         #m.pull_request.query = ""
-        m.pull_request.mime_type = "application/vnd.edu.vu.isis.ammo.launcher.contact_pull"
+        m.pull_request.mime_type = "ammo/edu.vu.isis.ammo.launcher.contact_pull"
         sys.stdout.write("Sending pull request...\n")
         self.sendMessageWrapper(m)
     
@@ -123,7 +123,7 @@ class AmmoGatewayLdapTestClient:
         #    return
         m = AmmoMessages_pb2.MessageWrapper()
         m.type = AmmoMessages_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
-        m.subscribe_message.mime_type = "application/vnd.edu.vu.isis.ammo.battlespace.gcm"
+        m.subscribe_message.mime_type = "ammo/edu.vu.isis.ammo.battlespace.gcm"
         sys.stdout.write("Sending subscription request...\n")
         self.sendMessageWrapper(m)
     

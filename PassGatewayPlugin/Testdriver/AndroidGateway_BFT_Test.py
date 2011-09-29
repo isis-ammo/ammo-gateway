@@ -68,7 +68,7 @@ if __name__ == "__main__":
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.data_message.uri = "content:edu.vanderbilt.isis.ammo.BlueForceTest"
-    m.data_message.mime_type = "application/vnd.edu.vu.isis.ammo.battlespace.gcm"
+    m.data_message.mime_type = "ammo/edu.vu.isis.ammo.battlespace.gcm"
     m.data_message.data = '''
 {"uuid":"bumper id","title":"title","description":"description","gcm_type":"UNIT",
 "standard_id":"FRIEND","longitude"::-86.7,"latitude":36.1}
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     print "Sending bso base information"
     client.sendMessageWrapper(m)
 
-    m.data_message.mime_type = "application/vnd.edu.vu.isis.ammo.battlespace.gcm_anchor"
+    m.data_message.mime_type = "ammo/edu.vu.isis.ammo.battlespace.gcm_anchor"
     m.data_message.data = '''
 {"gcm_uuid":"bumper id","longitude":-87.5,"latitude":35.7}
 '''
