@@ -11,8 +11,8 @@ option java_package = "edu.vu.isis.ammo.core.pb";
 *   
 *  mime_type : a type specification providing enough information to identify the data 
 *              so that the proper readers will be invoked or notified.
-*   e.g. application/vnd.ammo.incident
-*        application/vnd.tigr.report
+*   e.g. ammo/ammo.incident
+*        ammo/tigr.report
 *    It is the responsibility of a plug-in to mutate these mime types as needed for other uses.
 *    
 *  uri : when used serves as a unique identifier for the data being sent.

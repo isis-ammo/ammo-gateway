@@ -25,6 +25,14 @@ PassConfigurationManager::getInstance (PassGatewayReceiver *receiver,
 {
   if (sharedInstance == 0)
     {
+      if (connector == 0 || receiver == 0)
+        {
+          LOG_ERROR ("First call to getInstance() must initialize"
+                     " receiver and connector");
+                     
+          return 0;
+        }
+        
       sharedInstance =
         new PassConfigurationManager (receiver, connector);
     }
@@ -78,6 +86,12 @@ const std::string &
 PassConfigurationManager::getPassPluginId (void) const
 {
   return passPluginId;
+}
+
+PassGatewayReceiver *
+PassConfigurationManager::getReceiver (void) const
+{
+  return receiver_;
 }
 
 PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receiver,
@@ -191,6 +205,16 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
                 {
                   LOG_ERROR ("ContentTopic is missing or "
                              << "wrong type (should be string)");
+                }
+
+              if (root["PassPluginID"].isString ())
+                {
+                  this->passPluginId = root["PassPluginID"].asString ();
+                  LOG_DEBUG ("PASS Plugin ID set to " << this->passPluginId);
+                }
+              else
+                {
+                  LOG_ERROR ("PASS Plugin ID defaults to UUID " << this->passPluginId);
                 }
             }
           else

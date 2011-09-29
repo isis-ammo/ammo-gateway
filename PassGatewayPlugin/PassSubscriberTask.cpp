@@ -1,11 +1,11 @@
-#include <iostream>
-
 #include "log.h"
 
 #include "PassSubscriberTask.h"
 #include "PassConfigurationManager.h"
 #include "soap/soapPASSSubscriberPortBindingService.h"
 #include "soap/soapPASSPortBindingProxy.h"
+
+extern void testPublish (void);
 
 PassSubscriberTask::PassSubscriberTask (void)
   : cfg_mgr_ (0),
@@ -38,7 +38,7 @@ PassSubscriberTask::svc (void)
   cfg_mgr_ = PassConfigurationManager::getInstance ();
   PASSSubscriberPortBindingService service (SOAP_C_UTFSTRING);
   
-  LOG_DEBUG ("Binding SOAP server to port 8054 on 0.0.0.0");
+  LOG_DEBUG ("Binding SOAP server to port " << cfg_mgr_->getPassSubscriberPort () );
   
   SOAP_SOCKET res =
     service.bind (cfg_mgr_->getPassSubscriberInterface().c_str (), 
@@ -87,6 +87,11 @@ PassSubscriberTask::svc (void)
               service.soap_print_fault (stderr);
             }
         }
+
+#if 0 // TEST     
+      sleep (2);
+      testPublish ();
+#endif
     }
 
   LOG_DEBUG ("Unsubscribing...");

@@ -30,6 +30,8 @@ public:
   
   const std::string &getPassPluginId (void) const;
   
+  PassGatewayReceiver *getReceiver (void) const;
+  
 private:
   PassConfigurationManager (PassGatewayReceiver *receiver,
                             ammo::gateway::GatewayConnector *connector);

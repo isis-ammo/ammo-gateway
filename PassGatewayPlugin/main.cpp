@@ -19,6 +19,33 @@
 using namespace std;
 using namespace ammo::gateway;
 
+// If this function is called in main() for testing, it must come
+// AFTER the existing call to PassConfigurationManager:;getInstance().
+void testPublish (void)
+{
+  ostringstream json;
+  json << "{";
+  json << "\"lid\": \"" << "0" << "\", ";
+  json << "\"userid\": \"" << "TestID#11" << "\", ";
+  json << "\"unitid\": \"" << "0" << "\", ";
+  json << "\"name\": \"" << "TestName#11" << "\", ";
+  json << "\"lat\": \"" << "55.3276" << "\", ";
+  json << "\"lon\": \"" << "87.1298" << "\",";
+  json << "\"created\": \"" << time(0) << "\", ";
+  json << "\"modified\": \"" << "0" << "\"";
+  json << "}";
+  
+  PushData pd;
+  pd.uri = "my_uri";
+  pd.mimeType = "ammo/com.aterrasys.nevada.locations";
+  pd.data = json.str ();
+
+  PassConfigurationManager *cfg_mgr =
+    PassConfigurationManager::getInstance ();
+    
+  cfg_mgr->getReceiver ()->onPushDataReceived (0, pd);
+}
+
 // Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
 // in the middle of the reactor event loop, which isn't always a good thing).
 class SigintHandler : public ACE_Event_Handler {
@@ -63,34 +90,15 @@ main (int /* argc */, char ** /* argv */)
   
   GatewayConnector *gatewayConnector = new GatewayConnector (receiver);
 
+  // This must be the first call to getInstance(), so the receiver
+  // and connector can be initialized when the singleton is created.
   PassConfigurationManager *config =
 	  PassConfigurationManager::getInstance (receiver, gatewayConnector);
 	  
   // Nothing further is done with 'config' since everything happens
   // in the constructor. This macro avoids the 'unused' warning.  
   ACE_UNUSED_ARG (config);
-#if 1
-  ostringstream json;
-  json << "{";
-  json << "\"lid\": \"" << "0" << "\", ";
-  json << "\"userid\": \"" << "TestID#11" << "\", ";
-  json << "\"unitid\": \"" << "0" << "\", ";
-  json << "\"name\": \"" << "TestName#11" << "\", ";
-  json << "\"lat\": \"" << "55.3276" << "\", ";
-  json << "\"lon\": \"" << "87.1298" << "\",";
-  json << "\"created\": \"" << time(0) << "\", ";
-  json << "\"modified\": \"" << "0" << "\"";
-  json << "}";
   
-  PushData pd;
-  pd.uri = "my_uri";
-  pd.mimeType = "application/vnd.com.aterrasys.nevada.locations";
-  pd.data = json.str ();
-
-  receiver->onPushDataReceived (0, pd);
-  
-
-
   // Connector is thread-safe so we can share one for
   // both incoming and outgoing.
   PassAmmmoPublisher::connector = gatewayConnector;
@@ -99,8 +107,7 @@ main (int /* argc */, char ** /* argv */)
   
   // Spawn the subscriber task.
   PassSubscriberTask subscriber;
-  subscriber.subscribe ();
-//  subscriber.activate ();
+  subscriber.activate ();
   
   // Get the process-wide ACE_Reactor
   // (the one the acceptor should have registered with).
@@ -109,12 +116,10 @@ main (int /* argc */, char ** /* argv */)
   
   reactor->run_reactor_event_loop ();
   LOG_DEBUG ("Event loop terminated.");
-  /*
+
   subscriber.close (0);
   LOG_DEBUG ("Waiting for subscription server to unsubscribe...");
   subscriber.wait ();
-  */
-  subscriber.unsubscribe ();
-#endif
+
   return 0;
 }
