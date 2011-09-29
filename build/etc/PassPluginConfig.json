@@ -6,7 +6,7 @@
   "PassSubscriberInterface": "0.0.0.0",
   "PassSubscriberPort": 7993,
   "PassSubscriberAddress": "http://192.168.0.52:7993/",
-  "ContentTopic": "application/vnd.com.aterrasys.nevada.locations",
+  "ContentTopic": "ammo/com.aterrasys.nevada.locations",
   "PassPluginID": "Transapps-PASS"
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)

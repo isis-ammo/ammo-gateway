@@ -55,7 +55,7 @@ void testPublish()
   
   PushData pd;
   pd.uri = "my_uri";
-  pd.mimeType = "application/vnd.com.aterrasys.nevada.locations";
+  pd.mimeType = "ammo/com.aterrasys.nevada.locations";
   pd.data = json.str ();
 
   gReceiver->onPushDataReceived (0, pd);

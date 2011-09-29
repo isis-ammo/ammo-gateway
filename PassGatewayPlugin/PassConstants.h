@@ -4,6 +4,6 @@
 #include <string>
 
 const std::string LOCATIONS_DATA_TYPE =
-  "application/vnd.com.aterrasys.nevada.locations";
+  "ammo/com.aterrasys.nevada.locations";
   
 #endif // PASS_CONSTANTS_H
