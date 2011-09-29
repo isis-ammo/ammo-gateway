@@ -69,7 +69,7 @@ main (int /* argc */, char ** /* argv */)
   // Nothing further is done with 'config' since everything happens
   // in the constructor. This macro avoids the 'unused' warning.  
   ACE_UNUSED_ARG (config);
-
+#if 1
   ostringstream json;
   json << "{";
   json << "\"lid\": \"" << "0" << "\", ";
@@ -89,9 +89,8 @@ main (int /* argc */, char ** /* argv */)
 
   receiver->onPushDataReceived (0, pd);
   
-//  cout << ACE_Utils::UUID_GENERATOR->generate_UUID ()->to_string ()->c_str () << endl;
-  
-/*
+
+
   // Connector is thread-safe so we can share one for
   // both incoming and outgoing.
   PassAmmmoPublisher::connector = gatewayConnector;
@@ -100,7 +99,8 @@ main (int /* argc */, char ** /* argv */)
   
   // Spawn the subscriber task.
   PassSubscriberTask subscriber;
-  subscriber.activate ();
+  subscriber.subscribe ();
+//  subscriber.activate ();
   
   // Get the process-wide ACE_Reactor
   // (the one the acceptor should have registered with).
@@ -109,10 +109,12 @@ main (int /* argc */, char ** /* argv */)
   
   reactor->run_reactor_event_loop ();
   LOG_DEBUG ("Event loop terminated.");
-  
+  /*
   subscriber.close (0);
   LOG_DEBUG ("Waiting for subscription server to unsubscribe...");
   subscriber.wait ();
-*/
+  */
+  subscriber.unsubscribe ();
+#endif
   return 0;
 }

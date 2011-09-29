@@ -12,6 +12,8 @@
 
 #include "soapH.h"
 
+#include "log.h"
+
 SOAP_SOURCE_STAMP("@(#) soapC.cpp ver 2.7.17 2010-11-04 15:45:44 GMT")
 
 
