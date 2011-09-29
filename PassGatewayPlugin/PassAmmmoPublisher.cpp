@@ -5,7 +5,7 @@
 #include "GatewayConnector.h"
 
 #include "PassAmmmoPublisher.h"
-#include "PassConstants.h"
+#include "PassConfigurationManager.h"
 
 using namespace std;
 using namespace ammo::gateway;
@@ -34,18 +34,24 @@ PassAmmmoPublisher::pushPli (const string &lid,
   json << "\"modified\": \"" << modified << "\"";
   json << "}";
   
-  ostringstream uri;
-  // TODO - the literal below has probably changed.
-  uri << "bft:bso/" << lid;
-  
   PushData pd;
-  pd.uri = uri.str ();
-  pd.mimeType = LOCATIONS_DATA_TYPE;
+  
+  // The URI has become kind of a legacy field, so we
+  // set it to a legacy value.
+  pd.uri = "bft:bso/";
+  
+  pd.mimeType =
+    PassConfigurationManager::getInstance ()->getPassContentTopic ();
   pd.data = json.str ();
   
   if (connector != 0)
     {
       connector->pushData (pd);
+    }
+  else
+    {
+      LOG_ERROR ("PassAmmmoPublisher::pushPli - "
+                 "connector not initialized");
     }
 }
 

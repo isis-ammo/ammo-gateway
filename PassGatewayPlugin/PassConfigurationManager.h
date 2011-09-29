@@ -28,6 +28,7 @@ public:
   int getPassSubscriberPort (void) const;
   const std::string &getPassSubscriberAddress (void) const;
   
+  const std::string &getPassContentTopic (void) const;
   const std::string &getPassPluginId (void) const;
   
   PassGatewayReceiver *getReceiver (void) const;
@@ -49,9 +50,12 @@ private:
   int passSubscriberPort;
   std::string passSubscriberAddress;
   
+  std::string passContentTopic;
+  
   // Generated unique id used as a prefix to the id of each SOAP publish
   // originating locally. When our subscriber gets the message back,
-  // we can use it to short-circuit the local data push.
+  // we can use it to short-circuit the local data push. Can also be
+  // overridden in the config file.
   std::string passPluginId;
   
   PassGatewayReceiver *receiver_;

@@ -43,7 +43,7 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   
   pass__item_USCOREdata item_data;
   
-  // Hard-coded for now, maybe later from the config file or elsewhere.
+  // Hard-coded for now, maybe later set from the config file.
   item_data.item_USCOREdata_USCOREclassification =
     _pass__item_USCOREdata_item_USCOREdata_USCOREclassification__UNCLASSIFIED;
     
@@ -116,7 +116,7 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   
   item.item_USCOREdtg = time (0);
   item.item_USCOREdata = &item_data;
-  item.item_USCORETTL_USCOREsecs = "1000";
+  item.item_USCORETTL_USCOREsecs = "0";
   
   pass_publish.item.push_back (&item);
   

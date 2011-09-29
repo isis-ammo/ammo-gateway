@@ -83,6 +83,12 @@ PassConfigurationManager::getPassSubscriberAddress (void) const
 }
 
 const std::string &
+PassConfigurationManager::getPassContentTopic (void) const
+{
+  return passContentTopic;
+}
+
+const std::string &
 PassConfigurationManager::getPassPluginId (void) const
 {
   return passPluginId;
@@ -200,6 +206,7 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
                   string content_type = root["ContentTopic"].asString ();
                   LOG_DEBUG ("Registering interest in " << content_type);
                   connector_->registerDataInterest (content_type, receiver_);
+                  passContentTopic = content_type;
                 }
               else
                 {
