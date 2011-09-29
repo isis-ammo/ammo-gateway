@@ -36,9 +36,9 @@ PassAmmmoPublisher::pushPli (const string &lid,
   
   PushData pd;
   
-  // The URI has become kind of a legacy field, so we
-  // set it to a legacy value.
-  pd.uri = "bft:bso/";
+  // This field isn't used by the gateway, but we set it anyway
+  // to some non-empty semi-informative value.
+  pd.uri = "nevada:locations";
   
   pd.mimeType =
     PassConfigurationManager::getInstance ()->getPassContentTopic ();

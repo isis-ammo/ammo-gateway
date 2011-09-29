@@ -88,13 +88,12 @@ PassSubscriberTask::svc (void)
             }
         }
 
-#if 0 // TEST     
+#if 1 // TEST     
       sleep (2);
       testPublish ();
 #endif
     }
 
-  LOG_DEBUG ("Unsubscribing...");
   status = unsubscribe ();
   
   if (status != 0)
@@ -142,7 +141,7 @@ PassSubscriberTask::subscribe (void)
     }
   else
     {
-      LOG_DEBUG ("Subscribed: " << status.status_USCOREcode);
+      LOG_DEBUG ("Subscribe succeeded");
       
       if (status.status_USCOREphrase != 0)
         {
@@ -170,7 +169,7 @@ PassSubscriberTask::unsubscribe (void)
   
   pass__status status;
   
-  LOG_DEBUG ("Unubscribing...");
+  LOG_DEBUG ("Unsubscribing...");
   int result = proxy.unsubscribe (&unsubscriptionRequest, &status);
   
   if (result != SOAP_OK)
@@ -180,7 +179,7 @@ PassSubscriberTask::unsubscribe (void)
     }
   else
     {
-      LOG_DEBUG ("Unubscribed: " << status.status_USCOREcode);
+      LOG_DEBUG ("Unubscribe succeeded");
       
       if (status.status_USCOREphrase != 0)
         {
