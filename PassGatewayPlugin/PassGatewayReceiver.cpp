@@ -88,10 +88,12 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   soap_dom_element urn (0, "", "URN", root["userid"].asCString ());
   unit.add (urn);
   
-  soap_dom_element symbol_code (0, "", "SymbolCode", "");
+  std::string tmp = cfg_mgr_->getPassSymbolCode ();
+  soap_dom_element symbol_code (0, "", "SymbolCode", tmp.c_str ());
   unit.add (symbol_code);
   
-  soap_dom_element service (0, "", "Service", "");
+  tmp = cfg_mgr_->getPassService ();
+  soap_dom_element service (0, "", "Service", tmp.c_str ());
   unit.add (service);
   
   position_report.add (unit);
