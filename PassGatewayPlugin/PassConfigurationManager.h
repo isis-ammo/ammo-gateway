@@ -29,6 +29,9 @@ public:
   const std::string &getPassSubscriberAddress (void) const;
   
   const std::string &getPassContentTopic (void) const;
+  const std::string &getPassSymbolCode (void) const;
+  const std::string &getPassService (void) const;
+  
   const std::string &getPassPluginId (void) const;
   const std::string &getPassPluginSubscriberTag (void) const;
   
@@ -52,6 +55,8 @@ private:
   std::string passSubscriberAddress;
   
   std::string passContentTopic;
+  std::string passSymbolCode;
+  std::string passService;
   
   // Generated unique id used as a prefix to the id of each SOAP publish
   // originating locally. When our subscriber gets the message back,

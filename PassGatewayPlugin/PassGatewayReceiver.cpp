@@ -67,6 +67,8 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
       // A match here means we already pushed this data to the gateway.
       if (root["lid"].asString () == cfg_mgr_->getPassPluginSubscriberTag ())
         {
+          LOG_DEBUG ("onPushDataReceived: skipping message that was a "
+                     "previous gateway push " << root["lid"].asString ());
           return;
         }
     }
@@ -82,7 +84,8 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   soap_dom_element name (0, "", "Name", root["name"].asCString ());
   unit.add (name);
   
-  soap_dom_element urn (0, "", "URN", "");
+  // Sample PASS data has this field with the same value as "ID".
+  soap_dom_element urn (0, "", "URN", root["userid"].asCString ());
   unit.add (urn);
   
   soap_dom_element symbol_code (0, "", "SymbolCode", "");

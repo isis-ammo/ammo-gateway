@@ -9,6 +9,8 @@
 //  "PassSubscriberAddress": "http://192.168.0.50:7993/",
   "PassSubscriberAddress": "http://192.168.103.50:7993/",
   "ContentTopic": "ammo/com.aterrasys.nevada.locations",
+  "PassSymbolCode": "SFGPUST-----USG",
+  "PassService": "ARM",
   "PassPluginID": "Transapps-PASS",
   "PassPluginSubscriberTag": "1234567890"
 }

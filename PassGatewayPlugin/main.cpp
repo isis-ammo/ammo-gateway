@@ -27,12 +27,12 @@ void testPublish (void)
   ostringstream json;
   json << "{";
   json << "\"lid\": \"" << "0" << "\", ";
-  json << "\"userid\": \"" << "TestID#" << id++ << "\", ";
+  json << "\"userid\": \"" << id << "\", ";
   json << "\"unitid\": \"" << "0" << "\", ";
-  json << "\"name\": \"" << "TestName#" << id << "\", ";
-  json << "\"lat\": \"" << "55.3276" << "\", ";
-  json << "\"lon\": \"" << "87.1298" << "\",";
-  json << "\"created\": \"" << time(0) << "\", ";
+  json << "\"name\": \"" << "TestName#" << id++ << "\", ";
+  json << "\"lat\": \"" << "55327600" << "\", ";
+  json << "\"lon\": \"" << "87129800" << "\",";
+  json << "\"created\": \"" << time(0) * 1000ll << "\", ";
   json << "\"modified\": \"" << "0" << "\"";
   json << "}";
   

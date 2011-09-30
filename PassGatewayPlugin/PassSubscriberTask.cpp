@@ -87,7 +87,11 @@ PassSubscriberTask::svc (void)
               service.soap_print_fault (stderr);
             }
         }
-
+// Quick way to turn test publishing on and off without
+// having to get an actual data push from the gateway.
+#if 0
+      testPublish ();
+#endif
     }
 
   status = unsubscribe ();

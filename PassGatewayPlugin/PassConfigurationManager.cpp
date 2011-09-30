@@ -89,6 +89,18 @@ PassConfigurationManager::getPassContentTopic (void) const
 }
 
 const std::string &
+PassConfigurationManager::getPassSymbolCode (void) const
+{
+  return passSymbolCode;
+}
+
+const std::string &
+PassConfigurationManager::getPassService (void) const
+{
+  return passService;
+}
+
+const std::string &
 PassConfigurationManager::getPassPluginId (void) const
 {
   return passPluginId;
@@ -220,6 +232,26 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
                              << "wrong type (should be string)");
                 }
 
+              if (root["PassSymbolCode"].isString ())
+                {
+                  passSymbolCode = root["PassSymbolCode"].asString();
+                }
+              else
+                {
+                  LOG_ERROR ("PassSymbolCode is missing or "
+                             << "wrong type (should be string)");
+                }
+                
+              if (root["PassService"].isString ())
+                {
+                  passService = root["PassService"].asString();
+                }
+              else
+                {
+                  LOG_ERROR ("PassService is missing or "
+                             << "wrong type (should be string)");
+                }
+                
               if (root["PassPluginID"].isString ())
                 {
                   this->passPluginId = root["PassPluginID"].asString ();
