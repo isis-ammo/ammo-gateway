@@ -94,6 +94,12 @@ PassConfigurationManager::getPassPluginId (void) const
   return passPluginId;
 }
 
+const std::string &
+PassConfigurationManager::getPassPluginSubscriberTag (void) const
+{
+  return passPluginSubscriberTag;
+}
+
 PassGatewayReceiver *
 PassConfigurationManager::getReceiver (void) const
 {
@@ -218,6 +224,16 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
                 {
                   this->passPluginId = root["PassPluginID"].asString ();
                   LOG_DEBUG ("PASS Plugin ID set to " << this->passPluginId);
+                }
+              else
+                {
+                  LOG_ERROR ("PASS Plugin ID defaults to UUID " << this->passPluginId);
+                }
+                
+              if (root["PassPluginSubscriberTag"].isString ())
+                {
+                  this->passPluginSubscriberTag = root["PassPluginSubscriberTag"].asString ();
+                  LOG_DEBUG ("PASS Plugin Subscriber Tag set to " << this->passPluginSubscriberTag);
                 }
               else
                 {

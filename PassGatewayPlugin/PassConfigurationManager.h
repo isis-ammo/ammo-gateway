@@ -30,6 +30,7 @@ public:
   
   const std::string &getPassContentTopic (void) const;
   const std::string &getPassPluginId (void) const;
+  const std::string &getPassPluginSubscriberTag (void) const;
   
   PassGatewayReceiver *getReceiver (void) const;
   
@@ -57,6 +58,11 @@ private:
   // we can use it to short-circuit the local data push. Can also be
   // overridden in the config file.
   std::string passPluginId;
+  
+  // Plugin puts this in the "lid" field of the nevada.locations data
+  // push to the gateway, so it can check and skip when the gateway
+  // pushes it back.
+  std::string passPluginSubscriberTag;
   
   PassGatewayReceiver *receiver_;
   ammo::gateway::GatewayConnector *connector_;

@@ -62,6 +62,15 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
       return;
     }
     
+  if (root["lid"].isString ())
+    {
+      // A match here means we already pushed this data to the gateway.
+      if (root["lid"].asString () == cfg_mgr_->getPassPluginSubscriberTag ())
+        {
+          return;
+        }
+    }
+    
   soap_dom_element position_report (0, "", "PositionReport");
 
   soap_dom_element unit (0, "", "Unit");
@@ -105,7 +114,6 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
 
   const size_t len = 30;
   char fmt[len];
-  char buf[len];
   strftime (fmt, len, "%Y-%m-%dT%H:%M:%SZ", gmtime(&rptTime) );  
 
   soap_dom_element report_date (0, "", "ReportDate", fmt);
@@ -129,7 +137,7 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   // Message id = plugin id + "__" + timestamp
   std::string item_id (cfg_mgr_->getPassPluginId ());
   item_id += "__";
-  item_id += fmt;		// use the timestamp from teh message as item id
+  item_id += fmt;		// use the timestamp from the message as item id.
   
   item.item_USCOREid = item_id;
   
@@ -154,6 +162,7 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   
   if (result != SOAP_OK)
     {
+      LOG_DEBUG ("Publish failed - SOAP error code = " << result);
       proxy.soap_print_fault (stderr);
       LOG_DEBUG ("Published error status: " << status.status_USCOREcode);
       

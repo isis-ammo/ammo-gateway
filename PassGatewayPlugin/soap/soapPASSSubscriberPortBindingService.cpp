@@ -380,7 +380,7 @@ PASSSubscriberPortBindingService::publish (_pass__publish *pass__publish,
       std::string lid ("0");
       std::string userid ("0");
       std::string unitid ("0");
-      std::string name ("0");
+      std::string name ("");
       std::string lat ("0.0");
       std::string lon ("0.0");
       std::string created ("0");
@@ -500,6 +500,11 @@ PASSSubscriberPortBindingService::publish (_pass__publish *pass__publish,
 		                    } // PositionReport iterator
 		                } // string == "PositionReport"
                 } // item_data iterator
+                
+              // Set this to our unique tag so we can skip when
+              // we get it back from the gateway.  
+              lid =
+                PassConfigurationManager::getInstance ()->getPassPluginSubscriberTag ();
               
               if (name != "" && name != "0")
                 {
