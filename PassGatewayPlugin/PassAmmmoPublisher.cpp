@@ -12,6 +12,13 @@ using namespace ammo::gateway;
 
 GatewayConnector *PassAmmmoPublisher::connector = 0;
 
+static int 
+userToId(const string &user) {
+  int uid = 0;
+  for(int i=0; i<user.size(); i++) uid += user[i];
+  return uid;
+}
+
 void
 PassAmmmoPublisher::pushPli (const string &lid,
                              const string &userid,
@@ -22,16 +29,32 @@ PassAmmmoPublisher::pushPli (const string &lid,
                              const string &created,
                              const string &modified)
 {
+  // Verify this --
+  // PASS sends lat/lon in decimal degrees, BFT expects degrees * 1.0E6
+  // PASS sends date as ASCII string - zulu time, BFT expects seconds since epoch
+  // we need to turn user id and unit id into numbers
+
+
+  long  llat = (long)(strtod(lat.c_str(), 0) * 1.0E6);
+  long  llon = (long)(strtod(lon.c_str(), 0) * 1.0E6);
+
+  struct tm creatm;
+  strptime (created.c_str(), "%Y-%m-%dT%H:%M:%SZ", &creatm);
+  time_t creat = mktime(&creatm);
+
+  
+
+
   ostringstream json;
   json << "{";
-  json << "\"lid\": " << lid << ", ";
-  json << "\"userid\": " << userid << ", ";
-  json << "\"unitid\": " << unitid << ", ";
+  json << "\"lid\": \"" << lid << "\", ";
+  json << "\"userid\": \"" << userToId(userid) << "\", "; 
+  json << "\"unitid\": \"" << 0 << "\", ";   // map from unitid string
   json << "\"name\": \"" << name << "\", ";
-  json << "\"lat\": " << lat << ", ";
-  json << "\"lon\": " << lon << ",";
-  json << "\"created\": " << created << ", ";
-  json << "\"modified\": " << modified;
+  json << "\"lat\": \"" << llat << "\", ";
+  json << "\"lon\": \"" << llon << "\", ";
+  json << "\"created\": \"" << creat * 1000ll << "\", ";
+  json << "\"modified\": \"" << modified << "\"";
   json << "}";
   
   PushData pd;

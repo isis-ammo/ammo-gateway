@@ -51,6 +51,8 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
     
   Json::Value root;
   Json::Reader reader;
+
+  LOG_DEBUG ("JSON data: " << pushData.data);
   
   if (!reader.parse (pushData.data, root))
     {
@@ -97,7 +99,16 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   soap_dom_element longitude (0, "", "Longitude", lons.str().c_str() );
   position_report.add (longitude);
   
-  soap_dom_element report_date (0, "", "ReportDate", root["created"].asCString ());
+  const char *reportDate = root["created"].asCString ();
+  long long t = strtoll(reportDate, 0, 10);
+  time_t rptTime = t / 1000ll;
+
+  const size_t len = 30;
+  char fmt[len];
+  char buf[len];
+  strftime (fmt, len, "%Y-%m-%dT%H:%M:%SZ", gmtime(&rptTime) );  
+
+  soap_dom_element report_date (0, "", "ReportDate", fmt);
   position_report.add (report_date);
   
   soap_dom_element elevation (0, "", "Elevation", "0.0");
@@ -108,26 +119,23 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
   pass__item item;
   
   // Generate a timestamp in the format yyyy-mm-ddThh-mm-ss.usecZ
-  timeval tv;
-  tm *timeinfo;
-  const size_t len = 30;
-  char fmt[len];
-  char buf[len];
-  gettimeofday (&tv, 0);
-  timeinfo = localtime (&tv.tv_sec);
-  strftime (fmt, len, "%Y-%m-%dT%H:%M:%S.%%06uZ", timeinfo);
-  snprintf (buf, len, fmt, tv.tv_usec);
+  // timeval tv;
+  // tm *timeinfo;
+  // gettimeofday (&tv, 0);
+  // timeinfo = localtime (&tv.tv_sec);
+  // strftime (fmt, len, "%Y-%m-%dT%H:%M:%S.%%06uZ", timeinfo);
+  // snprintf (buf, len, fmt, tv.tv_usec);
   
   // Message id = plugin id + "__" + timestamp
   std::string item_id (cfg_mgr_->getPassPluginId ());
   item_id += "__";
-  item_id += buf;
+  item_id += fmt;		// use the timestamp from teh message as item id
   
   item.item_USCOREid = item_id;
   
   item.item_USCOREdtg = time (0);
   item.item_USCOREdata = &item_data;
-  item.item_USCORETTL_USCOREsecs = "1000";
+  item.item_USCORETTL_USCOREsecs = "300"; // 5 min
   
   pass_publish.item.push_back (&item);
   
