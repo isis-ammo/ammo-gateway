@@ -299,6 +299,14 @@ void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayCo
   //LOG_INFO("GatewayConnectorDelegate::onAuthenticationResponse : result = " << result);
 }
 
+void ammo::gateway::GatewayConnectorDelegate::onRemoteGatewayAvailable(GatewayConnector *sender, std::string gatewayId) {
+  //default implementation does nothing
+}
+
+void ammo::gateway::GatewayConnectorDelegate::onRemoteGatewayUnavailable(GatewayConnector *sender, std::string gatewayId) {
+  //default implementation does nothing
+}
+
 //Constructors for PushMessage, PullRequest, PullResponse--  set up sane defaults
 ammo::gateway::PushData::PushData() :
   uri(""),

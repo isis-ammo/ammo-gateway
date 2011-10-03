@@ -329,11 +329,27 @@ namespace ammo {
       /**
       * Called when the GatewayConnector disconnects from the gateway core.
       * 
-      * @param sender The GatewayConnector object that disconnect from the gateway.
+      * @param sender The GatewayConnector object that disconnected from the gateway.
       */
       virtual void onDisconnect(GatewayConnector *sender) = 0;
       
       /**
+      * Called when a remote gateway becomes available.
+      *
+      * @param sender The GatewayConnector object that received the event.
+      * @param gatewayId The name of the remote gateway.
+      */
+      virtual void onRemoteGatewayAvailable(GatewayConnector *sender, std::string gatewayId);
+      
+      /**
+      * Called when a remote gateway becomes unavailable.
+      *
+      * @param sender The GatewayConnector object that received the event.
+      * @param gatewayId The name of the remote gateway.
+      */
+      virtual void onRemoteGatewayUnavailable(GatewayConnector *sender, std::string gatewayId);
+      
+      /**                  
       * Optional delegate method called after an authentication message is processed
       * by the gateway.  GatewayConnectorDelegate subclasses do not have to
       * implement this method if it's not needed (associateDevice is not being 
