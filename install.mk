@@ -22,6 +22,7 @@ install: all
 	mkdir -p $(INSTALL_DIR)
 	mkdir -p $(INSTALL_DIR)/bin
 	mkdir -p $(INSTALL_DIR)/lib
+	mkdir -p $(INSTALL_DIR)/include/ammo-gateway
 	mkdir -p $(DESTDIR)/etc/ammo-gateway
 	echo "Installing binaries ..."
 	install -m 755 build/bin/AndroidGatewayPlugin $(INSTALL_DIR)/bin
@@ -33,6 +34,9 @@ install: all
 	install -m 755 build/bin/SamplePushReceiverGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SamplePushTestDriverPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SpotPushReceiverGatewayPlugin $(INSTALL_DIR)/bin
+	echo "Installing headers ..."
+	install -m 755 LibGatewayConnector/GatewayConnector.h $(INSTALL_DIR)/include/ammo-gateway
+	install -m 755 LibGatewayConnector/Enumerations.h $(INSTALL_DIR)/include/ammo-gateway	
 	echo "Installing libs ..."
 	install -m 644 build/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib
 	ln -s $(INSTALL_DIR_BASE)/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib/libgatewayconnector.so

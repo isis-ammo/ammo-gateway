@@ -49,6 +49,8 @@ rm -rf %{buildroot}
 /usr/bin/kill_all_gateway.sh
 /usr/bin/launch_ammo_gateway.sh
 /usr/bin/launch_ammo_gateway_headless.sh
+/usr/include/ammo-gateway/GatewayConnector.h
+/usr/include/ammo-gateway/Enumerations.h
 /usr/lib/libgatewayconnector.so
 /usr/lib/libgatewayconnector.so.AMMO_VERSION_STRING
 /usr/lib/libgeotrans-mgrs.so
