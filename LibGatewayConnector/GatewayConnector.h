@@ -18,9 +18,6 @@
 
 #include "LibGatewayConnector_Export.h"
 
-#include "GatewayConfigurationManager.h"
-#include "GatewayServiceHandler.h"
-
 #include "Enumerations.h"
 
 namespace ammo {
@@ -29,6 +26,16 @@ namespace ammo {
     class DataPushReceiverListener;
     class PullRequestReceiverListener;
     class PullResponseReceiverListener;
+    namespace internal {
+      class GatewayConfigurationManager;
+      class GatewayServiceHandler;
+    };
+    namespace protocol {
+      class AssociateResult;
+      class PushData;
+      class PullRequest;
+      class PullResponse;
+    };
     
     /**
      * A data object.

@@ -37,6 +37,7 @@ install: all
 	echo "Installing headers ..."
 	install -m 755 LibGatewayConnector/GatewayConnector.h $(INSTALL_DIR)/include/ammo-gateway
 	install -m 755 LibGatewayConnector/Enumerations.h $(INSTALL_DIR)/include/ammo-gateway	
+	install -m 755 LibGatewayConnector/LibGatewayConnector_Export.h $(INSTALL_DIR)/include/ammo-gateway	
 	echo "Installing libs ..."
 	install -m 644 build/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib
 	ln -s $(INSTALL_DIR_BASE)/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib/libgatewayconnector.so
