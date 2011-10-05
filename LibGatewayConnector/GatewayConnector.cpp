@@ -290,6 +290,18 @@ void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway
   }
 }
 
+void ammo::gateway::GatewayConnector::onMultigatewayConnected(const std::string &gatewayId) {
+  if(delegate != NULL) {
+    delegate->onRemoteGatewayAvailable(this, gatewayId);
+  }
+}
+
+void ammo::gateway::GatewayConnector::onMultigatewayDisconnected(const std::string &gatewayId) {
+  if(delegate != NULL) {
+    delegate->onRemoteGatewayUnavailable(this, gatewayId);
+  }
+}
+
 
 
 

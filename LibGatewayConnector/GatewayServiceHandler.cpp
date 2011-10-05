@@ -208,6 +208,12 @@ int ammo::gateway::internal::GatewayServiceHandler::processData(char *data, unsi
   } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
     LOG_DEBUG("Received Pull Response...");
     parent->onPullResponseReceived(msg.pull_response());
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_MULTIGATEWAY_CONNECTED) {
+    LOG_DEBUG("Received Multigateway Connected...");
+    parent->onMultigatewayConnected(msg.multigateway_connected().gateway_id());
+  } else if(msg.type() == ammo::gateway::protocol::GatewayWrapper_MessageType_MULTIGATEWAY_DISCONNECTED) {
+    LOG_DEBUG("Received Multigateway Disconnected...");
+    parent->onMultigatewayDisconnected(msg.multigateway_disconnected().gateway_id());
   }
   
   return 0;

@@ -298,6 +298,8 @@ namespace ammo {
       void onPushDataReceived(const ammo::gateway::protocol::PushData &msg);
       void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg);
       void onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg);
+      void onMultigatewayConnected(const std::string &gatewayId);
+      void onMultigatewayDisconnected(const std::string &gatewayId);
       
       GatewayConnectorDelegate *delegate;
       std::map<std::string, DataPushReceiverListener *> receiverListeners;
