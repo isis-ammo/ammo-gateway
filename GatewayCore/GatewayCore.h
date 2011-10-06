@@ -35,6 +35,8 @@ public:
   
   static GatewayCore* getInstance();
   
+  void registerPlugin(GatewayServiceHandler *handler);
+  void unregisterPlugin(GatewayServiceHandler *handler);  
   
   bool registerDataInterest(std::string mime_type, MessageScope messageScope,  GatewayServiceHandler *handler);
   bool unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayServiceHandler *handler);
@@ -71,6 +73,9 @@ private:
   std::set<GatewayServiceHandler *> getPushHandlersForType(std::string mimeType);
   
   static GatewayCore* sharedInstance;
+  
+  typedef std::set<GatewayServiceHandler *> PluginSet;
+  PluginSet allPlugins;
   
   typedef std::multimap<std::string, LocalSubscriptionInfo> PushHandlerMap;
   PushHandlerMap pushHandlers;

@@ -34,6 +34,8 @@ int GatewayServiceHandler::open(void *ptr) {
   
   this->peer().enable(ACE_NONBLOCK);
   
+  GatewayCore::getInstance()->registerPlugin(this);
+  
   return 0;
 }
 
@@ -369,10 +371,36 @@ bool GatewayServiceHandler::sendPullResponse(std::string requestUid, std::string
   return true;
 }
 
+bool GatewayServiceHandler::sendMultigatewayConnected(std::string gatewayId) {
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::MultigatewayConnected *mgMsg = msg->mutable_multigateway_connected();
+  mgMsg->set_gateway_id(gatewayId);
+  
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_MULTIGATEWAY_CONNECTED);
+  
+  LOG_DEBUG("Sending Multigateway Connected message to connected plugin");
+  this->sendData(msg);
+  
+  return true;
+}
 
+bool GatewayServiceHandler::sendMultigatewayDisconnected(std::string gatewayId) {
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::MultigatewayDisconnected *mgMsg = msg->mutable_multigateway_disconnected();
+  mgMsg->set_gateway_id(gatewayId);
+  
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_MULTIGATEWAY_DISCONNECTED);
+  
+  LOG_DEBUG("Sending Multigateway Disconnected message to connected plugin");
+  this->sendData(msg);
+  
+  return true;
+}
 
 GatewayServiceHandler::~GatewayServiceHandler() {
   LOG_DEBUG("GatewayServiceHandler being destroyed!");
+  GatewayCore::getInstance()->unregisterPlugin(this);
+  
   LOG_DEBUG("Unregistering data handlers...");
   for(std::vector<std::string>::iterator it = registeredHandlers.begin(); it != registeredHandlers.end(); it++) {
     GatewayCore::getInstance()->unregisterDataInterest(*it, SCOPE_ALL, this);

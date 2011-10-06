@@ -27,6 +27,14 @@ GatewayCore* GatewayCore::getInstance() {
   return sharedInstance;
 }
 
+void GatewayCore::registerPlugin(GatewayServiceHandler *handler) {
+  allPlugins.insert(handler);
+}
+
+void GatewayCore::unregisterPlugin(GatewayServiceHandler *handler) {
+  allPlugins.erase(handler);
+}
+
 bool GatewayCore::registerDataInterest(std::string mime_type, MessageScope messageScope, GatewayServiceHandler *handler) {
   LOG_INFO("Registering interest in " << mime_type << " by handler " << handler);
   LocalSubscriptionInfo subscriptionInfo;
@@ -227,6 +235,11 @@ bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGat
     }
   }
   
+  //Notify plugins about the new connection
+  for(PluginSet::iterator it = allPlugins.begin(); it != allPlugins.end(); it++) {
+    (*it)->sendMultigatewayConnected(handlerId);
+  }
+  
   return true;
 }
 
@@ -239,6 +252,11 @@ bool GatewayCore::unregisterCrossGatewayConnection(std::string handlerId) {
     parentHandler = NULL;
     //we're responsible for reconnecting this connection
     connectionManager->activate();
+  }
+  
+  //Notify plugins about the disconnection
+  for(PluginSet::iterator it = allPlugins.begin(); it != allPlugins.end(); it++) {
+    (*it)->sendMultigatewayDisconnected(handlerId);
   }
   
   return false;

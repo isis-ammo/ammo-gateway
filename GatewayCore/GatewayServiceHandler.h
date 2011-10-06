@@ -26,6 +26,8 @@ public:
   bool sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
 		       unsigned int maxResults, unsigned int startFromCount, bool liveQuery);
   bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string& data);
+  bool sendMultigatewayConnected(std::string gatewayId);
+  bool sendMultigatewayDisconnected(std::string gatewayId);
 
   friend std::ostream& operator<< (std::ostream& out, const GatewayServiceHandler& handler);
   friend std::ostream& operator<< (std::ostream& out, const GatewayServiceHandler* handler);
