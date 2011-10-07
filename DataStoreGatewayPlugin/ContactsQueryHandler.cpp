@@ -8,7 +8,7 @@
 #include "GatewayConnector.h"
 
 #include "ContactsQueryHandler.h"
-#include "DataStoreConstants.h"
+#include "DataStoreConfigManager.h"
 
 ContactsQueryHandler::ContactsQueryHandler (
       sqlite3 *db,
@@ -33,13 +33,14 @@ ContactsQueryHandler::handleQuery (void)
   unsigned int resultLimit =
     (pr_.maxResults == 0 ? ACE_UINT32_MAX : pr_.maxResults);
   unsigned int index = 0;
+  unsigned int skip = 0;
   
   sqlite3_stmt *stmt = builder_.query ();
 
   while (sqlite3_step (stmt) == SQLITE_ROW
          && index < resultLimit)
     {
-      if (index++ < pr_.startFromCount)
+      if (skip++ < pr_.startFromCount)
         {
           continue;
         }
@@ -52,14 +53,17 @@ ContactsQueryHandler::handleQuery (void)
 	    // to const char* for std::string assignment.
 	    std::string uri (
 		    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0)));
+		    
+		  std::string pvt_contacts_mimetype =
+		    DataStoreConfigManager::getInstance ()->getPrivateContactsMimeType ();
 		
       LOG_DEBUG ("Sending response to " << pr_.pluginId);
-      LOG_DEBUG ("  type: " << PVT_CONTACTS_DATA_TYPE);
+      LOG_DEBUG ("  type: " << pvt_contacts_mimetype);
       LOG_DEBUG ("   uri: " << uri);
       
       ammo::gateway::PullResponse response =
         ammo::gateway::PullResponse::createFromPullRequest (pr_);
-      response.mimeType = PVT_CONTACTS_DATA_TYPE;
+      response.mimeType = pvt_contacts_mimetype;
       response.uri = uri;
       this->encode_row (stmt, response.data);
       
@@ -71,6 +75,11 @@ ContactsQueryHandler::handleQuery (void)
           // and debug output up to this point.  
           continue;
         }
+        
+      // Increment after all skips of good matches have been made, but
+      // before checking sender_ since we may want to see the debug
+      // output even if no responses are sent.
+      ++index;
 		
       bool good_response =
 		    sender_->pullResponse (response);

@@ -38,24 +38,6 @@ DataStoreConfigManager::DataStoreConfigManager (
       
           if (parsingSuccessful)
             {
-            /*  if (root_["MimeTypes"].isArray ())
-                {
-		              for (Json::Value::iterator i = root_["MimeTypes"].begin ();
-                       i != root_["MimeTypes"].end ();
-                       ++i)
-                    {
-                      string mime_type = (*i).asString ();
-                      LOG_DEBUG ("Registering interest in " << mime_type);
-                      connector_->registerDataInterest (mime_type, receiver_);
-                      connector_->registerPullInterest (mime_type, receiver_);
-                    }
-                }
-              else
-                {
-                  LOG_ERROR ("MimeTypes string array is missing "
-                             << "or malformed in config file");
-                } */
-                
               // This dummy type is still hanging around in some old test scripts.  
               string test_mime_type ("text/plain");  
               connector_->registerDataInterest (test_mime_type, receiver_);
@@ -68,7 +50,7 @@ DataStoreConfigManager::DataStoreConfigManager (
                   "SMSMimeType",
                   "ReportMimeType",
                   "LocationsMimeType",
-                  "PirvateContactsMimeType"
+                  "PrivateContactsMimeType"
                 };
                 
               const unsigned long ARRAY_SIZE = 6;
@@ -93,7 +75,7 @@ DataStoreConfigManager::DataStoreConfigManager (
                       continue;
                     }
                     
-                  string mime_type (mime_type_labels[i]);
+                  string mime_type (root_[ mime_type_labels[i] ].asString ());
                   LOG_DEBUG ("Registering interest in " << mime_type);
                   connector_->registerDataInterest (mime_type, receiver_);
                   connector_->registerPullInterest (mime_type, receiver_);

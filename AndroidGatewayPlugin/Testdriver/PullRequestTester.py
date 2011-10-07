@@ -77,7 +77,7 @@ if __name__ == "__main__":
   
   # Send 5 text message pushes, each one with a recipient string containing the
   # index. This field is what the pull request fill filter on. The data message
-  # emulates the JSON encoding of the SMS data format.
+  # emulates the JSON encoding of the SMS text message data format.
   while n <= 5:
     time.sleep(0.5)
     m = AmmoMessages_pb2.MessageWrapper()
