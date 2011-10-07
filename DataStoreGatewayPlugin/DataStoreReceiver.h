@@ -10,7 +10,6 @@ class sqlite3;
 class DataStoreReceiver : public ammo::gateway::DataPushReceiverListener,
 					                public ammo::gateway::GatewayConnectorDelegate,
                           public ammo::gateway::PullRequestReceiverListener
-
 {
 public:
   DataStoreReceiver (void);
