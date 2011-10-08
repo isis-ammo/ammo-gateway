@@ -21,7 +21,8 @@ public:
 protected:
   bool addFilter (const std::string &token,
                   const char *stub,
-                  bool is_int);
+                  bool is_numeric,
+                  bool is_lower_bound = true);
                   
 protected:
   const std::string &params_;

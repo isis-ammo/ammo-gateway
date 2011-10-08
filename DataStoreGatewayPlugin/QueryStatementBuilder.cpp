@@ -16,7 +16,7 @@ QueryStatementBuilder::QueryStatementBuilder (
     stmt_ (0),
     has_term_ (false),
     query_str_ (query_stub),
-    digits_ ("0123456789-")
+    digits_ ("0123456789-.")
 {
 }
 
@@ -35,11 +35,12 @@ QueryStatementBuilder::query (void) const
 bool
 QueryStatementBuilder::addFilter (const std::string &token,
                                   const char *stub,
-                                  bool is_int)
+                                  bool is_numeric,
+                                  bool is_lower_bound)
 {
   if (!token.empty ())
     {
-      if (is_int && token.find_first_not_of (digits_) != std::string::npos)
+      if (is_numeric && token.find_first_not_of (digits_) != std::string::npos)
         {
           LOG_ERROR ("token " << token.c_str () << " is malformed");
 
@@ -57,7 +58,7 @@ QueryStatementBuilder::addFilter (const std::string &token,
 
       query_str_ += stub;
 
-      if (!is_int)
+      if (!is_numeric)
         {
           if (token.find ('%') == std::string::npos)
             {
@@ -66,6 +67,17 @@ QueryStatementBuilder::addFilter (const std::string &token,
           else
             {
               query_str_ += " LIKE ?";
+            }
+        }
+      else
+        {
+          if (is_lower_bound)
+            {
+              query_str += ">=?";
+            }
+          else
+            {
+              query_str += "<=?";
             }
         }
     }
