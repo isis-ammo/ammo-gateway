@@ -52,6 +52,13 @@ DataStoreReceiver::db_filepath (const std::string &path)
 bool
 DataStoreReceiver::init (void)
 {
+  if (!check_path ())
+    {
+      // check_path() will also output error info.
+      LOG_ERROR ("DataStoreReceiver::init() failed");
+      return false;
+    }
+    
   std::string fullpath (db_filepath_);
   fullpath += "DataStore_db.sql3";
   
@@ -85,6 +92,73 @@ DataStoreReceiver::init (void)
 	  }
 	  
   return true;
+}
+
+bool
+DataStoreReceiver::check_path (void)
+{
+  char delimiter = '/';
+  
+  std::string::size_type lastPos = db_filepath_.find_first_not_of (delimiter, 0);
+  std::string::size_type pos = db_filepath_.find_first_of (delimiter, lastPos);
+  
+  std::string seg = db_filepath_.substr (lastPos, pos - lastPos);
+  bool top_level = true;
+  
+  while (std::string::npos != pos || std::string::npos != lastPos)
+    {
+      //LOG_DEBUG ("segment: " << seg);
+      int result = 0;
+      
+      switch (db_filepath_[0])
+        {
+          case '/':
+            result =
+              ACE_OS::chdir (top_level
+                             ? (std::string ("/") + seg).c_str ()
+                             : seg.c_str ());
+            break;
+          case '$':
+            result =
+              ACE_OS::chdir (top_level
+                             ? ACE_OS::getenv (seg.c_str () + 1)
+                             : seg.c_str ());
+            break;
+          default:
+            result = ACE_OS::chdir (seg.c_str ());
+            break;
+        }
+
+      if (result == -1)
+        {
+          LOG_ERROR ("check_path(); error changing current directory to "
+                     << seg);
+          return false;
+        }
+  
+      lastPos = db_filepath_.find_first_not_of (delimiter, pos);
+      pos = db_filepath_.find_first_of (delimiter, lastPos);
+      
+      // This would get caught in the next iteration but
+      // we need to check and possibly exit here.
+      if (std::string::npos == lastPos)
+        {
+          return true;
+        }
+        
+      seg = db_filepath_.substr (lastPos, pos - lastPos);
+      
+      top_level = false;
+      result = ACE_OS::mkdir (seg.c_str (), S_IRWXU | S_IRWXG | S_IRWXO);
+      
+      // EEXIST is ok - directory already existed, ignore the return value.
+      if (result != 0 && errno != EEXIST)
+        {
+          LOG_ERROR ("check_path(): error creating db filepath directory "
+                     << seg);
+          return false;
+        }
+    }
 }
 
 
