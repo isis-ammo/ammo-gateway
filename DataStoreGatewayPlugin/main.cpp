@@ -1,17 +1,15 @@
 #include "ace/Reactor.h"
-
 #include "ace/OS_NS_unistd.h" 
 #include "ace/Signal.h" 
+#include "ace/Time_Value.h"
+#include "ace/OS_NS_time.h"
+#include "ace/Date_Time.h"
 
 #include "log.h"
 #include "version.h"
 
-#include "DataStore.h"
+#include "DataStoreReceiver.h"
 #include "DataStoreConfigManager.h"
-
-#include "ace/Time_Value.h"
-#include "ace/OS_NS_time.h"
-#include "ace/Date_Time.h"
 
 using namespace ammo::gateway;
 

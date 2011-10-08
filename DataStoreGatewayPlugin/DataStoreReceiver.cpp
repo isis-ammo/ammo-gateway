@@ -159,6 +159,8 @@ DataStoreReceiver::check_path (void)
           return false;
         }
     }
+    
+  return true;
 }
 
 
