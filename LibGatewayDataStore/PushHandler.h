@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "LibGatewayDataStore_Export.h"
+
 class sqlite3;
 class sqlite3_stmt;
 
@@ -19,7 +21,7 @@ namespace Json
   class Value;
 }
 
-class PushHandler
+class LibGatewayDataStore_Export PushHandler
 {
 public:
   PushHandler (sqlite3 *db,

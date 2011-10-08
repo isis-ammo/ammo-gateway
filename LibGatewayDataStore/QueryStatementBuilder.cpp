@@ -73,11 +73,11 @@ QueryStatementBuilder::addFilter (const std::string &token,
         {
           if (is_lower_bound)
             {
-              query_str += ">=?";
+              query_str_ += ">=?";
             }
           else
             {
-              query_str += "<=?";
+              query_str_ += "<=?";
             }
         }
     }

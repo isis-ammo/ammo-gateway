@@ -3,10 +3,12 @@
 
 #include <string>
 
+#include "LibGatewayDataStore_Export.h"
+
 class sqlite3;
 class sqlite3_stmt;
 
-class QueryStatementBuilder
+class LibGatewayDataStore_Export QueryStatementBuilder
 {
 public:
   QueryStatementBuilder (const std::string &params,

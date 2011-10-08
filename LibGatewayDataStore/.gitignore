@@ -1,0 +1,6 @@
+Makefile*
+*.o
+.depend*
+Debug\
+libgatewaydatastore.so*
+libgatewaydatastore.dylib*
