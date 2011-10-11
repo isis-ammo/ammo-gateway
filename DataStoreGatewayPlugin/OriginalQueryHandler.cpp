@@ -42,11 +42,6 @@ OriginalQueryHandler::handleQuery (void)
   while (sqlite3_step (stmt) == SQLITE_ROW
          && index < resultLimit)
     {
-      if (skip++ < pr_.startFromCount)
-        {
-          continue;
-        }
-        
 	    size_t len = sqlite3_column_bytes (stmt, 5);
       std::string data ((char *) sqlite3_column_blob (stmt, 5), len);
       
@@ -57,6 +52,15 @@ OriginalQueryHandler::handleQuery (void)
           continue;
         }
         
+      // Skip 'startFromCount' # of good matches.  
+      if (skip++ < pr_.startFromCount)
+        {
+          continue;
+        }
+        
+      // Increment after all skips of good matches have been made, but
+      // before checking sender_ since we may want to see the debug
+      // output even if no responses are sent.
       ++index;
         
 //      LOG_TRACE ("matched on: " << pr_.projection.c_str ());
