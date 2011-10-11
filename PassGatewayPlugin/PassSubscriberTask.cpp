@@ -98,7 +98,7 @@ PassSubscriberTask::svc (void)
   
   if (status != 0)
     {
-      LOG_ERROR ("Error while subscribing...");
+      LOG_ERROR ("Error while unsubscribing...");
     }
     
   service.soap_close_socket ();

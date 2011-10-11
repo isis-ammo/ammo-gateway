@@ -5,7 +5,6 @@
 #include <ace/SString.h>
 
 #include "json/reader.h"
-#include "json/value.h"
 #include "log.h"
 
 #include "PassConfigurationManager.h"
@@ -89,15 +88,15 @@ PassConfigurationManager::getPassContentTopic (void) const
 }
 
 const std::string &
-PassConfigurationManager::getPassSymbolCode (void) const
+PassConfigurationManager::getDefaultSymbolCode (void) const
 {
-  return passSymbolCode;
+  return passDefaultSymbolCode;
 }
 
 const std::string &
-PassConfigurationManager::getPassService (void) const
+PassConfigurationManager::getDefaultService (void) const
 {
-  return passService;
+  return passDefaultService;
 }
 
 const std::string &
@@ -116,6 +115,47 @@ PassGatewayReceiver *
 PassConfigurationManager::getReceiver (void) const
 {
   return receiver_;
+}
+
+bool
+PassConfigurationManager::checkName (const std::string &name)
+{
+  // Must check for non-empty as well as type, a Json nullValue
+  // returns true when checked for array or object type.
+  if (!root_[name].empty () && root_[name].isArray ())
+    {
+      id_ = root_[name][0U].asString ();
+      urn_ = root_[name][1U].asString ();
+      symbolCode_ = root_[name][2U].asString ();
+      service_ = root_[name][3U].asString ();
+      return true;
+    }
+
+  return false;
+}
+
+const std::string &
+PassConfigurationManager:: getId (void) const
+{
+  return id_;
+}
+
+const std::string &
+PassConfigurationManager:: getUrn (void) const
+{
+  return urn_;
+}
+
+const std::string &
+PassConfigurationManager:: getSymbolCode (void) const
+{
+  return symbolCode_;
+}
+
+const std::string &
+PassConfigurationManager:: getService (void) const
+{
+  return service_;
 }
 
 PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receiver,
@@ -142,16 +182,15 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
 	
       if (configFile)
         {
-          Json::Value root;
           Json::Reader reader;
           
-          bool parsingSuccessful = reader.parse (configFile, root);
+          bool parsingSuccessful = reader.parse (configFile, root_);
           
           if (parsingSuccessful)
             {
-              if (root["PassServerAddress"].isString ())
+              if (root_["PassServerAddress"].isString ())
                 {
-                  passServerAddress = root["PassServerAddress"].asString ();
+                  passServerAddress = root_["PassServerAddress"].asString ();
                 }
               else
                 {
@@ -159,9 +198,9 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
                              << "or wrong type (should be string)");
                 }
               
-              if (root["PassTopic"].isString ())
+              if (root_["PassTopic"].isString ())
                 {
-                  passTopic = root["PassTopic"].asString ();
+                  passTopic = root_["PassTopic"].asString ();
                 }
               else
                 {
@@ -169,9 +208,9 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
                              << "wrong type (should be string)");
                 }
               
-              if(root["PassSubscriberId"].isString ())
+              if(root_["PassSubscriberId"].isString ())
                 {
-                  passSubscriberId = root["PassSubscriberId"].asString ();
+                  passSubscriberId = root_["PassSubscriberId"].asString ();
                 }
               else
                 {
@@ -179,9 +218,9 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
                              << "wrong type (should be string)");
                 }
               
-              if(root["PassPublisherId"].isString ())
+              if(root_["PassPublisherId"].isString ())
                 {
-                  passPublisherId = root["PassPublisherId"].asString ();
+                  passPublisherId = root_["PassPublisherId"].asString ();
                 }
               else
                 {
@@ -189,9 +228,9 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
                              << "wrong type (should be string)");
                 }
               
-              if (root["PassSubscriberInterface"].isString ())
+              if (root_["PassSubscriberInterface"].isString ())
                 {
-                  passSubscriberInterface = root["PassSubscriberInterface"].asString ();
+                  passSubscriberInterface = root_["PassSubscriberInterface"].asString ();
                 }
               else
                 {
@@ -199,9 +238,9 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
                              << "wrong type (should be string)");
                 }
               
-              if (root["PassSubscriberPort"].isInt ())
+              if (root_["PassSubscriberPort"].isInt ())
                 {
-                  passSubscriberPort = root["PassSubscriberPort"].asInt ();
+                  passSubscriberPort = root_["PassSubscriberPort"].asInt ();
                 }
               else
                 {
@@ -209,9 +248,9 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
                              << "wrong type (should be integer)");
                 }
               
-              if (root["PassSubscriberAddress"].isString ())
+              if (root_["PassSubscriberAddress"].isString ())
                 {
-                  passSubscriberAddress = root["PassSubscriberAddress"].asString();
+                  passSubscriberAddress = root_["PassSubscriberAddress"].asString();
                 }
               else
                 {
@@ -219,42 +258,42 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
                              << "wrong type (should be string)");
                 }
                 
-              if (root["ContentTopic"].isString ())
+              if (root_["PassContentTopic"].isString ())
                 {
-                  string content_type = root["ContentTopic"].asString ();
+                  string content_type = root_["PassContentTopic"].asString ();
                   LOG_DEBUG ("Registering interest in " << content_type);
                   connector_->registerDataInterest (content_type, receiver_);
                   passContentTopic = content_type;
                 }
               else
                 {
-                  LOG_ERROR ("ContentTopic is missing or "
+                  LOG_ERROR ("PassContentTopic is missing or "
                              << "wrong type (should be string)");
                 }
 
-              if (root["PassSymbolCode"].isString ())
+              if (root_["PassDefaultSymbolCode"].isString ())
                 {
-                  passSymbolCode = root["PassSymbolCode"].asString();
+                  passDefaultSymbolCode = root_["PassDefaultSymbolCode"].asString();
                 }
               else
                 {
-                  LOG_ERROR ("PassSymbolCode is missing or "
+                  LOG_ERROR ("PassDefaultSymbolCode is missing or "
                              << "wrong type (should be string)");
                 }
                 
-              if (root["PassService"].isString ())
+              if (root_["PassDefaultService"].isString ())
                 {
-                  passService = root["PassService"].asString();
+                  passDefaultService = root_["PassDefaultService"].asString();
                 }
               else
                 {
-                  LOG_ERROR ("PassService is missing or "
+                  LOG_ERROR ("PassDefaultService is missing or "
                              << "wrong type (should be string)");
                 }
                 
-              if (root["PassPluginID"].isString ())
+              if (root_["PassPluginID"].isString ())
                 {
-                  this->passPluginId = root["PassPluginID"].asString ();
+                  this->passPluginId = root_["PassPluginID"].asString ();
                   LOG_DEBUG ("PASS Plugin ID set to " << this->passPluginId);
                 }
               else
@@ -262,9 +301,9 @@ PassConfigurationManager::PassConfigurationManager (PassGatewayReceiver *receive
                   LOG_ERROR ("PASS Plugin ID defaults to UUID " << this->passPluginId);
                 }
                 
-              if (root["PassPluginSubscriberTag"].isString ())
+              if (root_["PassPluginSubscriberTag"].isString ())
                 {
-                  this->passPluginSubscriberTag = root["PassPluginSubscriberTag"].asString ();
+                  this->passPluginSubscriberTag = root_["PassPluginSubscriberTag"].asString ();
                   LOG_DEBUG ("PASS Plugin Subscriber Tag set to " << this->passPluginSubscriberTag);
                 }
               else

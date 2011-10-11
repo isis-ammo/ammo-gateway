@@ -77,49 +77,65 @@ PassGatewayReceiver::onPushDataReceived (GatewayConnector * /* sender */,
 
   soap_dom_element unit (0, "", "Unit");
   
+  // Are there values in the config file for ID, URN, SymbolCode
+  // and Service matched with the location message's 'name' field?
+  // If so, this call will store them for access below.
+  bool unit_config = cfg_mgr_->checkName (root["name"].asString ());
+  
   // ID, Name, URN, SymbolCode and Service are all children of Unit.
-  soap_dom_element id (0, "", "ID", root["userid"].asCString ());
+  
+  std::string id_str =
+    (unit_config ? cfg_mgr_->getId () : root["userid"].asString ());
+  soap_dom_element id (0, "", "ID", id_str.c_str ());
   unit.add (id);
   
   soap_dom_element name (0, "", "Name", root["name"].asCString ());
   unit.add (name);
   
-  // Sample PASS data has this field with the same value as "ID".
-  soap_dom_element urn (0, "", "URN", root["userid"].asCString ());
+  std::string urn_str =
+    (unit_config ? cfg_mgr_->getUrn () : root["userid"].asString ());
+  soap_dom_element urn (0, "", "URN", urn_str.c_str ());
   unit.add (urn);
   
-  std::string tmp = cfg_mgr_->getPassSymbolCode ();
-  soap_dom_element symbol_code (0, "", "SymbolCode", tmp.c_str ());
+  std::string sc_str =
+    (unit_config ? cfg_mgr_->getSymbolCode () : cfg_mgr_->getDefaultSymbolCode ());
+  soap_dom_element symbol_code (0, "", "SymbolCode", sc_str.c_str ());
   unit.add (symbol_code);
   
-  tmp = cfg_mgr_->getPassService ();
-  soap_dom_element service (0, "", "Service", tmp.c_str ());
+  std::string sv_str =
+    (unit_config ? cfg_mgr_->getService () : cfg_mgr_->getDefaultService ());
+  soap_dom_element service (0, "", "Service", sv_str.c_str ());
   unit.add (service);
+  
+  LOG_DEBUG ("ID = " << id_str);
+  LOG_DEBUG ("URN = " << urn_str);
+  LOG_DEBUG ("SymbolCode = " << sc_str);
+  LOG_DEBUG ("Service = " << sv_str);
   
   position_report.add (unit);
 
-  const char *lat = root["lat"].asCString ();;
-  const char *lon = root["lon"].asCString ();;
-  double llat = (double) strtol(lat, 0, 10) / 1.0e6 ;
-  double llon = (double) strtol(lon, 0, 10) / 1.0e6 ;
+  const char *lat = root["lat"].asCString ();
+  const char *lon = root["lon"].asCString ();
+  double llat = (double) strtol (lat, 0, 10) / 1.0e6;
+  double llon = (double) strtol (lon, 0, 10) / 1.0e6;
 
   ostringstream lats, lons;
   lats << llat;
   lons << llon;
 
-  soap_dom_element latitude (0, "", "Latitude", lats.str().c_str() );
+  soap_dom_element latitude (0, "", "Latitude", lats.str ().c_str ());
   position_report.add (latitude);
   
-  soap_dom_element longitude (0, "", "Longitude", lons.str().c_str() );
+  soap_dom_element longitude (0, "", "Longitude", lons.str ().c_str ());
   position_report.add (longitude);
   
   const char *reportDate = root["created"].asCString ();
-  long long t = strtoll(reportDate, 0, 10);
+  long long t = strtoll (reportDate, 0, 10);
   time_t rptTime = t / 1000ll;
 
   const size_t len = 30;
   char fmt[len];
-  strftime (fmt, len, "%Y-%m-%dT%H:%M:%SZ", gmtime(&rptTime) );  
+  strftime (fmt, len, "%Y-%m-%dT%H:%M:%SZ", gmtime (&rptTime));  
 
   soap_dom_element report_date (0, "", "ReportDate", fmt);
   position_report.add (report_date);

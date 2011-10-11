@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "json/value.h"
+
 class PassGatewayReceiver;
 
 namespace ammo
@@ -29,13 +31,22 @@ public:
   const std::string &getPassSubscriberAddress (void) const;
   
   const std::string &getPassContentTopic (void) const;
-  const std::string &getPassSymbolCode (void) const;
-  const std::string &getPassService (void) const;
+  const std::string &getDefaultSymbolCode (void) const;
+  const std::string &getDefaultService (void) const;
   
   const std::string &getPassPluginId (void) const;
   const std::string &getPassPluginSubscriberTag (void) const;
   
   PassGatewayReceiver *getReceiver (void) const;
+  
+  // If 'name' is an lhs value in the config file, the
+  // following 4 values comprise the rhs array, and can
+  // then be accessed and used to fill in the published data.
+  bool checkName (const std::string &name);
+  const std::string &getId (void) const;
+  const std::string &getUrn (void) const;
+  const std::string &getSymbolCode (void) const;
+  const std::string &getService (void) const;
   
 private:
   PassConfigurationManager (PassGatewayReceiver *receiver,
@@ -46,6 +57,8 @@ private:
 private:
   static PassConfigurationManager *sharedInstance;
   
+  Json::Value root_;
+
   std::string passServerAddress;
   std::string passTopic;
   std::string passSubscriberId;
@@ -55,8 +68,8 @@ private:
   std::string passSubscriberAddress;
   
   std::string passContentTopic;
-  std::string passSymbolCode;
-  std::string passService;
+  std::string passDefaultSymbolCode;
+  std::string passDefaultService;
   
   // Generated unique id used as a prefix to the id of each SOAP publish
   // originating locally. When our subscriber gets the message back,
@@ -68,6 +81,11 @@ private:
   // push to the gateway, so it can check and skip when the gateway
   // pushes it back.
   std::string passPluginSubscriberTag;
+  
+  std::string id_;
+  std::string urn_;
+  std::string symbolCode_;
+  std::string service_;
   
   PassGatewayReceiver *receiver_;
   ammo::gateway::GatewayConnector *connector_;

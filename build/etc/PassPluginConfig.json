@@ -8,10 +8,12 @@
   "PassSubscriberPort": 7993,
 //  "PassSubscriberAddress": "http://192.168.0.50:7993/",
   "PassSubscriberAddress": "http://192.168.103.50:7993/",
-  "ContentTopic": "ammo/com.aterrasys.nevada.locations",
-  "PassSymbolCode": "SFGPUST-----USG",
-  "PassService": "ARM",
+  "PassContentTopic": "ammo/com.aterrasys.nevada.locations",
+  "PassDefaultSymbolCode": "DefaultSymbolCodeValue",
+  "PassDefaultService": "DefaultServiceValue",
   "PassPluginID": "Transapps-PASS",
-  "PassPluginSubscriberTag": "1234567890"
+  "PassPluginSubscriberTag": "1234567890",
+  "TestName#0": [ "TestId#0", "TestURN#0", "SFGPUST-----USG", "ARM" ],
+  "TestName#1": [ "TestId#1", "TestURN#1", "SFGPUST-----USG", "ARM" ]
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)
