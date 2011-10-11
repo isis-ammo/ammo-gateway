@@ -35,13 +35,14 @@ OriginalQueryHandler::handleQuery (void)
   unsigned int resultLimit =
     (pr_.maxResults == 0 ? ACE_UINT32_MAX : pr_.maxResults);
   unsigned int index = 0;
+  unsigned int skip = 0;
   
   sqlite3_stmt *stmt = builder_.query ();
   
   while (sqlite3_step (stmt) == SQLITE_ROW
          && index < resultLimit)
     {
-      if (index++ < pr_.startFromCount)
+      if (skip++ < pr_.startFromCount)
         {
           continue;
         }
@@ -55,6 +56,8 @@ OriginalQueryHandler::handleQuery (void)
         {
           continue;
         }
+        
+      ++index;
         
 //      LOG_TRACE ("matched on: " << pr_.projection.c_str ());
         
