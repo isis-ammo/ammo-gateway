@@ -60,7 +60,7 @@ if __name__ == "__main__":
     connector.waitForAuthentication()
     
     print "Subscribing."
-    connector.subscribe("application/vnd.edu.vu.isis.ammo.test.TestData", scope)
+    connector.subscribe("ammo/edu.vu.isis.ammo.test.TestData", scope)
     sequenceNumber = 0
     
     while True:

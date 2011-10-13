@@ -1,17 +1,10 @@
 {
-/*  "MimeTypes": [ "text/plain",
-		  "ammo/vnd.edu.vu.isis.ammo.dash.event",
-      "ammo/vnd.edu.vu.isis.ammo.dash.media",
-      "ammo/vnd.edu.vu.isis.ammo.sms.message",
-      "ammo/vnd.edu.vu.isis.ammo.report.report_base",
-      "ammo/vnd.com.aterrasys.nevada.locations",
-      "ammo/vnd.edu.vu.isis.ammo.private_contacts" ], */
-  "EventMimeType": "ammo/vnd.edu.vu.isis.ammo.dash.event",
-  "MediaMimeType": "ammo/vnd.edu.vu.isis.ammo.dash.media",
-  "SMSMimeType": "ammo/vnd.edu.vu.isis.ammo.sms.message",
-  "ReportMimeType": "ammo/vnd.edu.vu.isis.ammo.report.report_base",
-  "LocationsMimeType": "ammo/vnd.com.aterrasys.nevada.locations",
-  "PrivateContactsMimeType": "ammo/vnd.edu.vu.isis.ammo.private_contacts",
+  "MimeTypes": [ "text/plain",
+		  "ammo/edu.vu.isis.ammo.dash.event",
+      "ammo/edu.vu.isis.ammo.dash.media",
+      "ammo/edu.vu.isis.ammo.sms.message",
+      "ammo/edu.vu.isis.ammo.report.report_base",
+      "ammo/edu.vu.isis.ammo.private_contacts" ],
   "DatabasePath": "/tmp/gatewaylogs/"
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)

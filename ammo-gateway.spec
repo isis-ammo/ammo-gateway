@@ -7,8 +7,8 @@ Group:          Applications/Internet
 Source:         %{name}-%{version}.tar.gz
 URL:            http://ammo.isis.vanderbilt.edu
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-Requires:       ace = 6.0.2, protobuf
-BuildRequires:  gcc-c++, ace-devel = 6.0.2, protobuf-compiler, protobuf-devel
+Requires:       ace = 6.0.2, gsoap, protobuf
+BuildRequires:  gcc-c++, ace-devel = 6.0.2, gsoap, gsoap-devel, protobuf-compiler, protobuf-devel
 
 %description
 Android Middleware Server
@@ -37,12 +37,14 @@ rm -rf %{buildroot}
 /etc/ammo-gateway/GatewayConfig.json
 /etc/ammo-gateway/LdapPluginConfig.json
 /etc/ammo-gateway/DataStorePluginConfig.json
+/etc/ammo-gateway/PassPluginConfig.json
 /usr/bin/AndroidGatewayPlugin
 /usr/bin/AtsGatewayPlugin
 /usr/bin/GatewayCore
 /usr/bin/GatewayUsbTransfer
 /usr/bin/LdapGatewayPlugin
 /usr/bin/DataStoreGatewayPlugin
+/usr/bin/PassGatewayPlugin
 /usr/bin/SamplePushReceiverGatewayPlugin
 /usr/bin/SamplePushTestDriverPlugin
 /usr/bin/SpotPushReceiverGatewayPlugin

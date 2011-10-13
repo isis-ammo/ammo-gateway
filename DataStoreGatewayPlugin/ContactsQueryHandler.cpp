@@ -8,7 +8,7 @@
 #include "GatewayConnector.h"
 
 #include "ContactsQueryHandler.h"
-#include "DataStoreConfigManager.h"
+#include "DataStoreConstants.h"
 
 ContactsQueryHandler::ContactsQueryHandler (
       sqlite3 *db,
@@ -35,9 +35,6 @@ ContactsQueryHandler::handleQuery (void)
   unsigned int index = 0;
   
   sqlite3_stmt *stmt = builder_.query ();
-  
-  std::string my_mime_type =
-    DataStoreConfigManager::getInstance ()->getPrivateContactsMimeType ();
 
   while (sqlite3_step (stmt) == SQLITE_ROW
          && index < resultLimit)
@@ -47,7 +44,7 @@ ContactsQueryHandler::handleQuery (void)
           continue;
         }
         
-//      LOG_TRACE ("matched on: " << pr_.query.c_str ());
+      LOG_TRACE ("matched on: " << pr_.query.c_str ());
         
 	    // For insertion, column numbers are 1-based, for extraction
 	    // they're 0-based. SQLite retrieves text as const unsigned
@@ -56,16 +53,18 @@ ContactsQueryHandler::handleQuery (void)
 	    std::string uri (
 		    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0)));
 		
-      LOG_TRACE ("Sending response to " << pr_.pluginId);
-      LOG_TRACE ("  type: " << my_mime_type);
-      LOG_TRACE ("   uri: " << uri);
+      LOG_DEBUG ("Sending response to " << pr_.pluginId);
+      LOG_DEBUG ("  type: " << PVT_CONTACTS_DATA_TYPE);
+      LOG_DEBUG ("   uri: " << uri);
       
       ammo::gateway::PullResponse response =
         ammo::gateway::PullResponse::createFromPullRequest (pr_);
-      response.mimeType = my_mime_type;
+      response.mimeType = PVT_CONTACTS_DATA_TYPE;
       response.uri = uri;
       this->encode_row (stmt, response.data);
       
+//      LOG_TRACE ("row: " << response.data.c_str ());
+		
       if (sender_ == 0)
         {
           // No response can be sent, but we will still see the trace
@@ -113,7 +112,7 @@ ContactsQueryHandler::encode_row (sqlite3_stmt *stmt,
   static const Json::StaticString cs ("call_sign");
   value[cs] =
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 5));
-    
+  
   static const Json::StaticString br ("branch");
   value[br] =
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 6));
@@ -129,9 +128,7 @@ ContactsQueryHandler::encode_row (sqlite3_stmt *stmt,
   static const Json::StaticString ph ("phone");
   value[ph] =
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 9));
-    
-  LOG_TRACE ("matched row: " << value.toStyledString ());
-    
+  
   Json::FastWriter writer;
   output = writer.write (value);
 }
