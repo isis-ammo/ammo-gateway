@@ -46,6 +46,7 @@ install: all
 	install -m 755 LibJSON/json/autolink.h $(INSTALL_DIR)/include/ammo-json
 	install -m 755 LibJSON/json/config.h $(INSTALL_DIR)/include/ammo-json
 	install -m 755 LibJSON/json/features.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 LibJSON/json/forwards.h $(INSTALL_DIR)/include/ammo-json
 	install -m 755 LibJSON/json/json.h $(INSTALL_DIR)/include/ammo-json
 	install -m 755 LibJSON/json/reader.h $(INSTALL_DIR)/include/ammo-json
 	install -m 755 LibJSON/json/value.h $(INSTALL_DIR)/include/ammo-json

@@ -59,6 +59,7 @@ rm -rf %{buildroot}
 /usr/include/ammo-json/autolink.h
 /usr/include/ammo-json/config.h
 /usr/include/ammo-json/features.h
+/usr/include/ammo-json/forwards.h
 /usr/include/ammo-json/json.h
 /usr/include/ammo-json/reader.h
 /usr/include/ammo-json/value.h
