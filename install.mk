@@ -42,13 +42,13 @@ install: all
 	install -m 755 common/log.h $(INSTALL_DIR)/include/ammo-gateway	
 	install -m 755 common/version.h $(INSTALL_DIR)/include/ammo-gateway	
 	echo "Installing JSON headers..."
-	install -m 755 LibJSON/autolink.h $(INSTALL_DIR)/include/ammo-json
-	install -m 755 LibJSON/config.h $(INSTALL_DIR)/include/ammo-json
-	install -m 755 LibJSON/features.h $(INSTALL_DIR)/include/ammo-json
-	install -m 755 LibJSON/json.h $(INSTALL_DIR)/include/ammo-json
-	install -m 755 LibJSON/reader.h $(INSTALL_DIR)/include/ammo-json
-	install -m 755 LibJSON/value.h $(INSTALL_DIR)/include/ammo-json
-	install -m 755 LibJSON/writer.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 LibJSON/json/autolink.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 LibJSON/json/config.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 LibJSON/json/features.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 LibJSON/json/json.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 LibJSON/json/reader.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 LibJSON/json/value.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 LibJSON/json/writer.h $(INSTALL_DIR)/include/ammo-json
 	echo "Installing libs ..."
 	install -m 644 build/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib
 	ln -s $(INSTALL_DIR_BASE)/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib/libgatewayconnector.so
