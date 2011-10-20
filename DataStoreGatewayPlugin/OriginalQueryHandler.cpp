@@ -1,4 +1,3 @@
-
 #include <stdexcept>
 #include <sqlite3.h>
 
@@ -7,6 +6,7 @@
 #include "GatewayConnector.h"
 
 #include "OriginalQueryHandler.h"
+#include "DataStoreUtils.h"
 
 OriginalQueryHandler::OriginalQueryHandler (
       sqlite3 *db,
@@ -49,14 +49,10 @@ OriginalQueryHandler::handleQuery (void)
 	    size_t len = sqlite3_column_bytes (stmt, 5);
       std::string data ((char *) sqlite3_column_blob (stmt, 5), len);
       
-      LOG_TRACE ("Data type: " << pr_.mimeType);
-  
       if (!this->matchedData (pr_.projection, data))
         {
           continue;
         }
-        
-//      LOG_TRACE ("matched on: " << pr_.projection.c_str ());
         
       if (sender_ == 0)
         {
@@ -72,9 +68,9 @@ OriginalQueryHandler::handleQuery (void)
 	    std::string uri (
 		    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0)));
 		
-      LOG_DEBUG ("Sending response to " << pr_.pluginId);
-      LOG_DEBUG ("  type: " << pr_.mimeType);
-      LOG_DEBUG ("   uri: " << uri);
+      LOG_TRACE ("Sending response to " << pr_.pluginId);
+      LOG_TRACE ("  type: " << pr_.mimeType);
+      LOG_TRACE ("   uri: " << uri);
       
       ammo::gateway::PullResponse response =
         ammo::gateway::PullResponse::createFromPullRequest (pr_);
@@ -103,7 +99,7 @@ OriginalQueryHandler::matchedData (const std::string &projection,
     
   Json::Value root;
   
-  if (!this->parseJson (data, root))
+  if (! DataStoreUtils::parseJson (data, root))
     {
       return false;
     }
@@ -113,8 +109,6 @@ OriginalQueryHandler::matchedData (const std::string &projection,
   // and (2) expressed as usec instead of sec, too large by a factor of 1000.
   // Since the value is out of range, Json::Value::asInt() will throw
   // std::runtime_error, with the message that we catch and output below.
-  // As of this date (2011-5-18), the Json-parsed entry is output (for
-  // debugging) so the offending field can be seen by inspection.
   try
     { 
       return this->matchedProjection (root, projection);

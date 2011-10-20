@@ -18,22 +18,26 @@ project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin
   exename = DataStoreGatewayPlugin
 
   Source_Files {
+    ContactsPushHandler.cpp
     ContactsQueryHandler.cpp
     ContactsQueryParamParser.cpp
     ContactsQueryStatementBuilder.cpp
+    DataStoreConfigManager.cpp
+    DataStoreDispatcher.cpp
+    DataStoreReceiver.cpp
+    DataStoreUtils.cpp
     EventProjectionParser.cpp
     EventQueryHandler.cpp
-    DataStore.cpp
-    DataStoreConfigManager.cpp
     main.cpp
     MediaProjectionParser.cpp
     MediaQueryHandler.cpp
+    OriginalPushHandler.cpp
     OriginalQueryHandler.cpp
     OriginalQueryParamParser.cpp
     OriginalQueryStatementBuilder.cpp
     ProjectionFilter.cpp
+    PushHandler.cpp
     QueryHandler.cpp
-    QueryHandlerFactory.cpp
     QueryStatementBuilder.cpp
     ReportProjectionParser.cpp
     ReportQueryHandler.cpp

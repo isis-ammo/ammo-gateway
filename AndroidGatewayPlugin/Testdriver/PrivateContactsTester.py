@@ -17,54 +17,75 @@ if __name__ == "__main__":
   
   deviceName = "device:test/" + uuid.uuid1().hex
   userName = "user:test/" + uuid.uuid1().hex
+#  userName = "kyle.anderson"
   
   connector = AndroidConnector(sys.argv[1], int(sys.argv[2]), deviceName, userName, "")
   
   try:
     connector.start()
-    
     connector.waitForAuthentication()
     
-    mimeType = "application/vnd.edu.vu.isis.ammo.sms.message"
+    mimeType = "application/vnd.edu.vu.isis.ammo.private_contacts"
     
     print "Subscribing to type ", mimeType
     
     uri = "type:edu.vanderbilt.isis.ammo.Test"
-      
+    
+    firstName = "Jimmy"
+    middleInitial = "I"
+    lastName = "Bork"
     n = 1
     
-    # Plug this value into the time_start slot in the query string. The value comes
-    # from the underlying Unix gettimeofday(), which is also used by the ACE version
-    # that stores the timestamp in the database.
-    start = int(time.time())
-    
-    # Send 5 text message pushes, each one with a recipient string containing the
+    # Send 5 text message pushes, each one with a 'rank' string containing the
     # index. This field is what the pull request fill filter on. The data message
-    # emulates the JSON encoding of the SMS data format.
+    # emulates the JSON encoding of the private contacts data format.
     while n <= 5:
       time.sleep(0.5)
-      data = "{ \"sms_uri\" : \"" + uri + "\", "
-      data += "\"sender\" : \"sgt_kill_em_all@151st.mil\", "
-      data += "\"recipient\" : \"soldier_" + str(n) + "\", "
-      data += "\"thread\" : 14, "
-      data += "\"payload\" : \"hey soldier_" + str(n) + ", meet me at the PX\", "
-      data += "\"createdDate\" : " + str(start) + ", "
-      data += "\"modifiedDate\" : " + str(start)
-      data += " }"
+      data = "{\"first_name\":\"" + firstName + "\", "
+      data += "\"middle_initial\":\"" + middleInitial + "\", "
+      data += "\"last_name\":\"" + lastName + "\", "
+      data += "\"rank\":\"E" + str(n) + "\", "
+      data += "\"call_sign\":\"\", "
+      data += "\"branch\":\"\", "
+      data += "\"unit\":\"\", "
+      data += "\"email\":\"\", "
+      data += "\"phone\":\"\" }"
       output_msg = "Sending data message " + str(n)
       print output_msg
       connector.push(uri, mimeType, data)
       n += 1
 	
-    # max_results is unlimited, but the use of the start time string
-    # will restrict responses to be from among the 5 pushes above, no matter
-    # how many times this test has been previously run on a given gateway.
-    query = ",," + str(start) + ",,"
+    # Send a single pull request.
     
-    # This string will filter the responses to a single message.
-    projection = ",,soldier_2,,,,,,,"
+    # Only 1 of the 5 messages sent will match this, so we'll get 1 match
+    # for every time this test has been run on a given gateway.
+    rank = "E4"
+    
+    call_sign = ""
+    branch = ""
+    unit = ""
+    email = ""
+    phone = ""
+    
+    query = userName + ","
+    query += uri + ","
+    query += firstName + ","
+    query += middleInitial + ","
+    query += lastName + ","
+    query += rank + ","
+    query += call_sign + ","
+    query += branch + ","
+    query += phone + ","
+    query += email + ","
+    
+    # Private contacts data is not stored as a blob so we don't use a projection string
+    projection = ""
   
-    connector.pullRequest(mimeType, query, projection, 0, 0, False)
+    maxResults = 0
+    startFromCount = 0
+    liveQuery = False
+
+    connector.pullRequest(mimeType, query, projection, maxResults, startFromCount, liveQuery)
     
     while True:
       while(connector.isDataAvailable()):

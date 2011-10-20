@@ -28,6 +28,7 @@ enum MessageScope {
 message PushData {
   required string uri = 1;
   optional string mime_type = 2;
+  optional string encoding = 6 [default = "json"];
   optional bytes data = 3;
   optional string origin_user = 4;
   optional MessageScope scope = 5 [default = GLOBAL];
@@ -49,6 +50,7 @@ message PullResponse {
   required string plugin_id = 2;
   required string mime_type = 3;
   required string uri = 4;
+  optional string encoding = 6 [default = "json"];
   required bytes data = 5;
 }
 

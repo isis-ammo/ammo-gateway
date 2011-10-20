@@ -57,6 +57,6 @@ private:
   LDAP *ldapServer;
 };
 
-static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData);
+//static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData);
 
 #endif  // LDAP_PUSH_RECEIVER_H
