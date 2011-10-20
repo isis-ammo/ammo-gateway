@@ -43,12 +43,12 @@ install: all
 	install -m 755 common/version.h $(INSTALL_DIR)/include/ammo-gateway	
 	echo "Installing JSON headers..."
 	install -m 755 common/autolink.h $(INSTALL_DIR)/include/ammo-json
-  install -m 755 common/config.h $(INSTALL_DIR)/include/ammo-json
-  install -m 755 common/features.h $(INSTALL_DIR)/include/ammo-json
-  install -m 755 common/json.h $(INSTALL_DIR)/include/ammo-json
-  install -m 755 common/reader.h $(INSTALL_DIR)/include/ammo-json
-  install -m 755 common/value.h $(INSTALL_DIR)/include/ammo-json
-  install -m 755 common/writer.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 common/config.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 common/features.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 common/json.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 common/reader.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 common/value.h $(INSTALL_DIR)/include/ammo-json
+	install -m 755 common/writer.h $(INSTALL_DIR)/include/ammo-json
 	echo "Installing libs ..."
 	install -m 644 build/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib
 	ln -s $(INSTALL_DIR_BASE)/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib/libgatewayconnector.so
