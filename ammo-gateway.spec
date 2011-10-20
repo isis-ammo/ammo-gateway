@@ -7,7 +7,7 @@ Group:          Applications/Internet
 Source:         %{name}-%{version}.tar.gz
 URL:            http://ammo.isis.vanderbilt.edu
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-Requires:       ace = 6.0.2, protobuf, openldap-servers
+Requires:       ace = 6.0.2, protobuf
 Requires(pre):  glibc-common, shadow-utils
 Requires(post): chkconfig
 Requires(preun): chkconfig
