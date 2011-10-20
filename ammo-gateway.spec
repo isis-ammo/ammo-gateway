@@ -54,6 +54,15 @@ rm -rf %{buildroot}
 /usr/include/ammo-gateway/GatewayConnector.h
 /usr/include/ammo-gateway/Enumerations.h
 /usr/include/ammo-gateway/LibGatewayConnector_Export.h
+/usr/include/ammo-gateway/log.h
+/usr/include/ammo-gateway/version.h
+/usr/include/ammo-json/autolink.h
+/usr/include/ammo-json/config.h
+/usr/include/ammo-json/features.h
+/usr/include/ammo-json/json.h
+/usr/include/ammo-json/reader.h
+/usr/include/ammo-json/value.h
+/usr/include/ammo-json/writer.h
 /usr/lib/libgatewayconnector.so
 /usr/lib/libgatewayconnector.so.AMMO_VERSION_STRING
 /usr/lib/libgeotrans-mgrs.so
