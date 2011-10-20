@@ -12,6 +12,6 @@
   "ReportMimeType": "ammo/vnd.edu.vu.isis.ammo.report.report_base",
   "LocationsMimeType": "ammo/vnd.com.aterrasys.nevada.locations",
   "PrivateContactsMimeType": "ammo/vnd.edu.vu.isis.ammo.private_contacts",
-  "DatabasePath": "/tmp/gatewaylogs/"
+  "DatabasePath": "/var/db/ammo-gateway"
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)
