@@ -23,6 +23,7 @@ install: all
 	mkdir -p $(INSTALL_DIR)/bin
 	mkdir -p $(INSTALL_DIR)/lib
 	mkdir -p $(INSTALL_DIR)/include/ammo-gateway
+	mkdir -p $(INSTALL_DIR)/include/ammo-json
 	mkdir -p $(DESTDIR)/etc/ammo-gateway
 	echo "Installing binaries ..."
 	install -m 755 build/bin/AndroidGatewayPlugin $(INSTALL_DIR)/bin
