@@ -46,7 +46,7 @@ exit 0
 %post
 /sbin/ldconfig
 chown ammo-gateway:ammo-gateway /var/log/ammo-gateway /var/run/ammo-gateway /var/db/ammo-gateway /etc/ammo-gateway/keys
-chown 700 /etc/ammo-gateway/keys
+chmod 700 /etc/ammo-gateway/keys
 if [ $1 -eq 1 ] ; then
     /sbin/chkconfig --add ammo-gateway
 fi
