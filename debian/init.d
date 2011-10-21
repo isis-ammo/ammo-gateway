@@ -17,7 +17,6 @@
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="AMMO Gateway"
-USER="ammo-gateway"
 
 # Include ammo-gateway defaults if available
 if [ -f /etc/default/ammo-gateway ] ; then
@@ -39,12 +38,12 @@ isProcessRunning()
 
 startGateway()
 {
-    /bin/su -c /usr/bin/launch_ammo_gateway_headless.sh $(USER)
+    /bin/su -c /usr/bin/launch_ammo_gateway_headless.sh ammo-gateway
 }
 
 stopGateway()
 {
-    /bin/su -c /usr/bin/kill_all_gateway.sh $(USER)
+    /bin/su -c /usr/bin/kill_all_gateway.sh ammo-gateway
 }
 
 case "$1" in
