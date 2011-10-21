@@ -149,7 +149,10 @@ void LdapPushReceiver::onPullRequestReceived(GatewayConnector *sender, ammo::gat
     {
       string data = *it;
       PullResponse resp = PullResponse::createFromPullRequest(pullReq);
+
+      // TODO: the response URI should be some unique identifier for this record
       resp.uri = "ammo-demo:test-object";
+
       resp.data = data;
       sender->pullResponse(resp);
     }
