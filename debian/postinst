@@ -3,7 +3,7 @@
 set -e
 
 chown ammo-gateway:ammo-gateway /var/log/ammo-gateway /var/run/ammo-gateway /var/db/ammo-gateway /etc/ammo-gateway/keys
-chown 700 /etc/ammo-gateway/keys                                                          
+chmod 700 /etc/ammo-gateway/keys                                                          
 
 exit 0
 
