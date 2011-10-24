@@ -20,12 +20,9 @@
 #include "GatewayConfigurationManager.h"
 #include "GatewayCore.h"
 
-#include <ace/OS_NS_pwd.h>
-#include <ace/OS_NS_unistd.h>
+#include "UserSwitch.inl"
 
 using namespace std;
-
-const char *AMMO_USER = "ammo-gateway";
 
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
 //in the middle of the reactor event loop, which isn't always a good thing).
@@ -39,30 +36,7 @@ public:
   }
 };
 
-void dropPrivileges() {
-#if !defined(ACE_LACKS_PWD_FUNCTIONS) || !defined(ACE_LACKS_GETUID) || !defined(ACE_LACKS_SETUID)
-  if(ACE_OS::getuid() == 0) {
-    struct passwd *user = ACE_OS::getpwnam(AMMO_USER);
-    if(user != NULL) {
-      int result = ACE_OS::setgid(user->pw_gid); //have to switch gids first; a non-root user can't switch its own gid, apparently
-      if(result == 0) {
-        result = ACE_OS::setuid(user->pw_uid);
-        if(result == 0) {
-          LOG_TRACE("Successfully switched to ammo-gateway user.");
-        } else {
-          LOG_WARN("setuid failed when switching to daemon user " << AMMO_USER << " " << ACE_OS::last_error());
-        }
-      } else {
-        LOG_WARN("setgid failed when switching to daemon user " << AMMO_USER << ACE_OS::last_error());
-      }
-    } else {
-      LOG_DEBUG("Daemon user " << AMMO_USER << " could not be found.");
-    }
-  } else {
-    LOG_DEBUG("Already running as an unprivileged user; not attempting to change to ammo-gateway");
-  }
-#endif
-}
+
 
 int main(int argc, char **argv) {
   LOG_INFO("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
