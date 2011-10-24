@@ -12,6 +12,8 @@
 #include "log.h"
 #include "version.h"
 
+#include "UserSwitch.inl"
+
 using namespace std;
 using namespace ammo::gateway;
 
@@ -29,6 +31,7 @@ public:
 
 int main(int argc, char **argv) {  
   LOG_INFO("AMMO Spot Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  dropPrivileges();
   
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);

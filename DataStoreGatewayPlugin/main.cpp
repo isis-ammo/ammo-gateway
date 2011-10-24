@@ -11,6 +11,8 @@
 #include "DataStoreReceiver.h"
 #include "DataStoreConfigManager.h"
 
+#include "UserSwitch.inl"
+
 using namespace ammo::gateway;
 
 // Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
@@ -39,6 +41,8 @@ int main (int /* argc */, char ** /* argv */)
             << " at "
             << __TIME__
             << ")");
+  
+  dropPrivileges();
   
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
