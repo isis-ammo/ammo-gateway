@@ -20,6 +20,8 @@
 #include "GatewayConfigurationManager.h"
 #include "GatewayCore.h"
 
+#include "UserSwitch.inl"
+
 using namespace std;
 
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
@@ -34,8 +36,12 @@ public:
   }
 };
 
+
+
 int main(int argc, char **argv) {
   LOG_INFO("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  dropPrivileges();
+  
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
   ACE_Sig_Action no_sigpipe((ACE_SignalHandler) SIG_IGN);
