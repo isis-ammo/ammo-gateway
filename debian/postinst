@@ -5,5 +5,21 @@ set -e
 chown ammo-gateway:ammo-gateway /var/log/ammo-gateway /var/run/ammo-gateway /var/db/ammo-gateway /etc/ammo-gateway/keys
 chmod 700 /etc/ammo-gateway/keys                                                          
 
+# Automatically added by dh_installinit
+if [ -x "/etc/init.d/ammo-gateway" ]; then
+        update-rc.d ammo-gateway defaults >/dev/null
+        if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
+                invoke-rc.d ammo-gateway start || exit $?
+        else
+                /etc/init.d/ammo-gateway start || exit $?
+        fi
+fi
+# End automatically added section
+# Automatically added by dh_makeshlibs
+if [ "$1" = "configure" ]; then
+        ldconfig
+fi
+# End automatically added section
+
 exit 0
 
