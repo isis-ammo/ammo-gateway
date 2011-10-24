@@ -36,7 +36,7 @@ make DESTDIR=%{buildroot} PROTOBUF_ROOT=/usr GATEWAY_ROOT=`pwd` install
 %pre
 getent group %{GROUPNAME} >/dev/null || groupadd -r %{GROUPNAME}
 getent passwd %{USERNAME} >/dev/null || \
-    useradd -r -g %{GROUPNAME} -d %{HOMEDIR} -s /bin/sh \
+    useradd -r -g %{GROUPNAME} -d %{HOMEDIR} -s /sbin/nologin \
     -c "AMMO Gateway User" %{USERNAME}
 if [ $1 -eq 2 ] ; then
     /sbin/service ammo-gateway stop >/dev/null 2>&1

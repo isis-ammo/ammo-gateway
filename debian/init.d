@@ -38,12 +38,12 @@ isProcessRunning()
 
 startGateway()
 {
-    /bin/su -c /usr/bin/launch_ammo_gateway_headless.sh ammo-gateway
+    /usr/bin/launch_ammo_gateway_headless.sh
 }
 
 stopGateway()
 {
-    /bin/su -c /usr/bin/kill_all_gateway.sh ammo-gateway
+    /usr/bin/kill_all_gateway.sh
 }
 
 case "$1" in
