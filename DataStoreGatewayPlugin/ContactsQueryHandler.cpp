@@ -33,21 +33,19 @@ ContactsQueryHandler::handleQuery (void)
   unsigned int resultLimit =
     (pr_.maxResults == 0 ? ACE_UINT32_MAX : pr_.maxResults);
   unsigned int index = 0;
+  unsigned int skip = 0;
   
   sqlite3_stmt *stmt = builder_.query ();
-  
-  std::string my_mime_type =
-    DataStoreConfigManager::getInstance ()->getPrivateContactsMimeType ();
 
   while (sqlite3_step (stmt) == SQLITE_ROW
          && index < resultLimit)
     {
-      if (index++ < pr_.startFromCount)
+      if (skip++ < pr_.startFromCount)
         {
           continue;
         }
         
-//      LOG_TRACE ("matched on: " << pr_.query.c_str ());
+      LOG_TRACE ("matched on: " << pr_.query.c_str ());
         
 	    // For insertion, column numbers are 1-based, for extraction
 	    // they're 0-based. SQLite retrieves text as const unsigned
@@ -55,23 +53,33 @@ ContactsQueryHandler::handleQuery (void)
 	    // to const char* for std::string assignment.
 	    std::string uri (
 		    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0)));
+		    
+		  std::string pvt_contacts_mimetype =
+		    DataStoreConfigManager::getInstance ()->getPrivateContactsMimeType ();
 		
-      LOG_TRACE ("Sending response to " << pr_.pluginId);
-      LOG_TRACE ("  type: " << my_mime_type);
-      LOG_TRACE ("   uri: " << uri);
+      LOG_DEBUG ("Sending response to " << pr_.pluginId);
+      LOG_DEBUG ("  type: " << pvt_contacts_mimetype);
+      LOG_DEBUG ("   uri: " << uri);
       
       ammo::gateway::PullResponse response =
         ammo::gateway::PullResponse::createFromPullRequest (pr_);
-      response.mimeType = my_mime_type;
+      response.mimeType = pvt_contacts_mimetype;
       response.uri = uri;
       this->encode_row (stmt, response.data);
       
+//      LOG_TRACE ("row: " << response.data.c_str ());
+		
       if (sender_ == 0)
         {
           // No response can be sent, but we will still see the trace
           // and debug output up to this point.  
           continue;
         }
+        
+      // Increment after all skips of good matches have been made, but
+      // before checking sender_ since we may want to see the debug
+      // output even if no responses are sent.
+      ++index;
 		
       bool good_response =
 		    sender_->pullResponse (response);
@@ -113,7 +121,7 @@ ContactsQueryHandler::encode_row (sqlite3_stmt *stmt,
   static const Json::StaticString cs ("call_sign");
   value[cs] =
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 5));
-    
+  
   static const Json::StaticString br ("branch");
   value[br] =
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 6));
@@ -129,9 +137,7 @@ ContactsQueryHandler::encode_row (sqlite3_stmt *stmt,
   static const Json::StaticString ph ("phone");
   value[ph] =
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 9));
-    
-  LOG_TRACE ("matched row: " << value.toStyledString ());
-    
+  
   Json::FastWriter writer;
   output = writer.write (value);
 }

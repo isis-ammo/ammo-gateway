@@ -1,0 +1,19 @@
+{
+//  "PassServerAddress": "https://192.168.0.252:7443/PASS", 
+  "PassServerAddress": "https://192.168.103.253:7443/PASS", 
+  "PassTopic": "POS-RPT:MCS:US/ARMY/BFT",
+  "PassSubscriberId": "ammosub@isis",
+  "PassPublisherId": "ammopub@isis",
+  "PassSubscriberInterface": "0.0.0.0",
+  "PassSubscriberPort": 7993,
+//  "PassSubscriberAddress": "http://192.168.0.50:7993/",
+  "PassSubscriberAddress": "http://192.168.103.50:7993/",
+  "PassContentTopic": "ammo/com.aterrasys.nevada.locations",
+  "PassDefaultSymbolCode": "DefaultSymbolCodeValue",
+  "PassDefaultService": "DefaultServiceValue",
+  "PassPluginID": "Transapps-PASS",
+  "PassPluginSubscriberTag": "1234567890",
+  "TestName#0": [ "TestId#0", "TestURN#0", "SFGPUST-----USG", "ARM" ],
+  "TestName#1": [ "TestId#1", "TestURN#1", "SFGPUST-----USG", "ARM" ]
+}
+//:mode=javascript: (jEdit modeline for syntax highlighting)

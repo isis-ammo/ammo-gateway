@@ -1,0 +1,152 @@
+\hypertarget{classPASSSubscriberPortBindingService}{
+\section{PASSSubscriberPortBindingService Class Reference}
+\label{classPASSSubscriberPortBindingService}\index{PASSSubscriberPortBindingService@{PASSSubscriberPortBindingService}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classPASSSubscriberPortBindingService_a2382f9f2d5e79333353dc81852a8b6fb}{
+\hyperlink{classPASSSubscriberPortBindingService_a2382f9f2d5e79333353dc81852a8b6fb}{PASSSubscriberPortBindingService} ()}
+\label{classPASSSubscriberPortBindingService_a2382f9f2d5e79333353dc81852a8b6fb}
+
+\begin{DoxyCompactList}\small\item\em Constructor. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_ac51b748a75f87158d80c9f58e919eaa3}{
+\hyperlink{classPASSSubscriberPortBindingService_ac51b748a75f87158d80c9f58e919eaa3}{PASSSubscriberPortBindingService} (const struct soap \&)}
+\label{classPASSSubscriberPortBindingService_ac51b748a75f87158d80c9f58e919eaa3}
+
+\begin{DoxyCompactList}\small\item\em Constructor with copy of another engine state. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_aeab377e17700260ba833e2724d8a2ecc}{
+\hyperlink{classPASSSubscriberPortBindingService_aeab377e17700260ba833e2724d8a2ecc}{PASSSubscriberPortBindingService} (soap\_\-mode iomode)}
+\label{classPASSSubscriberPortBindingService_aeab377e17700260ba833e2724d8a2ecc}
+
+\begin{DoxyCompactList}\small\item\em Constructor with engine input+output mode control. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a00547cce359785cc8e0f52d39c5d16bf}{
+\hyperlink{classPASSSubscriberPortBindingService_a00547cce359785cc8e0f52d39c5d16bf}{PASSSubscriberPortBindingService} (soap\_\-mode imode, soap\_\-mode omode)}
+\label{classPASSSubscriberPortBindingService_a00547cce359785cc8e0f52d39c5d16bf}
+
+\begin{DoxyCompactList}\small\item\em Constructor with engine input and output mode control. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_aefd6835f6f752f175e498dc33b23207d}{
+virtual \hyperlink{classPASSSubscriberPortBindingService_aefd6835f6f752f175e498dc33b23207d}{$\sim$PASSSubscriberPortBindingService} ()}
+\label{classPASSSubscriberPortBindingService_aefd6835f6f752f175e498dc33b23207d}
+
+\begin{DoxyCompactList}\small\item\em Destructor, also frees all deserialized data. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_aa8dd772d7c2401d95d9b08acb0205db6}{
+virtual void \hyperlink{classPASSSubscriberPortBindingService_aa8dd772d7c2401d95d9b08acb0205db6}{destroy} ()}
+\label{classPASSSubscriberPortBindingService_aa8dd772d7c2401d95d9b08acb0205db6}
+
+\begin{DoxyCompactList}\small\item\em Delete all deserialized data (uses soap\_\-destroy and soap\_\-end). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a17fc4e61abd0a2fb8ccbbd8550e0f20a}{
+virtual void \hyperlink{classPASSSubscriberPortBindingService_a17fc4e61abd0a2fb8ccbbd8550e0f20a}{PASSSubscriberPortBindingService\_\-init} (soap\_\-mode imode, soap\_\-mode omode)}
+\label{classPASSSubscriberPortBindingService_a17fc4e61abd0a2fb8ccbbd8550e0f20a}
+
+\begin{DoxyCompactList}\small\item\em Initializer used by constructor. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a07ac97846d02b9182a71968b42454469}{
+virtual \hyperlink{classPASSSubscriberPortBindingService}{PASSSubscriberPortBindingService} $\ast$ \hyperlink{classPASSSubscriberPortBindingService_a07ac97846d02b9182a71968b42454469}{copy} ()}
+\label{classPASSSubscriberPortBindingService_a07ac97846d02b9182a71968b42454469}
+
+\begin{DoxyCompactList}\small\item\em Create a copy. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a9e58a2e96e2d42124c9abf1dce72370a}{
+virtual int \hyperlink{classPASSSubscriberPortBindingService_a9e58a2e96e2d42124c9abf1dce72370a}{soap\_\-close\_\-socket} ()}
+\label{classPASSSubscriberPortBindingService_a9e58a2e96e2d42124c9abf1dce72370a}
+
+\begin{DoxyCompactList}\small\item\em Force close connection (normally automatic). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a99fa395b087a58dc4504db59e8a76588}{
+virtual int \hyperlink{classPASSSubscriberPortBindingService_a99fa395b087a58dc4504db59e8a76588}{soap\_\-senderfault} (const char $\ast$string, const char $\ast$detailXML)}
+\label{classPASSSubscriberPortBindingService_a99fa395b087a58dc4504db59e8a76588}
+
+\begin{DoxyCompactList}\small\item\em Return sender-\/related fault to sender. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a9f28814dcc468a54e935b2f03da79034}{
+virtual int \hyperlink{classPASSSubscriberPortBindingService_a9f28814dcc468a54e935b2f03da79034}{soap\_\-senderfault} (const char $\ast$subcodeQName, const char $\ast$string, const char $\ast$detailXML)}
+\label{classPASSSubscriberPortBindingService_a9f28814dcc468a54e935b2f03da79034}
+
+\begin{DoxyCompactList}\small\item\em Return sender-\/related fault with SOAP 1.2 subcode to sender. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a1da50eaeb741432e3c8badc2759eb26f}{
+virtual int \hyperlink{classPASSSubscriberPortBindingService_a1da50eaeb741432e3c8badc2759eb26f}{soap\_\-receiverfault} (const char $\ast$string, const char $\ast$detailXML)}
+\label{classPASSSubscriberPortBindingService_a1da50eaeb741432e3c8badc2759eb26f}
+
+\begin{DoxyCompactList}\small\item\em Return receiver-\/related fault to sender. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_abb694c2ad4043906a4180516686a1d53}{
+virtual int \hyperlink{classPASSSubscriberPortBindingService_abb694c2ad4043906a4180516686a1d53}{soap\_\-receiverfault} (const char $\ast$subcodeQName, const char $\ast$string, const char $\ast$detailXML)}
+\label{classPASSSubscriberPortBindingService_abb694c2ad4043906a4180516686a1d53}
+
+\begin{DoxyCompactList}\small\item\em Return receiver-\/related fault with SOAP 1.2 subcode to sender. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_ada2a92b7f498b50ab2e94fc0dcc4d918}{
+virtual void \hyperlink{classPASSSubscriberPortBindingService_ada2a92b7f498b50ab2e94fc0dcc4d918}{soap\_\-print\_\-fault} (FILE $\ast$)}
+\label{classPASSSubscriberPortBindingService_ada2a92b7f498b50ab2e94fc0dcc4d918}
+
+\begin{DoxyCompactList}\small\item\em Print fault. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a5fb140de581859f2b5d7706b17c04e70}{
+virtual void \hyperlink{classPASSSubscriberPortBindingService_a5fb140de581859f2b5d7706b17c04e70}{soap\_\-stream\_\-fault} (std::ostream \&)}
+\label{classPASSSubscriberPortBindingService_a5fb140de581859f2b5d7706b17c04e70}
+
+\begin{DoxyCompactList}\small\item\em Print fault to stream. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a0885b0cc45c5fc0a5eae7872039a701c}{
+virtual char $\ast$ \hyperlink{classPASSSubscriberPortBindingService_a0885b0cc45c5fc0a5eae7872039a701c}{soap\_\-sprint\_\-fault} (char $\ast$buf, size\_\-t len)}
+\label{classPASSSubscriberPortBindingService_a0885b0cc45c5fc0a5eae7872039a701c}
+
+\begin{DoxyCompactList}\small\item\em Put fault into buffer. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a50a9a90693afef9bec44e27200253f54}{
+virtual void \hyperlink{classPASSSubscriberPortBindingService_a50a9a90693afef9bec44e27200253f54}{soap\_\-noheader} ()}
+\label{classPASSSubscriberPortBindingService_a50a9a90693afef9bec44e27200253f54}
+
+\begin{DoxyCompactList}\small\item\em Disables and removes SOAP Header from message. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a2760625c8daad0e7871b93c1929b40be}{
+virtual int \hyperlink{classPASSSubscriberPortBindingService_a2760625c8daad0e7871b93c1929b40be}{run} (int port)}
+\label{classPASSSubscriberPortBindingService_a2760625c8daad0e7871b93c1929b40be}
+
+\begin{DoxyCompactList}\small\item\em Run simple single-\/thread iterative service on port until a connection error occurs (returns error code or SOAP\_\-OK), use this-\/$>$bind\_\-flag = SO\_\-REUSEADDR to rebind for a rerun. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_ae0394773f63350b3a949abca52bf6d0d}{
+virtual SOAP\_\-SOCKET \hyperlink{classPASSSubscriberPortBindingService_ae0394773f63350b3a949abca52bf6d0d}{bind} (const char $\ast$host, int port, int backlog)}
+\label{classPASSSubscriberPortBindingService_ae0394773f63350b3a949abca52bf6d0d}
+
+\begin{DoxyCompactList}\small\item\em Bind service to port (returns master socket or SOAP\_\-INVALID\_\-SOCKET). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a11215dfa1255ab0a63ab978014fe8b8c}{
+virtual SOAP\_\-SOCKET \hyperlink{classPASSSubscriberPortBindingService_a11215dfa1255ab0a63ab978014fe8b8c}{accept} ()}
+\label{classPASSSubscriberPortBindingService_a11215dfa1255ab0a63ab978014fe8b8c}
+
+\begin{DoxyCompactList}\small\item\em Accept next request (returns socket or SOAP\_\-INVALID\_\-SOCKET). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_af1c429c4b1c4dbe29403dece15e6a3ed}{
+virtual int \hyperlink{classPASSSubscriberPortBindingService_af1c429c4b1c4dbe29403dece15e6a3ed}{serve} ()}
+\label{classPASSSubscriberPortBindingService_af1c429c4b1c4dbe29403dece15e6a3ed}
+
+\begin{DoxyCompactList}\small\item\em Serve this request (returns error code or SOAP\_\-OK). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a30631162e051b012524a2867373ace97}{
+virtual int \hyperlink{classPASSSubscriberPortBindingService_a30631162e051b012524a2867373ace97}{dispatch} ()}
+\label{classPASSSubscriberPortBindingService_a30631162e051b012524a2867373ace97}
+
+\begin{DoxyCompactList}\small\item\em Used by \hyperlink{classPASSSubscriberPortBindingService_af1c429c4b1c4dbe29403dece15e6a3ed}{serve()} to dispatch a request (returns error code or SOAP\_\-OK). \item\end{DoxyCompactList}\item 
+virtual int \hyperlink{classPASSSubscriberPortBindingService_a3eef20e20bd0cbe7500ab6710a1072e1}{publish} (\hyperlink{class__pass____publish}{\_\-pass\_\-\_\-publish} $\ast$pass\_\-\_\-publish, \hyperlink{classpass____status}{pass\_\-\_\-status} $\ast$pass\_\-\_\-status\_\-)
+\begin{DoxyCompactList}\small\item\em Web service operation 'publish' (returns error code or SOAP\_\-OK). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a4fbcad81f5082b45916b2a8b86c135ea}{
+virtual int \hyperlink{classPASSSubscriberPortBindingService_a4fbcad81f5082b45916b2a8b86c135ea}{retract\_\-USCOREitem} (\hyperlink{class__pass____retract__USCOREitem}{\_\-pass\_\-\_\-retract\_\-USCOREitem} $\ast$pass\_\-\_\-retract\_\-USCOREitem, \hyperlink{classpass____status}{pass\_\-\_\-status} $\ast$pass\_\-\_\-status\_\-)}
+\label{classPASSSubscriberPortBindingService_a4fbcad81f5082b45916b2a8b86c135ea}
+
+\begin{DoxyCompactList}\small\item\em Web service operation 'retract\_\-item' (returns error code or SOAP\_\-OK). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_a046768b434706c49825222ef8cdb0d0a}{
+virtual int \hyperlink{classPASSSubscriberPortBindingService_a046768b434706c49825222ef8cdb0d0a}{retract\_\-USCOREtopic} (\hyperlink{class__pass____retract__USCOREtopic}{\_\-pass\_\-\_\-retract\_\-USCOREtopic} $\ast$pass\_\-\_\-retract\_\-USCOREtopic, \hyperlink{classpass____status}{pass\_\-\_\-status} $\ast$pass\_\-\_\-status\_\-)}
+\label{classPASSSubscriberPortBindingService_a046768b434706c49825222ef8cdb0d0a}
+
+\begin{DoxyCompactList}\small\item\em Web service operation 'retract\_\-topic' (returns error code or SOAP\_\-OK). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSSubscriberPortBindingService_ae88da323ead7f2eef27a5918b137f011}{
+virtual int \hyperlink{classPASSSubscriberPortBindingService_ae88da323ead7f2eef27a5918b137f011}{unsubscribe} (\hyperlink{class__pass____unsubscribe}{\_\-pass\_\-\_\-unsubscribe} $\ast$pass\_\-\_\-unsubscribe, \hyperlink{classpass____status}{pass\_\-\_\-status} $\ast$pass\_\-\_\-status\_\-)}
+\label{classPASSSubscriberPortBindingService_ae88da323ead7f2eef27a5918b137f011}
+
+\begin{DoxyCompactList}\small\item\em Web service operation 'unsubscribe' (returns error code or SOAP\_\-OK). \item\end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classPASSSubscriberPortBindingService_a3eef20e20bd0cbe7500ab6710a1072e1}{
+\index{PASSSubscriberPortBindingService@{PASSSubscriberPortBindingService}!publish@{publish}}
+\index{publish@{publish}!PASSSubscriberPortBindingService@{PASSSubscriberPortBindingService}}
+\subsubsection[{publish}]{\setlength{\rightskip}{0pt plus 5cm}int PASSSubscriberPortBindingService::publish ({\bf \_\-pass\_\-\_\-publish} $\ast$ {\em pass\_\-\_\-publish}, \/  {\bf pass\_\-\_\-status} $\ast$ {\em pass\_\-\_\-status\_\-})\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}
+\label{classPASSSubscriberPortBindingService_a3eef20e20bd0cbe7500ab6710a1072e1}
+
+
+Web service operation 'publish' (returns error code or SOAP\_\-OK). 
+
+Service operations (you should define these): 
+
+The documentation for this class was generated from the following files:\begin{DoxyCompactItemize}
+\item 
+soapPASSSubscriberPortBindingService.h\item 
+soapPASSSubscriberPortBindingService.cpp\end{DoxyCompactItemize}

@@ -32,6 +32,11 @@ public:
   bool init (void);
 
 private:
+  // Create all directories that don't exist, expanding
+  // environment variables if necessary.
+  bool check_path (void);
+
+private:
   // Dispatcher for pushes and pulls.
   DataStoreDispatcher dispatcher_;
   

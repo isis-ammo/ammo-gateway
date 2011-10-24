@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
   
   GatewayConnector *gatewayConnector = new GatewayConnector(pushReceiver);
   
-  gatewayConnector->registerDataInterest("application/vnd.edu.vu.isis.ammo.report.report_base", pushReceiver);
+  gatewayConnector->registerDataInterest("ammo/edu.vu.isis.ammo.report.report_base", pushReceiver);
   
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();

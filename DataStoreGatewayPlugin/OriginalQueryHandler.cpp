@@ -1,3 +1,4 @@
+
 #include <stdexcept>
 #include <sqlite3.h>
 
@@ -35,24 +36,35 @@ OriginalQueryHandler::handleQuery (void)
   unsigned int resultLimit =
     (pr_.maxResults == 0 ? ACE_UINT32_MAX : pr_.maxResults);
   unsigned int index = 0;
+  unsigned int skip = 0;
   
   sqlite3_stmt *stmt = builder_.query ();
   
   while (sqlite3_step (stmt) == SQLITE_ROW
          && index < resultLimit)
     {
-      if (index++ < pr_.startFromCount)
-        {
-          continue;
-        }
-        
 	    size_t len = sqlite3_column_bytes (stmt, 5);
       std::string data ((char *) sqlite3_column_blob (stmt, 5), len);
       
+      LOG_TRACE ("Data type: " << pr_.mimeType);
+  
       if (!this->matchedData (pr_.projection, data))
         {
           continue;
         }
+        
+      // Skip 'startFromCount' # of good matches.  
+      if (skip++ < pr_.startFromCount)
+        {
+          continue;
+        }
+        
+      // Increment after all skips of good matches have been made, but
+      // before checking sender_ since we may want to see the debug
+      // output even if no responses are sent.
+      ++index;
+        
+//      LOG_TRACE ("matched on: " << pr_.projection.c_str ());
         
       if (sender_ == 0)
         {
@@ -68,9 +80,9 @@ OriginalQueryHandler::handleQuery (void)
 	    std::string uri (
 		    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0)));
 		
-      LOG_TRACE ("Sending response to " << pr_.pluginId);
-      LOG_TRACE ("  type: " << pr_.mimeType);
-      LOG_TRACE ("   uri: " << uri);
+      LOG_DEBUG ("Sending response to " << pr_.pluginId);
+      LOG_DEBUG ("  type: " << pr_.mimeType);
+      LOG_DEBUG ("   uri: " << uri);
       
       ammo::gateway::PullResponse response =
         ammo::gateway::PullResponse::createFromPullRequest (pr_);
@@ -106,9 +118,11 @@ OriginalQueryHandler::matchedData (const std::string &projection,
    
   // Some of the legacy SMS entries have 'createdDate' and 'modifiedDate'
   // fields that are (1) reals instead of long integers as required,
-  // and (2) expressed as usec instead of sec, too large by a factor of 1000.
+  // and (2) expressed as msec instead of sec, too large by a factor of 1000.
   // Since the value is out of range, Json::Value::asInt() will throw
   // std::runtime_error, with the message that we catch and output below.
+  // As of this date (2011-5-18), the Json-parsed entry is output (for
+  // debugging) so the offending field can be seen by inspection.
   try
     { 
       return this->matchedProjection (root, projection);

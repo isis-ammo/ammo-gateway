@@ -7,12 +7,12 @@ Group:          Applications/Internet
 Source:         %{name}-%{version}.tar.gz
 URL:            http://ammo.isis.vanderbilt.edu
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-Requires:       ace = 6.0.2, protobuf
+Requires:       ace = 6.0.2, gsoap, protobuf
 Requires(pre):  glibc-common, shadow-utils
 Requires(post): chkconfig
 Requires(preun): chkconfig
 Requires(preun): initscripts
-BuildRequires:  gcc-c++, ace-devel = 6.0.2, protobuf-compiler, protobuf-devel
+BuildRequires:  gcc-c++, ace-devel = 6.0.2, gsoap, gsoap-devel, protobuf-compiler, protobuf-devel
 
 %define USERNAME  ammo-gateway
 %define GROUPNAME ammo-gateway
@@ -71,6 +71,7 @@ rm -rf %{buildroot}
 /etc/ammo-gateway/GatewayConfig.json
 /etc/ammo-gateway/LdapPluginConfig.json
 /etc/ammo-gateway/DataStorePluginConfig.json
+/etc/ammo-gateway/PassPluginConfig.json
 /etc/ammo-gateway/keys
 /usr/bin/AndroidGatewayPlugin
 /usr/bin/AtsGatewayPlugin
@@ -78,12 +79,26 @@ rm -rf %{buildroot}
 /usr/bin/GatewayUsbTransfer
 /usr/bin/LdapGatewayPlugin
 /usr/bin/DataStoreGatewayPlugin
+/usr/bin/PassGatewayPlugin
 /usr/bin/SamplePushReceiverGatewayPlugin
 /usr/bin/SamplePushTestDriverPlugin
 /usr/bin/SpotPushReceiverGatewayPlugin
 /usr/bin/kill_all_gateway.sh
 /usr/bin/launch_ammo_gateway.sh
 /usr/bin/launch_ammo_gateway_headless.sh
+/usr/include/ammo-gateway/GatewayConnector.h
+/usr/include/ammo-gateway/Enumerations.h
+/usr/include/ammo-gateway/LibGatewayConnector_Export.h
+/usr/include/ammo-gateway/log.h
+/usr/include/ammo-gateway/version.h
+/usr/include/ammo-json/autolink.h
+/usr/include/ammo-json/config.h
+/usr/include/ammo-json/features.h
+/usr/include/ammo-json/forwards.h
+/usr/include/ammo-json/json.h
+/usr/include/ammo-json/reader.h
+/usr/include/ammo-json/value.h
+/usr/include/ammo-json/writer.h
 /usr/lib/libgatewayconnector.so
 /usr/lib/libgatewayconnector.so.AMMO_VERSION_STRING
 /usr/lib/libgeotrans-mgrs.so
