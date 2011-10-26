@@ -24,7 +24,8 @@ protected:
   bool addFilter (const std::string &token,
                   const char *stub,
                   bool is_numeric,
-                  bool is_lower_bound = true);
+                  bool is_lower_bound = true,
+                  bool is_blob = false);
                   
 protected:
   const std::string &params_;
