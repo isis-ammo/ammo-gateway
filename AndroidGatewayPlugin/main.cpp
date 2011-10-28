@@ -18,6 +18,8 @@
 #include "log.h"
 #include "version.h"
 
+#include "UserSwitch.inl"
+
 using namespace std;
 
 string gatewayAddress;
@@ -37,6 +39,7 @@ public:
 
 int main(int argc, char **argv) {
   LOG_INFO("AMMO Android Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  dropPrivileges();
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
   ACE_Sig_Action no_sigpipe((ACE_SignalHandler) SIG_IGN);

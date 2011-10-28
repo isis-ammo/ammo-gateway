@@ -12,6 +12,8 @@
 #include "log.h"
 #include "version.h"
 
+#include "UserSwitch.inl"
+
 using namespace std;
 using namespace ammo::gateway;
 
@@ -29,6 +31,7 @@ public:
 
 int main(int argc, char **argv) {  
   LOG_INFO("AMMO Spot Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  dropPrivileges();
   
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
@@ -40,7 +43,7 @@ int main(int argc, char **argv) {
   
   GatewayConnector *gatewayConnector = new GatewayConnector(pushReceiver);
   
-  gatewayConnector->registerDataInterest("application/vnd.edu.vu.isis.ammo.report.report_base", pushReceiver);
+  gatewayConnector->registerDataInterest("ammo/edu.vu.isis.ammo.report.report_base", pushReceiver);
   
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();

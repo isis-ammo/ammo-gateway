@@ -4,7 +4,7 @@
 
 #include "GatewayServiceHandler.h"
 #include "CrossGatewayServiceHandler.h"
-
+#include "CrossGatewayConnectionManager.h"
 
 
 #include "log.h"
@@ -15,7 +15,7 @@ using namespace std;
 
 GatewayCore* GatewayCore::sharedInstance = NULL;
 
-GatewayCore::GatewayCore() : parentConnector(NULL), parentHandler(NULL), crossGatewayAcceptor(NULL) {
+GatewayCore::GatewayCore() : connectionManager(NULL), parentHandler(NULL), crossGatewayAcceptor(NULL) {
   
 }
 
@@ -101,7 +101,7 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, GatewayServiceHa
   return true;
 }
 
-bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope messageScope) {
+bool GatewayCore::pushData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope) {
   LOG_DEBUG("  Pushing data with uri: " << uri);
   LOG_DEBUG("                    type: " << mimeType);
   LOG_DEBUG("                    scope: " << messageScope);
@@ -110,7 +110,7 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::str
   set<GatewayServiceHandler *> handlers = getPushHandlersForType(mimeType);
   
   for(it = handlers.begin(); it != handlers.end(); ++it) {
-    (*it)->sendPushedData(uri, mimeType, data, originUser, messageScope);
+    (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, messageScope);
   }
   
   if(messageScope == SCOPE_GLOBAL) {
@@ -123,7 +123,7 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, const std::str
 
       for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
         LOG_TRACE("Sending cross-gateway data");
-        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, data, originUser);
+        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, encoding, data, originUser);
       }
     }
   }
@@ -152,14 +152,14 @@ bool GatewayCore::pullRequest(std::string requestUid, std::string pluginId, std:
   return true;
 }
 
-bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string& data) {
+bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string& data) {
   LOG_DEBUG("  Sending pull response with type: " << mimeType);
   LOG_DEBUG("                        pluginId: " << pluginId);
 
   map<string,GatewayServiceHandler *>::iterator it = plugins.find(pluginId);
   if ( it != plugins.end() ) {
     //check for something here?
-    (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uri, data);
+    (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uri, encoding, data);
   }
   return true;
 }
@@ -191,30 +191,56 @@ void GatewayCore::initCrossGateway() {
   //We connect to a parent gateway if the parent address isn't blank; if it is
   //blank, this gateway must be the root (of our tree)
   if(config->getCrossGatewayParentAddress() != "") {
-    ACE_INET_Addr parentAddress(config->getCrossGatewayParentPort(), config->getCrossGatewayParentAddress().c_str());
-    parentConnector = new ACE_Connector<CrossGatewayServiceHandler, ACE_SOCK_Connector>();
-    int status = parentConnector->connect(parentHandler, parentAddress);
-    if(status == -1) {
-      LOG_ERROR("connection failed");
-      LOG_ERROR("errno: " << errno);
-      LOG_ERROR("error: " << strerror(errno));
-    } else {
-      LOG_INFO("Connected to parent gateway node.");
-    }
+    connectionManager = new CrossGatewayConnectionManager();
+    LOG_DEBUG("Starting connection manager");
+    connectionManager->activate();
   } else {
     LOG_INFO("Acting as cross-gateway root node.");
   }
+}
+
+void GatewayCore::setParentHandler(CrossGatewayServiceHandler *handler) {
+  this->parentHandler = handler;
 }
   
 bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGatewayServiceHandler *handler) {
   LOG_DEBUG("Registering cross-gateway handler " << handlerId);
   crossGatewayHandlers[handlerId] = handler;
+  //send existing subscriptions
+  //local subscriptions (subscribe to everything that has global scope)
+  for(PushHandlerMap::iterator it = pushHandlers.begin(); it != pushHandlers.end(); it++) {
+    if(it->second.scope == SCOPE_GLOBAL) {
+      handler->sendSubscribeMessage(it->first);
+    }
+  }
+  
+  //and cross-gateway subscriptions (we filter out subscriptions from our handler ID, just in case, but shouldn't
+  //be a problem assuming the old gateway has disconnected first)
+  //also need to subscribe the number of times specified by the reference count,
+  //so the ref count on the other end will be correct (should add a shortcut
+  //for this so we don't send as many messages)
+  for(CrossGatewaySubscriptionMap::iterator it = subscriptions.begin(); it != subscriptions.end(); it++) {
+    if(it->second.handlerId != handlerId) {
+      for(unsigned int i = 0; i < it->second.references; i++) {
+        handler->sendSubscribeMessage(it->first);
+      }
+    }
+  }
+  
   return true;
 }
 
 bool GatewayCore::unregisterCrossGatewayConnection(std::string handlerId) {
   LOG_DEBUG("Unregistering cross-gateway handler " << handlerId);
+  CrossGatewayServiceHandler *handler = crossGatewayHandlers[handlerId];
   crossGatewayHandlers.erase(handlerId);
+  
+  if(handler == parentHandler) {
+    parentHandler = NULL;
+    //we're responsible for reconnecting this connection
+    connectionManager->activate();
+  }
+  
   return false;
 }
 
@@ -282,7 +308,7 @@ bool GatewayCore::unsubscribeCrossGateway(std::string mimeType, std::string orig
   return false;
 }
 
-bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const std::string &data, std::string originUser, std::string originHandlerId) {
+bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originHandlerId) {
   LOG_DEBUG("  Received cross-gateway push data with uri: " << uri);
   LOG_DEBUG("                                       type: " << mimeType);
   LOG_DEBUG("                                       from: " << originHandlerId);
@@ -297,7 +323,7 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const 
     for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
       if((*it).second.scope == SCOPE_GLOBAL) {
         LOG_TRACE("Sending push data");
-        (*it).second.handler->sendPushedData(uri, mimeType, data, originUser, SCOPE_GLOBAL);
+        (*it).second.handler->sendPushedData(uri, mimeType, encoding, data, originUser, SCOPE_GLOBAL);
       }
     }
   }
@@ -312,7 +338,7 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, const 
     for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
       if(originHandlerId != (*it).second.handlerId) {
         LOG_TRACE("Sending cross-gateway data");
-        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, data, originUser);
+        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, encoding, data, originUser);
       }
     }
   }
@@ -328,4 +354,19 @@ std::set<GatewayServiceHandler *> GatewayCore::getPushHandlersForType(std::strin
     }
   }
   return matchingHandlers;
+}
+
+void GatewayCore::terminate() {
+  if(connectionManager) {
+    connectionManager->cancel();
+    connectionManager->wait();
+  }
+}
+
+GatewayCore::~GatewayCore() {
+  LOG_DEBUG("Destroying GatewayCore.");
+  if(connectionManager) {
+    connectionManager->cancel();
+    connectionManager->wait();
+  }
 }

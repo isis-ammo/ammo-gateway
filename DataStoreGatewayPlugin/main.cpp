@@ -1,17 +1,17 @@
 #include "ace/Reactor.h"
-
 #include "ace/OS_NS_unistd.h" 
 #include "ace/Signal.h" 
+#include "ace/Time_Value.h"
+#include "ace/OS_NS_time.h"
+#include "ace/Date_Time.h"
 
 #include "log.h"
 #include "version.h"
 
-#include "DataStore.h"
+#include "DataStoreReceiver.h"
 #include "DataStoreConfigManager.h"
 
-#include "ace/Time_Value.h"
-#include "ace/OS_NS_time.h"
-#include "ace/Date_Time.h"
+#include "UserSwitch.inl"
 
 using namespace ammo::gateway;
 
@@ -41,6 +41,8 @@ int main (int /* argc */, char ** /* argv */)
             << __TIME__
             << ")");
   
+  dropPrivileges();
+  
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
   ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
@@ -66,7 +68,7 @@ int main (int /* argc */, char ** /* argv */)
 	  
 //====================================
 /*
-  std::string mime_t ("application/vnd.edu.vu.isis.ammo.private_contacts");
+  std::string mime_t ("ammo/edu.vu.isis.ammo.private_contacts");
   std::string orig_user ("kyle.anderson");
   std::string uri ("kokomo");
   std::string data ("{\"first_name\":\"Jimmy\",\"middle_initial\":\"I\",\"last_name\":\"Bork\",\"rank\":\"sgt\",\"call_sign\":\"\",\"branch\":\"\",\"unit\":\"\",\"email\":\"\",\"phone\":\"\"}");

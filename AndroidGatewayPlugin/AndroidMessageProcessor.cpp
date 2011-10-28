@@ -106,6 +106,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       pushData.mimeType = dataMessage.mime_type();
       pushData.data = dataMessage.data();
       pushData.scope = scope;
+      pushData.encoding = dataMessage.encoding();
       gatewayConnector->pushData(pushData);
       ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
       ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
@@ -197,6 +198,7 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
   ammo::protocol::DataMessage *dataMsg = msg->mutable_data_message();
   dataMsg->set_uri(pushData.uri);
   dataMsg->set_mime_type(pushData.mimeType);
+  dataMsg->set_encoding(pushData.encoding);
   dataMsg->set_data(dataString);
   
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
@@ -218,6 +220,7 @@ void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, a
   pullMsg->set_plugin_id(response.pluginId);
   pullMsg->set_mime_type(response.mimeType);
   pullMsg->set_uri(response.uri);
+  pullMsg->set_encoding(response.encoding);
   pullMsg->set_data(dataString);
   
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);

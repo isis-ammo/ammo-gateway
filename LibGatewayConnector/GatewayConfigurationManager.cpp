@@ -4,6 +4,8 @@
 #include "json/reader.h"
 #include "json/value.h"
 
+#include <ace/OS_NS_sys_stat.h>
+
 #include <iostream>
 #include <fstream>
 

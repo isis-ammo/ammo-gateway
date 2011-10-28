@@ -22,10 +22,10 @@ public:
   
   int processData(char *collectedData, unsigned int dataSize, unsigned int checksum);
   
-  bool sendPushedData(std::string uri, std::string mimeType, const std::string &data, std::string originUser, MessageScope scope);
+  bool sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope scope);
   bool sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
 		       unsigned int maxResults, unsigned int startFromCount, bool liveQuery);
-  bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, const std::string& data);
+  bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string& data);
 
   friend std::ostream& operator<< (std::ostream& out, const GatewayServiceHandler& handler);
   friend std::ostream& operator<< (std::ostream& out, const GatewayServiceHandler* handler);

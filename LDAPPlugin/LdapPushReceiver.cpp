@@ -149,7 +149,10 @@ void LdapPushReceiver::onPullRequestReceived(GatewayConnector *sender, ammo::gat
     {
       string data = *it;
       PullResponse resp = PullResponse::createFromPullRequest(pullReq);
+
+      // TODO: the response URI should be some unique identifier for this record
       resp.uri = "ammo-demo:test-object";
+
       resp.data = data;
       sender->pullResponse(resp);
     }
@@ -452,6 +455,13 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
   vals = ldap_get_values_len(ldapServer, entry, "tigrUid");
   if (vals) {
     root["tigruid"] = vals[0]->bv_val;
+    ldap_value_free_len(vals);
+  }
+  
+  // Numerical user ID
+  vals = ldap_get_values_len(ldapServer, entry, "userIdNumber");
+  if (vals) {
+    root["userIdNum"] = vals[0]->bv_val;
     ldap_value_free_len(vals);
   }
 

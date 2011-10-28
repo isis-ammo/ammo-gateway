@@ -14,6 +14,8 @@
 #include "AtsHandler.h"
 #include "GatewayConnector.h"
 
+#include "UserSwitch.inl"
+
 using namespace ammo::gateway;
 
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
@@ -48,6 +50,7 @@ int setRegisterPullInterest(GatewayConnector* gwc, std::string interest, AtsHand
 
 int main(int argc, char **argv) {  
   LOG_INFO("AMMO Ats Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  dropPrivileges();
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
   ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
