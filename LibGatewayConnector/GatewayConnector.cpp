@@ -1,5 +1,6 @@
 #include "GatewayConnector.h"
 #include "GatewayConfigurationManager.h"
+#include "GatewayServiceHandler.h"
 #include "ace/Connector.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
 #include <string>
@@ -70,6 +71,7 @@ bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData
   ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
   pushMsg->set_uri(pushData.uri);
   pushMsg->set_mime_type(pushData.mimeType);
+  pushMsg->set_encoding(pushData.encoding);
   pushMsg->set_data(pushData.data);
   
   if(pushData.scope == SCOPE_LOCAL) {
@@ -121,6 +123,7 @@ bool ammo::gateway::GatewayConnector::pullResponse(PullResponse &response) {
   pullMsg->set_plugin_id(response.pluginId);
   pullMsg->set_mime_type(response.mimeType);
   pullMsg->set_uri(response.uri);
+  pullMsg->set_encoding(response.encoding);
   pullMsg->set_data(response.data);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
@@ -244,6 +247,7 @@ void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::pr
   
   pushData.uri = msg.uri();
   pushData.mimeType = msg.mime_type();
+  pushData.encoding = msg.encoding();
   pushData.data.assign(msg.data().begin(), msg.data().end());
   pushData.originUsername = msg.origin_user();
   
@@ -280,6 +284,7 @@ void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway
       response.pluginId = msg.plugin_id();
       response.mimeType = msg.mime_type();
       response.uri = msg.uri();
+      response.encoding = msg.encoding();
       response.data.assign(msg.data().begin(), msg.data().end());
       (*it).second->onPullResponseReceived(this, response );
     }
@@ -299,6 +304,7 @@ void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayCo
 ammo::gateway::PushData::PushData() :
   uri(""),
   mimeType(""),
+  encoding("json"),
   data(),
   originUsername(""),
   scope(ammo::gateway::SCOPE_GLOBAL)
@@ -324,6 +330,7 @@ ammo::gateway::PullResponse::PullResponse() :
   pluginId(""),
   mimeType(""),
   uri(""),
+  encoding("json"),
   data()
 {
   

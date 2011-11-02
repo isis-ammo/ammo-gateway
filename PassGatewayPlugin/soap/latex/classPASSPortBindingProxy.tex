@@ -1,0 +1,131 @@
+\hypertarget{classPASSPortBindingProxy}{
+\section{PASSPortBindingProxy Class Reference}
+\label{classPASSPortBindingProxy}\index{PASSPortBindingProxy@{PASSPortBindingProxy}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classPASSPortBindingProxy_a5813f47d26e0e054366b2654d467c5c5}{
+\hyperlink{classPASSPortBindingProxy_a5813f47d26e0e054366b2654d467c5c5}{PASSPortBindingProxy} ()}
+\label{classPASSPortBindingProxy_a5813f47d26e0e054366b2654d467c5c5}
+
+\begin{DoxyCompactList}\small\item\em Constructor. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_ab2e78545a0186e6a7f1435ea90abd41a}{
+\hyperlink{classPASSPortBindingProxy_ab2e78545a0186e6a7f1435ea90abd41a}{PASSPortBindingProxy} (const struct soap \&)}
+\label{classPASSPortBindingProxy_ab2e78545a0186e6a7f1435ea90abd41a}
+
+\begin{DoxyCompactList}\small\item\em Constructor with copy of another engine state. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_ab2acd3b63611bb64e9a99ff0981b5412}{
+\hyperlink{classPASSPortBindingProxy_ab2acd3b63611bb64e9a99ff0981b5412}{PASSPortBindingProxy} (soap\_\-mode iomode)}
+\label{classPASSPortBindingProxy_ab2acd3b63611bb64e9a99ff0981b5412}
+
+\begin{DoxyCompactList}\small\item\em Constructor with engine input+output mode control. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_a2e0bc8429e70ef87f116c95e6f5a3085}{
+\hyperlink{classPASSPortBindingProxy_a2e0bc8429e70ef87f116c95e6f5a3085}{PASSPortBindingProxy} (soap\_\-mode imode, soap\_\-mode omode)}
+\label{classPASSPortBindingProxy_a2e0bc8429e70ef87f116c95e6f5a3085}
+
+\begin{DoxyCompactList}\small\item\em Constructor with engine input and output mode control. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_a475f3ab4595c1688bf957b7f2ce45225}{
+virtual \hyperlink{classPASSPortBindingProxy_a475f3ab4595c1688bf957b7f2ce45225}{$\sim$PASSPortBindingProxy} ()}
+\label{classPASSPortBindingProxy_a475f3ab4595c1688bf957b7f2ce45225}
+
+\begin{DoxyCompactList}\small\item\em Destructor frees deserialized data. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_ae4f022b99a880bb07a57463679ebd020}{
+virtual void \hyperlink{classPASSPortBindingProxy_ae4f022b99a880bb07a57463679ebd020}{PASSPortBindingProxy\_\-init} (soap\_\-mode imode, soap\_\-mode omode)}
+\label{classPASSPortBindingProxy_ae4f022b99a880bb07a57463679ebd020}
+
+\begin{DoxyCompactList}\small\item\em Initializer used by constructors. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_a06b4c13dc9e49f9b2ab2996302116972}{
+virtual void \hyperlink{classPASSPortBindingProxy_a06b4c13dc9e49f9b2ab2996302116972}{destroy} ()}
+\label{classPASSPortBindingProxy_a06b4c13dc9e49f9b2ab2996302116972}
+
+\begin{DoxyCompactList}\small\item\em Delete all deserialized data (uses soap\_\-destroy and soap\_\-end). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_ad3ec0ac7773b78400f6211ea820d6e7a}{
+virtual void \hyperlink{classPASSPortBindingProxy_ad3ec0ac7773b78400f6211ea820d6e7a}{soap\_\-noheader} ()}
+\label{classPASSPortBindingProxy_ad3ec0ac7773b78400f6211ea820d6e7a}
+
+\begin{DoxyCompactList}\small\item\em Disables and removes SOAP Header from message. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_a5181c414e1b86bc06aca1bc7064091b5}{
+virtual const \hyperlink{structSOAP__ENV____Fault}{SOAP\_\-ENV\_\-\_\-Fault} $\ast$ \hyperlink{classPASSPortBindingProxy_a5181c414e1b86bc06aca1bc7064091b5}{soap\_\-fault} ()}
+\label{classPASSPortBindingProxy_a5181c414e1b86bc06aca1bc7064091b5}
+
+\begin{DoxyCompactList}\small\item\em Get SOAP Fault structure (NULL when absent). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_a4db8cbfb1804724e3ee08cf934bc12ee}{
+virtual const char $\ast$ \hyperlink{classPASSPortBindingProxy_a4db8cbfb1804724e3ee08cf934bc12ee}{soap\_\-fault\_\-string} ()}
+\label{classPASSPortBindingProxy_a4db8cbfb1804724e3ee08cf934bc12ee}
+
+\begin{DoxyCompactList}\small\item\em Get SOAP Fault string (NULL when absent). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_ae7b23174b53ddafac55147c2f8466624}{
+virtual const char $\ast$ \hyperlink{classPASSPortBindingProxy_ae7b23174b53ddafac55147c2f8466624}{soap\_\-fault\_\-detail} ()}
+\label{classPASSPortBindingProxy_ae7b23174b53ddafac55147c2f8466624}
+
+\begin{DoxyCompactList}\small\item\em Get SOAP Fault detail as string (NULL when absent). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_a68c11be7e277703a69c029ce3d4b90c7}{
+virtual int \hyperlink{classPASSPortBindingProxy_a68c11be7e277703a69c029ce3d4b90c7}{soap\_\-close\_\-socket} ()}
+\label{classPASSPortBindingProxy_a68c11be7e277703a69c029ce3d4b90c7}
+
+\begin{DoxyCompactList}\small\item\em Force close connection (normally automatic, except for send\_\-X ops). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_a339bb176d8c179c8c38ade242198bc64}{
+virtual void \hyperlink{classPASSPortBindingProxy_a339bb176d8c179c8c38ade242198bc64}{soap\_\-print\_\-fault} (FILE $\ast$)}
+\label{classPASSPortBindingProxy_a339bb176d8c179c8c38ade242198bc64}
+
+\begin{DoxyCompactList}\small\item\em Print fault. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_a54fd6c3311b6f96a19f46a4f8a5f3e8a}{
+virtual void \hyperlink{classPASSPortBindingProxy_a54fd6c3311b6f96a19f46a4f8a5f3e8a}{soap\_\-stream\_\-fault} (std::ostream \&)}
+\label{classPASSPortBindingProxy_a54fd6c3311b6f96a19f46a4f8a5f3e8a}
+
+\begin{DoxyCompactList}\small\item\em Print fault to stream. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_ac9cce6b2261ba987e6ba043e547d7cb5}{
+virtual char $\ast$ \hyperlink{classPASSPortBindingProxy_ac9cce6b2261ba987e6ba043e547d7cb5}{soap\_\-sprint\_\-fault} (char $\ast$buf, size\_\-t len)}
+\label{classPASSPortBindingProxy_ac9cce6b2261ba987e6ba043e547d7cb5}
+
+\begin{DoxyCompactList}\small\item\em Put fault into buffer. \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_a06d0a34b5ad83073405c413f92c0586f}{
+virtual int \hyperlink{classPASSPortBindingProxy_a06d0a34b5ad83073405c413f92c0586f}{subscribe} (\hyperlink{class__pass____subscribe}{\_\-pass\_\-\_\-subscribe} $\ast$pass\_\-\_\-subscribe, \hyperlink{classpass____status}{pass\_\-\_\-status} $\ast$pass\_\-\_\-status\_\-)}
+\label{classPASSPortBindingProxy_a06d0a34b5ad83073405c413f92c0586f}
+
+\begin{DoxyCompactList}\small\item\em Web service operation 'subscribe' (returns error code or SOAP\_\-OK). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_a25d2139ea04b97b1db3029a8bce2abe2}{
+virtual int \hyperlink{classPASSPortBindingProxy_a25d2139ea04b97b1db3029a8bce2abe2}{retract\_\-USCOREitem} (\hyperlink{class__pass____retract__USCOREitem}{\_\-pass\_\-\_\-retract\_\-USCOREitem} $\ast$pass\_\-\_\-retract\_\-USCOREitem, \hyperlink{classpass____status}{pass\_\-\_\-status} $\ast$pass\_\-\_\-status\_\-)}
+\label{classPASSPortBindingProxy_a25d2139ea04b97b1db3029a8bce2abe2}
+
+\begin{DoxyCompactList}\small\item\em Web service operation 'retract\_\-item' (returns error code or SOAP\_\-OK). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_a606ef3fbf31ee7dbb019fbbdfb50a6b2}{
+virtual int \hyperlink{classPASSPortBindingProxy_a606ef3fbf31ee7dbb019fbbdfb50a6b2}{retract\_\-USCOREtopic} (\hyperlink{class__pass____retract__USCOREtopic}{\_\-pass\_\-\_\-retract\_\-USCOREtopic} $\ast$pass\_\-\_\-retract\_\-USCOREtopic, \hyperlink{classpass____status}{pass\_\-\_\-status} $\ast$pass\_\-\_\-status\_\-)}
+\label{classPASSPortBindingProxy_a606ef3fbf31ee7dbb019fbbdfb50a6b2}
+
+\begin{DoxyCompactList}\small\item\em Web service operation 'retract\_\-topic' (returns error code or SOAP\_\-OK). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_ab53503244230c52f38d809cb6a3f99ab}{
+virtual int \hyperlink{classPASSPortBindingProxy_ab53503244230c52f38d809cb6a3f99ab}{unsubscribe} (\hyperlink{class__pass____unsubscribe}{\_\-pass\_\-\_\-unsubscribe} $\ast$pass\_\-\_\-unsubscribe, \hyperlink{classpass____status}{pass\_\-\_\-status} $\ast$pass\_\-\_\-status\_\-)}
+\label{classPASSPortBindingProxy_ab53503244230c52f38d809cb6a3f99ab}
+
+\begin{DoxyCompactList}\small\item\em Web service operation 'unsubscribe' (returns error code or SOAP\_\-OK). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_a20d758e2164f2b708555fdd4d078b700}{
+virtual int \hyperlink{classPASSPortBindingProxy_a20d758e2164f2b708555fdd4d078b700}{publish} (\hyperlink{class__pass____publish}{\_\-pass\_\-\_\-publish} $\ast$pass\_\-\_\-publish, \hyperlink{classpass____status}{pass\_\-\_\-status} $\ast$pass\_\-\_\-status\_\-)}
+\label{classPASSPortBindingProxy_a20d758e2164f2b708555fdd4d078b700}
+
+\begin{DoxyCompactList}\small\item\em Web service operation 'publish' (returns error code or SOAP\_\-OK). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_a80019eceaa6bfd50439c75891e010947}{
+virtual int \hyperlink{classPASSPortBindingProxy_a80019eceaa6bfd50439c75891e010947}{create\_\-USCOREtopic} (\hyperlink{class__pass____create__USCOREtopic}{\_\-pass\_\-\_\-create\_\-USCOREtopic} $\ast$pass\_\-\_\-create\_\-USCOREtopic, \hyperlink{classpass____status}{pass\_\-\_\-status} $\ast$pass\_\-\_\-status\_\-)}
+\label{classPASSPortBindingProxy_a80019eceaa6bfd50439c75891e010947}
+
+\begin{DoxyCompactList}\small\item\em Web service operation 'create\_\-topic' (returns error code or SOAP\_\-OK). \item\end{DoxyCompactList}\item 
+\hypertarget{classPASSPortBindingProxy_ab00705b516b89d923a98299e74eb6bcd}{
+virtual int \hyperlink{classPASSPortBindingProxy_ab00705b516b89d923a98299e74eb6bcd}{sync} (\hyperlink{class__pass____sync}{\_\-pass\_\-\_\-sync} $\ast$pass\_\-\_\-sync, \hyperlink{class__pass____sync__USCOREresponse}{\_\-pass\_\-\_\-sync\_\-USCOREresponse} $\ast$pass\_\-\_\-sync\_\-USCOREresponse)}
+\label{classPASSPortBindingProxy_ab00705b516b89d923a98299e74eb6bcd}
+
+\begin{DoxyCompactList}\small\item\em Web service operation 'sync' (returns error code or SOAP\_\-OK). \item\end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classPASSPortBindingProxy_a29aa4e200643828329af06e23285edee}{
+const char $\ast$ \hyperlink{classPASSPortBindingProxy_a29aa4e200643828329af06e23285edee}{soap\_\-endpoint}}
+\label{classPASSPortBindingProxy_a29aa4e200643828329af06e23285edee}
+
+\begin{DoxyCompactList}\small\item\em Endpoint URL of service 'PASSPortBindingProxy' (change as needed). \item\end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files:\begin{DoxyCompactItemize}
+\item 
+soapPASSPortBindingProxy.h\item 
+soapPASSPortBindingProxy.cpp\end{DoxyCompactItemize}

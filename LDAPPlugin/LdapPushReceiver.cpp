@@ -149,7 +149,10 @@ void LdapPushReceiver::onPullRequestReceived(GatewayConnector *sender, ammo::gat
     {
       string data = *it;
       PullResponse resp = PullResponse::createFromPullRequest(pullReq);
+
+      // TODO: the response URI should be some unique identifier for this record
       resp.uri = "ammo-demo:test-object";
+
       resp.data = data;
       sender->pullResponse(resp);
     }
@@ -163,7 +166,7 @@ void LdapPushReceiver::onPullRequestReceived(GatewayConnector *sender, ammo::gat
 bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResults)
 {
 
-  LdapConfigurationManager *config = LdapConfigurationManager::getInstance();
+  //LdapConfigurationManager *config = LdapConfigurationManager::getInstance();
 
   LDAPMessage *results;
   //std::string filter = "(& (objectClass=x-MilitaryPerson) (objectClass=inetOrgPerson)";
@@ -221,7 +224,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   struct timeval timeout = { 5, 0 };
 
   LDAPControl *serverctrls = NULL, *clientctrls = NULL;
-  char *attrs[] = { "*", NULL };
+  char *attrs[] = { const_cast<char *>("*"), NULL };
 
   cout << "LDAP Starting Search for: " << filter << endl;
 
@@ -454,6 +457,13 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
     root["tigruid"] = vals[0]->bv_val;
     ldap_value_free_len(vals);
   }
+  
+  // Numerical user ID
+  vals = ldap_get_values_len(ldapServer, entry, "userIdNumber");
+  if (vals) {
+    root["userIdNum"] = vals[0]->bv_val;
+    ldap_value_free_len(vals);
+  }
 
   // email
   vals = ldap_get_values_len(ldapServer, entry, "mail");
@@ -601,7 +611,7 @@ bool LdapPushReceiver::editContact(const LdapContact& contact)
 // write_callback()
 //
 //============================================================
-static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData)
+/*static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData)
 {
   if(writerData == NULL)
     {
@@ -609,4 +619,4 @@ static int write_callback(char *data, size_t size, size_t nmemb, std::string *wr
     }
   writerData->append(data, size*nmemb);
   return size * nmemb;
-}
+}*/

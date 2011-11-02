@@ -8,6 +8,7 @@ killall GatewayCore
 killall AndroidGatewayPlugin
 killall LdapGatewayPlugin
 killall DataStoreGatewayPlugin
+killall PassGatewayPlugin
 
 echo "Waiting $WAIT_TIME seconds to see if processes will exit cleanly..."
 sleep $WAIT_TIME
@@ -17,5 +18,6 @@ killall -9 GatewayCore
 killall -9 AndroidGatewayPlugin
 killall -9 LdapGatewayPlugin
 killall -9 DataStoreGatewayPlugin
+killall -9 PassGatewayPlugin
 
 exit 0

@@ -18,9 +18,6 @@
 
 #include "LibGatewayConnector_Export.h"
 
-#include "GatewayConfigurationManager.h"
-#include "GatewayServiceHandler.h"
-
 #include "Enumerations.h"
 
 namespace ammo {
@@ -29,6 +26,16 @@ namespace ammo {
     class DataPushReceiverListener;
     class PullRequestReceiverListener;
     class PullResponseReceiverListener;
+    namespace internal {
+      class GatewayConfigurationManager;
+      class GatewayServiceHandler;
+    };
+    namespace protocol {
+      class AssociateResult;
+      class PushData;
+      class PullRequest;
+      class PullResponse;
+    };
     
     /**
      * A data object.
@@ -42,6 +49,8 @@ namespace ammo {
       std::string mimeType;             ///< The MIME type of this piece of data.  This MIME type is used to
                                         ///  determine which other gateway plugins will receive this pushed
                                         ///  data.
+      std::string encoding;             ///< The encoding of the data in this message (optional; defaults
+                                        ///  to "json" if not specified).
       std::string data;                 ///< The data to be pushed to the gateway.  Represented as a C++ string,
                                         ///  but can contain any arbitrary binary data (the gateway will 
                                         ///  accept strings with bytes invalid in C-strings such as embedded
@@ -100,6 +109,8 @@ namespace ammo {
                               ///  will not be routed correctly.
       std::string mimeType;   ///< The data type of the data in this response.
       std::string uri;        ///< The URI of the data in this response.
+      std::string encoding;   ///< The encoding of the data in this response (optional; defaults
+                              ///  to "json" if not specified).
       std::string data;       ///< The data to be sent to the requestor.
       
       /**
@@ -138,10 +149,18 @@ namespace ammo {
       * @param delegate A GatewayConnectorDelegate object to be used by this
       *                 GatewayConnector instance.  May be NULL (no delegate methods
       *                 will be called).
-      * @param configfile The optional configuration file path
-      * @param loggerName The logger name that should be used by this GatewayConnector.
       */
       GatewayConnector(GatewayConnectorDelegate *delegate);
+      
+      /**
+      * Creates a new GatewayConnector with the given GatewayConnectorDelegate and
+      * establishes a connection to the gateway core.
+      *
+      * @param delegate A GatewayConnectorDelegate object to be used by this
+      *                 GatewayConnector instance.  May be NULL (no delegate methods
+      *                 will be called).
+      * @param configfile A path to the gateway config file.
+      */
       GatewayConnector(GatewayConnectorDelegate *delegate, std::string configfile);
     
       /**
@@ -184,7 +203,7 @@ namespace ammo {
        * 
        * @param pushData The data to be pushed to the gateway.  uri and mimeType
        *                 must be set, or this call must fail (other parameters
-       *                are optional, and will use sane defaults).
+       *                 are optional, and will use sane defaults).
        * 
        * @return true if the operation succeeded; false if the operation failed.
        */
@@ -224,6 +243,11 @@ namespace ammo {
       * @param mime_type The type of data to listen for.
       * @param listener  The DataPushReceiverListener object which will be called
       *                  when data is available.
+      * @param scope     The scope of this registration.  SCOPE_LOCAL will only
+      *                  deliver data originating from the connected gateway;
+      *                  SCOPE_GLOBAL will deliver data originating from all
+      *                  connected gateways (subject to each data object's scope
+      *                  parameter).
       *
       * @return true if the operation succeeded; false if the operation failed.
       */
@@ -235,6 +259,8 @@ namespace ammo {
       * listeners for the same type.
       * 
       * @param mime_type The type of data to unregister interest in.
+      * @param scope     The scope of the registration to unregister interest
+      *                  in; should be the same as the original registration.
       * 
       * @return true if the operation succeeded; false if the operation failed.
       */

@@ -11,13 +11,13 @@ public:
                         ammo::gateway::GatewayConnector *sender,
                         ammo::gateway::PullRequest &pr);
                         
-  virtual ~OriginalQueryHandler (void);
+  ~OriginalQueryHandler (void);
                         
-  virtual void handleQuery (void);
+  void handleQuery (void);
 
 protected:
-  virtual bool matchedData (const std::string &projection,
-                            const std::string &data);
+  bool matchedData (const std::string &projection,
+                    const std::string &data);
 
   virtual bool matchedProjection (const Json::Value &root,
                                   const std::string &projection) = 0;

@@ -10,8 +10,6 @@
 #include "ace/OS_NS_unistd.h"
 #include "ace/Signal.h"
 
-#include "ace/High_Res_Timer.h"
-
 #include "ace/Acceptor.h"
 #include "ace/Reactor.h"
 
@@ -21,6 +19,8 @@
 #include "GatewayServiceHandler.h"
 #include "GatewayConfigurationManager.h"
 #include "GatewayCore.h"
+
+#include "UserSwitch.inl"
 
 using namespace std;
 
@@ -36,12 +36,12 @@ public:
   }
 };
 
+
+
 int main(int argc, char **argv) {
-  unsigned int scale = ACE_High_Res_Timer::calibrate();
-  
-  LOG_INFO("Timer scale value is " << scale);
-  
   LOG_INFO("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  dropPrivileges();
+  
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
   ACE_Sig_Action no_sigpipe((ACE_SignalHandler) SIG_IGN);
@@ -73,5 +73,6 @@ int main(int argc, char **argv) {
   LOG_DEBUG("Starting event loop...");
   reactor->run_reactor_event_loop();
   LOG_DEBUG("Event loop terminated.");
+  GatewayCore::getInstance()->terminate();
   return 0;
 }
