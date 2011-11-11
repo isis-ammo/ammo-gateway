@@ -1,5 +1,8 @@
 #include "GatewayConfigurationManager.h"
 
+#include "ace/Connector.h"
+#include "ace/SOCK_Connector.h"
+
 #include "json/reader.h"
 #include "json/value.h"
 
@@ -8,7 +11,10 @@
 #include <iostream>
 #include <fstream>
 
+#include "ace/Signal.h"
 #include <ace/OS_NS_sys_stat.h>
+
+
 
 const char *CONFIG_DIRECTORY = "ammo-gateway";
 const char *CONFIG_FILE = "GatewayConfig.json";
