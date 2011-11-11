@@ -14,6 +14,14 @@
     <property name="gatewayversion.out" value="common/version.h" />
     <property name="gatewayversion-mpb.template" value="gatewayversion.mpb.in" />
     <property name="gatewayversion-mpb.out" value="gatewayversion.mpb" />
+    
+    <condition property="isWindows">
+      <os family="windows" />
+    </condition>
+    
+    <condition property="isUnix">
+      <os family="unix" />
+    </condition>
 
     <description>
         Build file for the AMMO ${project}
@@ -27,9 +35,9 @@
           <fileset file="${gatewayversion-mpb.out}" />
         </delete>
     </target>
-
-    <target name="-init-gatewayversion" unless="gatewayversion">
-        <exec executable="git" dir="." 
+    
+    <target name="-init-gatewayversion-unix" if="isUnix">
+      <exec executable="git" dir="." 
               searchpath="true" 
               outputproperty="gatewayversion">
           <arg value="describe" />
@@ -46,14 +54,38 @@
         <loadfile property="gateway-reversion" srcFile="${gatewayversion.file}" failonerror="false"/>
         <condition  property="is.new.gatewayversion" >
            <equals arg1="${gatewayversion}" arg2="${gateway-reversion}"/>
-        </condition>        
+        </condition>  
+    </target>
+    
+    <target name="-init-gatewayversion-windows" if="isWindows">
+        <exec executable="cmd" dir="."
+              searchpath="true"
+              outputproperty="gatewayversion">
+           <arg value="/c" />
+           <arg value=' git describe --match "release-*"' />
+        </exec>
+        <exec executable="powershell" dir="."
+              searchpath="true"
+              outputproperty="gatewayversion-stripped">
+           <arg value="-Command" />
+           <arg value=" git describe --match 'release-*' | %{$$_ -replace 'release-', ''} | %{$$_ -replace '-g.*', ''}" />
+        </exec>
+
+        <loadfile property="gateway-reversion" srcFile="${gatewayversion.file}" failonerror="false"/>
+        <condition  property="is.new.gatewayversion" >
+           <equals arg1="${gatewayversion}" arg2="${gateway-reversion}"/>
+        </condition>  
     </target>
 
-    <target name="-update-gatewayversion" depends="-init-gatewayversion" unless="is.new.gatewayversion">
+    <target name="-init-gatewayversion" depends="-init-gatewayversion-unix,-init-gatewayversion-windows" unless="gatewayversion">
+              
+    </target>
+
+    <target name="update-gatewayversion" depends="-init-gatewayversion" unless="is.new.gatewayversion">
         <echo message="${gatewayversion}" file="${gatewayversion.file}"/>
-        <copy file="${gatewayversion.template}" tofile="${gatewayversion.out}"/>
+        <copy file="${gatewayversion.template}" tofile="${gatewayversion.out}" overwrite="true"/>
         <replace file="${gatewayversion.out}" token="&lt;VERSION&gt;" value="${gatewayversion}"/>
-        <copy file="${gatewayversion-mpb.template}" tofile="${gatewayversion-mpb.out}"/>
+        <copy file="${gatewayversion-mpb.template}" tofile="${gatewayversion-mpb.out}" overwrite="true"/>
         <replace file="${gatewayversion-mpb.out}" token="&lt;VERSION&gt;" value="${gatewayversion-stripped}"/>
     </target>
 
@@ -139,7 +171,7 @@ Built on ${os.arch} ${os.name} ${os.version}
     </target>
 
     <target name="configure"
-        description="build the  makefiles" depends="-update-gatewayversion">
+        description="build the  makefiles" depends="update-gatewayversion">
         <exec executable="mwc.pl" dir="." searchpath="true">
            <arg value="--type"/> <arg value="gnuace"/>
            <arg value="Gateway.mwc"/>
