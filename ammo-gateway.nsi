@@ -63,6 +63,9 @@ Caption "AMMO Gateway ${VERSION} Setup"
 !define MEMENTO_REGISTRY_ROOT HKLM
 !define MEMENTO_REGISTRY_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway"
 
+;Icon setting
+;!define MUI_ICON path_to_icon.ico
+
 ;Interface Settings
 !define MUI_ABORTWARNING
 
@@ -121,6 +124,10 @@ ${MementoSection} "Gateway Core (required)" SecCore
   SetOverwrite on
   File build\bin\GatewayCore.exe
 
+  SetShellVarContext all
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\GatewayConfig.json
+
 ${MementoSectionEnd}
 
 ${MementoSection} "Android Gateway Plugin (required)" SecAndPlug
@@ -149,6 +156,19 @@ ${MementoSection} "ACE (required)" SecAce
   SetOverwrite on
   File ${ACE_ROOT}\lib\ACE.dll
   File ${ACE_ROOT}\lib\ACEd.dll
+
+${MementoSectionEnd}
+
+${MementoSection} "JSON (required)" SecJson
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing JSON ..."
+  SetDetailsPrint listonly
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File build\lib\JSON.dll
+  File build\lib\JSONd.dll
 
 ${MementoSectionEnd}
 
@@ -241,6 +261,7 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "The Gateway's Core Service"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAndPlug} "The Android Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAce} "The ACE networking dependency"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecJson} "The JSON serialization dependency"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
@@ -276,6 +297,10 @@ Section Uninstall
   ; ACE
   Delete $INSTDIR\bin\ACE.dll
   Delete $INSTDIR\bin\ACEd.dll
+
+  ; JSON
+  Delete $INSTDIR\bin\JSON.dll
+  Delete $INSTDIR\bin\JSONd.dll
 
   ; uninstaller
   Delete $INSTDIR\uninst-ammo-gateway.exe
