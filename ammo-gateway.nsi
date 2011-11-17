@@ -116,7 +116,7 @@ ${MementoSection} "Gateway Core (required)" SecCore
   DetailPrint "Installing Gateway Core ..."
   SetDetailsPrint listonly
 
-  ;SectionIn 1 2 3 RO
+  SectionIn 1 2 3 RO
   ;SetOutPath $INSTDIR
   ;RMDir /r $SMPROGRAMS\ammo-gateway
 
@@ -136,7 +136,7 @@ ${MementoSection} "Android Gateway Plugin (required)" SecAndPlug
   DetailPrint "Installing Android Plugin ..."
   SetDetailsPrint listonly
 
-  ;SectionIn 1 2 3 RO
+  SectionIn 1 2 3 RO
   ;SetOutPath $INSTDIR
   ;RMDir /r $SMPROGRAMS\ammo-gateway
 
@@ -152,6 +152,8 @@ ${MementoSection} "ACE (required)" SecAce
   DetailPrint "Installing ACE ..."
   SetDetailsPrint listonly
 
+  SectionIn 1 2 3 RO
+
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File ${ACE_ROOT}\lib\ACE.dll
@@ -164,6 +166,8 @@ ${MementoSection} "JSON (required)" SecJson
   SetDetailsPrint textonly
   DetailPrint "Installing JSON ..."
   SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
