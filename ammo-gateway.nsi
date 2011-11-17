@@ -5,6 +5,10 @@
   !error "You must set ACE_ROOT."
 !endif
 
+!ifndef VC_ROOT
+  !define VC_ROOT "C:\Program Files\Microsoft Visual Studio 10.0\VC"
+!endif
+
 !ifndef VERSION
   !error "You must set VERSION."
 !endif
@@ -146,6 +150,21 @@ ${MementoSection} "Android Gateway Plugin (required)" SecAndPlug
 
 ${MementoSectionEnd}
 
+${MementoSection} "VC Redist (required)" SecVcredist
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing VC redist ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File "${VC_ROOT}\redist\x86\Microsoft.VC100.CRT\msvcp100.dll"
+  File "${VC_ROOT}\redist\x86\Microsoft.VC100.CRT\msvcr100.dll"
+
+${MementoSectionEnd}
+
 ${MementoSection} "ACE (required)" SecAce
 
   SetDetailsPrint textonly
@@ -264,6 +283,7 @@ SectionEnd
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "The Gateway's Core Service"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAndPlug} "The Android Plugin Service for AMMO Gateway"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecVcredist} "The VC redist dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAce} "The ACE networking dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecJson} "The JSON serialization dependency"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
