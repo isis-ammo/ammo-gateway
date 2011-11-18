@@ -13,3 +13,5 @@ PassGatewayPlugin
 SpotPushReceiverGatewayPlugin
 AtsGatewayPlugin
 master_secret
+*.exp
+*.lib
