@@ -12,6 +12,7 @@ TigrGatewayPlugin
 PassGatewayPlugin
 SpotPushReceiverGatewayPlugin
 AtsGatewayPlugin
+SerialGatewayPlugin
 master_secret
 *.exp
 *.lib
