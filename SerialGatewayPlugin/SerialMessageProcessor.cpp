@@ -2,6 +2,12 @@
 #include "SerialServiceHandler.h"
 
 #include "log.h"
+#include <stdint.h>
+#include <sstream>
+
+#define ntohll(x) ( ( (int64_t)  (ntohl((int)((x << 32) >> 32))) << 32) | (uint32_t)ntohl(((int)(x >> 32)))  ) //By Runner
+#define htonll(x) ntohll(x)      
+
 
 using namespace ammo::gateway;
 
@@ -273,7 +279,7 @@ void SerialMessageProcessor::onAuthenticationResponse(GatewayConnector *sender, 
 
 
 std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse) {
-  std::string jsonStr;
+  std::ostringstream jsonStr;
   int cursor = 0;
   switch(mt) {
   case 2:			// PLI
@@ -288,19 +294,29 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse) {
       Modified - Java Long (8)
      */
     {
-      long long lid = *(long long *)&terse[cursor]; cursor += 8;
-      long long uid = *(long long *)&terse[cursor]; cursor += 8;
-      long long unid = *(long long *)&terse[cursor]; cursor += 8;
+      uint64_t lid  = ntohll( *(uint64_t *)&(terse[cursor]) ); cursor += 8;
+      uint64_t uid  = ntohll( *(uint64_t *)&(terse[cursor]) ); cursor += 8;
+      uint64_t unid = ntohll( *(uint64_t *)&(terse[cursor]) ); cursor += 8;
+      uint32_t nlen = ntohl ( *(uint32_t *)&(terse[cursor]) ); cursor += 4;
+      LOG_INFO((long) this << std::hex << "PLI: l(" << lid << ") u(" << uid << ") un(" << unid << ") nl(" << nlen  << ")");
+
       std::string name;
-      int nlen = *(int *)&terse[cursor]; cursor += 4;
       for (int i=0; i<nlen; i++) {
-	short uchar = *(short *)&terse[cursor]; cursor += 2;
+	uint16_t uchar = ntohs( *(uint16_t *)&terse[cursor] ); cursor += 2;
+	name[i] = (uchar & 0xff);
       }
-      long long lat = *(long long *)&terse[cursor]; cursor += 8;
-      long long lon = *(long long *)&terse[cursor]; cursor += 8;
-      long long created = *(long long *)&terse[cursor]; cursor += 8;
-      long long modified = *(long long *)&terse[cursor]; cursor += 8;
-      LOG_INFO((long) this << "PLI: u(" << uid << ") nl(" << nlen << ") lat(" << lat << ") lon(" << lon << ") creat(" << created << ")"); 
+      long long lat      = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
+      long long lon      = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
+      long long created  = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
+      long long modified = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
+      LOG_INFO((long) this << std::hex <<   " PLI: u(" << uid << ") nl(" << nlen << ") lat(" << lat << ") lon(" << lon << ") creat(" << created << ")");
+
+
+      // JSON
+      // {\"lid\":\"0\",\"lon\":\"-74888318\",\"unitid\":\"1\",\"created\":\"1320329753964\",\"name\":\"ahammer\",\"userid\":\"731\",\"lat\":\"40187744\",\"modified\":\"0\"}
+      jsonStr << "{\"lid\":\"" << lid << "\",\"lon\":\"" << uid << "\",\"unitid\":\"" << unid << "\",\"name\":\"" << name
+	      << "\",\"lat\":\"" << lat << "\",\"lon\":\"" << lon << "\",\"created\":\"" << created << "\",\"modified\":\"" << modified
+	      << "\"}";
     }
 
     break;
@@ -308,5 +324,52 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse) {
     break;
   }
 
-  return jsonStr;
+  return jsonStr.str();
 }
+
+
+void testParseTerse() {
+  SerialMessageProcessor test( (SerialServiceHandler *)0 );
+  struct t1 {
+    uint64_t l;
+    uint64_t u;
+    uint64_t un;
+    uint32_t  nl;
+    uint16_t nm[8];
+    uint64_t lat;
+    uint64_t lon;
+    uint64_t cre;
+    uint64_t mod;
+  } td = {
+    0,
+    0x12,
+    0x1234,
+    0x8,
+    { 't', 'a', '1', '5', '2', '-', '1', '4' },
+    0xaabbccdd11223344ull,
+    0x56781234,
+    0x43218765,
+    0x87654321
+  };
+
+  char terseBe[]={
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0x12,
+    0,0,0,0,0,0,0x12,0x34,
+    0,0,0,8,
+    0,'t',0,'a',0,'1',0,'5',0,'2',0,'-',0,'1',0,'4',
+    0xaa,0xbb,0xcc,0xdd,0x11,0x22,0x33,0x44,
+    0,0,0,0,0x56,0x78,0x12,0x34,
+    0,0,0,0,0x43,0x21,0x87,0x65,
+    0,0,0,0,0x87,0x65,0x43,0x21
+  };
+  const char *tds = (const char *)&td;
+  for (int i=0; i<sizeof(td); i++) {
+    std::cout << std::hex << (static_cast<int>(tds[i]) & 0xff);
+  }
+  std::cout << std::endl;
+
+  test.parseTerseData(2, (const char *)&td);
+  test.parseTerseData(2, (const char *)&terseBe[0]);
+}
+

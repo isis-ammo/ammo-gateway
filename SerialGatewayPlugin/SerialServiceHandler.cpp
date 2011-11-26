@@ -245,7 +245,7 @@ unsigned char SerialServiceHandler::read_a_char()
 int SerialServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum, char priority) {
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
-  if( (calculatedChecksum & 0xffff) != messageChecksum) {
+  if( (calculatedChecksum & 0xffff) != (messageChecksum & 0xffff) ) {
     LOG_ERROR((long) this << " Mismatched checksum " << std::hex << calculatedChecksum << " : " << messageChecksum);
     LOG_ERROR((long) this << " size " << std::dec << messageSize ); // << " payload: " < );
     return -1;

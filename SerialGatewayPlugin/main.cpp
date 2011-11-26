@@ -41,6 +41,8 @@ public:
   }
 };
 
+extern void testParseTerse();
+
 int main(int argc, char **argv) {
   LOG_INFO("AMMO Serial Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   dropPrivileges();
@@ -60,7 +62,7 @@ int main(int argc, char **argv) {
   for(int i=1; i < argc; i++) {
     argumentQueue.push(string(argv[i]));
   }
-  
+
   while(!argumentQueue.empty()) {
     string arg = argumentQueue.front();
     argumentQueue.pop();
