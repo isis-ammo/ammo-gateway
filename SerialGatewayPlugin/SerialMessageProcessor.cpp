@@ -117,6 +117,32 @@ void SerialMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg)
       commsHandler->sendMessage(ackMsg, DEFAULT_PRIORITY);
       
     }
+  } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_TERSE_MESSAGE) {
+    LOG_DEBUG((long) commsHandler << " Received Terse Message...");
+    if(gatewayConnector != NULL) {
+      ammo::protocol::TerseMessage dataMessage = msg.terse_message();
+      MessageScope scope = SCOPE_LOCAL;
+      
+      PushData pushData;
+      switch( dataMessage.mime_type() ) {
+      case 1:			// SMS - not implemented
+	return;
+      case 2:			// PLI
+	pushData.mimeType = "ammo/com.aterrasys.nevada.locations";
+	pushData.data = parseTerseData(2, dataMessage.data().c_str() );
+	pushData.uri = "serial-pli";
+	break;
+      case 3:			// Dash
+	pushData.mimeType = "ammo/edu.vu.isis.ammo.dash.event";
+	pushData.data = parseTerseData(3, dataMessage.data().c_str() );
+	pushData.uri = "serial-dash-event";
+	break;
+      }
+
+      pushData.scope = scope;
+      gatewayConnector->pushData(pushData);
+
+    }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
     LOG_DEBUG((long) commsHandler << " Received Subscribe Message...");
     MessageScope scope;
@@ -243,4 +269,44 @@ void SerialMessageProcessor::onAuthenticationResponse(GatewayConnector *sender, 
   newMsg->set_message_priority(DEFAULT_PRIORITY);
   newMsg->mutable_authentication_result()->set_result(result ? ammo::protocol::AuthenticationResult_Status_SUCCESS : ammo::protocol::AuthenticationResult_Status_SUCCESS);
   commsHandler->sendMessage(newMsg, DEFAULT_PRIORITY);
+}
+
+
+std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse) {
+  std::string jsonStr;
+  int cursor = 0;
+  switch(mt) {
+  case 2:			// PLI
+    /*
+      LID -- Java Long (8)
+      UserId - Java Long (8)
+      UnitId - Java Long (8)
+      Name - Text : Int (4), Unicode Char (2 per)
+      Lat - Java Long (8)
+      Lon - Java Long (8)
+      Created - Java Long (8)
+      Modified - Java Long (8)
+     */
+    {
+      long long lid = *(long long *)&terse[cursor]; cursor += 8;
+      long long uid = *(long long *)&terse[cursor]; cursor += 8;
+      long long unid = *(long long *)&terse[cursor]; cursor += 8;
+      std::string name;
+      int nlen = *(int *)&terse[cursor]; cursor += 4;
+      for (int i=0; i<nlen; i++) {
+	short uchar = *(short *)&terse[cursor]; cursor += 2;
+      }
+      long long lat = *(long long *)&terse[cursor]; cursor += 8;
+      long long lon = *(long long *)&terse[cursor]; cursor += 8;
+      long long created = *(long long *)&terse[cursor]; cursor += 8;
+      long long modified = *(long long *)&terse[cursor]; cursor += 8;
+      LOG_INFO((long) this << "PLI: u(" << uid << ") nl(" << nlen << ") lat(" << lat << ") lon(" << lon << ") creat(" << created << ")"); 
+    }
+
+    break;
+  case 3:			// Dash-Event
+    break;
+  }
+
+  return jsonStr;
 }

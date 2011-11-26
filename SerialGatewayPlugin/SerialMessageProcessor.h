@@ -45,6 +45,7 @@ private:
   
   bool isClosed();
   void processMessage(ammo::protocol::MessageWrapper &msg);
+  std::string parseTerseData(int mt, const char *data );
 };
 
 #endif
