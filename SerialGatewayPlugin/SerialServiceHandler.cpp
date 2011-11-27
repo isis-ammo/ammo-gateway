@@ -29,81 +29,149 @@ receiveQueueMutex()
 }
 
 
-int SerialServiceHandler::open(void *ptr) {
+int SerialServiceHandler::open(void *ptr)
+{
   
-    // Open the port
+  // Open the port
   gFD = ::open( (const char *)ptr, O_RDWR | O_NOCTTY );// | O_NONBLOCK );
-    if ( gFD == -1 )
+  if ( gFD == -1 )
     {
       printf( "open %s: error: %s\n\n", (const char *)ptr, strerror(errno)  );
-        exit( -1 );
+      exit( -1 );
     }
 
-    // Get the attributes for the port
-    struct termios config;
-    // int result = tcgetattr( gFD, &config );
-    // if ( result == -1 )
-    // {
-    //     perror( "tcgetattr" );
-    //     exit( -1 );
-    // }
+  // Get the attributes for the port
+  // struct termios config;
+  // int result = tcgetattr( gFD, &config );
+  // if ( result == -1 )
+  // {
+  //     perror( "tcgetattr" );
+  //     exit( -1 );
+  // }
 
-    // // Set baud rate and 8, NONE, 1
+  // // Set baud rate and 8, NONE, 1
 
-    // // SETTING KEY:
-    // // 1 -- ignore BREAK condition
-    // // 2 -- map BREAK to SIGINTR
-    // // 3 -- mark parity and framing errors
-    // // 4 -- strip the 8th bit off chars
-    // // 5 -- map NL to CR
-    // // 6 -- ignore CR
-    // // 7 -- map CR to NL
-    // // 8 -- enable output flow control (software flow control)
-    // // 9 -- enable input flow control (software flow control)
-    // // 10-- any char will restart after stop (software flow control)
-    // // 11-- postprocess output (not set = raw output)
-    // // 12-- enable echoing of input characters
-    // // 13-- echo NL
-    // // 14-- enable canonical input (else raw)
-    // // 15-- enable SIGINTR, SIGSUSP, SIGDSUSP, and SIGQUIT signals
-    // // 16-- enable extended functions
-    // // 17-- parity enable
-    // // 18-- send 2 stop bits
-    // // 19-- character size mask
-    // // 20-- 8 bits
-    // // 21-- enable follwing output processing
+  // // SETTING KEY:
+  // // 1 -- ignore BREAK condition
+  // // 2 -- map BREAK to SIGINTR
+  // // 3 -- mark parity and framing errors
+  // // 4 -- strip the 8th bit off chars
+  // // 5 -- map NL to CR
+  // // 6 -- ignore CR
+  // // 7 -- map CR to NL
+  // // 8 -- enable output flow control (software flow control)
+  // // 9 -- enable input flow control (software flow control)
+  // // 10-- any char will restart after stop (software flow control)
+  // // 11-- postprocess output (not set = raw output)
+  // // 12-- enable echoing of input characters
+  // // 13-- echo NL
+  // // 14-- enable canonical input (else raw)
+  // // 15-- enable SIGINTR, SIGSUSP, SIGDSUSP, and SIGQUIT signals
+  // // 16-- enable extended functions
+  // // 17-- parity enable
+  // // 18-- send 2 stop bits
+  // // 19-- character size mask
+  // // 20-- 8 bits
+  // // 21-- enable follwing output processing
 
-    // //		               1      2      3      4     5      6     7    8     9    10
-    // config.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON|IXOFF|IXANY);
-    // //                  11
-    // config.c_oflag &= ~OPOST;
-    // //                   12    13     14    15    16
-    // config.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
-    // //		              17     18     19
-    // //                 20
-    // config.c_cflag |= CS8;
-    // //                   21
-    // config.c_cflag |= CRTSCTS;
+  // //		               1      2      3      4     5      6     7    8     9    10
+  // config.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON|IXOFF|IXANY);
+  // //                  11
+  // config.c_oflag &= ~OPOST;
+  // //                   12    13     14    15    16
+  // config.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
+  // //		              17     18     19
+  // //                 20
+  // config.c_cflag |= CS8;
+  // //                   21
+  // config.c_cflag |= CRTSCTS;
 
-    // config.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON|IXOFF|IXANY);
-    // config.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
-    // config.c_cflag &= ~(PARENB|CSTOPB|CSIZE);
-    // config.c_cflag |= CS8;
+  // config.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON|IXOFF|IXANY);
+  // config.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
+  // config.c_cflag &= ~(PARENB|CSTOPB|CSIZE);
+  // config.c_cflag |= CS8;
 
-    // 	speed_t speed = B9600;
+  // 	speed_t speed = B9600;
 
-    // cfsetispeed(&config, speed);
-    // cfsetospeed(&config, speed);
+  // cfsetispeed(&config, speed);
+  // cfsetospeed(&config, speed);
 
-    bzero(&config, sizeof(config) );
-    config.c_cflag = B9600 | CRTSCTS | CS8 | CLOCAL | CREAD;
-    config.c_iflag = IGNPAR | ICRNL;
-    config.c_oflag = 0;
-    //config.c_lflag = ICANON;
-    config.c_cc[VMIN] = 1;	// blocking read until 1 character arrives
+  // bzero(&config, sizeof(config) );
+  // config.c_cflag = B9600 | CRTSCTS | CS8 | CLOCAL | CREAD;
+  // config.c_iflag = IGNPAR | ICRNL;
+  // config.c_oflag = 0;
+  // //config.c_lflag = ICANON;
+  // config.c_cc[VMIN] = 1;	// blocking read until 1 character arrives
 
-    tcflush( gFD, TCIFLUSH );
-    tcsetattr( gFD, TCSANOW, &config );
+  struct termios cfg;
+
+  if (tcgetattr(gFD, &cfg))
+    {
+      close(gFD);
+      // TODO: throw an exception
+      return NULL;
+    }
+
+  // Set baud rate
+  cfsetispeed( &cfg, B9600 );
+  cfsetospeed( &cfg, B9600 );
+
+  cfmakeraw( &cfg );
+
+  // Always set these
+  cfg.c_cflag |= (CLOCAL | CREAD);
+
+  // Set 8, None, 1
+  cfg.c_cflag &= ~PARENB;
+  cfg.c_cflag &= ~CSTOPB;
+  cfg.c_cflag &= ~CSIZE;
+  cfg.c_cflag |= CS8;
+
+  // Enable hardware flow control
+  cfg.c_cflag |= CRTSCTS;
+
+  // Use raw input rather than canonical (line-oriented)
+  cfg.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+
+  // Disable software flow control
+  cfg.c_iflag &= ~(IXON | IXOFF | IXANY);
+
+  // Use raw output rather than processed (line-oriented)
+  cfg.c_oflag &= ~OPOST;
+
+  // Read one character at a time.  VTIME defaults to zero, so reads will
+  // block indefinitely.
+  cfg.c_cc[VMIN] = 1;
+
+  // Other "c" bits
+  //cfg.c_iflag |= IGNBRK; // Ignore break condition
+  cfg.c_iflag &= ~( IGNBRK | BRKINT | IGNPAR | PARMRK | INPCK | ISTRIP | INLCR | IGNCR | ICRNL | IUCLC );
+
+  // Other "l" bits
+  cfg.c_lflag &= ~IEXTEN;
+
+
+  // Old, bad code. Sort of works, but was using canonical mode, which
+  // we don't want.
+
+  //struct termios config;
+  //memset( &config, 0, sizeof(config) );
+  //config.c_cflag = B9600 | CRTSCTS  | CS8 | CLOCAL | CREAD;
+  //config.c_iflag = IGNPAR | ICRNL;
+  //config.c_oflag = 0;
+  //config.c_cc[VMIN] = 1;
+
+  tcflush( gFD, TCIFLUSH );
+
+  if (tcsetattr(gFD, TCSANOW, &cfg))
+    {
+      close(gFD);
+      /* TODO: throw an exception */
+      return NULL;
+    }
+
+  // tcflush( gFD, TCIFLUSH );
+  // tcsetattr( gFD, TCSANOW, &config );
 
 
   state = READING_HEADER;
