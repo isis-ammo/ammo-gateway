@@ -144,7 +144,7 @@ void SerialServiceHandler::receiveData() {
         switch ( state )
         {
         case 0:
-	  printf( "Waiting for magic.\n" ); fflush(stdout);
+	  // printf( "Waiting for magic.\n" ); fflush(stdout);
             c = read_a_char();
             if ( c == 0xef )
                 state = c;
@@ -177,13 +177,14 @@ void SerialServiceHandler::receiveData() {
                 }
 		phone_id = buf[3] & 0x3F;
 		size = *(short *)&buf[4];
-                printf( "Sender [%2d], Size [%3d], ", phone_id, size );
 
                 state = 2;
             }
             break;
 
         case 2:
+	    printf("SLOT[%2d],Len[%3d]: ", phone_id, size);
+
             for ( int i = 0; i < size; ++i )
             {
                 c = read_a_char();
@@ -199,7 +200,7 @@ void SerialServiceHandler::receiveData() {
 
 	      long ts = *(long *)&buf[8];
 	      long rts = tv.tv_sec*1000 + tv.tv_usec / 1000; 
-	      printf( " rTS(%ld), sTS(%ld)\n", rts, ts  );
+	      printf( " Tdt(%ld),Thh(%ld),Tdel(%8ld)\n", rts, ts, rts-ts  );
 	    }
 
 	    processData(&buf[16], size, *(short  *)&buf[6], 0); // process the message

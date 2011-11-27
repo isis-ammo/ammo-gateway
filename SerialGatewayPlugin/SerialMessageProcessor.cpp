@@ -63,7 +63,7 @@ bool SerialMessageProcessor::isClosed() {
 int SerialMessageProcessor::svc() {
   while(!isClosed()) {    
     ammo::protocol::MessageWrapper *msg = NULL;
-    
+
     do {
       msg = commsHandler->getNextReceivedMessage();
       if(msg) {
@@ -127,7 +127,7 @@ void SerialMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg)
     LOG_DEBUG((long) commsHandler << " Received Terse Message...");
     if(gatewayConnector != NULL) {
       ammo::protocol::TerseMessage dataMessage = msg.terse_message();
-      MessageScope scope = SCOPE_LOCAL;
+      MessageScope scope = SCOPE_GLOBAL;
       
       PushData pushData;
       switch( dataMessage.mime_type() ) {
@@ -300,21 +300,20 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse) {
       uint32_t nlen = ntohl ( *(uint32_t *)&(terse[cursor]) ); cursor += 4;
       LOG_INFO((long) this << std::hex << "PLI: l(" << lid << ") u(" << uid << ") un(" << unid << ") nl(" << nlen  << ")");
 
-      std::string name;
+      std::ostringstream oname;
       for (int i=0; i<nlen; i++) {
 	uint16_t uchar = ntohs( *(uint16_t *)&terse[cursor] ); cursor += 2;
-	name[i] = (uchar & 0xff);
+	oname << static_cast<uint8_t>(uchar & 0xff);
       }
       long long lat      = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
       long long lon      = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
       long long created  = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
       long long modified = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
-      LOG_INFO((long) this << std::hex <<   " PLI: u(" << uid << ") nl(" << nlen << ") lat(" << lat << ") lon(" << lon << ") creat(" << created << ")");
 
 
       // JSON
       // {\"lid\":\"0\",\"lon\":\"-74888318\",\"unitid\":\"1\",\"created\":\"1320329753964\",\"name\":\"ahammer\",\"userid\":\"731\",\"lat\":\"40187744\",\"modified\":\"0\"}
-      jsonStr << "{\"lid\":\"" << lid << "\",\"lon\":\"" << uid << "\",\"unitid\":\"" << unid << "\",\"name\":\"" << name
+      jsonStr << "{\"lid\":\"" << lid << "\",\"userid\":\"" << uid << "\",\"unitid\":\"" << unid << "\",\"name\":\"" << oname.str()
 	      << "\",\"lat\":\"" << lat << "\",\"lon\":\"" << lon << "\",\"created\":\"" << created << "\",\"modified\":\"" << modified
 	      << "\"}";
     }
@@ -323,6 +322,7 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse) {
   case 3:			// Dash-Event
     break;
   }
+  LOG_INFO((long) this << jsonStr.str() );
 
   return jsonStr.str();
 }

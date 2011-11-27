@@ -26,6 +26,8 @@ DataStoreDispatcher::dispatchPushData (sqlite3 *db,
                                        PushData &pd)
 {
 //  LOG_TRACE ("Received " << pd);
+  if (cfg_mgr_ == 0) cfg_mgr_ = DataStoreConfigManager::getInstance ();
+
   bool good_data_store = true;
   
   if (pd.mimeType == cfg_mgr_->getPrivateContactsMimeType ())

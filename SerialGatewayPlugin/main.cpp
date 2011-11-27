@@ -43,6 +43,13 @@ public:
 
 extern void testParseTerse();
 
+void *start_svc_handler( void *data ) {
+  LOG_DEBUG("Receiving message receiver - blocking call ");
+  SerialServiceHandler *svcHandler = static_cast<SerialServiceHandler *>(data);
+  svcHandler->receiveData();
+  return (void *)0;
+}
+
 int main(int argc, char **argv) {
   LOG_INFO("AMMO Serial Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   dropPrivileges();
@@ -78,11 +85,20 @@ int main(int argc, char **argv) {
       return 1;
     }
   }
-  
+
   LOG_DEBUG("Creating service handler which receives and routes to gateway via the GatewayConnector");
   SerialServiceHandler *svcHandler = new SerialServiceHandler();
   svcHandler->open( (void *)(androidAddress.c_str()) );
 
-  LOG_DEBUG("Receiving message receiver - blocking call ");
-  svcHandler->receiveData();
+  ACE_Thread::spawn( &start_svc_handler, (void *)svcHandler  );
+
+  //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
+  ACE_Reactor *reactor = ACE_Reactor::instance();
+  LOG_DEBUG("Starting event loop...");
+  reactor->run_reactor_event_loop();
+  LOG_DEBUG("Event loop terminated.");
+
+
 }
+
+
