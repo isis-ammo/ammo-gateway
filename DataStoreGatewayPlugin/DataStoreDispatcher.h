@@ -26,6 +26,8 @@ public:
                             ammo::gateway::GatewayConnector *sender,
                             ammo::gateway::PullRequest &pr);
                             
+  void set_cfg_mgr (DataStoreConfigManager *cfg_mgr);
+                            
 private:
   DataStoreConfigManager *cfg_mgr_;
 };

@@ -60,6 +60,8 @@ int main (int /* argc */, char ** /* argv */)
 	// in the constructor. This macro avoids the 'unused' warning.  
 	ACE_UNUSED_ARG (config);
 
+  // Make sure that the receiver and connector have been created and
+  // passed to the config manager before calling this method.
 	if (!receiver->init ())
 	  {
 	    // Error msg already output, just exit w/o starting reactor.

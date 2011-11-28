@@ -52,6 +52,11 @@ DataStoreReceiver::db_filepath (const std::string &path)
 bool
 DataStoreReceiver::init (void)
 {
+  // The config manager's receiver and connectro references have been set,
+  // so we can initialize the dispatcher's member with a call using the
+  // default null arguments.
+  dispatcher_.set_cfg_mgr (DataStoreConfigManager::get_instance ());
+
   if (!check_path ())
     {
       // check_path() will also output error info.

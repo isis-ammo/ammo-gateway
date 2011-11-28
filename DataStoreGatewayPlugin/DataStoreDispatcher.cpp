@@ -17,7 +17,7 @@
 using namespace ammo::gateway;
 
 DataStoreDispatcher::DataStoreDispatcher (void)
-  : cfg_mgr_ (DataStoreConfigManager::getInstance ())
+  : cfg_mgr_ (0)
 {
 }
 
@@ -26,8 +26,6 @@ DataStoreDispatcher::dispatchPushData (sqlite3 *db,
                                        PushData &pd)
 {
 //  LOG_TRACE ("Received " << pd);
-  if (cfg_mgr_ == 0) cfg_mgr_ = DataStoreConfigManager::getInstance ();
-
   bool good_data_store = true;
   
   if (pd.mimeType == cfg_mgr_->getPrivateContactsMimeType ())
@@ -87,4 +85,10 @@ DataStoreDispatcher::dispatchPullRequest (sqlite3 *db,
       ContactsQueryHandler handler (db, sender, pr);
       handler.handleQuery ();
     }
+}
+
+void
+DataStoreDispatcher::set_cfg_mgr (DataStoreConfigManager *cfg_mgr)
+{
+  cfg_mgr_ = cfg_mgr;
 }
