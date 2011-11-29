@@ -4,6 +4,7 @@
 
 #include "DataStoreReceiver.h"
 #include "DataStoreDispatcher.h"
+#include "DataStoreConfigManager.h"
 
 using namespace ammo::gateway;
 
@@ -55,7 +56,7 @@ DataStoreReceiver::init (void)
   // The config manager's receiver and connectro references have been set,
   // so we can initialize the dispatcher's member with a call using the
   // default null arguments.
-  dispatcher_.set_cfg_mgr (DataStoreConfigManager::get_instance ());
+  dispatcher_.set_cfg_mgr (DataStoreConfigManager::getInstance ());
 
   if (!check_path ())
     {
