@@ -25,7 +25,7 @@ messageProcessor(NULL),
 sendQueueMutex(), 
 receiveQueueMutex()
 {
-
+  
 }
 
 
@@ -35,11 +35,11 @@ int SerialServiceHandler::open(void *ptr)
   // Open the port
   gFD = ::open( (const char *)ptr, O_RDWR | O_NOCTTY );// | O_NONBLOCK );
   if ( gFD == -1 )
-    {
-      printf( "open %s: error: %s\n\n", (const char *)ptr, strerror(errno)  );
-      exit( -1 );
-    }
-
+  {
+    printf( "open %s: error: %s\n\n", (const char *)ptr, strerror(errno)  );
+    exit( -1 );
+  }
+  
   // Get the attributes for the port
   // struct termios config;
   // int result = tcgetattr( gFD, &config );
@@ -48,9 +48,9 @@ int SerialServiceHandler::open(void *ptr)
   //     perror( "tcgetattr" );
   //     exit( -1 );
   // }
-
+  
   // // Set baud rate and 8, NONE, 1
-
+  
   // // SETTING KEY:
   // // 1 -- ignore BREAK condition
   // // 2 -- map BREAK to SIGINTR
@@ -73,7 +73,7 @@ int SerialServiceHandler::open(void *ptr)
   // // 19-- character size mask
   // // 20-- 8 bits
   // // 21-- enable follwing output processing
-
+  
   // //		               1      2      3      4     5      6     7    8     9    10
   // config.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON|IXOFF|IXANY);
   // //                  11
@@ -85,95 +85,95 @@ int SerialServiceHandler::open(void *ptr)
   // config.c_cflag |= CS8;
   // //                   21
   // config.c_cflag |= CRTSCTS;
-
+  
   // config.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON|IXOFF|IXANY);
   // config.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
   // config.c_cflag &= ~(PARENB|CSTOPB|CSIZE);
   // config.c_cflag |= CS8;
-
+  
   // 	speed_t speed = B9600;
-
+  
   // cfsetispeed(&config, speed);
   // cfsetospeed(&config, speed);
-
+  
   // bzero(&config, sizeof(config) );
   // config.c_cflag = B9600 | CRTSCTS | CS8 | CLOCAL | CREAD;
   // config.c_iflag = IGNPAR | ICRNL;
   // config.c_oflag = 0;
   // //config.c_lflag = ICANON;
   // config.c_cc[VMIN] = 1;	// blocking read until 1 character arrives
-
+  
   struct termios cfg;
-
+  
   if (tcgetattr(gFD, &cfg))
-    {
-      close(gFD);
-      // TODO: throw an exception
-      return NULL;
-    }
-
+  {
+    close(gFD);
+    // TODO: throw an exception
+    return 0;
+  }
+  
   // Set baud rate
   cfsetispeed( &cfg, B9600 );
   cfsetospeed( &cfg, B9600 );
-
+  
   cfmakeraw( &cfg );
-
+  
   // Always set these
   cfg.c_cflag |= (CLOCAL | CREAD);
-
+  
   // Set 8, None, 1
   cfg.c_cflag &= ~PARENB;
   cfg.c_cflag &= ~CSTOPB;
   cfg.c_cflag &= ~CSIZE;
   cfg.c_cflag |= CS8;
-
+  
   // Enable hardware flow control
   cfg.c_cflag |= CRTSCTS;
-
+  
   // Use raw input rather than canonical (line-oriented)
   cfg.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-
+  
   // Disable software flow control
   cfg.c_iflag &= ~(IXON | IXOFF | IXANY);
-
+  
   // Use raw output rather than processed (line-oriented)
   cfg.c_oflag &= ~OPOST;
-
+  
   // Read one character at a time.  VTIME defaults to zero, so reads will
   // block indefinitely.
   cfg.c_cc[VMIN] = 1;
-
+  
   // Other "c" bits
   //cfg.c_iflag |= IGNBRK; // Ignore break condition
   cfg.c_iflag &= ~( IGNBRK | BRKINT | IGNPAR | PARMRK | INPCK | ISTRIP | INLCR | IGNCR | ICRNL | IUCLC );
-
+  
   // Other "l" bits
   cfg.c_lflag &= ~IEXTEN;
-
-
+  
+  
   // Old, bad code. Sort of works, but was using canonical mode, which
   // we don't want.
-
+  
   //struct termios config;
   //memset( &config, 0, sizeof(config) );
   //config.c_cflag = B9600 | CRTSCTS  | CS8 | CLOCAL | CREAD;
   //config.c_iflag = IGNPAR | ICRNL;
   //config.c_oflag = 0;
   //config.c_cc[VMIN] = 1;
-
+  
   tcflush( gFD, TCIFLUSH );
-
+  
   if (tcsetattr(gFD, TCSANOW, &cfg))
-    {
-      close(gFD);
-      /* TODO: throw an exception */
-      return NULL;
-    }
-
+  {
+    close(gFD);
+    /* TODO: throw an exception */
+    return 0;
+  }
+  
   // tcflush( gFD, TCIFLUSH );
   // tcsetattr( gFD, TCSANOW, &config );
-
-
+  
+  
   state = READING_HEADER;
   collectedData = NULL;
   position = 0;
@@ -199,115 +199,115 @@ int SerialServiceHandler::open(void *ptr)
 }
 
 void SerialServiceHandler::receiveData() {
-
-    char phone_id = 127;
-    short size = 0;
-    int state = 0;
-    unsigned char c = 0;
-    char buf[1024] = { '\0' };
-    struct timeval tv;
-
-    while ( true )
+  
+  char phone_id = 127;
+  short size = 0;
+  int state = 0;
+  unsigned char c = 0;
+  char buf[1024] = { '\0' };
+  struct timeval tv;
+  
+  while ( true )
+  {
+    switch ( state )
     {
-        switch ( state )
+    case 0:
+      // printf( "Waiting for magic.\n" ); fflush(stdout);
+      c = read_a_char();
+      if ( c == 0xef )
+        state = c;
+      break;
+      
+    case 0xef:
+      c = read_a_char();
+      if ( c == 0xbe || c == 0xef )
+        state = c;
+      else
+        state = 0;
+      break;
+      
+    case 0xbe:
+      c = read_a_char();
+      if ( c == 0xed )
+        state = 1;
+      else if ( c == 0xef )
+        state = c;
+      else
+        state = 0;
+      break;
+      
+    case 1:
+      {
+        for ( int i = 0; i < 13; ++i )
         {
-        case 0:
-	  // printf( "Waiting for magic.\n" ); fflush(stdout);
-            c = read_a_char();
-            if ( c == 0xef )
-                state = c;
-            break;
-
-        case 0xef:
-            c = read_a_char();
-            if ( c == 0xbe || c == 0xef )
-                state = c;
-            else
-                state = 0;
-            break;
-
-        case 0xbe:
-            c = read_a_char();
-            if ( c == 0xed )
-                state = 1;
-            else if ( c == 0xef )
-                state = c;
-            else
-                state = 0;
-            break;
-
-        case 1:
-            {
-                for ( int i = 0; i < 13; ++i )
-                {
-                    c = read_a_char();
-                    buf[i+3] = c;
-                }
-		phone_id = buf[3] & 0x3F;
-		size = *(short *)&buf[4];
-
-                state = 2;
-            }
-            break;
-
-        case 2:
+          c = read_a_char();
+          buf[i+3] = c;
+        }
+        phone_id = buf[3] & 0x3F;
+        size = *(short *)&buf[4];
+        
+        state = 2;
+      }
+      break;
+      
+    case 2:
 	    printf("SLOT[%2d],Len[%3d]: ", phone_id, size);
-
-            for ( int i = 0; i < size; ++i )
-            {
-                c = read_a_char();
-		buf[i+16] = c;
-            }
+	    
+	    for ( int i = 0; i < size; ++i )
+	    {
+	      c = read_a_char();
+	      buf[i+16] = c;
+	    }
 	    {
 	      int result = gettimeofday( &tv, NULL );
 	      if ( result == -1 )
-                {
-		  printf( "gettimeofday() failed\n" );
-		  break;
-                }
-
+	      {
+	        printf( "gettimeofday() failed\n" );
+	        break;
+	      }
+	      
 	      long ts = *(long *)&buf[8];
 	      long rts = tv.tv_sec*1000 + tv.tv_usec / 1000; 
 	      printf( " Tdt(%ld),Thh(%ld),Tdel(%8ld)\n", rts, ts, rts-ts  );
 	    }
-
+	    
 	    processData(&buf[16], size, *(short  *)&buf[6], 0); // process the message
-            state = 0;
-            break;
-
-        default:
-            printf( "Something f-ed up.\n" );
-        }
-    }
-
-
+	    state = 0;
+	    break;
+	    
+	  default:
+	    printf( "Something f-ed up.\n" );
+	  }
+	}
+	
+	
 }
 
 
 unsigned char SerialServiceHandler::read_a_char()
 {
-    unsigned char temp;
-
-    while ( true )
+  unsigned char temp;
+  
+  while ( true )
+  {
+    // printf( "about to read()..." );
+    ssize_t count = read( gFD, &temp, 1 );
+    if ( count == -1 )
     {
-        // printf( "about to read()..." );
-        ssize_t count = read( gFD, &temp, 1 );
-        if ( count == -1 )
-        {
-            perror( "read" );
-            exit( -1 );
-        }
-        else if ( count >= 1 )
-        {
-            break;
-        }
-	else if ( count == 0 )
-	{
-            perror( "read count 0" );
-            exit( -1 );
-	}
+      perror( "read" );
+      exit( -1 );
     }
-    return temp;
+    else if ( count >= 1 )
+    {
+      break;
+    }
+    else if ( count == 0 )
+    {
+      perror( "read count 0" );
+      exit( -1 );
+    }
+  }
+  return temp;
 }
 
 
@@ -343,6 +343,7 @@ void SerialServiceHandler::sendErrorPacket(char errorCode) {
 
 ammo::protocol::MessageWrapper *SerialServiceHandler::getNextMessageToSend() {
   ammo::protocol::MessageWrapper *msg = NULL;
+  return msg;
 }
 
 ammo::protocol::MessageWrapper *SerialServiceHandler::getNextReceivedMessage() {

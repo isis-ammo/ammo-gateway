@@ -284,46 +284,46 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse) {
   switch(mt) {
   case 2:			// PLI
     /*
-      LID -- Java Long (8)
-      UserId - Java Long (8)
-      UnitId - Java Long (8)
-      Name - Text : Int (4), Unicode Char (2 per)
-      Lat - Java Long (8)
-      Lon - Java Long (8)
-      Created - Java Long (8)
-      Modified - Java Long (8)
-     */
+    LID -- Java Long (8)
+    UserId - Java Long (8)
+    UnitId - Java Long (8)
+    Name - Text : Int (4), Unicode Char (2 per)
+    Lat - Java Long (8)
+    Lon - Java Long (8)
+    Created - Java Long (8)
+    Modified - Java Long (8)
+    */
     {
       uint64_t lid  = ntohll( *(uint64_t *)&(terse[cursor]) ); cursor += 8;
       uint64_t uid  = ntohll( *(uint64_t *)&(terse[cursor]) ); cursor += 8;
       uint64_t unid = ntohll( *(uint64_t *)&(terse[cursor]) ); cursor += 8;
       uint32_t nlen = ntohl ( *(uint32_t *)&(terse[cursor]) ); cursor += 4;
       LOG_INFO((long) this << std::hex << "PLI: l(" << lid << ") u(" << uid << ") un(" << unid << ") nl(" << nlen  << ")");
-
+      
       std::ostringstream oname;
-      for (int i=0; i<nlen; i++) {
-	uint16_t uchar = ntohs( *(uint16_t *)&terse[cursor] ); cursor += 2;
-	oname << static_cast<uint8_t>(uchar & 0xff);
+      for (uint32_t i=0; i<nlen; i++) {
+        uint16_t uchar = ntohs( *(uint16_t *)&terse[cursor] ); cursor += 2;
+        oname << static_cast<uint8_t>(uchar & 0xff);
       }
       long long lat      = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
       long long lon      = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
       long long created  = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
       long long modified = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
-
-
+      
+      
       // JSON
       // {\"lid\":\"0\",\"lon\":\"-74888318\",\"unitid\":\"1\",\"created\":\"1320329753964\",\"name\":\"ahammer\",\"userid\":\"731\",\"lat\":\"40187744\",\"modified\":\"0\"}
       jsonStr << "{\"lid\":\"" << lid << "\",\"userid\":\"" << uid << "\",\"unitid\":\"" << unid << "\",\"name\":\"" << oname.str()
-	      << "\",\"lat\":\"" << lat << "\",\"lon\":\"" << lon << "\",\"created\":\"" << created << "\",\"modified\":\"" << modified
-	      << "\"}";
+        << "\",\"lat\":\"" << lat << "\",\"lon\":\"" << lon << "\",\"created\":\"" << created << "\",\"modified\":\"" << modified
+        << "\"}";
     }
-
+    
     break;
   case 3:			// Dash-Event
     break;
   }
   LOG_INFO((long) this << jsonStr.str() );
-
+  
   return jsonStr.str();
 }
 
@@ -351,7 +351,7 @@ void testParseTerse() {
     0x43218765,
     0x87654321
   };
-
+  
   char terseBe[]={
     0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0x12,
@@ -364,11 +364,11 @@ void testParseTerse() {
     0,0,0,0,0x87,0x65,0x43,0x21
   };
   const char *tds = (const char *)&td;
-  for (int i=0; i<sizeof(td); i++) {
+  for (size_t i=0; i<sizeof(td); i++) {
     std::cout << std::hex << (static_cast<int>(tds[i]) & 0xff);
   }
   std::cout << std::endl;
-
+  
   test.parseTerseData(2, (const char *)&td);
   test.parseTerseData(2, (const char *)&terseBe[0]);
 }
