@@ -2,6 +2,8 @@
 #include <string>
 #include <queue>
 
+#include <dns_sd.h>
+
 #include "ace/INET_Addr.h"
 #include "ace/SOCK_Connector.h"
 #include "ace/SOCK_Stream.h"
@@ -37,6 +39,47 @@ public:
     return 0;
   }
 };
+
+/**
+* Dependency:  libavahi-compat-libdnssd-dev
+*/
+void cb(DNSServiceRef sdRef,
+        DNSServiceFlags flags,
+        DNSServiceErrorType errorCode,
+        const char *serviceName,
+        const char *regtype,
+        const char *replyDomain,
+        void *context) {
+  printf("called!\n");
+}
+
+void registerMdnsService(DNSServiceRef &sdRef, uint16_t portNumber) {
+  LOG_DEBUG("Registering service with MDNS responder...");
+  DNSServiceRegister(&sdRef,               //sdRef (an *uninitialized* DNSServiceRef instance)
+                     0,                   //flags (0 uses default name conflict behavior--  add a number to end of name)
+                     0,                   //interfaceIndex (0 accepts default)
+                     NULL,                //name (NULL uses computer name)
+                     "_ammogateway._tcp", //regtype (_servicename._transport
+                     NULL,                //domain (NULL uses default domain)
+                     NULL,                //host (NULL uses default name)
+                     htons(portNumber),   //port (port number we're listening on, in network order
+                     0,                   //txtLen (length of txt record: must be zero if txtRecord is null)
+                     0,                   //txtRecord (NULL or properly formatted DNS txt record)
+                     cb,                  //DNSSServiceRegisterReply callBack (function to be called on success or failure)
+                     0);                  //context (application context pointer to be passed to callback function)
+  LOG_DEBUG("Waiting for response from MDNS responder...");
+  DNSServiceErrorType error = DNSServiceProcessResult(sdRef);
+  if(error == kDNSServiceErr_NoError) {
+    LOG_INFO("Successfully registered service.");
+  } else {
+    LOG_ERROR("DNS-SD service registration failed...  error " << error);
+  }
+}
+
+void unregisterMdnsService(DNSServiceRef &sdRef) {
+  LOG_DEBUG("Destroying DNS service reference...")
+  DNSServiceRefDeallocate(sdRef);
+}
 
 int main(int argc, char **argv) {
   LOG_INFO("AMMO Android Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
@@ -96,6 +139,9 @@ int main(int argc, char **argv) {
   
   LOG_INFO("Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr());
   
+  DNSServiceRef sdRef;
+  registerMdnsService(sdRef, serverAddress.get_port_number());
+  
   //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor
   //for accept events
   ACE_Acceptor<AndroidServiceHandler, ACE_SOCK_Acceptor> acceptor(serverAddress);
@@ -105,4 +151,5 @@ int main(int argc, char **argv) {
   LOG_DEBUG("Starting event loop...");
   reactor->run_reactor_event_loop();
   LOG_DEBUG("Event loop terminated.");
+  unregisterMdnsService(sdRef);
 }

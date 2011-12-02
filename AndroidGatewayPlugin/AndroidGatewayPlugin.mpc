@@ -3,6 +3,14 @@ project(AndroidGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
 
   exename=AndroidGatewayPlugin
   
+  libs += dns_sd
+  
+  // Paths to SQLite lib for 32- and 64-bit machines.
+  specific(prop:make) {
+    libpaths += /usr/lib/i386-linux-gnu \
+                /usr/lib/x86_64-linux-gnu
+  }
+  
   specific(prop:windows) {
     macros += JSON_DLL
   }
