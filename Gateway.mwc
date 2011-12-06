@@ -1,4 +1,5 @@
 workspace(AndroidGatewayPlugin) {
+  LDAPPlugin/
   LibGatewayConnector/
   LibJSON/
   GatewayCore/
@@ -8,7 +9,6 @@ workspace(AndroidGatewayPlugin) {
     SamplePushReceiverGatewayPlugin/
     SamplePushTestDriverPlugin/
     DataStoreGatewayPlugin/
-    LDAPPlugin/
     SpotPushReceiverGatewayPlugin/
     AtsGatewayPlugin/
     PassGatewayPlugin/

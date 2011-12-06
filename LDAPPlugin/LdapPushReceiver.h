@@ -5,7 +5,15 @@
 #include <ctime>
 #include <vector>
 
-#include <ldap.h>
+#ifdef OPENLDAP
+  #include <ldap.h>
+  typedef timeval ldap_timeval;
+#elif WINLDAP
+  #include <winldap.h>
+  typedef l_timeval ldap_timeval;
+#else
+  #error "You must define your LDAP type."
+#endif
 
 #include "json/json.h"
 

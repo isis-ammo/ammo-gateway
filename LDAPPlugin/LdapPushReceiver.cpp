@@ -9,7 +9,7 @@
 #include <sstream>
 #include <algorithm>
 
-#include <ldap.h>
+#include <winldap.h>
 #include "decode.h"
 #include <fstream>
 
@@ -33,18 +33,32 @@ using namespace ammo::gateway;
 //============================================================
 LdapPushReceiver::LdapPushReceiver() : ldapServer(0)
 {
+  int ret = 0;
   LdapConfigurationManager *config = LdapConfigurationManager::getInstance();
 
   string ldapAddress = config->getLdapBaseAddress();
   cout << "Attempting Connection to LDAP Server @:" << ldapAddress << endl;
 
-  int ret = ldap_initialize( &ldapServer, ldapAddress.c_str() );
-
+#ifdef OPENLDAP
+  ret = ldap_initialize( &ldapServer, ldapAddress.c_str() );
+  
   if (ret != LDAP_SUCCESS)
     {
       cout << "Error Initializing LDAP Library: " << ldap_err2string(ret) << endl;
       return;
     }
+#elif WINLDAP
+  // TODO: fix where the host:port come from
+  this->ldapServer = ldap_init("129.59.129.189", 389);
+  if (!this->ldapServer)
+    {
+	  cout << "Error Initializing LDAP Library: " << ldap_err2string(LdapGetLastError()) << endl;
+	  return;
+    }
+#else
+  #error "You must define your LDAP type."
+#endif
+  cout << "Succeeded Initializing LDAP Library" << endl;
 
   int version = LDAP_VERSION3;
   ldap_set_option(ldapServer, LDAP_OPT_PROTOCOL_VERSION, &version);
@@ -59,13 +73,9 @@ LdapPushReceiver::LdapPushReceiver() : ldapServer(0)
   creds.bv_val = strdup( passwd.c_str() );
   creds.bv_len = passwd.length();
 
-  ret = ldap_sasl_bind_s( ldapServer,
-                          basedn.c_str(),
-                          LDAP_SASL_SIMPLE, // simple authentication
-                          &creds,
-                          &serverctrls,
-                          &clientctrls,
-                          &servercredp);
+  ret = ldap_simple_bind_s( ldapServer,
+	                        (char*) basedn.c_str(),
+							(char*) passwd.c_str());
 
   if (ret != LDAP_SUCCESS)
     {
@@ -221,7 +231,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   filter += " )";
 
   //changed the timeout to 5 sec from 1 ... since jpeg files are taking long
-  struct timeval timeout = { 5, 0 };
+  ldap_timeval timeout = { 5, 0 };
 
   LDAPControl *serverctrls = NULL, *clientctrls = NULL;
   char *attrs[] = { const_cast<char *>("*"), NULL };
@@ -231,7 +241,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   int ret = ldap_search_ext_s(ldapServer,
                               "dc=ammo,dc=tdm", /* LDAP search base dn (distinguished name) */
                               LDAP_SCOPE_SUBTREE, /* scope - root and all descendants */
-                              filter.c_str(), /* filter - query expression */
+                              (char*) filter.c_str(), /* filter - query expression */
                               attrs, /* requested attributes (white-space seperated list, * = ALL) */
                               0, /* attrsonly - if we only want to get attribut types */
                               &serverctrls,
