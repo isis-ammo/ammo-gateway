@@ -1,6 +1,8 @@
 from ammo import AndroidConnector
 from ammo import AmmoMessages_pb2
 
+import AvahiBrowser
+
 import uuid
 import sys
 import time
@@ -27,6 +29,9 @@ if __name__ == "__main__":
   print "Android Gateway Tester"
   
   parser = optparse.OptionParser()
+  parser.add_option("-d", "--discover", dest="discover", action="store_true",
+                    help="Discover available gateways using Avahi",
+                    default=False)
   parser.add_option("-g", "--gateway", dest="gateway",
                     help="Gateway to connect to (default %default)",
                     default="127.0.0.1")
@@ -48,10 +53,16 @@ if __name__ == "__main__":
     print "scope must be one of: local global"
     exit(-1)
   
+  gateway = options.gateway
+  gatewayPort = options.port  
+  if options.discover == True:
+    browser = AvahiBrowser.AvahiBrowser()
+    (gateway, gatewayPort) = browser.searchForServices()
+  
   deviceName = "device:test/" + uuid.uuid1().hex
   userName = "user:test/" + uuid.uuid1().hex
   
-  connector = AndroidConnector.AndroidConnector(options.gateway, options.port, deviceName, userName, "")
+  connector = AndroidConnector.AndroidConnector(gateway, gatewayPort, deviceName, userName, "")
   connector.setMessageQueueEnabled(False)
   connector.registerMessageCallback(onDataReceived)
   
