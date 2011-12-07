@@ -1,0 +1,28 @@
+project(GatewayConfigurator) : qt4_core, qt4_gui, gatewaycommon {
+  after+=LibJSON
+
+  exename=GatewayConfigurator
+  
+  includes += $(GATEWAY_ROOT)/LibJSON
+  
+  libpaths += $(GATEWAY_ROOT)/build/lib
+  libs += json
+  
+  specific(prop:windows) {
+    macros += JSON_DLL_BUILD
+  }
+  
+  UIC_Files {
+    mainwindow.ui
+  }
+  
+  MOC_Files {
+    mainwindow.h
+  }
+  
+  Source_Files {
+    main.cpp
+    mainwindow.cpp
+    mainwindow_moc.cpp
+  }
+}

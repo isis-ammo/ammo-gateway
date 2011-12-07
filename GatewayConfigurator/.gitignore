@@ -1,0 +1,9 @@
+Makefile*
+*.o
+.depend*
+ui_*.h
+*_moc.cpp
+*.pro.user
+GatewayConfigurator
+GatewayConfigurator.exe
+Debug\
