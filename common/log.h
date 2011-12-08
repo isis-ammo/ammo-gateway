@@ -2,8 +2,8 @@
 #define LOG_H
 
 #include <iostream>
-#include "ace/Time_Value.h"
-#include "ace/OS_NS_time.h"
+#include <ace/Time_Value.h>
+#include <ace/OS_NS_time.h>
 
 #define __PRIVATE_AMMO_LOG(msg) { \
 ACE_Time_Value __ammo_current_time = ACE_OS::gettimeofday(); \

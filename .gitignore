@@ -7,6 +7,11 @@ bin/
 *.pdb
 *.vcproj
 *.vcproj.*
+*.vcxproj
+*.vcxproj.*
+*.opensdf
+*.sdf
+ipch/
 Makefile*
 GNUmakefile*
 .build-version

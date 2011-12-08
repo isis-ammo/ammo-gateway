@@ -10,11 +10,7 @@ project {
   includes += $(PROTOBUF_ROOT)/include
   libpaths += $(PROTOBUF_ROOT)/lib
   
-  specific(prop:windows) {
-    lit_libs += libprotobuf //libs += protobuf on Windows tries to link against protobufd.lib, which is the wrong name
-  } else {
-    libs += protobuf
-  }
+  libs += protobuf
   
   //We expect $PROTOBUF_ROOT to be defined, but just in case it isn't,
   //we default to /usr/ (this funkiness here is to keep it from defaulting to /,

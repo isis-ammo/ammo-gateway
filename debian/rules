@@ -19,6 +19,10 @@ Makefile: Gateway.mwc
 override_dh_auto_build: Makefile
 	dh_auto_build
 
+override_db_auto_install: Makefile
+	dh_auto_install
+	rm $(DESTDIR)/etc/init.d/ammo-gateway
+
 #.PHONY: clean
 #clean: Makefile
 override_dh_auto_clean: Makefile

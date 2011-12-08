@@ -22,7 +22,7 @@ int spot_id = 1000;
 using namespace std;
 using namespace ammo::gateway;
 
-const string BSO_MIME_TYPE = "application/vnd.edu.vu.isis.ammo.battlespace.gcm";
+const string BSO_MIME_TYPE = "ammo/edu.vu.isis.ammo.battlespace.gcm";
 
 void SpotPushReceiver::onConnect(GatewayConnector *sender) {
   
@@ -104,7 +104,7 @@ void SpotPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gatewa
      std::cout << " Convert MGRS: "<< sr.location_utm << " to " << cLat << ", " << cLon << std::endl; 
 
 
-     std::string bsomimeType ="application/vnd.edu.vu.isis.ammo.battlespace.gcm";
+     std::string bsomimeType ="ammo/edu.vu.isis.ammo.battlespace.gcm";
      
      spot_id++; 
 
@@ -180,7 +180,7 @@ void SpotPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gatewa
      }
 
     // "uuid"  "sidc"; "title" "description";"longitude" "latitude"; "speed""heading";"created_date" "modified_date" "function"; "gcm_type" "standard_id" "exercise" "battle_dimension" "reality"  "echelon" "_disp"
-    // "application/vnd.edu.vu.isis.ammo.battlespace.equipment""
+    // "ammo/edu.vu.isis.ammo.battlespace.equipment""
 
 } 
 
