@@ -7,6 +7,9 @@
 #include <iostream>
 #include <fstream>
 
+#include <ace/OS_NS_sys_stat.h>
+#include <ace/OS_NS_sys_time.h>
+
 #include "log.h"
 
 using namespace std;

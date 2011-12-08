@@ -1,5 +1,8 @@
 #include <sqlite3.h>
 
+#include <ace/OS_NS_unistd.h>
+#include <ace/OS_NS_sys_stat.h>
+
 #include "log.h"
 
 #include "DataStoreReceiver.h"
