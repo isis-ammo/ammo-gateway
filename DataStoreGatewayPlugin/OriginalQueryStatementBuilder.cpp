@@ -1,5 +1,8 @@
 #include <sqlite3.h>
 
+#include "ace/Connector.h"
+#include "ace/SOCK_Connector.h"
+
 #include "log.h"
 
 #include "OriginalQueryStatementBuilder.h"
