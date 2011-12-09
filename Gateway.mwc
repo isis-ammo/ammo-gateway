@@ -1,4 +1,5 @@
 workspace(AndroidGatewayPlugin) {
+  LDAPPlugin/
   LibGatewayConnector/
   LibJSON/
   GatewayCore/
