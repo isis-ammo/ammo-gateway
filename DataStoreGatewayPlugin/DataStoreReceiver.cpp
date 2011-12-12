@@ -55,11 +55,19 @@ DataStoreReceiver::db_filepath (const std::string &path)
 bool
 DataStoreReceiver::init (void)
 {
+  dispatcher_.init ();
+
   if (!check_path ())
     {
       // check_path() will also output error info.
       LOG_ERROR ("DataStoreReceiver::init() failed");
       return false;
+    }
+    
+  // Make sure it ends with a slash so we can just append the db filename.  
+  if (db_filepath_[db_filepath_.size () - 1] != ACE_DIRECTORY_SEPARATOR_CHAR)
+    {
+      db_filepath_ += ACE_DIRECTORY_SEPARATOR_CHAR;
     }
     
   std::string fullpath (db_filepath_);
@@ -112,7 +120,7 @@ DataStoreReceiver::check_path (void)
   
   while (std::string::npos != pos || std::string::npos != lastPos)
     {
-      //LOG_DEBUG ("segment: " << seg);
+//      LOG_DEBUG ("segment: " << seg);
       int result = 0;
       
       switch (db_filepath_[0])
@@ -163,12 +171,6 @@ DataStoreReceiver::check_path (void)
                      << seg);
           return false;
         }
-    }
-    
-  // Make sure it ends with a slash so we can just append the db filename.  
-  if (db_filepath_[db_filepath_.size () - 1] != delimiter)
-    {
-      db_filepath_ += delimiter;
     }
     
   return true;

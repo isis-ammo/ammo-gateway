@@ -17,8 +17,14 @@
 using namespace ammo::gateway;
 
 DataStoreDispatcher::DataStoreDispatcher (void)
-  : cfg_mgr_ (DataStoreConfigManager::getInstance ())
+  : cfg_mgr_ (0)
 {
+}
+
+void
+DataStoreDispatcher::init (void)
+{
+  cfg_mgr_ = DataStoreConfigManager::getInstance ();
 }
 
 void

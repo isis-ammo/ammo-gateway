@@ -19,6 +19,8 @@ class DataStoreDispatcher
 public:
   DataStoreDispatcher (void);
   
+  void init (void);
+  
   void dispatchPushData (sqlite3 *db,
                          ammo::gateway::PushData &pd);
                        

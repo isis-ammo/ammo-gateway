@@ -54,7 +54,7 @@ int main (int /* argc */, char ** /* argv */)
   GatewayConnector *gatewayConnector = new GatewayConnector (receiver);
 
   DataStoreConfigManager *config =
-	  DataStoreConfigManager::getInstance (receiver, gatewayConnector);
+	  DataStoreConfigManager::create (receiver, gatewayConnector);
 	  
 	// Nothing further is done with 'config' since everything happens
 	// in the constructor. This macro avoids the 'unused' warning.  
@@ -106,7 +106,7 @@ int main (int /* argc */, char ** /* argv */)
   // have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance ();
   LOG_DEBUG ("Starting event loop...");
-  reactor->run_reactor_event_loop ();
+//  reactor->run_reactor_event_loop ();
 
   return 0;
 }
