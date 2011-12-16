@@ -1,3 +1,4 @@
+#include "ace/Select_Reactor.h"
 #include "ace/Reactor.h"
 #include "ace/OS_NS_unistd.h" 
 #include "ace/Signal.h" 
@@ -42,6 +43,13 @@ int main (int /* argc */, char ** /* argv */)
             << ")");
   
   dropPrivileges();
+  
+  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
+  //to the WFMO reactor, which has radically different semantics and
+  //violates assumptions we made in our code
+  ACE_Select_Reactor selectReactor;
+  ACE_Reactor newReactor(&selectReactor);
+  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(&newReactor));
   
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);

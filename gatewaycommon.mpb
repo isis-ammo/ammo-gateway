@@ -9,6 +9,12 @@ project : gatewayversion {
     CPPFLAGS+=-O0 -g -Wall
   }
   
+  // Paths to SQLite lib for 32- and 64-bit machines.
+  specific(prop:make) {
+    libpaths += /usr/lib/i386-linux-gnu \
+                /usr/lib/x86_64-linux-gnu
+  }
+  
   //Disable -Wunused-parameter and -Wno-type-limits.  -Wno-type-limits is only
   //available on GCC 4.3 and newer, so we need to check for that conditionally
   verbatim(gnuace, bottom) {
