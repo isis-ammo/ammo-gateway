@@ -1,5 +1,7 @@
 #include <sqlite3.h>
 
+#include <ace/OS_NS_sys_time.h>
+
 #include "log.h"
 
 #include "OriginalQueryStatementBuilder.h"
