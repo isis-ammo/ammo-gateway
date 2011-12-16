@@ -49,6 +49,8 @@ public:
 	
   typedef std::vector<DataStore_API *> OBJ_LIST;
   typedef std::map<std::string, OBJ_LIST> OBJ_MAP;
+  
+  OBJ_MAP const &obj_map (void) const;
 	
 private:
   DataStoreConfigManager (

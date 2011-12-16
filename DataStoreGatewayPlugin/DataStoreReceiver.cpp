@@ -33,10 +33,10 @@ DataStoreReceiver::onDisconnect (GatewayConnector * /* sender */)
 }
 
 void
-DataStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
+DataStoreReceiver::onPushDataReceived (GatewayConnector *sender,
                                        PushData &pushData)
 {
-  dispatcher_.dispatchPushData (db_, pushData);
+  dispatcher_.dispatchPushData (db_, sender, pushData);
 }
 
 void
@@ -108,7 +108,7 @@ DataStoreReceiver::init (void)
 bool
 DataStoreReceiver::check_path (void)
 {
-  char delimiter = '/';
+  const char delimiter = ACE_DIRECTORY_SEPARATOR_CHAR;
   
   std::string::size_type lastPos =
     db_filepath_.find_first_not_of (delimiter, 0);
@@ -125,10 +125,10 @@ DataStoreReceiver::check_path (void)
       
       switch (db_filepath_[0])
         {
-          case '/':
+          case delimiter:
             result =
               ACE_OS::chdir (top_level
-                             ? (std::string ("/") + seg).c_str ()
+                             ? (std::string (1, delimiter).append (seg)).c_str ()
                              : seg.c_str ());
             break;
           case '$':

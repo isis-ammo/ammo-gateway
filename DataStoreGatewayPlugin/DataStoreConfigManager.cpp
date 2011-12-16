@@ -117,32 +117,37 @@ DataStoreConfigManager::DataStoreConfigManager (
               if (! root_["DataStoreLibs"].empty ()
                   && root_["DataStoreLibs"].isObject ())
                 {
-                  Json::ValueIterator i = root_["DataStoreLibs"].begin ();
-                  
-                  if (i.key ().isString ())
+                  for (Json::ValueIterator i = root_["DataStoreLibs"].begin ();
+                       i != root_["DataStoreLibs"].end ();
+                       ++i)
                     {
-                      string lib_name (i.key ().asString ());
-                      DataStore_API *obj = this->createObj (lib_name);
-                      
-                      if ((*i).isArray ())
+                      if (i.key ().isString ())
                         {
-                          for (Json::ValueIterator j = (*i).begin ();j != (*i).end (); ++j)
+                          string lib_path (i.key ().asString ());
+                          DataStore_API *obj = this->createObj (lib_path);
+                          
+                          if ((*i).isArray ())
                             {
-                              LOG_DEBUG ("Associating object of " << lib_name
-                                         << " with \"" << (*j).asString () << "\"");
-                              this->mapObj (obj, (*j).asString ());
+                              for (Json::ValueIterator j = (*i).begin ();
+                                   j != (*i).end ();
+                                   ++j)
+                                {
+                                  LOG_DEBUG ("Associating object of " << lib_path
+                                             << " with \"" << (*j).asString () << "\"");
+                                  this->mapObj (obj, (*j).asString ());
+                                }
+                            }
+                          else
+                            {
+                              LOG_ERROR ("User lib associated mime types string "
+                                         "array is malformed in config file");
                             }
                         }
                       else
                         {
-                          LOG_ERROR ("User lib associated mime types string "
-                                     "array is malformed in config file");
+                          LOG_ERROR ("User lib JSON string is malformed "
+                                     "in config file");
                         }
-                    }
-                  else
-                    {
-                      LOG_ERROR ("User lib JSON string is malformed "
-                                 "in config file");
                     }
                 }
               else
@@ -282,6 +287,12 @@ DataStoreConfigManager::setPrivateContactsMimeType (const std::string &val)
   private_contacts_mime_type_ = val;
 }
 
+DataStoreConfigManager::OBJ_MAP const &
+DataStoreConfigManager::obj_map (void) const
+{
+  return this->obj_map_;
+}
+
 string
 DataStoreConfigManager::findConfigFile (void)
 {
@@ -331,31 +342,62 @@ DataStoreConfigManager::findConfigFile (void)
 }
 
 DataStore_API *
-DataStoreConfigManager::createObj (const std::string &lib_name)
+DataStoreConfigManager::createObj (const std::string &lib_path)
 {
-  // Portable way of constructing a DLL filename.
-  std::string dll_file (OBJ_PREFIX);
-  dll_file += lib_name.c_str ();
-  dll_file += OBJ_SUFFIX;
+  char delimiter = ACE_DIRECTORY_SEPARATOR_CHAR;
+  std::string full_path (lib_path);
+  
+  // If the path has an environment variable, expand it first.
+  if (lib_path[0] == '$')
+    {
+      char *expanded = ACE_OS::strenvdup (lib_path.c_str ());
+      full_path = expanded;
+      delete expanded;
+      expanded = 0;
+    }
+    
+  std::string::size_type pos = full_path.find_last_of (delimiter);
+  std::string full_name, local_name;
+  full_name.reserve (MAXPATHLEN);
+  
+  if (pos != std::string::npos)
+    {
+      full_name.append (full_path.substr (0, pos));
+      full_name.append (1, delimiter);
+      local_name = full_path.substr (pos + 1);
+    }
+  else
+    {
+      local_name = full_path;
+    }
+    
+  // Make the DLL filename portable.
+  full_name.append (OBJ_PREFIX);
+  full_name.append (local_name);
+  full_name.append (OBJ_SUFFIX);
   
   ACE_DLL dll;
-  int retval = dll.open (dll_file.c_str ());
+  int retval = dll.open (full_name.c_str ());
 
   if (retval != 0)
     {
       char *dll_error = dll.error ();
       LOG_ERROR ("Error in DLL Open of "
-                  << dll_file.c_str ()
+                  << full_name
                   << ": "
                   << (dll_error != 0 ? dll_error : "unknown error"));
                   
       return 0;
     }
+  else
+    {
+      LOG_DEBUG ("DLL " << full_name << " opened successfully");
+    }
 
   // We require that the factory function name have this simple
   // relationship to the lib name.
   std::string symbol_str ("create_");
-  symbol_str += lib_name;
+  symbol_str.append (local_name);
   void *vtmp = dll.symbol (symbol_str.c_str ());
 
   // ANSI C++ says you can't cast a void* to a function pointer.
@@ -379,7 +421,8 @@ DataStoreConfigManager::createObj (const std::string &lib_name)
 }
 
 void
-DataStoreConfigManager::mapObj (DataStore_API *obj, const std::string &mime_type)
+DataStoreConfigManager::mapObj (DataStore_API *obj,
+                                const std::string &mime_type)
 {
   OBJ_MAP::iterator i = obj_map_.find (mime_type);
 

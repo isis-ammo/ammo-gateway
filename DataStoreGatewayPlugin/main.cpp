@@ -67,11 +67,11 @@ int main (int /* argc */, char ** /* argv */)
 	  }
 	  
 //====================================
-/*
-  std::string mime_t ("ammo/edu.vu.isis.ammo.private_contacts");
+
+  std::string mime_t ("ammo/edu.vu.isis.ammo.dash.media");
   std::string orig_user ("kyle.anderson");
   std::string uri ("kokomo");
-  std::string data ("{\"first_name\":\"Jimmy\",\"middle_initial\":\"I\",\"last_name\":\"Bork\",\"rank\":\"sgt\",\"call_sign\":\"\",\"branch\":\"\",\"unit\":\"\",\"email\":\"\",\"phone\":\"\"}");
+  std::string data ("{\"eventId\":\"Christmas\",\"dataType\":\"giftList\",\"data\":\"pony\",\"createdDate\":1300000000,\"modifiedDate\":1300000000}");
   
   ammo::gateway::PushData pd;
   pd.mimeType = mime_t;
@@ -84,7 +84,7 @@ int main (int /* argc */, char ** /* argv */)
 
   std::string requestUid ("requestUid");
   std::string pluginId ("pluginId");
-  std::string query ("kyle.anderson,kokomo,Jimmy,,,,,,,,");
+  std::string query ("kokomo,kyle.anderson,0,1300000000,kyle.anderson");
   std::string projection ("");
   
   ammo::gateway::PullRequest pr;
@@ -101,12 +101,13 @@ int main (int /* argc */, char ** /* argv */)
 
   delete receiver;
 //===================================
-*/
+
   // Get the process-wide ACE_Reactor (the one the acceptor should
   // have registered with)
+  /*
   ACE_Reactor *reactor = ACE_Reactor::instance ();
   LOG_DEBUG ("Starting event loop...");
-//  reactor->run_reactor_event_loop ();
-
+  reactor->run_reactor_event_loop ();
+*/
   return 0;
 }
