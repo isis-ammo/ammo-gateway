@@ -3,6 +3,7 @@
 
 #include "log.h"
 #include <stdint.h>
+#include <iostream>
 #include <sstream>
 
 #define ntohll(x) ( ( (int64_t)  (ntohl((int)((x << 32) >> 32))) << 32) | (uint32_t)ntohl(((int)(x >> 32)))  ) //By Runner
