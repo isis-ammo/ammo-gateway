@@ -134,12 +134,12 @@
         <!--Copy over distribution template (includes launch scripts)-->
         <exec executable="sh" dir="." searchpath="true">
             <arg value="-c" />
-            <arg value="cp -r ${dist_template}/* ${dist}/temp/gateway-${gwversion}" />
+            <arg value="cp -L -r ${dist_template}/* ${dist}/temp/gateway-${gwversion}" />
         </exec>
         <!--Copy the actual build-->
         <exec executable="sh" dir="." searchpath="true">
             <arg value="-c" />
-            <arg value="cp -r ${build}/* ${dist}/temp/gateway-${gwversion}" />
+            <arg value="cp -L -r ${build}/* ${dist}/temp/gateway-${gwversion}" />
         </exec>
         <!--Create the buildinfo file, with versioning and OS info-->
         <echo file="${dist}/temp/gateway-${gwversion}/buildinfo" 

@@ -153,3 +153,4 @@ DataStoreDispatcher::findObjList (std::string const &mime_type)
   return cfg_mgr_->obj_map ().find (mt);
 }
 
+

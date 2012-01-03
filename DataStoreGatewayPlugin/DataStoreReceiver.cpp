@@ -7,6 +7,7 @@
 
 #include "DataStoreReceiver.h"
 #include "DataStoreDispatcher.h"
+#include "DataStoreConfigManager.h"
 
 using namespace ammo::gateway;
 
@@ -55,6 +56,7 @@ DataStoreReceiver::db_filepath (const std::string &path)
 bool
 DataStoreReceiver::init (void)
 {
+  // Initializes the ConfigManager.
   dispatcher_.init ();
 
   if (!check_path ())

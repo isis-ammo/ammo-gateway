@@ -1,0 +1,19 @@
+project(SerialGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
+  after += LibGatewayConnector
+
+  exename=SerialGatewayPlugin
+  
+  specific(prop:windows) {
+    macros += JSON_DLL
+  }
+  
+  Protobuf_Files {
+    ../common/protocol/AmmoMessages.proto
+  }
+  
+  Source_Files {
+    main.cpp
+    SerialServiceHandler.cpp
+    SerialMessageProcessor.cpp
+  }
+}

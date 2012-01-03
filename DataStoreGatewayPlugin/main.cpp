@@ -1,3 +1,4 @@
+#include "ace/Select_Reactor.h"
 #include "ace/Reactor.h"
 #include "ace/OS_NS_unistd.h" 
 #include "ace/Signal.h" 
@@ -43,6 +44,13 @@ int main (int /* argc */, char ** /* argv */)
   
   dropPrivileges();
   
+  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
+  //to the WFMO reactor, which has radically different semantics and
+  //violates assumptions we made in our code
+  ACE_Select_Reactor selectReactor;
+  ACE_Reactor newReactor(&selectReactor);
+  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(&newReactor));
+  
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
   ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
@@ -60,6 +68,8 @@ int main (int /* argc */, char ** /* argv */)
 	// in the constructor. This macro avoids the 'unused' warning.  
 	ACE_UNUSED_ARG (config);
 
+  // Make sure that the receiver and connector have been created and
+  // passed to the config manager before calling this method.
 	if (!receiver->init ())
 	  {
 	    // Error msg already output, just exit w/o starting reactor.
