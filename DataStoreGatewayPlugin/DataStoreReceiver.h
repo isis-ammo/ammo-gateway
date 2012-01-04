@@ -5,7 +5,7 @@
 
 #include "DataStoreDispatcher.h"
 
-class sqlite3;
+struct sqlite3;
 
 class DataStoreReceiver : public ammo::gateway::DataPushReceiverListener,
 					                public ammo::gateway::GatewayConnectorDelegate,

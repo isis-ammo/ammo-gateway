@@ -2,14 +2,15 @@
 #define DATA_STORE_UTILS_H
 
 #include <string>
+#include <ace/Reactor.h>
 
 namespace Json
 {
   class Value;
 }
 
-class sqlite3;
-class sqlite3_stmt;
+struct sqlite3;
+struct sqlite3_stmt;
 
 // Collection of common low-level methods that can't be
 // located in a single base class.
