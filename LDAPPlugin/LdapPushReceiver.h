@@ -5,16 +5,7 @@
 #include <ctime>
 #include <vector>
 
-#ifdef OPENLDAP
-  #include <ldap.h>
-  typedef timeval ldap_timeval;
-#elif WINLDAP
-  #include <winldap.h>
-  typedef l_timeval ldap_timeval;
-#else
-  #error "You must define your LDAP type."
-#endif
-
+#include "LdapClient.h"
 #include "json/json.h"
 
 class LdapContact 
@@ -62,7 +53,7 @@ private:
 
 private:
   std::map<int, LdapContact> unsentContacts;
-  LDAP *ldapServer;
+  LdapClient* ldap;
 };
 
 //static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData);

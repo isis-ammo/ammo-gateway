@@ -16,6 +16,7 @@ project(LdapGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
   
   Source_Files {
     main.cpp
+    LdapClient.cpp
     LdapPushReceiver.cpp
     LdapConfigurationManager.cpp
     cdecode.c

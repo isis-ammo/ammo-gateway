@@ -22,7 +22,7 @@ LdapConfigurationManager *LdapConfigurationManager::sharedInstance = NULL;
 //
 // Use the default config file if none specified
 //============================================================
-LdapConfigurationManager::LdapConfigurationManager() : ldapBaseAddress("localhost"), ldapUsername("cn=Manager,dc=ammo,dc=tdm"), ldapPassword("ammmo")
+LdapConfigurationManager::LdapConfigurationManager() : ldapServerAddress("localhost"), ldapServerPort(389), ldapUsername("cn=Manager,dc=ammo,dc=tdm"), ldapPassword("ammmo")
 {
   string configFilename = findConfigFile(LDAP_CONFIG_FILE);
   
@@ -61,13 +61,22 @@ void LdapConfigurationManager::configFromFile(string fileName)
 
       if(parsingSuccessful)
         {
-          if(root["LdapBaseAddress"].isString())
+          if(root["LdapServerAddress"].isString())
             {
-              ldapBaseAddress = root["LdapBaseAddress"].asString();
+              ldapServerAddress = root["LdapServerAddress"].asString();
             }
           else
             {
-              cerr << "Error: LdapBaseAddress is missing or wrong type (should be string)" << endl << flush;
+              cerr << "Error: LdapServerAddress is missing or wrong type (should be string)" << endl << flush;
+            }
+
+          if(root["LdapServerPort"].isInt())
+            {
+              ldapServerPort = root["LdapServerPort"].asInt();
+            }
+          else
+            {
+              cerr << "Error: LdapServerPort is missing or wrong type (should be integer)" << endl << flush;
             }
 
           if(root["LdapUsername"].isString())
@@ -151,12 +160,22 @@ string LdapConfigurationManager::findConfigFile(std::string defaultConfigFile) {
 
 //============================================================
 //
-// getLdapBaseAddress()
+// getLdapServerAddress()
 //
 //============================================================
-std::string LdapConfigurationManager::getLdapBaseAddress()
+std::string LdapConfigurationManager::getLdapServerAddress()
 {
-  return ldapBaseAddress;
+  return ldapServerAddress;
+}
+
+//============================================================
+//
+// getLdapServerPort()
+//
+//============================================================
+int LdapConfigurationManager::getLdapServerPort()
+{
+  return ldapServerPort;
 }
 
 //============================================================
