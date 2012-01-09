@@ -16,6 +16,7 @@
 #include "PassAmmmoPublisher.h"
 #include "PassConfigurationManager.h"
 #include "PassGatewayReceiver.h"
+#include "LogConfig.inl"
 
 using namespace std;
 using namespace ammo::gateway;
@@ -77,6 +78,8 @@ main (int /* argc */, char ** /* argv */)
             << " at "
             << __TIME__
             << ")");
+  
+  setupLogging();
   
   //Explicitly specify the ACE select reactor; on Windows, ACE defaults
   //to the WFMO reactor, which has radically different semantics and

@@ -1,5 +1,5 @@
 {
-  "LogLevel": "debug", //minimum logging level to show at runtime (can be trace, debug, info, warning, error, critical)
+  "LogLevel": "trace" //minimum logging level to show at runtime (can be trace, debug, info, warning, error, critical)
 }
 
 //:mode=javascript: (jEdit modeline for syntax highlighting)

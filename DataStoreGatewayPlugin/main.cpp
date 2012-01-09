@@ -13,6 +13,7 @@
 #include "DataStoreConfigManager.h"
 
 #include "UserSwitch.inl"
+#include "LogConfig.inl"
 
 using namespace ammo::gateway;
 
@@ -43,6 +44,7 @@ int main (int /* argc */, char ** /* argv */)
             << ")");
   
   dropPrivileges();
+  setupLogging();
   
   //Explicitly specify the ACE select reactor; on Windows, ACE defaults
   //to the WFMO reactor, which has radically different semantics and

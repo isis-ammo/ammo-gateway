@@ -19,6 +19,7 @@
 #include "version.h"
 
 #include "UserSwitch.inl"
+#include "LogConfig.inl"
 
 using namespace std;
 
@@ -53,6 +54,8 @@ void *start_svc_handler( void *data ) {
 int main(int argc, char **argv) {
   LOG_INFO("AMMO Serial Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   dropPrivileges();
+  setupLogging();
+  
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
   ACE_Sig_Action no_sigpipe((ACE_SignalHandler) SIG_IGN);
