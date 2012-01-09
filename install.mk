@@ -72,6 +72,7 @@ install: all
 	install -m 644 build/etc/AtsPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/GatewayConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/LdapPluginConfig.json $(DESTDIR)/etc/ammo-gateway
+	install -m 644 build/etc/LoggingConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/DataStorePluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/PassPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 

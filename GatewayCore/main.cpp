@@ -22,6 +22,7 @@
 #include "GatewayCore.h"
 
 #include "UserSwitch.inl"
+#include "LogConfig.inl"
 
 using namespace std;
 
@@ -42,6 +43,7 @@ public:
 int main(int argc, char **argv) {
   LOG_INFO("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   dropPrivileges();
+  setupLogging();
 
   //Explicitly specify the ACE select reactor; on Windows, ACE defaults
   //to the WFMO reactor, which has radically different semantics and
