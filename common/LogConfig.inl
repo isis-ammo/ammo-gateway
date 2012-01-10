@@ -63,6 +63,15 @@ void setupLogging(std::string appName) {
     LOG_WARN("Using default configuration.");
   }
   
+  if(logFile != "") { //blank filename or no logFile entry in config file writes to stderr
+    std::string expandedFilename = expandLogFileName(logFile, appName);
+    LOG_INFO("Logging to file " << expandedFilename);
+    ACE_OSTREAM_TYPE *output = new std::ofstream(expandedFilename.c_str(), std::ofstream::out | std::ofstream::app);
+    ACE_LOG_MSG->msg_ostream(output, 1);
+    ACE_LOG_MSG->set_flags(ACE_Log_Msg::OSTREAM);
+    ACE_LOG_MSG->clr_flags(ACE_Log_Msg::STDERR);
+  }
+  
   if(logLevel == "trace") {
     ACE_LOG_MSG->priority_mask (LM_TRACE | LM_DEBUG | LM_INFO | LM_WARNING | LM_ERROR | LM_CRITICAL, ACE_Log_Msg::PROCESS);
   } else if(logLevel == "debug") {
@@ -79,13 +88,7 @@ void setupLogging(std::string appName) {
     LOG_ERROR("Unknown logging level... using default configuration.");
   }
   
-  if(logFile != "") { //blank filename or no logFile entry in config file writes to stdout
-    std::string expandedFilename = expandLogFileName(logFile, appName);
-    ACE_OSTREAM_TYPE *output = new std::ofstream(expandedFilename.c_str(), std::ofstream::out | std::ofstream::app);
-    ACE_LOG_MSG->msg_ostream(output, 1);
-    ACE_LOG_MSG->set_flags(ACE_Log_Msg::OSTREAM);
-    ACE_LOG_MSG->clr_flags(ACE_Log_Msg::STDERR);
-  }
+  
 }
 
 /*
