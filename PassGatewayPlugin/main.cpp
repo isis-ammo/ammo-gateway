@@ -79,7 +79,7 @@ main (int /* argc */, char ** /* argv */)
             << __TIME__
             << ")");
   
-  setupLogging();
+  setupLogging("PassGatewayPlugin");
   
   //Explicitly specify the ACE select reactor; on Windows, ACE defaults
   //to the WFMO reactor, which has radically different semantics and

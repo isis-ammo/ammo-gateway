@@ -44,7 +44,7 @@ int main (int /* argc */, char ** /* argv */)
             << ")");
   
   dropPrivileges();
-  setupLogging();
+  setupLogging("DataStoreGatewayPlugin");
   
   //Explicitly specify the ACE select reactor; on Windows, ACE defaults
   //to the WFMO reactor, which has radically different semantics and

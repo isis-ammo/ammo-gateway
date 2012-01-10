@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <ctime>
 
 #include "ace/Signal.h"
 #include <ace/OS_NS_sys_stat.h>
@@ -14,17 +15,21 @@
 const char *LOG_CONFIG_DIRECTORY = "ammo-gateway";
 const char *LOG_CONFIG_FILE = "LoggingConfig.json";
 
+const char *TIME_FORMAT = "%Y%m%dT%H%M%SZ";
+
 std::string findConfigFile();
+std::string expandLogFileName(std::string fileName, std::string appName);
 
 /**
 * This function reads the logging config file and sets up logging accordingly.
 * This should be included in main.cpp and called exactly once when the
 * application is initialized.
 */
-void setupLogging() {
+void setupLogging(std::string appName) {
   std::string configFilename = findConfigFile();
   
   std::string logLevel = "trace";
+  std::string logFile = "";
   
   if(configFilename != "") {
     std::ifstream configFile(configFilename.c_str());
@@ -40,6 +45,13 @@ void setupLogging() {
           std::transform(logLevel.begin(), logLevel.end(), logLevel.begin(), tolower);
         } else {
           LOG_ERROR("LogLevel is missing or wrong type (should be string)");
+        }
+        
+        if(root["LogFile"].isString()) {
+          logFile = root["LogFile"].asString();
+        } else {
+          //don't write an error; having the LogFile parameter unconfigured is a
+          //valid scenario
         }
       } else {
         LOG_ERROR("JSON parsing error in config file '" << LOG_CONFIG_FILE << "'.  Using defaults.");
@@ -66,6 +78,58 @@ void setupLogging() {
   } else {
     LOG_ERROR("Unknown logging level... using default configuration.");
   }
+  
+  if(logFile != "") { //blank filename or no logFile entry in config file writes to stdout
+    std::string expandedFilename = expandLogFileName(logFile, appName);
+    ACE_OSTREAM_TYPE *output = new std::ofstream(expandedFilename.c_str(), std::ofstream::out | std::ofstream::app);
+    ACE_LOG_MSG->msg_ostream(output, 1);
+    ACE_LOG_MSG->set_flags(ACE_Log_Msg::OSTREAM);
+    ACE_LOG_MSG->clr_flags(ACE_Log_Msg::STDERR);
+  }
+}
+
+/*
+* This formats the log file name using a simplified printf-like syntax:
+*   %%: Literal percent sign
+*   %A: Application name (parameter to this function)
+*   %T: Current ISO 8601 date and time (UTC) (YYYYMMDDThhmmssZ; i.e. 20120105T065312Z)
+*
+* Unknown format specifiers will be removed.
+*/
+std::string expandLogFileName(std::string logFile, std::string appName) {
+  std::ostringstream outputFilename;
+  
+  time_t rawTime;
+  struct tm *utcTime;
+  char utcTimeFormatted[40];
+  
+  time(&rawTime);
+  utcTime = gmtime(&rawTime);
+  int len = strftime(utcTimeFormatted, 40, TIME_FORMAT, utcTime);
+  if(len == 0) { //didn't work (not big enough); contents of array are indeterminate, so we need to put something in it
+    utcTimeFormatted[0] = '\0';
+  }
+  
+  for(std::string::iterator it = logFile.begin(); it != logFile.end(); it++) {
+    if((*it) == '%') {
+      it++;
+      char formatCharacter = *it;
+      switch(formatCharacter) {
+      case '%':
+        outputFilename << '%';
+        break;
+      case 'A':
+        outputFilename << appName;
+        break;
+      case 'T':
+        outputFilename << utcTimeFormatted;
+        break;
+      }
+    } else {
+      outputFilename << (*it);
+    }
+  }
+  return outputFilename.str();
 }
 
 std::string findConfigFile() {

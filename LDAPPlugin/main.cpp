@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 {
   LOG_INFO("AMMO LDAP Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   dropPrivileges();
-  setupLogging();
+  setupLogging("LdapGatewayPlugin");
   
   //Explicitly specify the ACE select reactor; on Windows, ACE defaults
   //to the WFMO reactor, which has radically different semantics and
