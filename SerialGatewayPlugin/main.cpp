@@ -52,9 +52,10 @@ void *start_svc_handler( void *data ) {
 }
 
 int main(int argc, char **argv) {
-  LOG_INFO("AMMO Serial Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   dropPrivileges();
   setupLogging("SerialGatewayPlugin");
+  LOG_FATAL("=========");
+  LOG_FATAL("AMMO Serial Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
