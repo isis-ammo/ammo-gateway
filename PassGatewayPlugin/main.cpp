@@ -16,6 +16,7 @@
 #include "PassAmmmoPublisher.h"
 #include "PassConfigurationManager.h"
 #include "PassGatewayReceiver.h"
+#include "LogConfig.inl"
 
 using namespace std;
 using namespace ammo::gateway;
@@ -70,7 +71,10 @@ public:
 int
 main (int /* argc */, char ** /* argv */)
 {  
-  LOG_INFO ("AMMO PASS Gateway Plugin ("
+  
+  setupLogging("PassGatewayPlugin");
+  LOG_FATAL("=========");
+  LOG_FATAL("AMMO PASS Gateway Plugin ("
             << VERSION
             << " built on "
             << __DATE__

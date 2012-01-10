@@ -27,3 +27,5 @@ void dropPrivileges() {
   }
 #endif
 }
+
+//:mode=c++: (jEdit modeline for syntax highlighting)

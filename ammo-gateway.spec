@@ -70,6 +70,7 @@ rm -rf %{buildroot}
 /etc/ammo-gateway/AtsPluginConfig.json
 /etc/ammo-gateway/GatewayConfig.json
 /etc/ammo-gateway/LdapPluginConfig.json
+/etc/ammo-gateway/LoggingConfig.json
 /etc/ammo-gateway/DataStorePluginConfig.json
 /etc/ammo-gateway/PassPluginConfig.json
 /etc/ammo-gateway/keys

@@ -13,6 +13,7 @@
 #include "DataStoreConfigManager.h"
 
 #include "UserSwitch.inl"
+#include "LogConfig.inl"
 
 using namespace ammo::gateway;
 
@@ -34,15 +35,17 @@ public:
 
 int main (int /* argc */, char ** /* argv */)
 {
-  LOG_INFO ("AMMO Location Store Gateway Plugin ("
+  
+  dropPrivileges();
+  setupLogging("DataStoreGatewayPlugin");
+  LOG_FATAL("=========");
+  LOG_FATAL("AMMO Location Store Gateway Plugin ("
             << VERSION
             << " built on "
             << __DATE__
             << " at "
             << __TIME__
             << ")");
-  
-  dropPrivileges();
   
   //Explicitly specify the ACE select reactor; on Windows, ACE defaults
   //to the WFMO reactor, which has radically different semantics and

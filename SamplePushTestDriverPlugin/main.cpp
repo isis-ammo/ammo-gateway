@@ -12,6 +12,7 @@
 
 #include "version.h"
 #include "log.h"
+#include "LogConfig.inl"
 
 using namespace std;
 using namespace ammo::gateway;
@@ -29,7 +30,9 @@ public:
 };
 
 int main(int argc, char **argv) {  
-  LOG_INFO("AMMO Sample Push Testdriver Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  setupLogging("SamplePushTestDriverPlugin");
+  LOG_FATAL("=========");
+  LOG_FATAL("AMMO Sample Push Testdriver Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   
   //Explicitly specify the ACE select reactor; on Windows, ACE defaults
   //to the WFMO reactor, which has radically different semantics and

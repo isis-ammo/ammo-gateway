@@ -172,7 +172,7 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
         msg->SerializeToArray(protobufSerializedMessage, messageSize);
         
         headerToSend->checksum = ACE::crc32(protobufSerializedMessage, messageSize);
-        headerToSend->headerChecksum = ACE::crc32(headerToSend, sizeof(messageHeader) - sizeof(messageHeader.headerChecksum));
+        headerToSend->headerChecksum = ACE::crc32(headerToSend, sizeof(messageHeader) - sizeof(headerToSend->headerChecksum));
         
         sendPosition = 0;
         

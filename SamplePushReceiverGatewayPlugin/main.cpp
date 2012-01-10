@@ -13,6 +13,8 @@
 #include "log.h"
 #include "version.h"
 
+#include "LogConfig.inl"
+
 using namespace std;
 using namespace ammo::gateway;
 
@@ -29,7 +31,9 @@ public:
 };
 
 int main(int argc, char **argv) {  
-  LOG_INFO("AMMO Sample Push Receiver Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  setupLogging("SamplePushReceiverGatewayPlugin");
+  LOG_FATAL("=========");
+  LOG_FATAL("AMMO Sample Push Receiver Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   
   //Explicitly specify the ACE select reactor; on Windows, ACE defaults
   //to the WFMO reactor, which has radically different semantics and
