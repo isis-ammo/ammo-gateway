@@ -67,9 +67,14 @@ void setupLogging(std::string appName) {
     std::string expandedFilename = expandLogFileName(logFile, appName);
     LOG_INFO("Logging to file " << expandedFilename);
     ACE_OSTREAM_TYPE *output = new std::ofstream(expandedFilename.c_str(), std::ofstream::out | std::ofstream::app);
-    ACE_LOG_MSG->msg_ostream(output, 1);
-    ACE_LOG_MSG->set_flags(ACE_Log_Msg::OSTREAM);
-    ACE_LOG_MSG->clr_flags(ACE_Log_Msg::STDERR);
+    if(*output) {
+      ACE_LOG_MSG->msg_ostream(output, 1);
+      ACE_LOG_MSG->set_flags(ACE_Log_Msg::OSTREAM);
+      ACE_LOG_MSG->clr_flags(ACE_Log_Msg::STDERR);
+    } else {
+      LOG_WARN("Couldn't create log file...  does the directory exist?");
+      LOG_WARN("Logging to console instead.");
+    }
   }
   
   if(logLevel == "trace") {
