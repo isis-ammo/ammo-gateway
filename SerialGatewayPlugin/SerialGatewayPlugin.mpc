@@ -1,7 +1,10 @@
 project(SerialGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
-  after += LibGatewayConnector
+  after += LibGatewayConnector LibJSON
 
   exename=SerialGatewayPlugin
+  
+  includes += $(GATEWAY_ROOT)/LibJSON
+  libs += json
   
   specific(prop:windows) {
     macros += JSON_DLL
