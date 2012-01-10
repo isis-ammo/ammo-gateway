@@ -26,7 +26,7 @@ struct MessageHeader {
 };
 
 //error values for MessageHeader
-const char NO_ERROR = 0;
+const char NO_MESSAGE_ERROR = 0;
 const char INVALID_MAGIC_NUMBER = 1;
 const char INVALID_HEADER_CHECKSUM = 2;
 const char INVALID_MESSAGE_CHECKSUM = 3;

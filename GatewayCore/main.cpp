@@ -11,6 +11,7 @@
 #include "ace/Signal.h"
 
 #include "ace/Acceptor.h"
+#include "ace/Select_Reactor.h"
 #include "ace/Reactor.h"
 
 #include "log.h"
@@ -19,6 +20,9 @@
 #include "GatewayServiceHandler.h"
 #include "GatewayConfigurationManager.h"
 #include "GatewayCore.h"
+
+#include "UserSwitch.inl"
+#include "LogConfig.inl"
 
 using namespace std;
 
@@ -34,8 +38,21 @@ public:
   }
 };
 
+
+
 int main(int argc, char **argv) {
-  LOG_INFO("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  dropPrivileges();
+  setupLogging("GatewayCore");
+  LOG_FATAL("=========");
+  LOG_FATAL("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+
+  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
+  //to the WFMO reactor, which has radically different semantics and
+  //violates assumptions we made in our code
+  ACE_Select_Reactor selectReactor;
+  ACE_Reactor newReactor(&selectReactor);
+  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(&newReactor));
+  
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
   ACE_Sig_Action no_sigpipe((ACE_SignalHandler) SIG_IGN);
@@ -67,5 +84,6 @@ int main(int argc, char **argv) {
   LOG_DEBUG("Starting event loop...");
   reactor->run_reactor_event_loop();
   LOG_DEBUG("Event loop terminated.");
+  GatewayCore::getInstance()->terminate();
   return 0;
 }

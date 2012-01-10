@@ -12,24 +12,6 @@ public:
 
   void parse (const std::string &params);
 
-  // Member accessors.
-  const std::string &contentGuid (void) const;
-  const std::string &reportTime_min (void) const;
-  const std::string &reportTime_max (void) const;
-  const std::string &reportingUnit (void) const;
-  const std::string &size_min (void) const;
-  const std::string &size_max (void) const;
-  const std::string &activity (void) const;
-  const std::string &locationUtm (void) const;
-  const std::string &enemyUnit (void) const;
-  const std::string &observationTime_min (void) const;
-  const std::string &observationTime_max (void) const;
-  const std::string &equipment (void) const;
-  const std::string &assessment (void) const;
-  const std::string &narrative (void) const;
-  const std::string &authentication (void) const;
-
-private:
   std::string contentGuid_;
   std::string reportTime_min_;
   std::string reportTime_max_;

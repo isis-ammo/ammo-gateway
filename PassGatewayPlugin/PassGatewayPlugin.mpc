@@ -1,0 +1,34 @@
+project(PassGatewayPlugin) : aceexe, protobuf, gatewayplugin, gatewaycommon {
+  after += LibGatewayConnector LibJSON  
+
+  // Paths the the gnuace target isn't picking up.
+  specific(prop:make) {
+    libpaths += /usr/lib/i386-linux-gnu \
+                /usr/lib/x86_64-linux-gnu \
+                /usr/local/lib
+  }
+
+  exename = PassGatewayPlugin
+  
+  libs += gsoapssl++ curl ssl crypto z
+  
+  includes += /usr/local/share/gsoap/plugin \
+              /opt/gsoap/gsoap-2.7/gsoap \
+              $(GATEWAY_ROOT)/LibJSON \
+              ./soap \
+              .
+  
+  macros += WITH_DOM WITH_OPENSSL
+  
+  Source_Files {
+    main.cpp
+    PassAmmmoPublisher.cpp
+    PassConfigurationManager.cpp
+    PassGatewayReceiver.cpp
+    PassSubscriberTask.cpp
+    soap/dom.cpp
+    soap/soapC.cpp
+    soap/soapPASSPortBindingProxy.cpp
+    soap/soapPASSSubscriberPortBindingService.cpp
+  }
+}

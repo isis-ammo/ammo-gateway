@@ -20,6 +20,7 @@ project(GatewayCore) : aceexe, protobuf, gatewaycommon {
     main.cpp
     GatewayServiceHandler.cpp
     CrossGatewayServiceHandler.cpp
+    CrossGatewayConnectionManager.cpp
     GatewayCore.cpp
     GatewayConfigurationManager.cpp
   }

@@ -164,7 +164,7 @@ int AndroidServiceHandler::handle_output(ACE_HANDLE fd) {
         headerToSend->magicNumber = HEADER_MAGIC_NUMBER;
         headerToSend->size = messageSize;
         headerToSend->priority = msg->message_priority();
-        headerToSend->error = NO_ERROR;
+        headerToSend->error = NO_MESSAGE_ERROR;
         headerToSend->reserved[0] = 0;
         headerToSend->reserved[1] = 0;
         

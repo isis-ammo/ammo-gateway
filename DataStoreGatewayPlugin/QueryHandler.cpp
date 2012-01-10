@@ -18,22 +18,4 @@ QueryHandler::~QueryHandler (void)
 {
 }
 
-bool
-QueryHandler::parseJson (const std::string &input,
-                         Json::Value& root)
-{
-  Json::Reader jsonReader;
-  bool parseSuccess = jsonReader.parse (input, root);
-
-  if (!parseSuccess)
-    {
-      LOG_ERROR ("JSON parsing error:"
-                 << jsonReader.getFormatedErrorMessages ());
-                 
-      return parseSuccess;
-    }
-
-  LOG_DEBUG ("Parsed JSON: " << root.toStyledString ());
-  return parseSuccess;
-}
 

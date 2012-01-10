@@ -77,13 +77,13 @@ if __name__ == "__main__":
   
   # Send 5 text message pushes, each one with a recipient string containing the
   # index. This field is what the pull request fill filter on. The data message
-  # emulates the JSON encoding of the SMS data format.
+  # emulates the JSON encoding of the SMS text message data format.
   while n <= 5:
     time.sleep(0.5)
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
-    m.data_message.mime_type = "application/vnd.edu.vu.isis.ammo.sms.message"
+    m.data_message.mime_type = "ammo/edu.vu.isis.ammo.sms.message"
     m.data_message.data = "{ \"sms_uri\" : \"type:edu.vanderbilt.isis.ammo.Test\", "
     m.data_message.data += "\"sender\" : \"sgt_kill_em_all@151st.mil\", "
     m.data_message.data += "\"recipient\" : \"soldier_"
@@ -110,7 +110,7 @@ if __name__ == "__main__":
   # Send a single pull request.
   m = AmmoMessages_pb2.MessageWrapper()
   m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
-  m.pull_request.mime_type = "application/vnd.edu.vu.isis.ammo.sms.message"
+  m.pull_request.mime_type = "ammo/edu.vu.isis.ammo.sms.message"
   m.pull_request.request_uid = "PRT_pull_request"
   # max_results is unlimited, but the use of the start time string
   # will limit responses to the 5 pushes above, no matter how many

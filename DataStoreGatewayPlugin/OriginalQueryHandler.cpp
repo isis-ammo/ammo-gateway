@@ -7,6 +7,7 @@
 #include "GatewayConnector.h"
 
 #include "OriginalQueryHandler.h"
+#include "DataStoreUtils.h"
 
 OriginalQueryHandler::OriginalQueryHandler (
       sqlite3 *db,
@@ -35,17 +36,13 @@ OriginalQueryHandler::handleQuery (void)
   unsigned int resultLimit =
     (pr_.maxResults == 0 ? ACE_UINT32_MAX : pr_.maxResults);
   unsigned int index = 0;
+  unsigned int skip = 0;
   
   sqlite3_stmt *stmt = builder_.query ();
   
   while (sqlite3_step (stmt) == SQLITE_ROW
          && index < resultLimit)
     {
-      if (index++ < pr_.startFromCount)
-        {
-          continue;
-        }
-        
 	    size_t len = sqlite3_column_bytes (stmt, 5);
       std::string data ((char *) sqlite3_column_blob (stmt, 5), len);
       
@@ -55,6 +52,17 @@ OriginalQueryHandler::handleQuery (void)
         {
           continue;
         }
+        
+      // Skip 'startFromCount' # of good matches.  
+      if (skip++ < pr_.startFromCount)
+        {
+          continue;
+        }
+        
+      // Increment after all skips of good matches have been made, but
+      // before checking sender_ since we may want to see the debug
+      // output even if no responses are sent.
+      ++index;
         
 //      LOG_TRACE ("matched on: " << pr_.projection.c_str ());
         
@@ -103,14 +111,14 @@ OriginalQueryHandler::matchedData (const std::string &projection,
     
   Json::Value root;
   
-  if (!this->parseJson (data, root))
+  if (! DataStoreUtils::parseJson (data, root))
     {
       return false;
     }
    
   // Some of the legacy SMS entries have 'createdDate' and 'modifiedDate'
   // fields that are (1) reals instead of long integers as required,
-  // and (2) expressed as usec instead of sec, too large by a factor of 1000.
+  // and (2) expressed as msec instead of sec, too large by a factor of 1000.
   // Since the value is out of range, Json::Value::asInt() will throw
   // std::runtime_error, with the message that we catch and output below.
   // As of this date (2011-5-18), the Json-parsed entry is output (for

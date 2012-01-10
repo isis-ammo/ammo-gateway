@@ -50,6 +50,8 @@ protected:
   std::string gatewayId;
   bool gatewayIdAuthenticated;
   
+  bool registeredWithGateway;
+  
   std::vector<std::string> registeredHandlers;
   std::vector<std::string> registeredPullHandlers;
   std::set<std::string> registeredPullResponsePluginIds;

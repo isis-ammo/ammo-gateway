@@ -42,7 +42,7 @@ if __name__ == "__main__":
     print "Got ^C...  Closing"
     reactor.callFromThread(reactor.stop)
     # re-raising the exception so we get a traceback (useful for debugging,
-    # occasionally).  Real "applications"/testdrivers shouldn't do this.
+    # occasionally).  Real "ammo"/testdrivers shouldn't do this.
     raise 
   except:
     print "Unexpected error...  dying."

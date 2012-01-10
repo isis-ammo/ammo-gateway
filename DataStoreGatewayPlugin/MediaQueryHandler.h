@@ -13,8 +13,8 @@ public:
                      ammo::gateway::PullRequest &pr);
                      
 protected:
-  virtual bool matchedProjection (const Json::Value &root,
-                                  const std::string &projection);
+  bool matchedProjection (const Json::Value &root,
+                          const std::string &projection);
 };
 
 #endif /* MEDIA_QUERY_HANDLER_H */

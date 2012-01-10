@@ -1,0 +1,7 @@
+Makefile*
+GNUmakefile*
+*.o
+.depend*
+SerialGatewayPlugin
+SerialGatewayPlugin.exe
+Debug\

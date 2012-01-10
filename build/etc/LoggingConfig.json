@@ -1,0 +1,20 @@
+{
+  //"LogFile": "%T.%A.log", //log file name.  If not present or blank, will log to the console; otherwise, will log to the specified filename (after processing as specified below).
+  "LogLevel": "trace" //minimum logging level to show at runtime (can be trace, debug, info, warning, error, critical)
+}
+
+// If a log file name is present, the following sequences will be expanded as
+// specified:
+//   %%: Literal percent sign
+//   %A: Application name (parameter to this function)
+//   %T: Current ISO 8601 date and time (UTC) (YYYYMMDDThhmmssZ; i.e. 20120105T065312Z)
+//
+// If the file exists, new log messages will be appended to the end of the file.
+// If a directory name is specified, that directory must already exist (it will
+// not be created).
+//
+// If no log file name is specified (the "LogFile" line is commented out, not
+// present, or contains an empty string), log messages will be written to the
+// console.
+
+//:mode=javascript: (jEdit modeline for syntax highlighting)

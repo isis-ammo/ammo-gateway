@@ -1,5 +1,6 @@
 #include "GatewayConnector.h"
 #include "GatewayConfigurationManager.h"
+#include "GatewayServiceHandler.h"
 #include "ace/Connector.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
 #include <string>
