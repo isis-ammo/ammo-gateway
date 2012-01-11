@@ -12,9 +12,8 @@
 
 #include "ace/Acceptor.h"
 #include "ace/Reactor.h"
-#include "ace/Select_Reactor.h"
 
-#include "AndroidServiceHandler.h"
+#include "SerialServiceHandler.h"
 
 #include "log.h"
 #include "version.h"
@@ -26,6 +25,10 @@ using namespace std;
 
 string gatewayAddress;
 int gatewayPort;
+
+extern int  serial_receiver( int argc, char *argv[], void ( *process_message) ( int sender, int size, char *full_buffer ) );
+
+
 
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
 //in the middle of the reactor event loop, which isn't always a good thing).
@@ -39,19 +42,21 @@ public:
   }
 };
 
+extern void testParseTerse();
+
+void *start_svc_handler( void *data ) {
+  LOG_DEBUG("Receiving message receiver - blocking call ");
+  SerialServiceHandler *svcHandler = static_cast<SerialServiceHandler *>(data);
+  svcHandler->receiveData();
+  return (void *)0;
+}
+
 int main(int argc, char **argv) {
   dropPrivileges();
-  setupLogging("AndroidGatewayPlugin");
+  setupLogging("SerialGatewayPlugin");
   LOG_FATAL("=========");
-  LOG_FATAL("AMMO Android Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
-
-  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
-  //to the WFMO reactor, which has radically different semantics and
-  //violates assumptions we made in our code
-  ACE_Select_Reactor selectReactor;
-  ACE_Reactor newReactor(&selectReactor);
-  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(&newReactor));
-
+  LOG_FATAL("AMMO Serial Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
   ACE_Sig_Action no_sigpipe((ACE_SignalHandler) SIG_IGN);
@@ -62,50 +67,42 @@ int main(int argc, char **argv) {
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
   ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
   
-  string androidAddress = "0.0.0.0";
-  int androidPort = 32869;
+  string androidAddress = "/dev/ttyUSB0";
   
   queue<string> argumentQueue;
   for(int i=1; i < argc; i++) {
     argumentQueue.push(string(argv[i]));
   }
-  
+
   while(!argumentQueue.empty()) {
     string arg = argumentQueue.front();
     argumentQueue.pop();
     
-    if(arg == "--listenPort" && argumentQueue.size() >= 1) {
-      string param = argumentQueue.front();
-      argumentQueue.pop();
-      androidPort = atoi(param.c_str());
-    } else if(arg == "--listenAddress" && argumentQueue.size() >= 1) {
+    if(arg == "--listenAddress" && argumentQueue.size() >= 1) {
       string param = argumentQueue.front();
       argumentQueue.pop();
       androidAddress = param;
     } else {
-      LOG_FATAL("Usage: AndroidGatewayPlguin [--listenPort port] [--listenAddress address]");
-      LOG_FATAL("  --listenPort port        Sets the listening port for the Android ");
-      LOG_FATAL("                           interface (default 32869)");
-      LOG_FATAL("  --listenAddress address  Sets the listening address for the Android");
-      LOG_FATAL("                           interface (default 0.0.0.0, or all interfaces)");
+      LOG_FATAL("Usage: SerialGatewayPlguin [--listenPort port] [--listenAddress address]");
+      LOG_FATAL("  --listenAddress address  Sets the listening address for the Serial");
+      LOG_FATAL("                           interface (default /dev/ttyUSB0)");
       return 1;
     }
   }
-  
-  LOG_DEBUG("Creating acceptor...");
-  
-  //TODO: make interface and port number specifiable on the command line
-  ACE_INET_Addr serverAddress(androidPort, androidAddress.c_str());
-  
-  LOG_INFO("Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr());
-  
-  //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor
-  //for accept events
-  ACE_Acceptor<AndroidServiceHandler, ACE_SOCK_Acceptor> acceptor(serverAddress);
-  
+
+  LOG_DEBUG("Creating service handler which receives and routes to gateway via the GatewayConnector");
+  SerialServiceHandler *svcHandler = new SerialServiceHandler();
+  svcHandler->open( (void *)(androidAddress.c_str()) );
+
+  ACE_Thread::spawn( &start_svc_handler, (void *)svcHandler  );
+
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();
   LOG_DEBUG("Starting event loop...");
   reactor->run_reactor_event_loop();
   LOG_DEBUG("Event loop terminated.");
+
+
 }
+
+

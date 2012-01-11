@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "ace/Signal.h" 
+#include "ace/Select_Reactor.h"
 #include "ace/Reactor.h"
 
 #include "log.h"
@@ -15,6 +16,7 @@
 #include "PassAmmmoPublisher.h"
 #include "PassConfigurationManager.h"
 #include "PassGatewayReceiver.h"
+#include "LogConfig.inl"
 
 using namespace std;
 using namespace ammo::gateway;
@@ -69,13 +71,23 @@ public:
 int
 main (int /* argc */, char ** /* argv */)
 {  
-  LOG_INFO ("AMMO PASS Gateway Plugin ("
+  
+  setupLogging("PassGatewayPlugin");
+  LOG_FATAL("=========");
+  LOG_FATAL("AMMO PASS Gateway Plugin ("
             << VERSION
             << " built on "
             << __DATE__
             << " at "
             << __TIME__
             << ")");
+  
+  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
+  //to the WFMO reactor, which has radically different semantics and
+  //violates assumptions we made in our code
+  ACE_Select_Reactor selectReactor;
+  ACE_Reactor newReactor(&selectReactor);
+  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(&newReactor));
   
   SigintHandler * handleExit = new SigintHandler ();
   ACE_Reactor::instance ()->register_handler (SIGINT, handleExit);

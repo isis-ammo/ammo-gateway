@@ -4,11 +4,14 @@
 #include "ace/SOCK_Connector.h"
 
 #include "ace/OS_NS_sys_stat.h"
+#include <ace/OS_NS_sys_stat.h>
+#include <ace/OS_NS_unistd.h>
 
 #include "log.h"
 
 #include "DataStoreReceiver.h"
 #include "DataStoreDispatcher.h"
+#include "DataStoreConfigManager.h"
 
 using namespace ammo::gateway;
 
@@ -57,6 +60,11 @@ DataStoreReceiver::db_filepath (const std::string &path)
 bool
 DataStoreReceiver::init (void)
 {
+  // The config manager's receiver and connectro references have been set,
+  // so we can initialize the dispatcher's member with a call using the
+  // default null arguments.
+  dispatcher_.set_cfg_mgr (DataStoreConfigManager::getInstance ());
+
   if (!check_path ())
     {
       // check_path() will also output error info.
@@ -104,8 +112,10 @@ DataStoreReceiver::check_path (void)
 {
   char delimiter = '/';
   
-  std::string::size_type lastPos = db_filepath_.find_first_not_of (delimiter, 0);
-  std::string::size_type pos = db_filepath_.find_first_of (delimiter, lastPos);
+  std::string::size_type lastPos =
+    db_filepath_.find_first_not_of (delimiter, 0);
+  std::string::size_type pos =
+    db_filepath_.find_first_of (delimiter, lastPos);
   
   std::string seg = db_filepath_.substr (lastPos, pos - lastPos);
   bool top_level = true;
@@ -163,6 +173,12 @@ DataStoreReceiver::check_path (void)
                      << seg);
           return false;
         }
+    }
+    
+  // Make sure it ends with a slash so we can just append the db filename.  
+  if (db_filepath_[db_filepath_.size () - 1] != delimiter)
+    {
+      db_filepath_ += delimiter;
     }
     
   return true;
