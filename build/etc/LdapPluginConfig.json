@@ -1,5 +1,5 @@
 {
-  "LdapServerAddress": "localhost",     //Address for the LDAP server (i.e. "localhost" or "192.168.100.50")
+  "LdapServerAddress": "192.168.2.101",     //Address for the LDAP server (i.e. "localhost" or "192.168.100.50")
   "LdapServerPort": 389, //Port for the LDAP server (i.e. 389)
   "LdapUsername": "cn=Manager,dc=ammo,dc=tdm", //Username for the LDAP server
   "LdapPassword": "ammmo"  //Password for the LDAP server

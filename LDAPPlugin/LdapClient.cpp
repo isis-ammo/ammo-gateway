@@ -249,7 +249,7 @@ public:
     ~WinLdapClient();
 
     bool bind(const std::string& dn,
-              const std::string* passwd);
+              const std::string& passwd);
 
     int countEntries(LDAPMessage* result);
 
@@ -294,7 +294,9 @@ private:
 
 WinLdapClient::~WinLdapClient()
 {
-    // TODO
+    ldap_unbind(this->ldap);
+    free(this->ldap);
+    this->ldap = NULL;
 }
 
 bool WinLdapClient::bind(const std::string& dn,
@@ -306,8 +308,8 @@ bool WinLdapClient::bind(const std::string& dn,
     }
 
     this->retval = ldap_simple_bind_s(this->ldap,
-                                      dn.c_str(),
-                                      passwd->c_str());
+                                      (char*) dn.c_str(),
+                                      (char*) passwd.c_str());
 
     return this->retval == LDAP_SUCCESS;
 }
@@ -321,7 +323,7 @@ int WinLdapClient::countEntries(LDAPMessage* result)
 
     int num_entries = ldap_count_entries(ldap, result);
 
-    this->retval = ld_errno;
+    this->retval = LDAP_OTHER;
 
     return num_entries;
 }
@@ -333,9 +335,9 @@ LDAPMessage* WinLdapClient::firstEntry(LDAPMessage* result)
         return false;
     }
 
-    LDAPMessage* msg = ldap_first_message(ldap, result);
+    LDAPMessage* msg = ldap_first_entry(ldap, result);
 
-    this->retval = ld_errno;
+    this->retval = LDAP_OTHER;
 
     return msg;
 }
@@ -348,12 +350,12 @@ struct berval** WinLdapClient::getValuesLen(LDAPMessage* entry,
         return false;
     }
 
-    return ldap_get_values_len(this->ldap, entry, attr);
+    return ldap_get_values_len(this->ldap, entry, (char*) attr);
 }
 
 bool WinLdapClient::init(const std::string &host, int port)
 {
-    this->ldap = ldap_init(host.c_str(), port);
+    this->ldap = ldap_init((char*) host.c_str(), port);
     this->retval = LdapGetLastError();
     return this->retval == LDAP_SUCCESS;
 }
@@ -370,7 +372,7 @@ bool WinLdapClient::msgFree(LDAPMessage* msg)
     return this->retval == LDAP_SUCCESS;
 }
 
-LDAPMessage* WinnLdapClient::nextEntry(LDAPMessage* entry)
+LDAPMessage* WinLdapClient::nextEntry(LDAPMessage* entry)
 {
     if (!this->ldap) {
         this->retval = LDAP_CONNECT_ERROR;
@@ -378,6 +380,41 @@ LDAPMessage* WinnLdapClient::nextEntry(LDAPMessage* entry)
     }
 
     return ldap_next_entry(this->ldap, entry);
+}
+
+bool WinLdapClient::search(const std::string& basedn,
+                            int scope,
+                            const std::string& filter,
+                            char* attrs[],
+                            int attrsonly,
+                            LDAPControl** serverctrls,
+                            LDAPControl** clientctrls,
+                            const LdapClient::TimeVal& timeout,
+                            int sizelimit,
+                            LDAPMessage** results)
+{
+    if (!this->ldap) {
+        this->retval = LDAP_CONNECT_ERROR;
+        return false;
+    }
+
+    struct l_timeval winldap_timeout;
+
+    this->setTimeval(timeout, winldap_timeout);
+
+    ldap_search_ext_s(this->ldap,
+                      (char*) basedn.c_str(),
+                      scope,
+                      (char*) filter.c_str(),
+                      attrs,
+                      attrsonly,
+                      serverctrls,
+                      clientctrls,
+                      &winldap_timeout,
+                      sizelimit,
+                      results);
+
+    return this->retval == LDAP_SUCCESS;
 }
 
 bool WinLdapClient::setOption(int option, void* invalue)
@@ -396,8 +433,8 @@ bool WinLdapClient::setOption(int option, void* invalue)
 
 void WinLdapClient::setTimeval(const LdapClient::TimeVal& src, struct l_timeval& dest)
 {
-    dest.tv_sec  = src.tv_sec;
-    dest.tv_usec = src.tv_usec;
+    dest.tv_sec  = (long) src.tv_sec;
+    dest.tv_usec = (long) src.tv_usec;
 }
 
 bool WinLdapClient::valueFreeLen(struct berval** val)

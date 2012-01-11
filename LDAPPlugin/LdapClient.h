@@ -12,6 +12,7 @@
 #ifdef OPENLDAP
   #include <ldap.h>
 #elif WINLDAP
+  #include <Windows.h>
   #include <Winldap.h>
 #endif
 
