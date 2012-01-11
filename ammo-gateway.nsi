@@ -150,6 +150,38 @@ ${MementoSection} "Android Gateway Plugin (required)" SecAndPlug
 
 ${MementoSectionEnd}
 
+${MementoSection} "LDAP Gateway Plugin (required)" SecLdapPlug
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing LDAP Plugin ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+  ;SetOutPath $INSTDIR
+  ;RMDir /r $SMPROGRAMS\ammo-gateway
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File build\bin\LdapGatewayPlugin.exe
+
+${MementoSectionEnd}
+
+${MementoSection} "Data Store Gateway Plugin (required)" SecDatPlug
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing Data Store Plugin ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+  ;SetOutPath $INSTDIR
+  ;RMDir /r $SMPROGRAMS\ammo-gateway
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File build\bin\DataStoreGatewayPlugin.exe
+
+${MementoSectionEnd}
+
 ${MementoSection} "VC Redist (required)" SecVcredist
 
   SetDetailsPrint textonly
@@ -283,6 +315,8 @@ SectionEnd
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "The Gateway's Core Service"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAndPlug} "The Android Plugin Service for AMMO Gateway"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecLdapPlug} "The LDAP Plugin Service for AMMO Gateway"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecDatPlug} "The Data Store Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecVcredist} "The VC redist dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAce} "The ACE networking dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecJson} "The JSON serialization dependency"
@@ -309,14 +343,17 @@ Section Uninstall
   DetailPrint "Deleting Files..."
   SetDetailsPrint listonly
 
-  ;Delete $SMPROGRAMS\NSIS.lnk
-  ;Delete $DESKTOP\NSIS.lnk
-
   ; Gateway Core
   Delete $INSTDIR\bin\GatewayCore.exe
 
   ; Android Gateway Plugin
   Delete $INSTDIR\bin\AndroidGatewayPlugin.exe
+
+  ; LDAP Gateway Plugin
+  Delete $INSTDIR\bin\LdapGatewayPlugin.exe
+
+  ; Data Store Gateway Plugin
+  Delete $INSTDIR\bin\DataStoreGatewayPlugin.exe
 
   ; ACE
   Delete $INSTDIR\bin\ACE.dll
