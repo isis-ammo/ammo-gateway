@@ -402,17 +402,17 @@ bool WinLdapClient::search(const std::string& basedn,
 
     this->setTimeval(timeout, winldap_timeout);
 
-    ldap_search_ext_s(this->ldap,
-                      (char*) basedn.c_str(),
-                      scope,
-                      (char*) filter.c_str(),
-                      attrs,
-                      attrsonly,
-                      serverctrls,
-                      clientctrls,
-                      &winldap_timeout,
-                      sizelimit,
-                      results);
+    this->retval = ldap_search_ext_s(this->ldap,
+                                     (char*) basedn.c_str(),
+                                     scope,
+                                     (char*) filter.c_str(),
+                                     attrs,
+                                     attrsonly,
+                                     serverctrls,
+                                     clientctrls,
+                                     &winldap_timeout,
+                                     sizelimit,
+                                     results);
 
     return this->retval == LDAP_SUCCESS;
 }
