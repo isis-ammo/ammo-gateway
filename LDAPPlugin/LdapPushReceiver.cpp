@@ -228,7 +228,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
                           &serverctrls,
                           &clientctrls,
                           timeout,
-                          -1, // number of results : -1 = unlimited
+                          0, // number of results : 0 = unlimited
                           &results)) {
       cout << "LDAP search failed for " << filter << ": "
            << hex << this->ldap->getLastError() << " - " << this->ldap->getLastErrorMsg() << endl;
