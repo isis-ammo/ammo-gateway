@@ -1,7 +1,7 @@
-project(AndroidGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
+project(SerialGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
   after += LibGatewayConnector LibJSON
 
-  exename=AndroidGatewayPlugin
+  exename=SerialGatewayPlugin
   
   includes += $(GATEWAY_ROOT)/LibJSON
   libs += json
@@ -16,7 +16,7 @@ project(AndroidGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
   
   Source_Files {
     main.cpp
-    AndroidServiceHandler.cpp
-    AndroidMessageProcessor.cpp
+    SerialServiceHandler.cpp
+    SerialMessageProcessor.cpp
   }
 }

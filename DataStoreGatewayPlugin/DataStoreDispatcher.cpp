@@ -17,7 +17,7 @@
 using namespace ammo::gateway;
 
 DataStoreDispatcher::DataStoreDispatcher (void)
-  : cfg_mgr_ (DataStoreConfigManager::getInstance ())
+  : cfg_mgr_ (0)
 {
 }
 
@@ -85,4 +85,10 @@ DataStoreDispatcher::dispatchPullRequest (sqlite3 *db,
       ContactsQueryHandler handler (db, sender, pr);
       handler.handleQuery ();
     }
+}
+
+void
+DataStoreDispatcher::set_cfg_mgr (DataStoreConfigManager *cfg_mgr)
+{
+  cfg_mgr_ = cfg_mgr;
 }

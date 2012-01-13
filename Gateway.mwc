@@ -12,5 +12,6 @@ workspace(AndroidGatewayPlugin) {
     SpotPushReceiverGatewayPlugin/
     AtsGatewayPlugin/
     PassGatewayPlugin/
+    SerialGatewayPlugin/
   }
 }

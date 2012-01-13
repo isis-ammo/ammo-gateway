@@ -8,6 +8,8 @@
 
 #include "ace/OS_NS_errno.h"
 
+using namespace std;
+
 
 /* GatewayServiceHandler::GatewayServiceHandler(ACE_Thread_Manager *tm = 0, ACE_Message_Queue<ACE_NULL_SYNCH> *mq = 0, ACE_Reactor *reactor = ACE_Reactor::instance())
 : ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>(tm, mq, reactor)
@@ -20,9 +22,7 @@ int GatewayServiceHandler::open(void *ptr) {
     return -1;
     
   }
-  state = READING_SIZE;
-  dataSize = 0;
-  checksum = 0;
+  state = READING_HEADER;
   collectedData = NULL;
   position = 0;
   username = "";
@@ -41,14 +41,11 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
   //LOG_TRACE("In handle_input");
   int count = 0;
   
-  if(state == READING_SIZE) {
-    count = this->peer().recv_n(&dataSize, sizeof(dataSize));
+  if(state == READING_HEADER) {
+    count = this->peer().recv_n(&header, sizeof(header));
     //LOG_TRACE("SIZE Read " << count << " bytes");
-  } else if(state == READING_CHECKSUM) {
-    count = this->peer().recv_n(&checksum, sizeof(checksum));
-    //LOG_TRACE("SUM Read " << count << " bytes");
   } else if(state == READING_DATA) {
-    count = this->peer().recv(collectedData + position, dataSize - position);
+    count = this->peer().recv(collectedData + position, header.size - position);
     //LOG_TRACE("DATA Read " << count << " bytes");
   } else {
     LOG_ERROR("Invalid state!");
@@ -57,32 +54,44 @@ int GatewayServiceHandler::handle_input(ACE_HANDLE fd) {
   
   
   if(count > 0) {
-    if(state == READING_SIZE) {
-      try {
-        collectedData = new char[dataSize];
-      } catch (std::bad_alloc &e) {
-        LOG_ERROR(this << " Couldn't allocate memory for message of size " << dataSize);
+    if(state == READING_HEADER) {
+      //validate magic number
+      //validate header checksum
+      if(header.magicNumber == HEADER_MAGIC_NUMBER) {
+        unsigned int calculatedChecksum = ACE::crc32(&header, sizeof(header) - sizeof(header.headerChecksum));
+        if(calculatedChecksum != header.headerChecksum) {
+          LOG_ERROR(this << " Invalid header checksum");
+          return -1;
+        }
+        
+        try {
+          collectedData = new char[header.size];
+        } catch (std::bad_alloc &e) {
+          LOG_ERROR(this << " Couldn't allocate memory for message of size " << header.size);
+          return -1;
+        }
+        position = 0;
+        //LOG_TRACE("Got data size (" << dataSize << ")");
+        state = READING_DATA;
+      } else {
+        LOG_ERROR((long) this << " Invalid magic number: " << hex << header.magicNumber << dec);
         return -1;
       }
-      position = 0;
-      //LOG_TRACE("Got data size (" << dataSize << ")");
-      state = READING_CHECKSUM;
-    } else if(state == READING_CHECKSUM) {
-      //LOG_TRACE("Got data checksum (" << checksum << ")");
-      state = READING_DATA;
     } else if(state == READING_DATA) {
       //LOG_TRACE("Got some data...");
       position += count;
-      if(position == dataSize) {
+      if(position == header.size) {
         LOG_TRACE("Got a whole message...  processing");
         //LOG_TRACE("Got all the data... processing");
-        processData(collectedData, dataSize, checksum);
+        processData(collectedData, header.size, header.checksum);
         //LOG_TRACE("Processsing complete.  Deleting buffer.");
         delete[] collectedData;
         collectedData = NULL;
-        dataSize = 0;
+        header.size = 0;
+        header.headerChecksum = 0;
+        header.magicNumber = 0;
         position = 0;
-        state = READING_SIZE;
+        state = READING_HEADER;
       }
     }
   } else if(count == 0) {
@@ -108,15 +117,22 @@ int GatewayServiceHandler::handle_output(ACE_HANDLE fd) {
           LOG_WARN(this << " Protocol Buffers message is missing a required element.");
         }
         unsigned int messageSize = msg->ByteSize();
-        sendBufferSize = messageSize + 2*sizeof(unsigned int);
+        sendBufferSize = messageSize + sizeof(MessageHeader);
         dataToSend = new char[sendBufferSize];
-        unsigned int *size = (unsigned int *) dataToSend;
-        unsigned int *messageChecksum = (unsigned int *) (dataToSend + sizeof(unsigned int));
-        char *protobufSerializedMessage = dataToSend + 2*sizeof(unsigned int);
+        MessageHeader *headerToSend = (MessageHeader *) dataToSend;
+        headerToSend->magicNumber = HEADER_MAGIC_NUMBER;
+        headerToSend->size = messageSize;
+        headerToSend->reserved[0] = 0;
+        headerToSend->reserved[1] = 0;
+        headerToSend->reserved[2] = 0;
+        headerToSend->reserved[3] = 0;
         
-        *size = messageSize;
+        char *protobufSerializedMessage = dataToSend + sizeof(MessageHeader);
+        
+        headerToSend->size = messageSize;
         msg->SerializeToArray(protobufSerializedMessage, messageSize);
-        *messageChecksum = ACE::crc32(protobufSerializedMessage, messageSize);
+        headerToSend->checksum = ACE::crc32(protobufSerializedMessage, messageSize);
+        headerToSend->headerChecksum = ACE::crc32(headerToSend, sizeof(MessageHeader) - sizeof(headerToSend->headerChecksum));
         
         sendPosition = 0;
         

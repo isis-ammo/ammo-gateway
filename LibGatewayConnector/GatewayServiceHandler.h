@@ -12,6 +12,16 @@ namespace ammo {
     class GatewayConnector;
     
     namespace internal {
+      const unsigned int HEADER_MAGIC_NUMBER = 0xdeadbeef;
+
+      struct MessageHeader {
+        unsigned int magicNumber;    //Always set to 0xdeadbeef
+        unsigned int size;           //size of the data (does *not* include header)
+        char         reserved[4];    //Reserved for future use (i.e. priority, error codes)
+        unsigned int checksum;       //CRC32 checksum of the data (does *not* include header)
+        unsigned int headerChecksum; //CRC32 checksum of the header, less this checksum.  Does *not* include data, or itself.
+      };
+      
       class GatewayServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH> {
       public:
         //GatewayServiceHandler(ACE_Thread_Manager *tm, ACE_Message_Queue<ACE_NULL_SYNCH> *mq, ACE_Reactor *reactor);
@@ -31,14 +41,12 @@ namespace ammo {
         typedef ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH> super;
         
         typedef enum {
-          READING_SIZE = 0,
-          READING_CHECKSUM = 1,
-          READING_DATA = 2
+          READING_HEADER = 0,
+          READING_DATA = 1
         } ReaderState;
         
         ReaderState state;
-        unsigned int dataSize;
-        unsigned int checksum;
+        MessageHeader header;
         char *collectedData;
         unsigned int position;
         
