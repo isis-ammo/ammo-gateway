@@ -8,6 +8,7 @@
 
 #include "log.h"
 #include <ace/OS_NS_sys_stat.h>
+#include <ace/OS_NS_stdlib.h>
 
 const char *CONFIG_DIRECTORY = "ammo-gateway";
 const char *LDAP_CONFIG_FILE = "LdapPluginConfig.json";
