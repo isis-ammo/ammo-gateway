@@ -8,7 +8,7 @@ project(LdapGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
 
   specific(prop:windows) {
     macros += WINLDAP
-    libs += Wldap32
+    lit_libs += Wldap32
   } else {
     macros += OPENLDAP
     libs += ldap
