@@ -222,7 +222,7 @@ ${MementoSection} "JSON (required)" SecJson
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
-  File build\lib\JSON.dll
+  ;File build\lib\JSON.dll
   File build\lib\JSONd.dll
 
 ${MementoSectionEnd}
