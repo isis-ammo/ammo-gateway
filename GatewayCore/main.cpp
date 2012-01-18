@@ -24,6 +24,8 @@
 #include "UserSwitch.inl"
 #include "LogConfig.inl"
 
+#include "NetworkConnector.h"
+
 using namespace std;
 
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
@@ -41,6 +43,7 @@ public:
 
 
 int main(int argc, char **argv) {
+  #if 0
   dropPrivileges();
   setupLogging("GatewayCore");
   LOG_FATAL("=========");
@@ -86,4 +89,10 @@ int main(int argc, char **argv) {
   LOG_DEBUG("Event loop terminated.");
   GatewayCore::getInstance()->terminate();
   return 0;
+  #else
+  ammo::gateway::internal::NetworkConnector<int, int, ammo::gateway::internal::SYNC_NONE, 10> connector;
+  
+  
+  return 0;
+  #endif
 }

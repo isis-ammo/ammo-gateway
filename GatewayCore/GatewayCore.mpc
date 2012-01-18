@@ -5,6 +5,8 @@ project(GatewayCore) : aceexe, protobuf, gatewaycommon {
   
   includes += $(GATEWAY_ROOT)/LibJSON
   
+  includes += $(GATEWAY_ROOT)/LibAmmoNetwork
+  
   libpaths += $(GATEWAY_ROOT)/build/lib
   libs += json
   
