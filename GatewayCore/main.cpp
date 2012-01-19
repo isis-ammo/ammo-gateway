@@ -2,6 +2,7 @@
 #include <string>
 #include <queue>
 
+#if 0
 #include "ace/INET_Addr.h"
 #include "ace/SOCK_Connector.h"
 #include "ace/SOCK_Stream.h"
@@ -23,8 +24,10 @@
 
 #include "UserSwitch.inl"
 #include "LogConfig.inl"
+#endif
 
 #include "NetworkConnector.h"
+#include "protocol/GatewayPrivateMessages.pb.h"
 
 using namespace std;
 
@@ -90,7 +93,7 @@ int main(int argc, char **argv) {
   GatewayCore::getInstance()->terminate();
   return 0;
   #else
-  ammo::gateway::internal::NetworkConnector<int, int, ammo::gateway::internal::SYNC_NONE, 10> connector;
+  ammo::gateway::internal::NetworkConnector<ammo::gateway::protocol::GatewayWrapper, int, ammo::gateway::internal::SYNC_NONE, 10> connector;
   
   
   return 0;
