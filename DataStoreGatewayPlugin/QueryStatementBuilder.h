@@ -3,8 +3,8 @@
 
 #include <string>
 
-class sqlite3;
-class sqlite3_stmt;
+struct sqlite3;
+struct sqlite3_stmt;
 
 class QueryStatementBuilder
 {

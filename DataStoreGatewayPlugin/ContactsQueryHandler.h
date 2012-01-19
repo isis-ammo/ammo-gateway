@@ -4,7 +4,7 @@
 #include "QueryHandler.h"
 #include "ContactsQueryStatementBuilder.h"
 
-class sqlite3_stmt;
+struct sqlite3_stmt;
 
 class ContactsQueryHandler : public QueryHandler
 {

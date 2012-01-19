@@ -5,6 +5,10 @@
   !error "You must set ACE_ROOT."
 !endif
 
+!ifndef VC_ROOT
+  !define VC_ROOT "C:\Program Files\Microsoft Visual Studio 10.0\VC"
+!endif
+
 !ifndef VERSION
   !error "You must set VERSION."
 !endif
@@ -63,6 +67,9 @@ Caption "AMMO Gateway ${VERSION} Setup"
 !define MEMENTO_REGISTRY_ROOT HKLM
 !define MEMENTO_REGISTRY_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway"
 
+;Icon setting
+;!define MUI_ICON path_to_icon.ico
+
 ;Interface Settings
 !define MUI_ABORTWARNING
 
@@ -113,13 +120,17 @@ ${MementoSection} "Gateway Core (required)" SecCore
   DetailPrint "Installing Gateway Core ..."
   SetDetailsPrint listonly
 
-  ;SectionIn 1 2 3 RO
+  SectionIn 1 2 3 RO
   ;SetOutPath $INSTDIR
   ;RMDir /r $SMPROGRAMS\ammo-gateway
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\GatewayCore.exe
+
+  SetShellVarContext all
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\GatewayConfig.json
 
 ${MementoSectionEnd}
 
@@ -129,7 +140,7 @@ ${MementoSection} "Android Gateway Plugin (required)" SecAndPlug
   DetailPrint "Installing Android Plugin ..."
   SetDetailsPrint listonly
 
-  ;SectionIn 1 2 3 RO
+  SectionIn 1 2 3 RO
   ;SetOutPath $INSTDIR
   ;RMDir /r $SMPROGRAMS\ammo-gateway
 
@@ -139,16 +150,80 @@ ${MementoSection} "Android Gateway Plugin (required)" SecAndPlug
 
 ${MementoSectionEnd}
 
+${MementoSection} "LDAP Gateway Plugin (required)" SecLdapPlug
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing LDAP Plugin ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+  ;SetOutPath $INSTDIR
+  ;RMDir /r $SMPROGRAMS\ammo-gateway
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File build\bin\LdapGatewayPlugin.exe
+
+${MementoSectionEnd}
+
+${MementoSection} "Data Store Gateway Plugin (required)" SecDatPlug
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing Data Store Plugin ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+  ;SetOutPath $INSTDIR
+  ;RMDir /r $SMPROGRAMS\ammo-gateway
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File build\bin\DataStoreGatewayPlugin.exe
+
+${MementoSectionEnd}
+
+${MementoSection} "VC Redist (required)" SecVcredist
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing VC redist ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File "${VC_ROOT}\redist\x86\Microsoft.VC100.CRT\msvcp100.dll"
+  File "${VC_ROOT}\redist\x86\Microsoft.VC100.CRT\msvcr100.dll"
+
+${MementoSectionEnd}
+
 ${MementoSection} "ACE (required)" SecAce
 
   SetDetailsPrint textonly
   DetailPrint "Installing ACE ..."
   SetDetailsPrint listonly
 
+  SectionIn 1 2 3 RO
+
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File ${ACE_ROOT}\lib\ACE.dll
   File ${ACE_ROOT}\lib\ACEd.dll
+
+${MementoSectionEnd}
+
+${MementoSection} "JSON (required)" SecJson
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing JSON ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  ;File build\lib\JSON.dll
+  File build\lib\JSONd.dll
 
 ${MementoSectionEnd}
 
@@ -240,7 +315,11 @@ SectionEnd
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "The Gateway's Core Service"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAndPlug} "The Android Plugin Service for AMMO Gateway"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecLdapPlug} "The LDAP Plugin Service for AMMO Gateway"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecDatPlug} "The Data Store Plugin Service for AMMO Gateway"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecVcredist} "The VC redist dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAce} "The ACE networking dependency"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecJson} "The JSON serialization dependency"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
@@ -264,18 +343,25 @@ Section Uninstall
   DetailPrint "Deleting Files..."
   SetDetailsPrint listonly
 
-  ;Delete $SMPROGRAMS\NSIS.lnk
-  ;Delete $DESKTOP\NSIS.lnk
-
   ; Gateway Core
   Delete $INSTDIR\bin\GatewayCore.exe
 
   ; Android Gateway Plugin
   Delete $INSTDIR\bin\AndroidGatewayPlugin.exe
 
+  ; LDAP Gateway Plugin
+  Delete $INSTDIR\bin\LdapGatewayPlugin.exe
+
+  ; Data Store Gateway Plugin
+  Delete $INSTDIR\bin\DataStoreGatewayPlugin.exe
+
   ; ACE
   Delete $INSTDIR\bin\ACE.dll
   Delete $INSTDIR\bin\ACEd.dll
+
+  ; JSON
+  Delete $INSTDIR\bin\JSON.dll
+  Delete $INSTDIR\bin\JSONd.dll
 
   ; uninstaller
   Delete $INSTDIR\uninst-ammo-gateway.exe

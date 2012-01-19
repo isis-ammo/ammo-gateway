@@ -9,7 +9,8 @@ public:
   LdapConfigurationManager(std::string fileName);
   static LdapConfigurationManager* getInstance();  
 
-  std::string getLdapBaseAddress();
+  std::string getLdapServerAddress();
+  int getLdapServerPort();
   std::string getLdapUsername();
   std::string getLdapPassword();
 
@@ -21,7 +22,8 @@ private:
   
   std::string findConfigFile(std::string defaultConfigFile);
 
-  std::string ldapBaseAddress;
+  std::string ldapServerAddress;
+  int ldapServerPort;
   std::string ldapUsername;
   std::string ldapPassword;
 };
