@@ -2,7 +2,6 @@
 #include <string>
 #include <queue>
 
-#if 0
 #include "ace/INET_Addr.h"
 #include "ace/SOCK_Connector.h"
 #include "ace/SOCK_Stream.h"
@@ -24,11 +23,6 @@
 
 #include "UserSwitch.inl"
 #include "LogConfig.inl"
-#endif
-
-#include "NetworkConnector.h"
-#include "protocol/GatewayPrivateMessages.pb.h"
-
 using namespace std;
 
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
@@ -46,7 +40,6 @@ public:
 
 
 int main(int argc, char **argv) {
-  #if 0
   dropPrivileges();
   setupLogging("GatewayCore");
   LOG_FATAL("=========");
@@ -92,10 +85,4 @@ int main(int argc, char **argv) {
   LOG_DEBUG("Event loop terminated.");
   GatewayCore::getInstance()->terminate();
   return 0;
-  #else
-  ammo::gateway::internal::NetworkConnector<ammo::gateway::protocol::GatewayWrapper, int, ammo::gateway::internal::SYNC_NONE, 10> connector;
-  
-  
-  return 0;
-  #endif
 }

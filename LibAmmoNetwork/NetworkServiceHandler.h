@@ -10,6 +10,7 @@
 #include "log.h"
 
 #include "NetworkEnumerations.h"
+#include "NetworkEventHandler.h"
 
 namespace ammo {
   namespace gateway {
@@ -80,6 +81,8 @@ namespace ammo {
           READING_DATA = 1
         } ReaderState;
         
+        NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber> *eventHandler;
+        
         ReaderState state;
         MessageHeader messageHeader;
         char *collectedData;
@@ -110,9 +113,10 @@ namespace ammo {
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
 ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::NetworkServiceHandler() : 
 sendQueueMutex(), 
-receiveQueueMutex()
+receiveQueueMutex(),
+eventHandler(NULL)
 {
-  //TODO: Create event handler object
+  eventHandler = static_cast<NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber> *>(new EventHandler());
 }
 
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
@@ -139,17 +143,18 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   connectionClosing = false;
   
   ACE_INET_Addr remoteAddress;
+  std::string remoteAddressAsString;
   int result = this->peer().get_remote_addr(remoteAddress);
   if(result == 0) {
-    std::string printableRemoteAddress(remoteAddress.get_host_addr());
-    LOG_INFO((long) this << " Got connection from " << printableRemoteAddress);
+    remoteAddressAsString = remoteAddress.get_host_addr();
+    LOG_INFO((long) this << " Got connection from " << remoteAddressAsString);
   } else {
     LOG_WARN((long) this << " Got new connection, but couldn't determine remote address.");
   }
   
   this->peer().enable(ACE_NONBLOCK);
   
-  //TODO: send event handler its open event here
+  this->eventHandler->onConnect(remoteAddressAsString);
   
   return 0;
 }
@@ -157,6 +162,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
 int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
   //TODO: send event handler its close event here
+  this->eventHandler->onDisconnect();
   int result = super::handle_close(fd, m);
   
   return result;
@@ -311,6 +317,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   if(calculatedChecksum != messageChecksum) {
     LOG_ERROR((long) this << " Mismatched checksum " << std::hex << calculatedChecksum << " : " << messageChecksum);
     LOG_ERROR((long) this << " size " << std::dec << messageSize ); // << " payload: " < );
+    //TODO: Call event handler's onError method
     return -1;
   }
   
@@ -321,9 +328,11 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
     LOG_ERROR((long) this << " MessageWrapper could not be deserialized.");
     LOG_ERROR((long) this << " Client must have sent something that isn't a protocol buffer (or the wrong type).");
     delete msg;
+    //TODO: Call event handler's onError method
     return -1;
   }
-  //TODO: Call event handler's onDataReceived method
+  
+  this->onMessageReceived(msg);
   
   return 0;
 }
@@ -406,7 +415,7 @@ ProtobufMessageWrapper *ammo::gateway::internal::NetworkServiceHandler<ProtobufM
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
 ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::~NetworkServiceHandler() {
   LOG_TRACE((long) this << " In ~NetworkServiceHandler");
-  //TODO: delete event handler object
+  delete eventHandler;
 }
 
 #endif
