@@ -1,6 +1,8 @@
 #ifndef NETWORK_EVENT_HANDLER_H
 #define NETWORK_EVENT_HANDLER_H
 
+#include "NetworkEnumerations.h"
+
 namespace ammo {
   namespace gateway {
     namespace internal {
@@ -11,7 +13,7 @@ namespace ammo {
       class NetworkEventHandler {
       public:
         NetworkEventHandler();
-        void sendMessage(ProtobufMessageWrapper *msg, char priority);
+        void sendMessage(ProtobufMessageWrapper *msg, char priority = 0);
         
         virtual void onConnect(std::string &peerAddress) = 0;
         virtual void onDisconnect() = 0;

@@ -40,7 +40,7 @@ ammo::gateway::internal::NetworkConnector<ProtobufMessageWrapper, EventHandler, 
 
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
 int ammo::gateway::internal::NetworkConnector<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::connect(std::string address, int port, EventHandler *&handler) {
-  ACE_INET_Addr serverAddress(address, port);
+  ACE_INET_Addr serverAddress(address.c_str(), port);
   connector = new ACE_Connector<ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>, ACE_SOCK_Connector>();
   int status = connector->connect(serviceHandler, serverAddress);
   return status;

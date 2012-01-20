@@ -112,9 +112,9 @@ namespace ammo {
 
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
 ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::NetworkServiceHandler() : 
+eventHandler(NULL),
 sendQueueMutex(), 
-receiveQueueMutex(),
-eventHandler(NULL)
+receiveQueueMutex()
 {
   eventHandler = static_cast<NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber> *>(new EventHandler());
 }
@@ -332,7 +332,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
     return -1;
   }
   
-  this->onMessageReceived(msg);
+  this->eventHandler->onMessageAvailable(msg);
   
   return 0;
 }
