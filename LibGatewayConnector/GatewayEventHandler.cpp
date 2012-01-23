@@ -32,7 +32,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
     parent->onPullResponseReceived(msg->pull_response());
   }
   
-  delete msg; //we're done with it, and we're responsible for deleting it
+  delete msg;
   
   return 0;
 }
