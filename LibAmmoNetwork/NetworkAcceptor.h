@@ -18,17 +18,17 @@ namespace ammo {
         NetworkAcceptor(std::string serverAddress, int serverPort);
         virtual ~NetworkAcceptor();
       private:
-        ACE_Acceptor<ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>, ACE_SOCK_Connector> *connector;
+        ACE_Acceptor<ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>, ACE_SOCK_Acceptor> *acceptor;
       };
     }
   }
 }
 
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
-ammo::gateway::internal::NetworkAcceptor<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::NetworkAcceptor() : connector(NULL) {
-  ACE_INET_Addr serverAddress(config->getCrossGatewayServerPort(), config->getCrossGatewayServerInterface().c_str());
+ammo::gateway::internal::NetworkAcceptor<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::NetworkAcceptor(std::string serverAddress, int serverPort) : acceptor(NULL) {
+  ACE_INET_Addr address(serverPort, serverAddress.c_str());
   
-  acceptor = new ACE_Acceptor<CrossGatewayServiceHandler, ACE_SOCK_Acceptor>(serverAddress);
+  acceptor = new ACE_Acceptor<ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>, ACE_SOCK_Acceptor>(address);
 }
 
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>

@@ -17,13 +17,18 @@
 #include "log.h"
 #include "version.h"
 
-#include "GatewayServiceHandler.h"
 #include "GatewayConfigurationManager.h"
 #include "GatewayCore.h"
 
 #include "UserSwitch.inl"
 #include "LogConfig.inl"
+
+#include "NetworkAcceptor.h"
+#include "GatewayEventHandler.h"
+#include "NetworkEnumerations.h"
+
 using namespace std;
+using namespace ammo::gateway::internal;
 
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
 //in the middle of the reactor event loop, which isn't always a good thing).
@@ -66,14 +71,12 @@ int main(int argc, char **argv) {
   
   LOG_DEBUG("Creating acceptor...");
   
-  //TODO: make interface and port number specifiable on the command line
-  ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayInterface().c_str());
-  
-  LOG_INFO("Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr());
+  //TODO: make interface and port number specifiable on the command line  
+  LOG_INFO("Listening on port " << config->getGatewayPort() << " on interface " << config->getGatewayInterface());
   
   //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor
   //for accept events
-  ACE_Acceptor<GatewayServiceHandler, ACE_SOCK_Acceptor> acceptor(serverAddress);
+  NetworkAcceptor<ammo::gateway::protocol::GatewayWrapper, GatewayEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0xdeadbeef> acceptor(config->getGatewayInterface(), config->getGatewayPort());
   
   //Initializes the cross-gateway connections
   GatewayCore::getInstance()->initCrossGateway();

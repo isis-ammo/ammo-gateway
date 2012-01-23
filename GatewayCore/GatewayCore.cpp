@@ -2,7 +2,7 @@
 
 #include "GatewayConfigurationManager.h"
 
-#include "GatewayServiceHandler.h"
+#include "GatewayEventHandler.h"
 #include "CrossGatewayServiceHandler.h"
 #include "CrossGatewayConnectionManager.h"
 
@@ -27,7 +27,7 @@ GatewayCore* GatewayCore::getInstance() {
   return sharedInstance;
 }
 
-bool GatewayCore::registerDataInterest(std::string mime_type, MessageScope messageScope, GatewayServiceHandler *handler) {
+bool GatewayCore::registerDataInterest(std::string mime_type, MessageScope messageScope, GatewayEventHandler *handler) {
   LOG_INFO("Registering interest in " << mime_type << " by handler " << handler);
   LocalSubscriptionInfo subscriptionInfo;
   subscriptionInfo.handler = handler;
@@ -43,7 +43,7 @@ bool GatewayCore::registerDataInterest(std::string mime_type, MessageScope messa
   return true;
 }
 
-bool GatewayCore::unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayServiceHandler *handler) {
+bool GatewayCore::unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayEventHandler *handler) {
   LOG_INFO("Unregistering interest in " << mime_type << " by handler " << handler);
   PushHandlerMap::iterator it;
   pair<PushHandlerMap::iterator,PushHandlerMap::iterator> handlerIterators;
@@ -77,21 +77,21 @@ bool GatewayCore::unregisterDataInterest(std::string mime_type, MessageScope mes
   return foundSubscription;
 }
 
-bool GatewayCore::registerPullInterest(std::string mime_type, GatewayServiceHandler *handler) {
+bool GatewayCore::registerPullInterest(std::string mime_type, GatewayEventHandler *handler) {
   LOG_INFO("Registering pull interest in " << mime_type << " by handler " << handler);
-  pullHandlers.insert(pair<string, GatewayServiceHandler *>(mime_type, handler));
+  pullHandlers.insert(pair<string, GatewayEventHandler *>(mime_type, handler));
   return true;
 }
 
-bool GatewayCore::unregisterPullInterest(std::string mime_type, GatewayServiceHandler *handler) {
+bool GatewayCore::unregisterPullInterest(std::string mime_type, GatewayEventHandler *handler) {
   LOG_INFO("Unregistering pull interest in " << mime_type << " by handler " << handler);
-  multimap<string,GatewayServiceHandler *>::iterator it;
-  pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
+  multimap<string, GatewayEventHandler *>::iterator it;
+  pair<multimap<string, GatewayEventHandler *>::iterator,multimap<string, GatewayEventHandler *>::iterator> handlerIterators;
   
   handlerIterators = pullHandlers.equal_range(mime_type);
   
   for(it = handlerIterators.first; it != handlerIterators.second;) {
-    multimap<string,GatewayServiceHandler *>::iterator eraseIter = it++;
+    multimap<string, GatewayEventHandler *>::iterator eraseIter = it++;
     
     if(handler == (*eraseIter).second) {
       pullHandlers.erase(eraseIter);
@@ -105,9 +105,9 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, std::string en
   LOG_DEBUG("  Pushing data with uri: " << uri);
   LOG_DEBUG("                    type: " << mimeType);
   LOG_DEBUG("                    scope: " << messageScope);
-  set<GatewayServiceHandler *>::iterator it;
+  set<GatewayEventHandler *>::iterator it;
   
-  set<GatewayServiceHandler *> handlers = getPushHandlersForType(mimeType);
+  set<GatewayEventHandler *> handlers = getPushHandlersForType(mimeType);
   
   for(it = handlers.begin(); it != handlers.end(); ++it) {
     (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, messageScope);
@@ -132,12 +132,12 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, std::string en
 
 bool GatewayCore::pullRequest(std::string requestUid, std::string pluginId, std::string mimeType, 
                               std::string query, std::string projection, unsigned int maxResults, 
-                              unsigned int startFromCount, bool liveQuery, GatewayServiceHandler *originatingPlugin) {
+                              unsigned int startFromCount, bool liveQuery, GatewayEventHandler *originatingPlugin) {
   LOG_DEBUG("  Sending pull request with type: " << mimeType);
   LOG_DEBUG("                        pluginId: " << pluginId);
   LOG_DEBUG("                           query: " << query);
-  multimap<string,GatewayServiceHandler *>::iterator it;
-  pair<multimap<string,GatewayServiceHandler *>::iterator,multimap<string,GatewayServiceHandler *>::iterator> handlerIterators;
+  multimap<string, GatewayEventHandler *>::iterator it;
+  pair<multimap<string, GatewayEventHandler *>::iterator,multimap<string, GatewayEventHandler *>::iterator> handlerIterators;
   
   handlerIterators = pullHandlers.equal_range(mimeType);
   
@@ -156,7 +156,7 @@ bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std
   LOG_DEBUG("  Sending pull response with type: " << mimeType);
   LOG_DEBUG("                        pluginId: " << pluginId);
 
-  map<string,GatewayServiceHandler *>::iterator it = plugins.find(pluginId);
+  map<string, GatewayEventHandler *>::iterator it = plugins.find(pluginId);
   if ( it != plugins.end() ) {
     //check for something here?
     (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uri, encoding, data);
@@ -164,8 +164,8 @@ bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std
   return true;
 }
 
-bool GatewayCore::unregisterPullResponsePluginId(std::string pluginId, GatewayServiceHandler *handler) {
-  map<string,GatewayServiceHandler *>::iterator it = plugins.find(pluginId);
+bool GatewayCore::unregisterPullResponsePluginId(std::string pluginId, GatewayEventHandler *handler) {
+  map<string, GatewayEventHandler *>::iterator it = plugins.find(pluginId);
   if ( it != plugins.end() ) {
     if(it->second == handler) {
       plugins.erase(it);
@@ -346,8 +346,8 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, std::s
   return true;
 }
 
-std::set<GatewayServiceHandler *> GatewayCore::getPushHandlersForType(std::string mimeType) {
-  set<GatewayServiceHandler *> matchingHandlers;
+std::set<GatewayEventHandler *> GatewayCore::getPushHandlersForType(std::string mimeType) {
+  set<GatewayEventHandler *> matchingHandlers;
   for(PushHandlerMap::iterator it = pushHandlers.begin(); it!= pushHandlers.end(); it++) {
     if(mimeType.find(it->first) == 0) { //looking for subscribers which are a prefix of mimeType
       matchingHandlers.insert(it->second.handler);

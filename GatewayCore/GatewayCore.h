@@ -16,7 +16,7 @@
 #include "CrossGatewayServiceHandler.h"
 #include "Enumerations.h"
 
-class GatewayServiceHandler;
+class GatewayEventHandler;
 class CrossGatewayConnectionManager;
 
 struct SubscriptionInfo {
@@ -25,7 +25,7 @@ struct SubscriptionInfo {
 };
 
 struct LocalSubscriptionInfo {
-  GatewayServiceHandler *handler;
+  GatewayEventHandler *handler;
   MessageScope scope;
 };
 
@@ -36,19 +36,19 @@ public:
   static GatewayCore* getInstance();
   
   
-  bool registerDataInterest(std::string mime_type, MessageScope messageScope,  GatewayServiceHandler *handler);
-  bool unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayServiceHandler *handler);
+  bool registerDataInterest(std::string mime_type, MessageScope messageScope,  GatewayEventHandler *handler);
+  bool unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayEventHandler *handler);
   
-  bool registerPullInterest(std::string mime_type, GatewayServiceHandler *handler);
-  bool unregisterPullInterest(std::string mime_type, GatewayServiceHandler *handler);
+  bool registerPullInterest(std::string mime_type, GatewayEventHandler *handler);
+  bool unregisterPullInterest(std::string mime_type, GatewayEventHandler *handler);
   
   bool pushData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope);
   
   bool pullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
-                   unsigned int maxResults, unsigned int startFromCount, bool liveQuery, GatewayServiceHandler *originatingPlugin);
+                   unsigned int maxResults, unsigned int startFromCount, bool liveQuery, GatewayEventHandler *originatingPlugin);
   bool pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data);
   
-  bool unregisterPullResponsePluginId(std::string pluginId, GatewayServiceHandler *handler);
+  bool unregisterPullResponsePluginId(std::string pluginId, GatewayEventHandler *handler);
   
   //Methods for cross-gateway communication
   void initCrossGateway();
@@ -68,15 +68,15 @@ public:
   virtual ~GatewayCore();
   
 private:
-  std::set<GatewayServiceHandler *> getPushHandlersForType(std::string mimeType);
+  std::set<GatewayEventHandler *> getPushHandlersForType(std::string mimeType);
   
   static GatewayCore* sharedInstance;
   
   typedef std::multimap<std::string, LocalSubscriptionInfo> PushHandlerMap;
   PushHandlerMap pushHandlers;
-  std::multimap<std::string, GatewayServiceHandler *> pullHandlers;
+  std::multimap<std::string, GatewayEventHandler *> pullHandlers;
   
-  std::map<std::string, GatewayServiceHandler *> plugins;
+  std::map<std::string, GatewayEventHandler *> plugins;
   
   std::map<std::string, CrossGatewayServiceHandler *> crossGatewayHandlers;
   typedef std::multimap<std::string, SubscriptionInfo> CrossGatewaySubscriptionMap;
