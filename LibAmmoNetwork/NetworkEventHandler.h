@@ -6,10 +6,10 @@
 namespace ammo {
   namespace gateway {
     namespace internal {
-      template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+      template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
       class NetworkServiceHandler;
       
-      template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+      template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
       class NetworkEventHandler {
       public:
         NetworkEventHandler();
@@ -20,28 +20,33 @@ namespace ammo {
         virtual int onMessageAvailable(ProtobufMessageWrapper *msg) = 0; //this method is responsible for deleting msg
         virtual int onError(const char errorCode) = 0;
         
+        void close();
+        void setServiceHandler(void *handler);
       private:
-        void setServiceHandler(NetworkServiceHandler<ProtobufMessageWrapper, NetworkEventHandler, SyncMethod, MagicNumber> *handler);
-        
         NetworkServiceHandler<ProtobufMessageWrapper, NetworkEventHandler, SyncMethod, MagicNumber> *serviceHandler;
       };
     }
   }
 }
 
-template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 ammo::gateway::internal::NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber>::NetworkEventHandler() : serviceHandler(NULL) {
   
 }
 
-template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 void ammo::gateway::internal::NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber>::sendMessage(ProtobufMessageWrapper *msg, char priority) {
   serviceHandler->sendMessage(msg, priority);
 }
 
-template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
-void ammo::gateway::internal::NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber>::setServiceHandler(ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, NetworkEventHandler, SyncMethod, MagicNumber> *handler) {
-  serviceHandler = handler;
+template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
+void ammo::gateway::internal::NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber>::close() {
+  serviceHandler->close();
+}
+
+template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
+void ammo::gateway::internal::NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber>::setServiceHandler(void *handler) {
+  serviceHandler = static_cast<NetworkServiceHandler<ProtobufMessageWrapper, NetworkEventHandler, SyncMethod, MagicNumber> *>(handler);
 }
 
 #endif

@@ -16,7 +16,7 @@ namespace ammo {
   namespace gateway {
     namespace internal {
       struct MessageHeader {
-        unsigned int magicNumber;    //Always set to 0xfeedbeef
+        unsigned int magicNumber;    //Always set to MagicNumber (template parameter)
         unsigned int size;           //size of the data (does *not* include header)
         char         priority;       //Message priority (larger numbers are higher priority, and will be processed first if messages are queued)
         char         error;          //Error code (if nonzero, size and message checksum should be zero)
@@ -53,7 +53,7 @@ namespace ammo {
         }
       };
       
-      template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+      template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
       class NetworkServiceHandler : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH> {
       public:
         NetworkServiceHandler();
@@ -69,6 +69,8 @@ namespace ammo {
         void sendMessage(ProtobufMessageWrapper *msg, char priority);
         ProtobufMessageWrapper *getNextMessageToSend();
         
+        NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber> *eventHandler;
+        
         ~NetworkServiceHandler();
         
       protected:
@@ -80,9 +82,7 @@ namespace ammo {
           READING_HEADER = 0,
           READING_DATA = 1
         } ReaderState;
-        
-        NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber> *eventHandler;
-        
+       
         ReaderState state;
         MessageHeader messageHeader;
         char *collectedData;
@@ -110,16 +110,17 @@ namespace ammo {
   }
 }
 
-template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::NetworkServiceHandler() : 
 eventHandler(NULL),
 sendQueueMutex(), 
 receiveQueueMutex()
 {
   eventHandler = static_cast<NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber> *>(new EventHandler());
+  eventHandler->setServiceHandler(this);
 }
 
-template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::open(void *ptr) {
   if(super::open(ptr) == -1) {
     return -1;
@@ -159,7 +160,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   return 0;
 }
 
-template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
   //TODO: send event handler its close event here
   this->eventHandler->onDisconnect();
@@ -168,7 +169,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   return result;
 }
 
-template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::handle_input(ACE_HANDLE fd) {
   LOG_TRACE((long) this << " In handle_input");
   int count = 0;
@@ -241,7 +242,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   return 0;
 }
 
-template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::handle_output(ACE_HANDLE fd) {
   int count = 0;
   
@@ -310,7 +311,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   return 0;
 }
 
-template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::processData(char *data, unsigned int messageSize, unsigned int messageChecksum, char priority) {
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
@@ -337,7 +338,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   return 0;
 }
 
-template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::sendMessage(ProtobufMessageWrapper *msg, char priority) {
   QueuedMessage<ProtobufMessageWrapper> queuedMsg;
   queuedMsg.priority = priority;
@@ -360,7 +361,7 @@ void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Even
   }
 }
 
-template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::sendErrorPacket(char errorCode) {
   LOG_WARN((long) this << " Sending error packet to connected device");
   if(dataToSend != NULL) {
@@ -396,7 +397,7 @@ void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Even
   }
 }
 
-template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 ProtobufMessageWrapper *ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::getNextMessageToSend() {
   ProtobufMessageWrapper *msg = NULL;
   sendQueueMutex.acquire();
@@ -412,7 +413,7 @@ ProtobufMessageWrapper *ammo::gateway::internal::NetworkServiceHandler<ProtobufM
   return msg;
 }
 
-template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, int MagicNumber>
+template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::~NetworkServiceHandler() {
   LOG_TRACE((long) this << " In ~NetworkServiceHandler");
   delete eventHandler;

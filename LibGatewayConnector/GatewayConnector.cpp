@@ -30,20 +30,20 @@ void ammo::gateway::GatewayConnector::init(GatewayConnectorDelegate *delegate, a
     connected = false;
   } else {
     connected = true;
-    //TODO: handler->setParentConnector(this);
+    handler->setParentConnector(this);
   }
   if(handler == NULL) {
-    LOG_ERROR("Handler not created by ACE_Connector");
+    LOG_ERROR("Handler not created by NetworkConnector");
   } else {
-    LOG_DEBUG("Gateway service handler created by ACE_Connector");
+    LOG_DEBUG("Gateway event handler created by NetworkConnector");
   }
 }
 
 ammo::gateway::GatewayConnector::~GatewayConnector() {
   //LOG_DEBUG("Deleting GatewayConnector()");
   if(connected) {
-    //TODO: handler->close();
-    //TODO: connector->close();
+    handler->close();
+    connector->close();
   }
   delete connector;
 }

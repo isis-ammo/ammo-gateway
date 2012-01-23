@@ -6,12 +6,18 @@
 
 namespace ammo {
   namespace gateway {
+    class GatewayConnector;
     namespace internal {
       class GatewayEventHandler : public ammo::gateway::internal::NetworkEventHandler<ammo::gateway::protocol::GatewayWrapper, ammo::gateway::internal::SYNC_MULTITHREADED, 0xdeadbeef> {
+      public:
         virtual void onConnect(std::string &peerAddress);
         virtual void onDisconnect();
         virtual int onMessageAvailable(ammo::gateway::protocol::GatewayWrapper *msg);
         virtual int onError(const char errorCode);
+        
+        void setParentConnector(ammo::gateway::GatewayConnector *parent);
+      private:
+        ammo::gateway::GatewayConnector *parent;
       };
     }
   }
