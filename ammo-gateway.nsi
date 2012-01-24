@@ -164,6 +164,7 @@ ${MementoSection} "LDAP Gateway Plugin (required)" SecLdapPlug
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\LdapGatewayPlugin.exe
+  SetOutPath $APPDATA\ammo-gateway
   File build\etc\LdapPluginConfig.json
 
 ${MementoSectionEnd}
