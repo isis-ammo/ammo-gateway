@@ -127,6 +127,7 @@ ${MementoSection} "Gateway Core (required)" SecCore
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\GatewayCore.exe
+  File build\lib\gatewayconnector.dll
 
   SetShellVarContext all
   SetOutPath $APPDATA\ammo-gateway
@@ -345,6 +346,7 @@ Section Uninstall
 
   ; Gateway Core
   Delete $INSTDIR\bin\GatewayCore.exe
+  Delete $INSTDIR\bin\gatewayconnector.dll
 
   ; Android Gateway Plugin
   Delete $INSTDIR\bin\AndroidGatewayPlugin.exe
