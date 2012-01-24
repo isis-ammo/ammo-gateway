@@ -132,6 +132,7 @@ ${MementoSection} "Gateway Core (required)" SecCore
   SetShellVarContext all
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\GatewayConfig.json
+  File build\etc\LoggingConfig.json
 
 ${MementoSectionEnd}
 
@@ -182,6 +183,8 @@ ${MementoSection} "Data Store Gateway Plugin (required)" SecDatPlug
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\DataStoreGatewayPlugin.exe
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\DataStorePluginConfig.json
 
 ${MementoSectionEnd}
 
