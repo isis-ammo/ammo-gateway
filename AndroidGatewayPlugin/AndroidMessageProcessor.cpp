@@ -1,5 +1,5 @@
 #include "AndroidMessageProcessor.h"
-#include "AndroidServiceHandler.h"
+#include "AndroidEventHandler.h"
 
 #include "log.h"
 
@@ -7,7 +7,7 @@ using namespace ammo::gateway;
 
 const char DEFAULT_PRIORITY = 50;
 
-AndroidMessageProcessor::AndroidMessageProcessor(AndroidServiceHandler *serviceHandler) :
+AndroidMessageProcessor::AndroidMessageProcessor(AndroidEventHandler *serviceHandler) :
 closed(false),
 closeMutex(),
 newMessageMutex(),

@@ -13,6 +13,8 @@ namespace ammo {
       class NetworkEventHandler {
       public:
         NetworkEventHandler();
+        virtual ~NetworkEventHandler();
+        
         void sendMessage(ProtobufMessageWrapper *msg, char priority = 0);
         
         virtual void onConnect(std::string &peerAddress) = 0;
@@ -22,7 +24,7 @@ namespace ammo {
         
         void close();
         void setServiceHandler(void *handler);
-      private:
+      protected: //FIXME: protected to allow reactor lock hack in AndroidEventHandler (should be private)
         NetworkServiceHandler<ProtobufMessageWrapper, NetworkEventHandler, SyncMethod, MagicNumber> *serviceHandler;
       };
     }
@@ -32,6 +34,11 @@ namespace ammo {
 
 template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 ammo::gateway::internal::NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber>::NetworkEventHandler() : serviceHandler(NULL) {
+  
+}
+
+template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
+ammo::gateway::internal::NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber>::~NetworkEventHandler() {
   
 }
 
