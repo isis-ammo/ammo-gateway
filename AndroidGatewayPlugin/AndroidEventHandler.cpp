@@ -39,7 +39,6 @@ void AndroidEventHandler::onDisconnect() {
 
 int AndroidEventHandler::onMessageAvailable(ammo::protocol::MessageWrapper *msg) {
   LOG_TRACE("onMessageAvailable()");
-  LOG_TRACE("Message Received: " << msg->DebugString());
   
   addReceivedMessage(msg, msg->message_priority());
   messageProcessor->signalNewMessageAvailable();
