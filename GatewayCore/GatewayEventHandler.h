@@ -29,8 +29,6 @@ private:
   
   std::vector<std::string> registeredHandlers;
   std::vector<std::string> registeredPullRequestHandlers;
-  
-  std::queue<ammo::gateway::protocol::GatewayWrapper *> sendQueue;
   std::set<std::string> registeredPullResponsePluginIds;
 };
 
