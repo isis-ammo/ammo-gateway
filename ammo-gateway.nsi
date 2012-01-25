@@ -127,10 +127,12 @@ ${MementoSection} "Gateway Core (required)" SecCore
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\GatewayCore.exe
+  File build\lib\gatewayconnector.dll
 
   SetShellVarContext all
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\GatewayConfig.json
+  File build\etc\LoggingConfig.json
 
 ${MementoSectionEnd}
 
@@ -163,6 +165,8 @@ ${MementoSection} "LDAP Gateway Plugin (required)" SecLdapPlug
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\LdapGatewayPlugin.exe
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\LdapPluginConfig.json
 
 ${MementoSectionEnd}
 
@@ -179,6 +183,8 @@ ${MementoSection} "Data Store Gateway Plugin (required)" SecDatPlug
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\DataStoreGatewayPlugin.exe
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\DataStorePluginConfig.json
 
 ${MementoSectionEnd}
 
@@ -222,8 +228,8 @@ ${MementoSection} "JSON (required)" SecJson
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
-  ;File build\lib\JSON.dll
-  File build\lib\JSONd.dll
+  File build\lib\JSON.dll
+  ;File build\lib\JSONd.dll
 
 ${MementoSectionEnd}
 
@@ -345,6 +351,7 @@ Section Uninstall
 
   ; Gateway Core
   Delete $INSTDIR\bin\GatewayCore.exe
+  Delete $INSTDIR\bin\gatewayconnector.dll
 
   ; Android Gateway Plugin
   Delete $INSTDIR\bin\AndroidGatewayPlugin.exe
