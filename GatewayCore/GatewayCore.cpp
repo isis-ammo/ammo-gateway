@@ -3,7 +3,7 @@
 #include "GatewayConfigurationManager.h"
 
 #include "GatewayEventHandler.h"
-#include "CrossGatewayServiceHandler.h"
+#include "CrossGatewayEventHandler.h"
 #include "CrossGatewayConnectionManager.h"
 
 
@@ -36,7 +36,7 @@ bool GatewayCore::registerDataInterest(std::string mime_type, MessageScope messa
   
   if(messageScope == SCOPE_GLOBAL) {
     //now propogate the subscription to all the other gateway nodes
-    for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+    for(map<string, CrossGatewayEventHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
       it->second->sendSubscribeMessage(mime_type);
     }
   }
@@ -70,7 +70,7 @@ bool GatewayCore::unregisterDataInterest(std::string mime_type, MessageScope mes
   
   if(foundSubscription == true && foundScope == SCOPE_GLOBAL) {
     //now propogate the unsubscription to all the other gateway nodes
-    for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+    for(map<string, CrossGatewayEventHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
       it->second->sendUnsubscribeMessage(mime_type);
     }
   }
@@ -182,11 +182,11 @@ void GatewayCore::initCrossGateway() {
   //TODO: make interface and port number specifiable on the command line
   ACE_INET_Addr serverAddress(config->getCrossGatewayServerPort(), config->getCrossGatewayServerInterface().c_str());
   
-  LOG_DEBUG("(CG) Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr());
+  LOG_DEBUG("(CG) Listening on port " << config->getCrossGatewayServerPort() << " on interface " << config->getCrossGatewayServerInterface().c_str());
   
   //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor
   //for accept events
-  crossGatewayAcceptor = new ACE_Acceptor<CrossGatewayServiceHandler, ACE_SOCK_Acceptor>(serverAddress);
+  crossGatewayAcceptor = new ammo::gateway::internal::NetworkAcceptor<ammo::gateway::protocol::GatewayWrapper, CrossGatewayEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0x8badf00d>(config->getCrossGatewayServerInterface(), config->getCrossGatewayServerPort());
   
   //We connect to a parent gateway if the parent address isn't blank; if it is
   //blank, this gateway must be the root (of our tree)
@@ -199,11 +199,11 @@ void GatewayCore::initCrossGateway() {
   }
 }
 
-void GatewayCore::setParentHandler(CrossGatewayServiceHandler *handler) {
+void GatewayCore::setParentHandler(CrossGatewayEventHandler *handler) {
   this->parentHandler = handler;
 }
   
-bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGatewayServiceHandler *handler) {
+bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGatewayEventHandler *handler) {
   LOG_DEBUG("Registering cross-gateway handler " << handlerId);
   crossGatewayHandlers[handlerId] = handler;
   //send existing subscriptions
@@ -232,7 +232,7 @@ bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGat
 
 bool GatewayCore::unregisterCrossGatewayConnection(std::string handlerId) {
   LOG_DEBUG("Unregistering cross-gateway handler " << handlerId);
-  CrossGatewayServiceHandler *handler = crossGatewayHandlers[handlerId];
+  CrossGatewayEventHandler *handler = crossGatewayHandlers[handlerId];
   crossGatewayHandlers.erase(handlerId);
   
   if(handler == parentHandler) {
@@ -270,7 +270,7 @@ bool GatewayCore::subscribeCrossGateway(std::string mimeType, std::string origin
   }
   
   //now propogate the subscription to all the other gateway nodes, except the one it came from
-  for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+  for(map<string, CrossGatewayEventHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
     if(it->first != originHandlerId) {
       it->second->sendSubscribeMessage(mimeType);
     }
@@ -281,7 +281,7 @@ bool GatewayCore::subscribeCrossGateway(std::string mimeType, std::string origin
 bool GatewayCore::unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId) {
   LOG_DEBUG("Handler " << originHandlerId << " unsubscribing from type " << mimeType);
   //propogate the unsubscribe to all the other gateway nodes, except the one it came from
-  for(map<string, CrossGatewayServiceHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+  for(map<string, CrossGatewayEventHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
     if(it->first != originHandlerId) {
       it->second->sendUnsubscribeMessage(mimeType);
     }

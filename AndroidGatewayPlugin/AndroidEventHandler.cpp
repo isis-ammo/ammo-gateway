@@ -17,7 +17,7 @@ receivedMessageCount(0) {
 }
 
 void AndroidEventHandler::onConnect(std::string &peerAddress) {
-  LOG_TRACE("onConnect(" << peerAddress << ")");
+  LOG_TRACE("AndroidEventHandler::onConnect(" << peerAddress << ")");
   LOG_INFO("Got connection from device at " << peerAddress << ")");
   
   messageProcessor = new AndroidMessageProcessor(this);
@@ -25,7 +25,7 @@ void AndroidEventHandler::onConnect(std::string &peerAddress) {
 }
 
 void AndroidEventHandler::onDisconnect() {
-  LOG_TRACE("onDisconnect()");
+  LOG_TRACE("AndroidEventHandler::onDisconnect()");
   
   LOG_TRACE((long) this << " Closing Message Processor");
   messageProcessor->close(0);
@@ -38,7 +38,7 @@ void AndroidEventHandler::onDisconnect() {
 }
 
 int AndroidEventHandler::onMessageAvailable(ammo::protocol::MessageWrapper *msg) {
-  LOG_TRACE("onMessageAvailable()");
+  LOG_TRACE("AndroidEventHandler::onMessageAvailable()");
   
   addReceivedMessage(msg, msg->message_priority());
   messageProcessor->signalNewMessageAvailable();
@@ -47,7 +47,7 @@ int AndroidEventHandler::onMessageAvailable(ammo::protocol::MessageWrapper *msg)
 }
 
 int AndroidEventHandler::onError(const char errorCode) {
-  LOG_ERROR("onError(" << errorCode << ")");
+  LOG_ERROR("AndroidEventHandler::onError(" << errorCode << ")");
   return 0;
 }
 

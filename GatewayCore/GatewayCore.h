@@ -5,15 +5,12 @@
 #include <set>
 #include <string>
 
-#include "ace/INET_Addr.h"
-#include "ace/SOCK_Connector.h"
-#include "ace/SOCK_Stream.h"
-#include "ace/SOCK_Acceptor.h"
+#include "NetworkAcceptor.h"
+#include "CrossGatewayEventHandler.h"
+#include "NetworkEnumerations.h"
+#include "protocol/GatewayPrivateMessages.pb.h"
 
-#include "ace/Acceptor.h"
-#include "ace/Connector.h"
-#include "ace/Reactor.h"
-#include "CrossGatewayServiceHandler.h"
+#include "CrossGatewayEventHandler.h"
 #include "Enumerations.h"
 
 class GatewayEventHandler;
@@ -53,9 +50,9 @@ public:
   //Methods for cross-gateway communication
   void initCrossGateway();
   
-  void setParentHandler(CrossGatewayServiceHandler *handler);
+  void setParentHandler(CrossGatewayEventHandler *handler);
   
-  bool registerCrossGatewayConnection(std::string handlerId, CrossGatewayServiceHandler *handler);
+  bool registerCrossGatewayConnection(std::string handlerId, CrossGatewayEventHandler *handler);
   bool unregisterCrossGatewayConnection(std::string handlerId);
   
   bool subscribeCrossGateway(std::string mimeType, std::string originHandlerId);
@@ -78,14 +75,14 @@ private:
   
   std::map<std::string, GatewayEventHandler *> plugins;
   
-  std::map<std::string, CrossGatewayServiceHandler *> crossGatewayHandlers;
+  std::map<std::string, CrossGatewayEventHandler *> crossGatewayHandlers;
   typedef std::multimap<std::string, SubscriptionInfo> CrossGatewaySubscriptionMap;
   CrossGatewaySubscriptionMap subscriptions;
   
   CrossGatewayConnectionManager *connectionManager;
-  CrossGatewayServiceHandler *parentHandler;
+  CrossGatewayEventHandler *parentHandler;
   
-  ACE_Acceptor<CrossGatewayServiceHandler, ACE_SOCK_Acceptor> *crossGatewayAcceptor;
+  ammo::gateway::internal::NetworkAcceptor<ammo::gateway::protocol::GatewayWrapper, CrossGatewayEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0x8badf00d> *crossGatewayAcceptor;
 };
 
 #endif //#ifndef GATEWAY_CORE_H

@@ -21,7 +21,7 @@ project(GatewayCore) : aceexe, protobuf, gatewaycommon {
   Source_Files {
     main.cpp
     GatewayEventHandler.cpp
-    CrossGatewayServiceHandler.cpp
+    CrossGatewayEventHandler.cpp
     CrossGatewayConnectionManager.cpp
     GatewayCore.cpp
     GatewayConfigurationManager.cpp

@@ -8,15 +8,15 @@ using namespace std;
 using namespace ammo::gateway::internal;
 
 void GatewayEventHandler::onConnect(std::string &peerAddress) {
-  LOG_TRACE("onConnect(" << peerAddress << ")");
+  LOG_TRACE("GatewayEventHandler::onConnect(" << peerAddress << ")");
 }
 
 void GatewayEventHandler::onDisconnect() {
-  LOG_TRACE("onDisconnect()");
+  LOG_TRACE("GatewayEventHandler::onDisconnect()");
 }
 
 int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrapper *msg) {
-  LOG_TRACE("onMessageAvailable()");
+  LOG_TRACE("GatewayEventHandler::onMessageAvailable()");
   
   if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
     LOG_DEBUG("Received Associate Result...");
@@ -38,7 +38,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
 }
 
 int GatewayEventHandler::onError(const char errorCode) {
-  LOG_ERROR("onError(" << errorCode << ")");
+  LOG_ERROR("GatewayEventHandler::onError(" << errorCode << ")");
   return 0;
 }
 
