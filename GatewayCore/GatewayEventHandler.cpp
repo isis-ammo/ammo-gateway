@@ -77,7 +77,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       } else {
         scope = SCOPE_LOCAL;
       }
-      GatewayCore::getInstance()->pushData(msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), this->username, scope);
+      GatewayCore::getInstance()->pushData(this, msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), this->username, scope);
       break;
     } 
     case ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST: {
@@ -85,7 +85,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       LOG_TRACE("  " << msg->DebugString());
       
       ammo::gateway::protocol::PullRequest pullMsg = msg->pull_request();
-      bool result = GatewayCore::getInstance()->pullRequest(pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
+      bool result = GatewayCore::getInstance()->pullRequest(this, pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
         pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), this);
       if(result == true) {
         registeredPullResponsePluginIds.insert(pullMsg.plugin_id());

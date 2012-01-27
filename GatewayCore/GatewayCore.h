@@ -39,9 +39,9 @@ public:
   bool registerPullInterest(std::string mime_type, GatewayEventHandler *handler);
   bool unregisterPullInterest(std::string mime_type, GatewayEventHandler *handler);
   
-  bool pushData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope);
+  bool pushData(GatewayEventHandler *sender, std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope);
   
-  bool pullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
+  bool pullRequest(GatewayEventHandler *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
                    unsigned int maxResults, unsigned int startFromCount, bool liveQuery, GatewayEventHandler *originatingPlugin);
   bool pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data);
   

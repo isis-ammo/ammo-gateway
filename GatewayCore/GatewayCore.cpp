@@ -101,7 +101,7 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, GatewayEventHand
   return true;
 }
 
-bool GatewayCore::pushData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope) {
+bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope) {
   LOG_DEBUG("  Pushing data with uri: " << uri);
   LOG_DEBUG("                    type: " << mimeType);
   LOG_DEBUG("                    scope: " << messageScope);
@@ -110,7 +110,9 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, std::string en
   set<GatewayEventHandler *> handlers = getPushHandlersForType(mimeType);
   
   for(it = handlers.begin(); it != handlers.end(); ++it) {
-    (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, messageScope);
+    if((*it) != sender) { //don't send pushed data to plugin that originated it, if it's subscribed to the same topic
+      (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, messageScope);
+    }
   }
   
   if(messageScope == SCOPE_GLOBAL) {
@@ -130,7 +132,7 @@ bool GatewayCore::pushData(std::string uri, std::string mimeType, std::string en
   return true;
 }
 
-bool GatewayCore::pullRequest(std::string requestUid, std::string pluginId, std::string mimeType, 
+bool GatewayCore::pullRequest(GatewayEventHandler *sender, std::string requestUid, std::string pluginId, std::string mimeType, 
                               std::string query, std::string projection, unsigned int maxResults, 
                               unsigned int startFromCount, bool liveQuery, GatewayEventHandler *originatingPlugin) {
   LOG_DEBUG("  Sending pull request with type: " << mimeType);
@@ -143,8 +145,10 @@ bool GatewayCore::pullRequest(std::string requestUid, std::string pluginId, std:
   
   for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
     //check for something here?
-    LOG_DEBUG("Sending request to " << (*it).second);
-    (*it).second->sendPullRequest(requestUid, pluginId, mimeType, query, projection, maxResults, startFromCount, liveQuery);
+    if((*it).second != sender) { //don't send pull request to originating plugin, if it handles the same type
+      LOG_DEBUG("Sending request to " << (*it).second);
+      (*it).second->sendPullRequest(requestUid, pluginId, mimeType, query, projection, maxResults, startFromCount, liveQuery);
+    }
   }
   
   //update plugin ID to the originating service handler that called this method
