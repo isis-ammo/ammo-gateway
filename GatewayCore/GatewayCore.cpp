@@ -17,7 +17,7 @@ GatewayCore* GatewayCore::sharedInstance = NULL;
 
 GatewayCore::GatewayCore() : connectionManager(NULL), parentHandler(NULL), crossGatewayAcceptor(NULL) {
   
-}
+} 
 
 GatewayCore* GatewayCore::getInstance() {
   if(sharedInstance == NULL) {
