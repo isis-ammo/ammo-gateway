@@ -9,6 +9,12 @@
 #include <iostream>
 #include <fstream>
 
+#ifdef WIN32
+#include <Windows.h>
+#include <shlwapi.h>
+#include <ShlObj.h>
+#endif
+
 #include "log.h"
 
 using namespace std;
@@ -78,6 +84,8 @@ int ammo::gateway::internal::GatewayConfigurationManager::getGatewayPort() {
   return gatewayPort;
 }
 
+#ifndef WIN32
+
 string ammo::gateway::internal::GatewayConfigurationManager::findConfigFile(std::string defaultConfigFile) {
   string filePath;
   ACE_stat statStruct;
@@ -123,6 +131,65 @@ string ammo::gateway::internal::GatewayConfigurationManager::findConfigFile(std:
   LOG_INFO("Using config file: " << filePath);
   return filePath;
 }
+
+#else
+/**
+ * Searches for the gateway config file.  Search order:
+ *   1) The current working directory
+ *   2) The user's configuration directory (Roaming appdata directory/ammo-gateway)
+ *   3) The all users configuration directory (i.e. C:\ProgramData\ammo-gateway on Vista/7)
+ *   Fallback locations (don't rely on these; they may change or disappear in a
+ *   future release.  Gateway installation should put the config file into
+ *   a location that's searched by default):
+ *   4) $GATEWAY_ROOT/etc
+ *   5) $GATEWAY_ROOT/build/etc
+ *   6) ../etc
+ */
+string ammo::gateway::internal::GatewayConfigurationManager::findConfigFile(std::string defaultConfigFile) {
+  string filePath;
+  ACE_stat statStruct;
+  
+  string gatewayRoot;
+  
+  TCHAR userConfigPath[MAX_PATH];
+  TCHAR systemConfigPath[MAX_PATH];
+
+  SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, userConfigPath);
+  SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, systemConfigPath);
+  
+  char *gatewayRootC = ACE_OS::getenv("GATEWAY_ROOT");
+  if(gatewayRootC == NULL) {
+    gatewayRoot = "";
+  } else {
+    gatewayRoot = gatewayRootC;
+  }
+  
+  filePath = defaultConfigFile;
+  //stat returns 0 if the file exists
+  if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+    filePath = string(userConfigPath) + "\\" + CONFIG_DIRECTORY + "\\" + CONFIG_FILE;
+    if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+      filePath = string(systemConfigPath) + "\\" + CONFIG_DIRECTORY + "\\" + CONFIG_FILE;
+      if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+        filePath = gatewayRoot + "\\etc\\" + CONFIG_FILE;
+        if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+          filePath = gatewayRoot + "\\build\\etc\\" + CONFIG_FILE;
+          if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+            filePath = string("..\\etc\\") + CONFIG_FILE;
+            if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+              LOG_ERROR("No config file found.");
+              return "";
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  LOG_INFO("Using config file: " << filePath);
+  return filePath;
+}
+#endif
 
 ammo::gateway::internal::GatewayConfigurationManager* ammo::gateway::internal::GatewayConfigurationManager::getInstance() {
   if(sharedInstance == NULL) {

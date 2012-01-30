@@ -12,6 +12,12 @@
 #include "ace/Signal.h"
 #include <ace/OS_NS_sys_stat.h>
 
+#ifdef WIN32
+#include <Windows.h>
+#include <shlwapi.h>
+#include <ShlObj.h>
+#endif
+
 const char *LOG_CONFIG_DIRECTORY = "ammo-gateway";
 const char *LOG_CONFIG_FILE = "LoggingConfig.json";
 
@@ -140,6 +146,7 @@ std::string expandLogFileName(std::string logFile, std::string appName) {
   return outputFilename.str();
 }
 
+#ifndef WIN32
 std::string findConfigFile() {
   std::string filePath;
   ACE_stat statStruct;
@@ -185,5 +192,64 @@ std::string findConfigFile() {
   LOG_INFO("Using config file: " << filePath);
   return filePath;
 }
+#else
+/**
+ * Searches for the gateway config file.  Search order:
+ *   1) The current working directory
+ *   2) The user's configuration directory (Roaming appdata directory/ammo-gateway)
+ *   3) The all users configuration directory (i.e. C:\ProgramData\ammo-gateway on Vista/7)
+ *   Fallback locations (don't rely on these; they may change or disappear in a
+ *   future release.  Gateway installation should put the config file into
+ *   a location that's searched by default):
+ *   4) $GATEWAY_ROOT/etc
+ *   5) $GATEWAY_ROOT/build/etc
+ *   6) ../etc
+ */
+std::string findConfigFile() {
+  std::string filePath;
+  ACE_stat statStruct;
+  
+  std::string gatewayRoot;
+  
+  TCHAR userConfigPath[MAX_PATH];
+  TCHAR systemConfigPath[MAX_PATH];
+
+  SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, userConfigPath);
+  SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, systemConfigPath);
+  
+  char *gatewayRootC = ACE_OS::getenv("GATEWAY_ROOT");
+  if(gatewayRootC == NULL) {
+    gatewayRoot = "";
+  } else {
+    gatewayRoot = gatewayRootC;
+  }
+  
+  filePath = LOG_CONFIG_FILE;
+  //stat returns 0 if the file exists
+  if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+    filePath = std::string(userConfigPath) + "\\" + LOG_CONFIG_DIRECTORY + "\\" + LOG_CONFIG_FILE;
+    if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+      filePath = std::string(systemConfigPath) + "\\" + LOG_CONFIG_DIRECTORY + "\\" + LOG_CONFIG_FILE;
+      if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+        filePath = gatewayRoot + "\\etc\\" + LOG_CONFIG_FILE;
+        if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+          filePath = gatewayRoot + "\\build\\etc\\" + LOG_CONFIG_FILE;
+          if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+            filePath = std::string("..\\etc\\") + LOG_CONFIG_FILE;
+            if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
+              LOG_ERROR("No config file found.");
+              return "";
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  LOG_INFO("Using config file: " << filePath);
+  return filePath;
+}
+#endif
+
 
 //:mode=c++: (jEdit modeline for syntax highlighting)
