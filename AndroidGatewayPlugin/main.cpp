@@ -65,7 +65,7 @@ void registerMdnsService(DNSServiceRef &sdRef, uint16_t portNumber) {
                      htons(portNumber),   //port (port number we're listening on, in network order
                      0,                   //txtLen (length of txt record: must be zero if txtRecord is null)
                      0,                   //txtRecord (NULL or properly formatted DNS txt record)
-                     cb,                  //DNSSServiceRegisterReply callBack (function to be called on success or failure)
+                     NULL,                  //DNSSServiceRegisterReply callBack (function to be called on success or failure)
                      0);                  //context (application context pointer to be passed to callback function)
   LOG_DEBUG("Waiting for response from MDNS responder...");
   DNSServiceErrorType error = DNSServiceProcessResult(sdRef);
