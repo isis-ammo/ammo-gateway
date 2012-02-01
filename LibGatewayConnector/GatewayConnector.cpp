@@ -1,8 +1,9 @@
 #include "GatewayConnector.h"
 #include "GatewayConfigurationManager.h"
-#include "GatewayServiceHandler.h"
-#include "ace/Connector.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
+
+#include "GatewayEventHandler.h"
+
 #include <string>
 #include <iostream>
 
@@ -19,9 +20,9 @@ ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *dele
 }
 
 void ammo::gateway::GatewayConnector::init(GatewayConnectorDelegate *delegate, ammo::gateway::internal::GatewayConfigurationManager *config) { 
-  ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayAddress().c_str());
-  connector = new ACE_Connector<ammo::gateway::internal::GatewayServiceHandler, ACE_SOCK_Connector>();
-  int status = connector->connect(handler, serverAddress);
+  connector = new ammo::gateway::internal::NetworkConnector<ammo::gateway::protocol::GatewayWrapper, ammo::gateway::internal::GatewayEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0xdeadbeef>();
+  
+  int status = connector->connect(config->getGatewayAddress(), config->getGatewayPort(), handler);
   if(status == -1) {
     LOG_ERROR("connection failed");
     LOG_ERROR("errno: " << errno);
@@ -32,9 +33,9 @@ void ammo::gateway::GatewayConnector::init(GatewayConnectorDelegate *delegate, a
     handler->setParentConnector(this);
   }
   if(handler == NULL) {
-    LOG_ERROR("Handler not created by ACE_Connector");
+    LOG_ERROR("Handler not created by NetworkConnector");
   } else {
-    LOG_DEBUG("Gateway service handler created by ACE_Connector");
+    LOG_DEBUG("Gateway event handler created by NetworkConnector");
   }
 }
 
@@ -58,7 +59,7 @@ bool ammo::gateway::GatewayConnector::associateDevice(string device, string user
   
   LOG_DEBUG("Sending Associate Device message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     return true;
   } else {
     LOG_ERROR("Not connected to gateway; can't send data");
@@ -84,7 +85,7 @@ bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData
   
   LOG_DEBUG("Sending Data Push message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     return true;
   } else {
     LOG_ERROR("Not connected to gateway; can't send data");
@@ -108,7 +109,7 @@ bool ammo::gateway::GatewayConnector::pullRequest(PullRequest &request) {
   
   LOG_DEBUG("Sending Pull Request message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     return true;
   } else {
     LOG_ERROR("Not connected to gateway; can't send data");
@@ -130,7 +131,7 @@ bool ammo::gateway::GatewayConnector::pullResponse(PullResponse &response) {
   
   LOG_DEBUG("Sending Pull Response message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     return true;
   } else {
     LOG_ERROR("Not connected to gateway; can't send data");
@@ -153,7 +154,7 @@ bool ammo::gateway::GatewayConnector::registerDataInterest(string mime_type, Dat
   
   LOG_DEBUG("Sending RegisterDataInterest message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     receiverListeners[mime_type] = listener;
     return true;
   } else {
@@ -178,7 +179,7 @@ bool ammo::gateway::GatewayConnector::unregisterDataInterest(string mime_type, M
   
   LOG_DEBUG("Sending UnregisterDataInterest message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     receiverListeners.erase(mime_type);
     return true;
   } else {
@@ -196,7 +197,7 @@ bool ammo::gateway::GatewayConnector::registerPullInterest(string mime_type, Pul
   
   LOG_DEBUG("Sending RegisterPullInterest message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     pullRequestListeners[mime_type] = listener;
     return true;
   } else {
@@ -215,7 +216,7 @@ bool ammo::gateway::GatewayConnector::unregisterPullInterest(string mime_type) {
   
   LOG_DEBUG("Sending UnregisterPullInterest message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     pullRequestListeners.erase(mime_type);
     return true;
   } else {

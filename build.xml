@@ -98,6 +98,7 @@
     <target name="build-windows" if="isWindows" depends="configure">
         <echo message="Building ${project}..."/>
         <exec executable="msbuild" dir="." searchpath="true" failonerror="true">
+		<arg value="/p:Configuration=Release" />
         </exec>
     </target>
 

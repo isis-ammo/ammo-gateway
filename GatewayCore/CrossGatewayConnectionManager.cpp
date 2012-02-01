@@ -1,11 +1,11 @@
 #include "CrossGatewayConnectionManager.h"
-#include "CrossGatewayServiceHandler.h"
+#include "CrossGatewayEventHandler.h"
 #include "GatewayCore.h"
 #include "GatewayConfigurationManager.h"
 #include "log.h"
 
-#include <ace/Connector.h>
-#include <ace/Reactor.h>
+
+using namespace ammo::gateway::internal;
 
 const int SLEEP_TIME = 3;
 
@@ -22,9 +22,9 @@ int CrossGatewayConnectionManager::svc() {
   
   while(!connected && !isCancelled()) {
     LOG_INFO("Attempting connection...  attempt " << connectionAttempt);
-    ACE_INET_Addr serverAddress(config->getCrossGatewayParentPort(), config->getCrossGatewayParentAddress().c_str());
-    connector = new ACE_Connector<CrossGatewayServiceHandler, ACE_SOCK_Connector>();
-    int status = connector->connect(handler, serverAddress);
+    connector = new ammo::gateway::internal::NetworkConnector<ammo::gateway::protocol::GatewayWrapper, CrossGatewayEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0x8badf00d>();
+  
+    int status = connector->connect(config->getCrossGatewayParentAddress(), config->getCrossGatewayParentPort(), handler);
     if(status == -1) {
       LOG_ERROR("Connection to gateway failed (" << errno << ": " << strerror(errno) << ")" );
       connectionAttempt++;

@@ -5,18 +5,15 @@
 #include <set>
 #include <string>
 
-#include "ace/INET_Addr.h"
-#include "ace/SOCK_Connector.h"
-#include "ace/SOCK_Stream.h"
-#include "ace/SOCK_Acceptor.h"
+#include "NetworkAcceptor.h"
+#include "CrossGatewayEventHandler.h"
+#include "NetworkEnumerations.h"
+#include "protocol/GatewayPrivateMessages.pb.h"
 
-#include "ace/Acceptor.h"
-#include "ace/Connector.h"
-#include "ace/Reactor.h"
-#include "CrossGatewayServiceHandler.h"
+#include "CrossGatewayEventHandler.h"
 #include "Enumerations.h"
 
-class GatewayServiceHandler;
+class GatewayEventHandler;
 class CrossGatewayConnectionManager;
 
 struct SubscriptionInfo {
@@ -25,7 +22,7 @@ struct SubscriptionInfo {
 };
 
 struct LocalSubscriptionInfo {
-  GatewayServiceHandler *handler;
+  GatewayEventHandler *handler;
   MessageScope scope;
 };
 
@@ -36,26 +33,26 @@ public:
   static GatewayCore* getInstance();
   
   
-  bool registerDataInterest(std::string mime_type, MessageScope messageScope,  GatewayServiceHandler *handler);
-  bool unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayServiceHandler *handler);
+  bool registerDataInterest(std::string mime_type, MessageScope messageScope,  GatewayEventHandler *handler);
+  bool unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayEventHandler *handler);
   
-  bool registerPullInterest(std::string mime_type, GatewayServiceHandler *handler);
-  bool unregisterPullInterest(std::string mime_type, GatewayServiceHandler *handler);
+  bool registerPullInterest(std::string mime_type, GatewayEventHandler *handler);
+  bool unregisterPullInterest(std::string mime_type, GatewayEventHandler *handler);
   
-  bool pushData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope);
+  bool pushData(GatewayEventHandler *sender, std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope);
   
-  bool pullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
-                   unsigned int maxResults, unsigned int startFromCount, bool liveQuery, GatewayServiceHandler *originatingPlugin);
+  bool pullRequest(GatewayEventHandler *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
+                   unsigned int maxResults, unsigned int startFromCount, bool liveQuery, GatewayEventHandler *originatingPlugin);
   bool pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data);
   
-  bool unregisterPullResponsePluginId(std::string pluginId, GatewayServiceHandler *handler);
+  bool unregisterPullResponsePluginId(std::string pluginId, GatewayEventHandler *handler);
   
   //Methods for cross-gateway communication
   void initCrossGateway();
   
-  void setParentHandler(CrossGatewayServiceHandler *handler);
+  void setParentHandler(CrossGatewayEventHandler *handler);
   
-  bool registerCrossGatewayConnection(std::string handlerId, CrossGatewayServiceHandler *handler);
+  bool registerCrossGatewayConnection(std::string handlerId, CrossGatewayEventHandler *handler);
   bool unregisterCrossGatewayConnection(std::string handlerId);
   
   bool subscribeCrossGateway(std::string mimeType, std::string originHandlerId);
@@ -68,24 +65,24 @@ public:
   virtual ~GatewayCore();
   
 private:
-  std::set<GatewayServiceHandler *> getPushHandlersForType(std::string mimeType);
+  std::set<GatewayEventHandler *> getPushHandlersForType(std::string mimeType);
   
   static GatewayCore* sharedInstance;
   
   typedef std::multimap<std::string, LocalSubscriptionInfo> PushHandlerMap;
   PushHandlerMap pushHandlers;
-  std::multimap<std::string, GatewayServiceHandler *> pullHandlers;
+  std::multimap<std::string, GatewayEventHandler *> pullHandlers;
   
-  std::map<std::string, GatewayServiceHandler *> plugins;
+  std::map<std::string, GatewayEventHandler *> plugins;
   
-  std::map<std::string, CrossGatewayServiceHandler *> crossGatewayHandlers;
+  std::map<std::string, CrossGatewayEventHandler *> crossGatewayHandlers;
   typedef std::multimap<std::string, SubscriptionInfo> CrossGatewaySubscriptionMap;
   CrossGatewaySubscriptionMap subscriptions;
   
   CrossGatewayConnectionManager *connectionManager;
-  CrossGatewayServiceHandler *parentHandler;
+  CrossGatewayEventHandler *parentHandler;
   
-  ACE_Acceptor<CrossGatewayServiceHandler, ACE_SOCK_Acceptor> *crossGatewayAcceptor;
+  ammo::gateway::internal::NetworkAcceptor<ammo::gateway::protocol::GatewayWrapper, CrossGatewayEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0x8badf00d> *crossGatewayAcceptor;
 };
 
 #endif //#ifndef GATEWAY_CORE_H

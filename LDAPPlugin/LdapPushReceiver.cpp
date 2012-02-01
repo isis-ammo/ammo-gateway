@@ -9,7 +9,6 @@
 #include <sstream>
 #include <algorithm>
 
-#include <ldap.h>
 #include "decode.h"
 #include <fstream>
 
@@ -31,49 +30,42 @@ using namespace ammo::gateway;
 //  b) Connect to the LDAP Server
 //  TBD: where / when do we authenticate with LDAP Server with admin user credentials
 //============================================================
-LdapPushReceiver::LdapPushReceiver() : ldapServer(0)
+LdapPushReceiver::LdapPushReceiver() : ldap(0)
 {
   LdapConfigurationManager *config = LdapConfigurationManager::getInstance();
 
-  string ldapAddress = config->getLdapBaseAddress();
-  cout << "Attempting Connection to LDAP Server @:" << ldapAddress << endl;
+  string ldapAddress = config->getLdapServerAddress();
+  int ldapPort = config->getLdapServerPort();
+  cout << "Attempting Connection to LDAP Server @:" << ldapAddress << ':' << ldapPort << endl;
 
-  int ret = ldap_initialize( &ldapServer, ldapAddress.c_str() );
-
-  if (ret != LDAP_SUCCESS)
-    {
-      cout << "Error Initializing LDAP Library: " << ldap_err2string(ret) << endl;
+  // Create LDAP instance
+  this->ldap = LdapClient::createInstance();
+  if (!this->ldap) {
+      cout << "Error Creating LDAP Client" << endl;
       return;
-    }
+  }
+  cout << "Succeeded Creating LDAP Client" << endl;
 
+  // Initialize LDAP instance with connection data.
+  if (!this->ldap->init(ldapAddress, ldapPort)) {
+      cout << "Error Initializing LDAP Library: " << this->ldap->getLastErrorMsg() << endl;
+      return;
+  }
+  cout << "Succeeded Initializing LDAP Library" << endl;
+
+  // Set LDAP to version 3.
   int version = LDAP_VERSION3;
-  ldap_set_option(ldapServer, LDAP_OPT_PROTOCOL_VERSION, &version);
+  this->ldap->setOption(LDAP_OPT_PROTOCOL_VERSION, &version);
 
   string basedn = config->getLdapUsername();
   string passwd = config->getLdapPassword();
 
+  // Bind LDAP to a user.
   cout << "Attempting bind operation w/user : " << basedn << " ... " << endl;
-  LDAPControl *serverctrls=NULL, *clientctrls=NULL;
-  struct berval *servercredp=NULL;
-  struct berval creds;
-  creds.bv_val = strdup( passwd.c_str() );
-  creds.bv_len = passwd.length();
-
-  ret = ldap_sasl_bind_s( ldapServer,
-                          basedn.c_str(),
-                          LDAP_SASL_SIMPLE, // simple authentication
-                          &creds,
-                          &serverctrls,
-                          &clientctrls,
-                          &servercredp);
-
-  if (ret != LDAP_SUCCESS)
-    {
-      cout << "Error Binding to LDAP Server: " << ldap_err2string(ret) << endl;
-    }
-
+  if (!this->ldap->bind(basedn, passwd)) {
+      cout << "Error Binding to LDAP Server: " << this->ldap->getLastErrorMsg() << endl;
+  }
   cout << "Connected to LDAP Server @" << ldapAddress << endl;
-
 }
 
 //============================================================
@@ -221,50 +213,41 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   filter += " )";
 
   //changed the timeout to 5 sec from 1 ... since jpeg files are taking long
-  struct timeval timeout = { 5, 0 };
+  LdapClient::TimeVal timeout = { 5, 0 };
 
   LDAPControl *serverctrls = NULL, *clientctrls = NULL;
   char *attrs[] = { const_cast<char *>("*"), NULL };
+  const std::string basedn = "dc=ammo,dc=tdm";
 
   cout << "LDAP Starting Search for: " << filter << endl;
-
-  int ret = ldap_search_ext_s(ldapServer,
-                              "dc=ammo,dc=tdm", /* LDAP search base dn (distinguished name) */
-                              LDAP_SCOPE_SUBTREE, /* scope - root and all descendants */
-                              filter.c_str(), /* filter - query expression */
-                              attrs, /* requested attributes (white-space seperated list, * = ALL) */
-                              0, /* attrsonly - if we only want to get attribut types */
-                              &serverctrls,
-                              &clientctrls,
-                              &timeout,
-                              -1, // number of results : -1 = unlimited
-                              &results);
-
-  //cout << "LDAP Return From Search for: " << filter << endl;
-  if (ret != LDAP_SUCCESS)
-    {
+  if (!this->ldap->search(basedn, /* LDAP search base dn (distinguished name) */
+                          LDAP_SCOPE_SUBTREE, /* scope - root and all descendants */
+                          filter, /* filter - query expression */
+                          attrs, /* requested attributes (white-space seperated list, * = ALL) */
+                          0, /* attrsonly - if we only want to get attribut types */
+                          &serverctrls,
+                          &clientctrls,
+                          timeout,
+                          0, // number of results : 0 = unlimited
+                          &results)) {
       cout << "LDAP search failed for " << filter << ": "
-           << hex << ret << " - " << ldap_err2string(ret) << endl;
+           << hex << this->ldap->getLastError() << " - " << this->ldap->getLastErrorMsg() << endl;
       return false;
-    }
-  else
-    {
-      cout << "LDAP Search Returned " << ldap_count_entries(ldapServer, results) << " results" << endl;
-    }
-
+  }
+  cout << "LDAP Search Returned " << ldap->countEntries(results) << " results" << endl;
 
   // Pack the search results into JSON objects and store in a vector
-  LDAPMessage *entry = ldap_first_entry(ldapServer, results);
+  LDAPMessage *entry = ldap->firstEntry(results);
   while(entry)
     {
       jsonResults.push_back( jsonForObject(entry) );
-      entry = ldap_next_entry(ldapServer, entry);
+      entry = ldap->nextEntry(entry);
     }
 
   // Free the LDAP message object
   if (results)
     {
-      ldap_msgfree(results);
+      ldap->msgFree(entry);
     }
 
   return true;
@@ -360,125 +343,125 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
   struct berval **vals;
 
   // name
-  vals = ldap_get_values_len(ldapServer, entry, "givenName");
+  vals = ldap->getValuesLen(entry, "givenName");
   if (vals)
     {
       root["name"] = vals[0]->bv_val; // there must be only one name
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
 
-  vals = ldap_get_values_len(ldapServer, entry, "sn");
+  vals = ldap->getValuesLen(entry, "sn");
   if (vals)
     {
       root["lastname"] = vals[0]->bv_val; // there must be only one name
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
 
-  vals = ldap_get_values_len(ldapServer, entry, "initials");
+  vals = ldap->getValuesLen(entry, "initials");
   if (vals) {
     root["middle_initial"] = vals[0]->bv_val; // there must be only one name
-    ldap_value_free_len(vals);
+    ldap->valueFreeLen(vals);
   }
 
   // rank
-  vals = ldap_get_values_len(ldapServer, entry, "Rank");
+  vals = ldap->getValuesLen(entry, "Rank");
   if (vals)
     {
       root["rank"] = vals[0]->bv_val;
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
 
   // callsign
-  vals = ldap_get_values_len(ldapServer, entry, "Callsign");
+  vals = ldap->getValuesLen(entry, "Callsign");
   if (vals)
     {
       root["callsign"] = vals[0]->bv_val;
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
 
   // branch
-  vals = ldap_get_values_len(ldapServer, entry, "Branch");
+  vals = ldap->getValuesLen(entry, "Branch");
   if (vals)
     {
       root["branch"] = vals[0]->bv_val;
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
 
   // unit (generic)
-  vals = ldap_get_values_len(ldapServer, entry, "Unit");
+  vals = ldap->getValuesLen(entry, "Unit");
   if (vals)
     {
       root["unit"] = vals[0]->bv_val;
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
 
   // unit (specific, separated)
-  vals = ldap_get_values_len(ldapServer, entry, "unitDivision");
+  vals = ldap->getValuesLen(entry, "unitDivision");
   if (vals)
     {
       root["unitDivision"] = vals[0]->bv_val;
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
-  vals = ldap_get_values_len(ldapServer, entry, "unitBrigade");
+  vals = ldap->getValuesLen(entry, "unitBrigade");
   if (vals)
     {
       root["unitBrigade"] = vals[0]->bv_val;
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
-  vals = ldap_get_values_len(ldapServer, entry, "unitBattalion");
+  vals = ldap->getValuesLen(entry, "unitBattalion");
   if (vals)
     {
       root["unitBattalion"] = vals[0]->bv_val;
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
-  vals = ldap_get_values_len(ldapServer, entry, "unitCompany");
+  vals = ldap->getValuesLen(entry, "unitCompany");
   if (vals)
     {
       root["unitCompany"] = vals[0]->bv_val;
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
-  vals = ldap_get_values_len(ldapServer, entry, "unitPlatoon");
+  vals = ldap->getValuesLen(entry, "unitPlatoon");
   if (vals)
     {
       root["unitPlatoon"] = vals[0]->bv_val;
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
-  vals = ldap_get_values_len(ldapServer, entry, "unitSquad");
+  vals = ldap->getValuesLen(entry, "unitSquad");
   if (vals)
     {
       root["unitSquad"] = vals[0]->bv_val;
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
 
 
   // Tigr user ID
-  vals = ldap_get_values_len(ldapServer, entry, "tigrUid");
+  vals = ldap->getValuesLen(entry, "tigrUid");
   if (vals) {
     root["tigruid"] = vals[0]->bv_val;
-    ldap_value_free_len(vals);
+    ldap->valueFreeLen(vals);
   }
   
   // Numerical user ID
-  vals = ldap_get_values_len(ldapServer, entry, "userIdNumber");
+  vals = ldap->getValuesLen(entry, "userIdNumber");
   if (vals) {
     root["userIdNum"] = vals[0]->bv_val;
-    ldap_value_free_len(vals);
+    ldap->valueFreeLen(vals);
   }
 
   // email
-  vals = ldap_get_values_len(ldapServer, entry, "mail");
+  vals = ldap->getValuesLen(entry, "mail");
   if (vals)
     {
       root["email"] = vals[0]->bv_val;    // use only the first mail
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
 
   // phone
-  vals = ldap_get_values_len(ldapServer, entry, "mobile");
+  vals = ldap->getValuesLen(entry, "mobile");
   if (vals)
     {
       root["phone"] = vals[0]->bv_val;    // use only the first phone
-      ldap_value_free_len(vals);
+      ldap->valueFreeLen(vals);
     }
 
 
@@ -509,7 +492,7 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
   std::string ret = root.toStyledString();
 
   // photo
-  vals = ldap_get_values_len(ldapServer, entry, "jpegPhoto");
+  vals = ldap->getValuesLen(entry, "jpegPhoto");
   if (vals) {
 
     unsigned long len = vals[0]->bv_len; // get the length of the data
@@ -571,7 +554,7 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
     memcpy (root_str + root_len, photo_buf, index);
     //cout << "After final root_string " << endl;
 
-    ldap_value_free_len(vals);
+    ldap->valueFreeLen(vals);
 
 
     // added this file to check the binary nature of the

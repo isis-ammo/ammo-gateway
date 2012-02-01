@@ -5,6 +5,8 @@ project(GatewayCore) : aceexe, protobuf, gatewaycommon {
   
   includes += $(GATEWAY_ROOT)/LibJSON
   
+  includes += $(GATEWAY_ROOT)/LibAmmoNetwork
+  
   libpaths += $(GATEWAY_ROOT)/build/lib
   libs += json
   
@@ -18,8 +20,8 @@ project(GatewayCore) : aceexe, protobuf, gatewaycommon {
   
   Source_Files {
     main.cpp
-    GatewayServiceHandler.cpp
-    CrossGatewayServiceHandler.cpp
+    GatewayEventHandler.cpp
+    CrossGatewayEventHandler.cpp
     CrossGatewayConnectionManager.cpp
     GatewayCore.cpp
     GatewayConfigurationManager.cpp

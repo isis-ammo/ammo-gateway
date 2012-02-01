@@ -2,7 +2,7 @@
 #define DATA_STORE_DISPATCHER_H
 
 class QueryHandler;
-class sqlite3;
+struct sqlite3;
 class DataStoreConfigManager;
 
 namespace ammo

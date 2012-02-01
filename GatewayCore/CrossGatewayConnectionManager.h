@@ -2,10 +2,13 @@
 #define GATEWAY_CONNECTION_MANAGER_H
 
 #include <ace/Task.h>
-#include <ace/Connector.h>
-#include <ace/SOCK_Connector.h>
 
-class CrossGatewayServiceHandler;
+#include "NetworkConnector.h"
+#include "CrossGatewayEventHandler.h"
+#include "NetworkEnumerations.h"
+#include "protocol/GatewayPrivateMessages.pb.h"
+
+class CrossGatewayEventHandler;
 
 class CrossGatewayConnectionManager : public ACE_Task <ACE_MT_SYNCH> {
 public:
@@ -18,8 +21,8 @@ public:
   bool isCancelled();
   
 private:        
-  ACE_Connector<CrossGatewayServiceHandler, ACE_SOCK_Connector> *connector;
-  CrossGatewayServiceHandler *handler;
+  ammo::gateway::internal::NetworkConnector<ammo::gateway::protocol::GatewayWrapper, CrossGatewayEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0x8badf00d> *connector;
+  CrossGatewayEventHandler *handler;
   
   ACE_Thread_Mutex cancelMutex;
   bool cancelled;

@@ -5,8 +5,7 @@
 #include <ctime>
 #include <vector>
 
-#include <ldap.h>
-
+#include "LdapClient.h"
 #include "json/json.h"
 
 class LdapContact 
@@ -54,7 +53,7 @@ private:
 
 private:
   std::map<int, LdapContact> unsentContacts;
-  LDAP *ldapServer;
+  LdapClient* ldap;
 };
 
 //static int write_callback(char *data, size_t size, size_t nmemb, std::string *writerData);
