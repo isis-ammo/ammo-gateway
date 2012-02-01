@@ -218,6 +218,20 @@ ${MementoSection} "ACE (required)" SecAce
 
 ${MementoSectionEnd}
 
+${MementoSection} "Sqlite (required)" SecSqlite
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing Sqlite ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File ${PROTOBUF_ROOT}\lib\sqlite3.dll
+
+${MementoSectionEnd}
+
 ${MementoSection} "JSON (required)" SecJson
 
   SetDetailsPrint textonly
@@ -325,6 +339,7 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${SecDatPlug} "The Data Store Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecVcredist} "The VC redist dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAce} "The ACE networking dependency"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecSqlite} "The SQLite database dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecJson} "The JSON serialization dependency"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
@@ -365,6 +380,9 @@ Section Uninstall
   ; ACE
   Delete $INSTDIR\bin\ACE.dll
   Delete $INSTDIR\bin\ACEd.dll
+  
+  ; ACE
+  Delete $INSTDIR\bin\sqlite.dll
 
   ; JSON
   Delete $INSTDIR\bin\JSON.dll
