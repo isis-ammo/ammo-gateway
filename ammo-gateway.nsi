@@ -5,6 +5,10 @@
   !error "You must set ACE_ROOT."
 !endif
 
+!ifndef PROTOBUF_ROOT
+  !error "You must set PROTOBUF_ROOT."
+!endif
+
 !ifndef VC_ROOT
   !define VC_ROOT "C:\Program Files\Microsoft Visual Studio 10.0\VC"
 !endif
