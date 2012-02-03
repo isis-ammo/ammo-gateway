@@ -1,5 +1,5 @@
 {
-  //"LogFile": "%T.%A.log", //log file name.  If not present or blank, will log to the console; otherwise, will log to the specified filename (after processing as specified below).
+  "LogFile": "%T.%A.log", //log file name.  If not present or blank, will log to the console; otherwise, will log to the specified filename (after processing as specified below).
   "LogLevel": "trace" //minimum logging level to show at runtime (can be trace, debug, info, warning, error, critical)
 }
 
