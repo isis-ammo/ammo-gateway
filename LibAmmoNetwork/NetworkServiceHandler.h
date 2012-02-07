@@ -116,6 +116,7 @@ eventHandler(NULL),
 sendQueueMutex(), 
 receiveQueueMutex()
 {
+  LOG_TRACE("In NetworkServiceHandler() ctor");
   eventHandler = static_cast<NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber> *>(new EventHandler());
   eventHandler->setServiceHandler(this);
 }
