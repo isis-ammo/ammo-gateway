@@ -4,6 +4,7 @@ project : gatewayversion {
   libpaths+=$(GATEWAY_ROOT)/build/lib
   
   includes+=$(GATEWAY_ROOT)/common
+  includes += $(GATEWAY_ROOT)/LibAmmoNetwork
   
   verbatim(make, bottom) {
     CPPFLAGS+=-O0 -g -Wall

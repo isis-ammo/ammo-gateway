@@ -13,10 +13,12 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "ace/Connector.h"
-#include "ace/SOCK_Connector.h"
+
+#include "NetworkConnector.h"
+#include "NetworkEnumerations.h"
 
 #include "LibGatewayConnector_Export.h"
+#include "protocol/GatewayPrivateMessages.pb.h"
 
 #include "Enumerations.h"
 
@@ -28,7 +30,7 @@ namespace ammo {
     class PullResponseReceiverListener;
     namespace internal {
       class GatewayConfigurationManager;
-      class GatewayServiceHandler;
+      class GatewayEventHandler;
     };
     namespace protocol {
       class AssociateResult;
@@ -329,12 +331,12 @@ namespace ammo {
       std::map<std::string, PullRequestReceiverListener *> pullRequestListeners;
       std::map<std::string, PullResponseReceiverListener *> pullResponseListeners;
     
-      ACE_Connector<ammo::gateway::internal::GatewayServiceHandler, ACE_SOCK_Connector> *connector;
-      ammo::gateway::internal::GatewayServiceHandler *handler;
+      ammo::gateway::internal::NetworkConnector<ammo::gateway::protocol::GatewayWrapper, ammo::gateway::internal::GatewayEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0xdeadbeef> *connector;
+      ammo::gateway::internal::GatewayEventHandler *handler;
       
       bool connected;
       
-      friend class ammo::gateway::internal::GatewayServiceHandler;
+      friend class ammo::gateway::internal::GatewayEventHandler;
     };
     
     /**

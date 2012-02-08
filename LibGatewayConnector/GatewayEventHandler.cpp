@@ -1,0 +1,47 @@
+#include <string>
+
+#include "GatewayEventHandler.h"
+#include "GatewayConnector.h"
+#include "log.h"
+
+using namespace std;
+using namespace ammo::gateway::internal;
+
+void GatewayEventHandler::onConnect(std::string &peerAddress) {
+  LOG_TRACE("GatewayEventHandler::onConnect(" << peerAddress << ")");
+}
+
+void GatewayEventHandler::onDisconnect() {
+  LOG_TRACE("GatewayEventHandler::onDisconnect()");
+}
+
+int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrapper *msg) {
+  LOG_TRACE("GatewayEventHandler::onMessageAvailable()");
+  
+  if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
+    LOG_DEBUG("Received Associate Result...");
+    parent->onAssociateResultReceived(msg->associate_result());
+  } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
+    LOG_DEBUG("Received Push Data...");
+    parent->onPushDataReceived(msg->push_data());
+  } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
+    LOG_DEBUG("Received Pull Request...");
+    parent->onPullRequestReceived(msg->pull_request());
+  } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
+    LOG_DEBUG("Received Pull Response...");
+    parent->onPullResponseReceived(msg->pull_response());
+  }
+  
+  delete msg;
+  
+  return 0;
+}
+
+int GatewayEventHandler::onError(const char errorCode) {
+  LOG_ERROR("GatewayEventHandler::onError(" << errorCode << ")");
+  return 0;
+}
+
+void GatewayEventHandler::setParentConnector(ammo::gateway::GatewayConnector *parent) {
+  this->parent = parent;
+}

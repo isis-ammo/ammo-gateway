@@ -6,6 +6,7 @@ project(LibGatewayConnector) : aceexe, protobuf, gatewaycommon {
   dynamicflags += LIBGATEWAYCONNECTOR_BUILD_DLL
   
   includes += $(GATEWAY_ROOT)/LibJSON
+  includes += $(GATEWAY_ROOT)/LibAmmoNetwork
 
   libs += json
 
@@ -15,7 +16,7 @@ project(LibGatewayConnector) : aceexe, protobuf, gatewaycommon {
   
   Source_Files {
     GatewayConnector.cpp
-    GatewayServiceHandler.cpp
+    GatewayEventHandler.cpp
     GatewayConfigurationManager.cpp
   }
 }

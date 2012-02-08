@@ -6,8 +6,9 @@ DataStoreGatewayPlugin
 AndroidGatewayPlugin.exe
 GatewayCore.exe
 SamplePushReceiverPlugin.exe
-DataStoreGatewayPlugin
+DataStoreGatewayPlugin.exe
 LdapGatewayPlugin
+LdapGatewayPlugin.exe
 TigrGatewayPlugin
 PassGatewayPlugin
 SpotPushReceiverGatewayPlugin

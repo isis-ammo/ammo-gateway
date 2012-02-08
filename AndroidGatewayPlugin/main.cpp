@@ -14,15 +14,18 @@
 #include "ace/Reactor.h"
 #include "ace/Select_Reactor.h"
 
-#include "AndroidServiceHandler.h"
-
 #include "log.h"
 #include "version.h"
 
 #include "UserSwitch.inl"
 #include "LogConfig.inl"
 
+#include "NetworkAcceptor.h"
+#include "AndroidEventHandler.h"
+#include "NetworkEnumerations.h"
+
 using namespace std;
+using namespace ammo::gateway::internal;
 
 string gatewayAddress;
 int gatewayPort;
@@ -97,11 +100,11 @@ int main(int argc, char **argv) {
   //TODO: make interface and port number specifiable on the command line
   ACE_INET_Addr serverAddress(androidPort, androidAddress.c_str());
   
-  LOG_INFO("Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr());
+  LOG_INFO("Listening on port " << androidPort << " on interface " << androidAddress);
   
   //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor
   //for accept events
-  ACE_Acceptor<AndroidServiceHandler, ACE_SOCK_Acceptor> acceptor(serverAddress);
+  NetworkAcceptor<ammo::protocol::MessageWrapper, AndroidEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0xfeedbeef> acceptor(androidAddress, androidPort);
   
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();

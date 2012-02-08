@@ -1,6 +1,8 @@
 #include <sqlite3.h>
 #include <algorithm>
 
+#include "ace/Connector.h"
+#include "ace/SOCK_Connector.h"
 #include <ace/OS_NS_sys_time.h>
 
 #include "log.h"

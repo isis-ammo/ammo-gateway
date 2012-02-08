@@ -91,6 +91,8 @@ message GatewayWrapper {
   
   required MessageType type = 1;
   
+  optional sint32 message_priority = 12 [default = 0];
+  
   optional AssociateDevice associate_device = 2;
   optional AssociateResult associate_result = 6;
   optional PushData push_data = 3;

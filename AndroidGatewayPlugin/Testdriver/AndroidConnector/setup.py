@@ -5,6 +5,7 @@ from distutils.spawn import find_executable
 import sys
 import os
 import subprocess
+import platform
 
 # Protobuf compilation stuff shamelessly stolen from protobuf's setup.py:
 # http://code.google.com/p/protobuf/source/browse/trunk/python/setup.py
@@ -60,7 +61,12 @@ if __name__ == '__main__':
   # Get project version from git (assumes this is in a git repo)
   print "Getting version number...",
   version_number = VERSION_DEFAULT
-  versionProcess = subprocess.Popen(["/bin/sh", "-c", "git describe --match release-\*  | sed 's/release-//' | cut -d- -f 1,2"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  versionProcessCommandLine = []
+  if platform.system() == "Windows":
+    versionProcessCommandLine = ["powershell", "-Command", "git describe --match 'release-*' | %{$_ -replace 'release-', ''} | %{$_ -replace '-g.*', ''}"]
+  else:
+    versionProcessCommandLine = ["/bin/sh", "-c", "git describe --match release-\*  | sed 's/release-//' | cut -d- -f 1,2"]
+  versionProcess = subprocess.Popen(versionProcessCommandLine, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   versionOutput = versionProcess.communicate()
   if(versionProcess.returncode == 0):
     version_number = versionOutput[0].replace("\n", "")

@@ -5,11 +5,11 @@
 #include "protocol/AmmoMessages.pb.h"
 #include "GatewayConnector.h"
 
-class AndroidServiceHandler;
+class AndroidEventHandler;
 
 class AndroidMessageProcessor : public ACE_Task <ACE_MT_SYNCH>, public ammo::gateway::GatewayConnectorDelegate, public ammo::gateway::DataPushReceiverListener, public ammo::gateway::PullResponseReceiverListener {
 public:
-  AndroidMessageProcessor(AndroidServiceHandler *serviceHandler);
+  AndroidMessageProcessor(AndroidEventHandler *serviceHandler);
   virtual ~AndroidMessageProcessor();
   
   virtual int open(void *args);
@@ -36,7 +36,7 @@ private:
   ACE_Thread_Mutex newMessageMutex;
   ACE_Condition_Thread_Mutex newMessageAvailable;
   
-  AndroidServiceHandler *commsHandler;
+  AndroidEventHandler *commsHandler;
   
   ammo::gateway::GatewayConnector *gatewayConnector;
   
