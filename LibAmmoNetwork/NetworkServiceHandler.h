@@ -206,7 +206,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
         
         try {
           collectedData = new char[messageHeader.size];
-        } catch (std::bad_alloc &e) {
+        } catch (std::bad_alloc) {
           LOG_ERROR((long) this << " Couldn't allocate memory for message of size " << messageHeader.size);
           sendErrorPacket(MESSAGE_TOO_LARGE);
           return -1;
