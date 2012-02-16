@@ -55,20 +55,20 @@ int main(int argc, char **argv)
   
   // Create important objects:
   LdapConfigurationManager::getInstance();
-  cout << "Creating gateway connector..." << endl << flush;
+  LOG_DEBUG("Creating gateway connector...");
   LdapPushReceiver *pushReceiver = new LdapPushReceiver();
   GatewayConnector *gatewayConnector = new GatewayConnector(pushReceiver);
   
   // Register data interests with Gateway Core:
-  cout << "Registering interest in " << CONTACT_MIME_TYPE << endl << flush;
+  LOG_DEBUG("Registering interest in " << CONTACT_MIME_TYPE);
   gatewayConnector->registerDataInterest(CONTACT_MIME_TYPE, pushReceiver);
   
-  cout << "Registering interest in " << CONTACT_PULL_MIME_TYPE << endl << flush;
+  LOG_DEBUG("Registering interest in " << CONTACT_PULL_MIME_TYPE);
   gatewayConnector->registerPullInterest(CONTACT_PULL_MIME_TYPE, pushReceiver);
   
   // Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();
-  cout << "Starting event loop..." << endl << flush;
+  LOG_DEBUG("Starting event loop...");
   reactor->run_reactor_event_loop();
   
   return 0;
