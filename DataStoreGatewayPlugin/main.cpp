@@ -84,7 +84,7 @@ int main (int /* argc */, char ** /* argv */)
   std::string mime_t ("ammo/edu.vu.isis.ammo.dash.media");
   std::string orig_user ("kyle.anderson");
   std::string uri ("kokomo");
-  std::string data ("{\"eventId\":\"Christmas\",\"dataType\":\"giftList\",\"data\":\"pony\",\"createdDate\":1300000000,\"modifiedDate\":1300000000}");
+  std::string data ("{\"eventId\":\"Christmas\",\"data\":\"pony\",\"createdDate\":1300000000,\"modifiedDate\":1300000000}");
   
   ammo::gateway::PushData pd;
   pd.mimeType = mime_t;
@@ -92,7 +92,7 @@ int main (int /* argc */, char ** /* argv */)
   pd.uri = uri;
   pd.data = data;
 
-  receiver->onPushDataReceived (0, pd);
+//  receiver->onPushDataReceived (0, pd);
 
 
   std::string requestUid ("requestUid");
@@ -110,9 +110,26 @@ int main (int /* argc */, char ** /* argv */)
   pr.startFromCount = 0;
   pr.liveQuery = false;
   
-  receiver->onPullRequestReceived (0, pr);
+//  receiver->onPullRequestReceived (0, pr);
 
   delete receiver;
+  /*
+  incidentMediaData holder; 
+  holder.eventId_ = "Christmas";
+  holder.data_ = "pony";
+  holder.createdDate_ = 1300000000;
+  holder.modifiedDate_ = 1300000000;
+  
+  holder.decodeJson (data);
+  std::string encoded = holder.encodeJson ();
+  std::cout << encoded << std::endl;
+  
+  IncidentMedia *pb = holder.encodeProtobuf ();
+  incidentMediaData rcvr;
+  rcvr.decodeProtobuf (pb);
+  */
+  
+//  std::cout << rcvr.modifiedDate_ << std::endl;
 //===================================
 
   // Get the process-wide ACE_Reactor (the one the acceptor should

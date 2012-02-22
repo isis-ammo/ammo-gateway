@@ -1,7 +1,4 @@
-project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
-  after += LibGatewayDataStore
-  includes += $(GATEWAY_ROOT)/LibJSON $(GATEWAY_ROOT)/LibGatewayDataStore
-  libs += sqlite3 gatewaydatastore
+project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewaydatastore {
   exename = DataStoreGatewayPlugin
   
   // Paths to SQLite lib for 32- and 64-bit machines.
