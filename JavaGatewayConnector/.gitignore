@@ -1,0 +1,7 @@
+Makefile*
+*.o
+.depend*
+Debug/
+Release/
+libgatewayconnector.so*
+libgatewayconnector.dylib*

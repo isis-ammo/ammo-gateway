@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="JavaGatewayConnector" default="help">
+
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="gen" location="gen"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+
+  <target name="init" depends="-pre-build">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+    <mkdir dir="${gen}"/>
+  </target>
+
+    <target name="-pre-build">
+        <echo>configure ammo core libraries for ${basedir}.</echo>
+        <!-- configure protobuf -->
+        <mkdir dir="libs"/>
+        <symlink taskname="add-protobuf-lib" action="single" overwrite="true" 
+              link="${basedir}/libs/protobuf.jar" 
+              resource="/usr/share/java/protobuf.jar"/>
+
+        <fail message="Files are missing.">
+           <condition>
+               <not>
+                   <resourcecount count="1">
+                       <fileset id="simlinks" dir="libs">
+                         <include name="protobuf.jar"/>
+                       </fileset>
+                   </resourcecount>
+               </not>
+           </condition>
+        </fail>
+    </target>
+
+    <property name="proto.dir" value="../common/protocol"/>
+
+    <target name="protobuf">
+        <echo>for running within eclipse, instead of bash script.</echo>
+        <echo>Generating protocol buffers</echo>
+        <mkdir dir="gen"/>
+        <exec executable="protoc" taskname="pb">
+            <arg value="--proto_path"/>
+            <arg value="${proto.dir}"/>
+            <arg value="--java_out=gen"/>
+            <arg value="${proto.dir}/GatewayPrivateMessages.proto"/>
+        </exec>
+    </target>
+
+
+  <target name="compile" depends="init,protobuf"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac
+       classpath="${basedir}/libs/protobuf.jar;${basedir}/libs/json-20090211.jar;${basedir}/libs/slf4j-api-1.6.4.jar" srcdir="${src};${gen}" destdir="${build}"/>
+    <!-- <javac srcdir="${gen}" destdir="${build}"/> -->
+  </target>
+
+  <target name="dist" depends="compile"
+        description="generate the distribution" >
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}/lib"/>
+
+    <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
+    <jar jarfile="${dist}/lib/gatewaypluginapi-${DSTAMP}.jar" basedir="${build}"/>
+  </target>
+
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+
+
+  <target name="realclean" depends="clean"
+        description="real clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${gen}"/>
+  </target>
+
+
+</project>
