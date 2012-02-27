@@ -114,7 +114,7 @@ bool ammo::gateway::GatewayConnector::pullRequest(PullRequest &request) {
   }
 
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
-  msg->set_message_priority(ammo::gateway::PRIORITY_CTRL);
+  msg->set_message_priority(request.priority);
   
   LOG_DEBUG("Sending Pull Request message to gateway core");
   if(connected) {
@@ -137,7 +137,7 @@ bool ammo::gateway::GatewayConnector::pullResponse(PullResponse &response) {
   pullMsg->set_data(response.data);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
-  msg->set_message_priority(ammo::gateway::PRIORITY_CTRL);
+  msg->set_message_priority(response.priority);
   
   LOG_DEBUG("Sending Pull Response message to gateway core");
   if(connected) {
@@ -269,7 +269,7 @@ void ammo::gateway::GatewayConnector::onAssociateResultReceived(const ammo::gate
   }
 }
 
-void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::protocol::PushData &msg) {
+void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::protocol::PushData &msg, char messagePriority) {
   ammo::gateway::PushData pushData;
   
   pushData.uri = msg.uri();
@@ -277,6 +277,7 @@ void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::pr
   pushData.encoding = msg.encoding();
   pushData.data.assign(msg.data().begin(), msg.data().end());
   pushData.originUsername = msg.origin_user();
+  pushData.priority = messagePriority;
   
   for(map<string, DataPushReceiverListener *>::iterator it = receiverListeners.begin(); it != receiverListeners.end(); it++) {
     if(pushData.mimeType.find(it->first) == 0) {
@@ -285,7 +286,7 @@ void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::pr
   }
 }
 
-void ammo::gateway::GatewayConnector::onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg) {
+void ammo::gateway::GatewayConnector::onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg, char messagePriority) {
   string mimeType = msg.mime_type();
   map<std::string, PullRequestReceiverListener *>::iterator it = pullRequestListeners.find(mimeType);
   if ( it != pullRequestListeners.end() ) {
@@ -297,12 +298,13 @@ void ammo::gateway::GatewayConnector::onPullRequestReceived(const ammo::gateway:
     req.projection = msg.projection();
     req.startFromCount = msg.start_from_count();
     req.liveQuery = msg.live_query();
+    req.priority = messagePriority;
     (*it).second->onPullRequestReceived(this, req);
   } 
 }
 
 
-void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg) {
+void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg, char messagePriority) {
   string mimeType = msg.mime_type();
   for(map<string, PullResponseReceiverListener *>::iterator it = pullResponseListeners.begin(); it != pullResponseListeners.end(); it++) {
     if(mimeType.find(it->first) == 0) {
@@ -313,6 +315,7 @@ void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway
       response.uri = msg.uri();
       response.encoding = msg.encoding();
       response.data.assign(msg.data().begin(), msg.data().end());
+      response.priority = messagePriority;
       (*it).second->onPullResponseReceived(this, response );
     }
   }
@@ -334,7 +337,8 @@ ammo::gateway::PushData::PushData() :
   encoding("json"),
   data(),
   originUsername(""),
-  scope(ammo::gateway::SCOPE_GLOBAL)
+  scope(ammo::gateway::SCOPE_GLOBAL),
+  priority(ammo::gateway::PRIORITY_NORMAL)
 {
   
 }
@@ -348,7 +352,8 @@ ammo::gateway::PullRequest::PullRequest() :
   maxResults(0),
   startFromCount(0),
   liveQuery(false),
-  scope(ammo::gateway::SCOPE_LOCAL)
+  scope(ammo::gateway::SCOPE_LOCAL),
+  priority(ammo::gateway::PRIORITY_NORMAL)
 {
   
 }
@@ -359,7 +364,8 @@ ammo::gateway::PullResponse::PullResponse() :
   mimeType(""),
   uri(""),
   encoding("json"),
-  data()
+  data(),
+  priority(ammo::gateway::PRIORITY_NORMAL)
 {
   
 }
@@ -369,5 +375,6 @@ ammo::gateway::PullResponse ammo::gateway::PullResponse::createFromPullRequest(a
   newResponse.requestUid = request.requestUid;
   newResponse.pluginId = request.pluginId;
   newResponse.mimeType = request.mimeType;
+  newResponse.priority = request.priority;
   return newResponse;
 }

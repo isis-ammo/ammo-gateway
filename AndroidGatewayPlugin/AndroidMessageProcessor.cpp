@@ -114,7 +114,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       ackMsg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
       LOG_DEBUG(commsHandler << " Sending push acknowledgment to connected device...");
       ackMsg->set_message_priority(DEFAULT_PRIORITY);
-      commsHandler->sendMessage(ackMsg, DEFAULT_PRIORITY);
+      commsHandler->sendMessage(ackMsg);
       
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
@@ -186,7 +186,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     heartbeatAck->set_message_priority(DEFAULT_PRIORITY);
     
     LOG_DEBUG((long) commsHandler << " Sending heartbeat acknowledgement to connected device...");
-    commsHandler->sendMessage(heartbeatAck, DEFAULT_PRIORITY);
+    commsHandler->sendMessage(heartbeatAck);
   }
 }
 
@@ -213,7 +213,7 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
   msg->set_message_priority(DEFAULT_PRIORITY);
   
   LOG_DEBUG((long) commsHandler << " Sending Data Push message to connected device");
-  commsHandler->sendMessage(msg, DEFAULT_PRIORITY);
+  commsHandler->sendMessage(msg);
 }
 
 void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, ammo::gateway::PullResponse &response) {
@@ -235,7 +235,7 @@ void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, a
   msg->set_message_priority(DEFAULT_PRIORITY);
   
   LOG_DEBUG((long) commsHandler << " Sending Pull Response message to connected device");
-  commsHandler->sendMessage(msg, DEFAULT_PRIORITY);
+  commsHandler->sendMessage(msg);
 }
 
 
@@ -250,5 +250,5 @@ void AndroidMessageProcessor::onAuthenticationResponse(GatewayConnector *sender,
   newMsg->set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
   newMsg->set_message_priority(DEFAULT_PRIORITY);
   newMsg->mutable_authentication_result()->set_result(result ? ammo::protocol::AuthenticationResult_Status_SUCCESS : ammo::protocol::AuthenticationResult_Status_SUCCESS);
-  commsHandler->sendMessage(newMsg, DEFAULT_PRIORITY);
+  commsHandler->sendMessage(newMsg);
 }

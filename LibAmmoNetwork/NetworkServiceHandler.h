@@ -66,7 +66,7 @@ namespace ammo {
         
         int processData(char *collectedData, unsigned int dataSize, unsigned int checksum, char priority);
         
-        void sendMessage(ProtobufMessageWrapper *msg, char priority);
+        void sendMessage(ProtobufMessageWrapper *msg);
         ProtobufMessageWrapper *getNextMessageToSend();
         
         NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber> *eventHandler;
@@ -97,11 +97,9 @@ namespace ammo {
         std::string deviceId; //not validated; just for pretty logging
         
         ACE_Thread_Mutex sendQueueMutex;
-        ACE_Thread_Mutex receiveQueueMutex;
         
         typedef std::priority_queue<QueuedMessage<ProtobufMessageWrapper>, std::vector<QueuedMessage<ProtobufMessageWrapper> >, QueuedMessageComparison<ProtobufMessageWrapper> > MessageQueue;
         MessageQueue sendQueue;
-        MessageQueue receiveQueue;
         
         unsigned long long sentMessageCount;
         unsigned long long receivedMessageCount;
@@ -113,8 +111,7 @@ namespace ammo {
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::NetworkServiceHandler() : 
 eventHandler(NULL),
-sendQueueMutex(), 
-receiveQueueMutex()
+sendQueueMutex()
 {
   LOG_TRACE("In NetworkServiceHandler() ctor");
   eventHandler = static_cast<NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber> *>(new EventHandler());
@@ -340,14 +337,10 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
 }
 
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
-void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::sendMessage(ProtobufMessageWrapper *msg, char priority) {
+void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::sendMessage(ProtobufMessageWrapper *msg) {
   QueuedMessage<ProtobufMessageWrapper> queuedMsg;
-  queuedMsg.priority = priority;
+  queuedMsg.priority = msg->message_priority();
   queuedMsg.message = msg;
-  
-  if(priority != msg->message_priority()) {
-    LOG_WARN((long) this << " Priority mismatch when adding message to send queue: Header = " << (int) priority << ", Message = " << msg->message_priority());
-  }
   
   sendQueueMutex.acquire();
   queuedMsg.messageCount = sentMessageCount;

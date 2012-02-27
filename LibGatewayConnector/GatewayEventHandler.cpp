@@ -23,13 +23,13 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
     parent->onAssociateResultReceived(msg->associate_result());
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
-    parent->onPushDataReceived(msg->push_data());
+    parent->onPushDataReceived(msg->push_data(), msg->message_priority());
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG("Received Pull Request...");
-    parent->onPullRequestReceived(msg->pull_request());
+    parent->onPullRequestReceived(msg->pull_request(), msg->message_priority());
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
     LOG_DEBUG("Received Pull Response...");
-    parent->onPullResponseReceived(msg->pull_response());
+    parent->onPullResponseReceived(msg->pull_response(), msg->message_priority());
   }
   
   delete msg;

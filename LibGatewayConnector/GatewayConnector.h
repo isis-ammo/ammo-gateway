@@ -78,25 +78,27 @@ namespace ammo {
     class LibGatewayConnector_Export PullRequest {
     public:
       PullRequest();
-      std::string requestUid;      ///< A unique identifier for this pull request.  It will be returned
-                                   ///  with each item returned by the pull request.
-      std::string pluginId;        ///< The unique identifier for this plugin or connected device.  For
-                                   ///  devices, this should be the same as the device ID used by
-                                   ///  associateDevice.
-      std::string mimeType;        ///< The data type to request.  Used to determine which plugin or
-                                   ///  plugins a request is routed to.
-      std::string query;           ///< The query for this pull request.  Its format is defined by the
-                                   ///  plugin handling the request.
-      std::string projection;      ///< An application-specific transformation to be applied to the results.  Optional.
-      unsigned int maxResults;     ///< The maxiumum number of results to return from this pull request.  Optional.
-      unsigned int startFromCount; ///< An offset specifying the result to begin returning from (when a
-                                   ///  subset of results is returned).  Optional.
-      bool liveQuery;              ///< Specifies a live query--  results are returned continously as they
-                                   ///  become available.  The exact behavior of this option is defined
-                                   ///  by the plugin handling the request.  Optional.
-      ammo::gateway::MessageScope scope;///< The scope of this object (determines how many gateways to send
-                                        ///  this object to in a multiple gateway configuration).  Optional,
-                                        ///  will default to SCOPE_LOCAL.
+      std::string requestUid;            ///< A unique identifier for this pull request.  It will be returned
+                                         ///  with each item returned by the pull request.
+      std::string pluginId;              ///< The unique identifier for this plugin or connected device.  For
+                                         ///  devices, this should be the same as the device ID used by
+                                         ///  associateDevice.
+      std::string mimeType;              ///< The data type to request.  Used to determine which plugin or
+                                         ///  plugins a request is routed to.
+      std::string query;                 ///< The query for this pull request.  Its format is defined by the
+                                         ///  plugin handling the request.
+      std::string projection;            ///< An application-specific transformation to be applied to the results.  Optional.
+      unsigned int maxResults;           ///< The maxiumum number of results to return from this pull request.  Optional.
+      unsigned int startFromCount;       ///< An offset specifying the result to begin returning from (when a
+                                         ///  subset of results is returned).  Optional.
+      bool liveQuery;                    ///< Specifies a live query--  results are returned continously as they
+                                         ///  become available.  The exact behavior of this option is defined
+                                         ///  by the plugin handling the request.  Optional.
+      ammo::gateway::MessageScope scope; ///< The scope of this object (determines how many gateways to send
+                                         ///  this object to in a multiple gateway configuration).  Optional,
+                                         ///  will default to SCOPE_LOCAL.
+	    char priority;                     ///< Priority of this pull request.  Requests with higher priority
+	                                       ///  values will be sent first if multiple messages are queued.
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PullRequest &pullReq) {
         os << "Pull << " << pullReq.requestUid << " from " << pullReq.pluginId << " for type " << pullReq.mimeType << " query: " << pullReq.query;
@@ -120,6 +122,10 @@ namespace ammo {
       std::string encoding;   ///< The encoding of the data in this response (optional; defaults
                               ///  to "json" if not specified).
       std::string data;       ///< The data to be sent to the requestor.
+	    char priority;           ///< Priority of this pull response.  Responses with higher priority
+	                            ///  values will be sent first if multiple messages are queued.
+	                            ///  Typically, this will match the priority of the pull request which
+	                            ///  initiated this response.
       
       /**
        * Convenience method which creates a PullResponse, prepopulating elements
@@ -325,9 +331,9 @@ namespace ammo {
       void init(GatewayConnectorDelegate *delegate, ammo::gateway::internal::GatewayConfigurationManager *config); 
     
       void onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg);
-      void onPushDataReceived(const ammo::gateway::protocol::PushData &msg);
-      void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg);
-      void onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg);
+      void onPushDataReceived(const ammo::gateway::protocol::PushData &msg, char messagePriority);
+      void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg, char messagePriority);
+      void onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg, char messagePriority);
       
       GatewayConnectorDelegate *delegate;
       std::map<std::string, DataPushReceiverListener *> receiverListeners;
