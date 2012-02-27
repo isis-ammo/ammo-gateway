@@ -8,6 +8,7 @@
 
 #include "log.h"
 #include <ace/OS_NS_sys_stat.h>
+#include <ace/OS_NS_stdlib.h>
 
 const char *CONFIG_DIRECTORY = "ammo-gateway";
 const char *LDAP_CONFIG_FILE = "LdapPluginConfig.json";
@@ -22,7 +23,7 @@ LdapConfigurationManager *LdapConfigurationManager::sharedInstance = NULL;
 //
 // Use the default config file if none specified
 //============================================================
-LdapConfigurationManager::LdapConfigurationManager() : ldapBaseAddress("localhost"), ldapUsername("cn=Manager,dc=ammo,dc=tdm"), ldapPassword("ammmo")
+LdapConfigurationManager::LdapConfigurationManager() : ldapServerAddress("localhost"), ldapServerPort(389), ldapUsername("cn=Manager,dc=ammo,dc=tdm"), ldapPassword("ammmo")
 {
   string configFilename = findConfigFile(LDAP_CONFIG_FILE);
   
@@ -61,13 +62,22 @@ void LdapConfigurationManager::configFromFile(string fileName)
 
       if(parsingSuccessful)
         {
-          if(root["LdapBaseAddress"].isString())
+          if(root["LdapServerAddress"].isString())
             {
-              ldapBaseAddress = root["LdapBaseAddress"].asString();
+              ldapServerAddress = root["LdapServerAddress"].asString();
             }
           else
             {
-              cerr << "Error: LdapBaseAddress is missing or wrong type (should be string)" << endl << flush;
+              LOG_ERROR("Error: LdapServerAddress is missing or wrong type (should be string)");
+            }
+
+          if(root["LdapServerPort"].isInt())
+            {
+              ldapServerPort = root["LdapServerPort"].asInt();
+            }
+          else
+            {
+              LOG_ERROR("Error: LdapServerPort is missing or wrong type (should be integer)");
             }
 
           if(root["LdapUsername"].isString())
@@ -76,7 +86,7 @@ void LdapConfigurationManager::configFromFile(string fileName)
             }
           else
             {
-              cerr << "Error: LdapUsername is missing or wrong type (should be string)" << endl << flush;
+              LOG_ERROR("Error: LdapUsername is missing or wrong type (should be string)");
             }
 
           if(root["LdapPassword"].isString())
@@ -85,20 +95,19 @@ void LdapConfigurationManager::configFromFile(string fileName)
             }
           else
             {
-              cerr << "Error: LdapPassword is missing or wrong type (should be integer)" << endl << flush;
+             LOG_ERROR("Error: LdapPassword is missing or wrong type (should be integer)");
             }
         }
       else
         {
-          cerr << "JSON parsing error in config file '" 
-	       << fileName << "'.  Using defaults." << endl << flush;
+          LOG_ERROR("JSON parsing error in config file '" 
+	       << fileName << "'.  Using defaults.");
         }
       configFile.close();
     }
   else
     {
-      cout << "Could not read from config file '" 
-	   << fileName << "'.  Using defaults." << endl << flush;
+      LOG_WARN("Could not read from config file '" << fileName << "'.  Using defaults.");
     }
 
 }
@@ -151,12 +160,22 @@ string LdapConfigurationManager::findConfigFile(std::string defaultConfigFile) {
 
 //============================================================
 //
-// getLdapBaseAddress()
+// getLdapServerAddress()
 //
 //============================================================
-std::string LdapConfigurationManager::getLdapBaseAddress()
+std::string LdapConfigurationManager::getLdapServerAddress()
 {
-  return ldapBaseAddress;
+  return ldapServerAddress;
+}
+
+//============================================================
+//
+// getLdapServerPort()
+//
+//============================================================
+int LdapConfigurationManager::getLdapServerPort()
+{
+  return ldapServerPort;
 }
 
 //============================================================

@@ -4,3 +4,6 @@ libjson.so*
 libjson.dylib*
 libgeotrans-mgrs.so*
 libgeotrans-mgrs.dylib*
+*.dll
+*.exp
+*.lib

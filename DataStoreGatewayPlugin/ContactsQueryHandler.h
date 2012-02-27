@@ -4,7 +4,7 @@
 #include "QueryHandler.h"
 #include "ContactsQueryStatementBuilder.h"
 
-class sqlite3_stmt;
+struct sqlite3_stmt;
 
 class ContactsQueryHandler : public QueryHandler
 {
@@ -13,7 +13,7 @@ public:
                         ammo::gateway::GatewayConnector *sender,
                         ammo::gateway::PullRequest &pr);
                         
-  virtual void handleQuery (void);
+  void handleQuery (void);
   
 private:
   void encode_row (sqlite3_stmt *stmt,

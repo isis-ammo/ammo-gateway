@@ -1,0 +1,48 @@
+\hypertarget{structsoap__wsa__data}{
+\section{soap\_\-wsa\_\-data Struct Reference}
+\label{structsoap__wsa__data}\index{soap\_\-wsa\_\-data@{soap\_\-wsa\_\-data}}
+}
+
+
+plugin data to override callbacks  
+
+
+
+
+{\ttfamily \#include $<$wsaapi.h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int($\ast$ \hyperlink{structsoap__wsa__data_a22ab7db8c4963c3a65c7770791c84297}{fheader} )(struct soap $\ast$)
+\item 
+void($\ast$ \hyperlink{structsoap__wsa__data_a6e6dc7ea6bc3b4c4cf170b59b4fb7720}{fseterror} )(struct soap $\ast$, const char $\ast$$\ast$, const char $\ast$$\ast$)
+\item 
+int($\ast$ \hyperlink{structsoap__wsa__data_ae6add454e2675015b08fccd0720978ff}{fresponse} )(struct soap $\ast$, int, size\_\-t)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+plugin data to override callbacks 
+
+\subsection{Member Data Documentation}
+\hypertarget{structsoap__wsa__data_a22ab7db8c4963c3a65c7770791c84297}{
+\index{soap\_\-wsa\_\-data@{soap\_\-wsa\_\-data}!fheader@{fheader}}
+\index{fheader@{fheader}!soap_wsa_data@{soap\_\-wsa\_\-data}}
+\subsubsection[{fheader}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ {\bf soap\_\-wsa\_\-data::fheader})(struct soap $\ast$)}}
+\label{structsoap__wsa__data_a22ab7db8c4963c3a65c7770791c84297}
+fheader callback is invoked immediately after parsing a SOAP Header \hypertarget{structsoap__wsa__data_ae6add454e2675015b08fccd0720978ff}{
+\index{soap\_\-wsa\_\-data@{soap\_\-wsa\_\-data}!fresponse@{fresponse}}
+\index{fresponse@{fresponse}!soap_wsa_data@{soap\_\-wsa\_\-data}}
+\subsubsection[{fresponse}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ {\bf soap\_\-wsa\_\-data::fresponse})(struct soap $\ast$, int, size\_\-t)}}
+\label{structsoap__wsa__data_ae6add454e2675015b08fccd0720978ff}
+fresponse callback is used to change a HTTP response into a HTTP POST \hypertarget{structsoap__wsa__data_a6e6dc7ea6bc3b4c4cf170b59b4fb7720}{
+\index{soap\_\-wsa\_\-data@{soap\_\-wsa\_\-data}!fseterror@{fseterror}}
+\index{fseterror@{fseterror}!soap_wsa_data@{soap\_\-wsa\_\-data}}
+\subsubsection[{fseterror}]{\setlength{\rightskip}{0pt plus 5cm}void($\ast$ {\bf soap\_\-wsa\_\-data::fseterror})(struct soap $\ast$, const char $\ast$$\ast$, const char $\ast$$\ast$)}}
+\label{structsoap__wsa__data_a6e6dc7ea6bc3b4c4cf170b59b4fb7720}
+fseterror callback is used to inspect and change gSOAP error codes 
+
+The documentation for this struct was generated from the following file:\begin{DoxyCompactItemize}
+\item 
+wsaapi.h\end{DoxyCompactItemize}

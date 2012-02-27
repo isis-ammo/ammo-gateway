@@ -1,48 +1,62 @@
-#!/usr/bin/env python 
+#! /usr/bin/python
 
 """
 
-Client-side test driver for LDAP gateway plugin
+Test driver for LDAP gateway plugin
 
 """
 
 import sys
-from AmmoGatewayLdapTestClient import *
+import uuid
+import time
+import datetime
+from ammo import AmmoMessages_pb2
+from ammo.AndroidConnector import AndroidConnector
+
+from twisted.internet import reactor
 
 #==============================================
 # main()
 #==============================================
 def main():
-    sys.stdout.write('Gateway LDAP plugin test\n')
-    
-    # Enforce usage
-    if len(sys.argv) != 4:
-        sys.stderr.write("Usage: %s <host> <port> <message-type>\n" % sys.argv[0])
-        helpString = '''Where <message-type> is one of:
-        authenticate : always run, this a dummy actually anything would work.
-        subscribe : subscribe to type:edu.vanderbilt.isis.ammo.Test.
-        pull : search for type:edu.vu.isis.ammo.launhcer.contact_pull.
-        push : send a data message of topic type:edu.vanderbilt.isis.ammo.Test.'''
-        sys.stderr.write("\n%s\n\n" % helpString)
+    sys.stdout.write("Android Gateway Pull Test\n")
+    if len(sys.argv) != 3:
+        sys.stderr.write("Usage: %s <host> <port> \n" % sys.argv[0])
         sys.exit(-1)
     
-    sys.stdout.write("Creating client\n")
-    client = AmmoGatewayLdapTestClient(sys.argv[1], sys.argv[2])
-    client.EstablishGatewayConnection()
-    
-    if(sys.argv[3] == "push"):
-        client.DoPushTest()
-    elif sys.argv[3] == "subscribe":
-        client.DoSubscribeTest()
-    elif sys.argv[3] == "pull":
-        client.DoPullTest()
+    deviceName = "device:test/" + uuid.uuid1().hex
+    userName = "user:test/" + uuid.uuid1().hex
+    connector = AndroidConnector(sys.argv[1], int(sys.argv[2]), deviceName, userName, "")
     
     try:
+        connector.start()
+        connector.waitForAuthentication()
+
+        # Pull request options... For LDAP pull, only the first two are important (as of now)
+        mimetype = "ammo/edu.vu.isis.ammo.launcher.contact_pull"
+        query = "cn=John"
+        maxResults = 0
+        startFromCount = 0
+        liveQuery = False
+        
+        # Send the pull request
+        connector.pullRequest(mimetype, query, "", maxResults, startFromCount, liveQuery)
+        
         while True:
-            msg = client.receiveMessage()
-            print msg
+            while(connector.isDataAvailable()):
+                result = connector.dequeueMessage()
+                if(result != None):
+                    (msg, receivedTime) = result
+                    print "Message received at:", receivedTime
+                    print msg
+            time.sleep(0.5)
     except KeyboardInterrupt:
-        sys.stdout.write("Closing socket.\n")
+        sys.stdout.write("Got ^C...  Closing\n")
+        reactor.callFromThread(reactor.stop)
+    except:
+        sys.stderr.write("Unexpected error...  dying.\n")
+        reactor.callFromThread(reactor.stop)
+        raise
 
 #---------------------------
 

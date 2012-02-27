@@ -78,7 +78,7 @@ if __name__ == "__main__":
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.data_message.uri = "content:edu.vanderbilt.isis.ammo.SmsTest"
-    m.data_message.mime_type = "application/vnd.edu.vu.isis.ammo.sms.message_foo"
+    m.data_message.mime_type = "ammo/edu.vu.isis.ammo.sms.message_foo"
     m.data_message.data = '''
 {"from":"neemask","threadId":"1","to":"foo","body":"wuz up"}
 '''
@@ -92,7 +92,7 @@ if __name__ == "__main__":
       print "Authentication failed..."
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
-    m.subscribe_message.mime_type = "application/vnd.edu.vu.isis.ammo.sms.message_neemask"
+    m.subscribe_message.mime_type = "ammo/edu.vu.isis.ammo.sms.message_neemask"
     print "Sending subscription request..."
     client.sendMessageWrapper(m)
   

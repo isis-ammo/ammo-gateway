@@ -1,7 +1,13 @@
 #include <sqlite3.h>
 
-#include "OriginalQueryStatementBuilder.h"
+#include "ace/Connector.h"
+#include "ace/SOCK_Connector.h"
+#include <ace/OS_NS_sys_time.h>
+
 #include "log.h"
+
+#include "OriginalQueryStatementBuilder.h"
+#include "DataStoreUtils.h"
 
 OriginalQueryStatementBuilder::OriginalQueryStatementBuilder (
       const std::string &mime_type,
@@ -20,19 +26,19 @@ OriginalQueryStatementBuilder::build (void)
   // We append the last query parameter (the user that a message
   // was directed to) to the data type string, in accordance
   // with the way SMS messages are constructed.
-  if (!parser_.directed_user ().empty ())
+  if (!parser_.directed_user_.empty ())
     {
-      mime_type_ = mime_type_ + "_" + parser_.directed_user ();
+      mime_type_ = mime_type_ + "_" + parser_.directed_user_;
     }
 
 //  LOG_TRACE ("Querying for " << mime_type_);
       
   bool good_adds =
-    this->addFilter (parser_.uri (), "uri", false)
+    this->addFilter (parser_.uri_, "uri", false)
     && this->addFilter (mime_type_, "mime_type", false)
-    && this->addFilter (parser_.user (), "origin_user", false)
-    && this->addFilter (parser_.time_begin (), "tv_sec>=?", true)
-    && this->addFilter (parser_.time_end (), "tv_sec<=?", true);
+    && this->addFilter (parser_.user_, "origin_user", false)
+    && this->addFilter (parser_.time_begin_, "tv_sec>=?", true)
+    && this->addFilter (parser_.time_end_, "tv_sec<=?", true);
     
   if (!good_adds)
     {
@@ -59,12 +65,14 @@ OriginalQueryStatementBuilder::build (void)
 bool
 OriginalQueryStatementBuilder::bind (void)
 {
+  unsigned int index = 1;
+
   return
-    this->bindText (parser_.uri ())
-    && this->bindText (mime_type_)
-    && this->bindText (parser_.user ())
-    && this->bindInteger (parser_.time_begin ())
-    && this->bindInteger (parser_.time_end ());
+    DataStoreUtils::bind_text (db_, stmt_, index, parser_.uri_, false)
+    && DataStoreUtils::bind_text (db_, stmt_, index, mime_type_, false)
+    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.user_, false)
+    && DataStoreUtils::bind_int (db_, stmt_, index, parser_.time_begin_)
+    && DataStoreUtils::bind_int (db_, stmt_, index, parser_.time_end_);
 }
 
 

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+set -e
+
+USERNAME=ammo-gateway
+GROUPNAME=ammo-gateway
+HOMEDIR=/var/run/ammo-gateway
+
+/bin/mkdir -p $HOMEDIR
+getent group $GROUPNAME >/dev/null || groupadd -r $GROUPNAME
+getent passwd $USERNAME >/dev/null || \
+    useradd -r -g $GROUPNAME -d $HOMEDIR -s /bin/false \
+    -c "AMMO Gateway User" $USERNAME
+/bin/chown -R $USERNAME:$GROUPNAME $HOMEDIR
+
+exit 0
+

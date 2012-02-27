@@ -11,8 +11,8 @@ option java_package = "edu.vu.isis.ammo.core.pb";
 *   
 *  mime_type : a type specification providing enough information to identify the data 
 *              so that the proper readers will be invoked or notified.
-*   e.g. application/vnd.ammo.incident
-*        application/vnd.tigr.report
+*   e.g. ammo/ammo.incident
+*        ammo/tigr.report
 *    It is the responsibility of a plug-in to mutate these mime types as needed for other uses.
 *    
 *  uri : when used serves as a unique identifier for the data being sent.
@@ -35,8 +35,14 @@ enum MessageScope {
 message DataMessage {
   required string uri = 1;
   optional string mime_type = 3;
+  optional string encoding = 5 [default = "json"];
   optional bytes data = 2;
   optional MessageScope scope = 4 [default = GLOBAL];
+}
+
+message TerseMessage {
+  optional int32 mime_type = 1;	/* protobuf does not have byte, but small encoding is compact regardless of type */
+  optional bytes data = 2;
 }
 
 /**
@@ -125,6 +131,7 @@ message PullRequest {
   optional uint32 max_results = 6 [default = 0]; //0 means infinite results--  send as many as possible
   optional uint32 start_from_count = 7 [default = 0];
   optional bool live_query = 8 [default = false];
+  optional MessageScope scope = 9 [default = LOCAL];
 }
 
 /**
@@ -137,6 +144,7 @@ message PullResponse {
   required string plugin_id = 2;
   required string mime_type = 3;
   required string uri = 4;
+  optional string encoding = 6 [default = "json"];
   required bytes data = 5;
 }
 
@@ -159,6 +167,7 @@ message MessageWrapper {
     PULL_RESPONSE = 7;
     HEARTBEAT = 8;
     UNSUBSCRIBE_MESSAGE = 9;
+    TERSE_MESSAGE = 10;
   }
 
   required MessageType type = 1;
@@ -175,4 +184,5 @@ message MessageWrapper {
   optional PullResponse pull_response = 9;
   optional Heartbeat heartbeat = 10;
   optional UnsubscribeMessage unsubscribe_message = 11;
+  optional TerseMessage terse_message = 13;
 }

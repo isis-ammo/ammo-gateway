@@ -1,7 +1,9 @@
 #include "GatewayConnector.h"
 #include "GatewayConfigurationManager.h"
-#include "ace/Connector.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
+
+#include "GatewayEventHandler.h"
+
 #include <string>
 #include <iostream>
 
@@ -18,9 +20,9 @@ ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *dele
 }
 
 void ammo::gateway::GatewayConnector::init(GatewayConnectorDelegate *delegate, ammo::gateway::internal::GatewayConfigurationManager *config) { 
-  ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayAddress().c_str());
-  connector = new ACE_Connector<ammo::gateway::internal::GatewayServiceHandler, ACE_SOCK_Connector>();
-  int status = connector->connect(handler, serverAddress);
+  connector = new ammo::gateway::internal::NetworkConnector<ammo::gateway::protocol::GatewayWrapper, ammo::gateway::internal::GatewayEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0xdeadbeef>();
+  
+  int status = connector->connect(config->getGatewayAddress(), config->getGatewayPort(), handler);
   if(status == -1) {
     LOG_ERROR("connection failed");
     LOG_ERROR("errno: " << errno);
@@ -31,9 +33,9 @@ void ammo::gateway::GatewayConnector::init(GatewayConnectorDelegate *delegate, a
     handler->setParentConnector(this);
   }
   if(handler == NULL) {
-    LOG_ERROR("Handler not created by ACE_Connector");
+    LOG_ERROR("Handler not created by NetworkConnector");
   } else {
-    LOG_DEBUG("Gateway service handler created by ACE_Connector");
+    LOG_DEBUG("Gateway event handler created by NetworkConnector");
   }
 }
 
@@ -58,7 +60,7 @@ bool ammo::gateway::GatewayConnector::associateDevice(string device, string user
   
   LOG_DEBUG("Sending Associate Device message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     return true;
   } else {
     LOG_ERROR("Not connected to gateway; can't send data");
@@ -71,6 +73,7 @@ bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData
   ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
   pushMsg->set_uri(pushData.uri);
   pushMsg->set_mime_type(pushData.mimeType);
+  pushMsg->set_encoding(pushData.encoding);
   pushMsg->set_data(pushData.data);
   
   if(pushData.scope == SCOPE_LOCAL) {
@@ -84,7 +87,7 @@ bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData
   
   LOG_DEBUG("Sending Data Push message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     return true;
   } else {
     LOG_ERROR("Not connected to gateway; can't send data");
@@ -104,12 +107,18 @@ bool ammo::gateway::GatewayConnector::pullRequest(PullRequest &request) {
   pullMsg->set_start_from_count(request.startFromCount);
   pullMsg->set_live_query(request.liveQuery);
   
+  if(request.scope == SCOPE_LOCAL) {
+    pullMsg->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    pullMsg->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
+
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
   msg->set_message_priority(ammo::gateway::PRIORITY_CTRL);
   
   LOG_DEBUG("Sending Pull Request message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     return true;
   } else {
     LOG_ERROR("Not connected to gateway; can't send data");
@@ -124,6 +133,7 @@ bool ammo::gateway::GatewayConnector::pullResponse(PullResponse &response) {
   pullMsg->set_plugin_id(response.pluginId);
   pullMsg->set_mime_type(response.mimeType);
   pullMsg->set_uri(response.uri);
+  pullMsg->set_encoding(response.encoding);
   pullMsg->set_data(response.data);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
@@ -131,7 +141,7 @@ bool ammo::gateway::GatewayConnector::pullResponse(PullResponse &response) {
   
   LOG_DEBUG("Sending Pull Response message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     return true;
   } else {
     LOG_ERROR("Not connected to gateway; can't send data");
@@ -155,7 +165,7 @@ bool ammo::gateway::GatewayConnector::registerDataInterest(string mime_type, Dat
   
   LOG_DEBUG("Sending RegisterDataInterest message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     receiverListeners[mime_type] = listener;
     return true;
   } else {
@@ -181,7 +191,7 @@ bool ammo::gateway::GatewayConnector::unregisterDataInterest(string mime_type, M
   
   LOG_DEBUG("Sending UnregisterDataInterest message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     receiverListeners.erase(mime_type);
     return true;
   } else {
@@ -190,17 +200,23 @@ bool ammo::gateway::GatewayConnector::unregisterDataInterest(string mime_type, M
   }
 }
 
-bool ammo::gateway::GatewayConnector::registerPullInterest(string mime_type, PullRequestReceiverListener *listener) {
-  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+bool ammo::gateway::GatewayConnector::registerPullInterest(string mime_type, PullRequestReceiverListener *listener, MessageScope scope) {
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();;
   ammo::gateway::protocol::RegisterPullInterest *di = msg->mutable_register_pull_interest();
   di->set_mime_type(mime_type);
+  
+  if(scope == SCOPE_LOCAL) {
+    di->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    di->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST);
   msg->set_message_priority(ammo::gateway::PRIORITY_CTRL);
   
   LOG_DEBUG("Sending RegisterPullInterest message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     pullRequestListeners[mime_type] = listener;
     return true;
   } else {
@@ -210,17 +226,23 @@ bool ammo::gateway::GatewayConnector::registerPullInterest(string mime_type, Pul
   }
 }
 
-bool ammo::gateway::GatewayConnector::unregisterPullInterest(string mime_type) {
+bool ammo::gateway::GatewayConnector::unregisterPullInterest(string mime_type, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::UnregisterPullInterest *di = msg->mutable_unregister_pull_interest();
   di->set_mime_type(mime_type);
+  
+  if(scope == SCOPE_LOCAL) {
+    di->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    di->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST);
   msg->set_message_priority(ammo::gateway::PRIORITY_CTRL);
   
   LOG_DEBUG("Sending UnregisterPullInterest message to gateway core");
   if(connected) {
-    handler->sendData(msg);
+    handler->sendMessage(msg);
     pullRequestListeners.erase(mime_type);
     return true;
   } else {
@@ -252,6 +274,7 @@ void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::pr
   
   pushData.uri = msg.uri();
   pushData.mimeType = msg.mime_type();
+  pushData.encoding = msg.encoding();
   pushData.data.assign(msg.data().begin(), msg.data().end());
   pushData.originUsername = msg.origin_user();
   
@@ -288,6 +311,7 @@ void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway
       response.pluginId = msg.plugin_id();
       response.mimeType = msg.mime_type();
       response.uri = msg.uri();
+      response.encoding = msg.encoding();
       response.data.assign(msg.data().begin(), msg.data().end());
       (*it).second->onPullResponseReceived(this, response );
     }
@@ -307,6 +331,7 @@ void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayCo
 ammo::gateway::PushData::PushData() :
   uri(""),
   mimeType(""),
+  encoding("json"),
   data(),
   originUsername(""),
   scope(ammo::gateway::SCOPE_GLOBAL)
@@ -322,7 +347,8 @@ ammo::gateway::PullRequest::PullRequest() :
   projection(""),
   maxResults(0),
   startFromCount(0),
-  liveQuery(false)
+  liveQuery(false),
+  scope(ammo::gateway::SCOPE_LOCAL)
 {
   
 }
@@ -332,6 +358,7 @@ ammo::gateway::PullResponse::PullResponse() :
   pluginId(""),
   mimeType(""),
   uri(""),
+  encoding("json"),
   data()
 {
   

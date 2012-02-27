@@ -28,6 +28,7 @@ enum MessageScope {
 message PushData {
   required string uri = 1;
   optional string mime_type = 2;
+  optional string encoding = 6 [default = "json"];
   optional bytes data = 3;
   optional string origin_user = 4;
   optional MessageScope scope = 5 [default = GLOBAL];
@@ -42,6 +43,7 @@ message PullRequest {
   optional uint32 max_results = 6 [default = 0]; //0 means infinite results--  send as many as possible
   optional uint32 start_from_count = 7 [default = 0];
   optional bool live_query = 8 [default = false];
+  optional MessageScope scope = 9 [default = LOCAL];
 }
 
 message PullResponse {
@@ -49,15 +51,18 @@ message PullResponse {
   required string plugin_id = 2;
   required string mime_type = 3;
   required string uri = 4;
+  optional string encoding = 6 [default = "json"];
   required bytes data = 5;
 }
 
 message RegisterPullInterest {
   required string mime_type = 1;
+  optional MessageScope scope = 2 [default = LOCAL];
 }
 
 message UnregisterPullInterest {
   required string mime_type = 1;
+  optional MessageScope scope = 2 [default = LOCAL];
 }
 
 message RegisterDataInterest {

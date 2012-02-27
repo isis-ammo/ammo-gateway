@@ -11,16 +11,24 @@
 #include "ace/Signal.h"
 
 #include "ace/Acceptor.h"
+#include "ace/Select_Reactor.h"
 #include "ace/Reactor.h"
 
 #include "log.h"
 #include "version.h"
 
-#include "GatewayServiceHandler.h"
 #include "GatewayConfigurationManager.h"
 #include "GatewayCore.h"
 
+#include "UserSwitch.inl"
+#include "LogConfig.inl"
+
+#include "NetworkAcceptor.h"
+#include "GatewayEventHandler.h"
+#include "NetworkEnumerations.h"
+
 using namespace std;
+using namespace ammo::gateway::internal;
 
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
 //in the middle of the reactor event loop, which isn't always a good thing).
@@ -34,8 +42,21 @@ public:
   }
 };
 
+
+
 int main(int argc, char **argv) {
-  LOG_INFO("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  dropPrivileges();
+  setupLogging("GatewayCore");
+  LOG_FATAL("=========");
+  LOG_FATAL("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+
+  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
+  //to the WFMO reactor, which has radically different semantics and
+  //violates assumptions we made in our code
+  ACE_Select_Reactor selectReactor;
+  ACE_Reactor newReactor(&selectReactor);
+  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(&newReactor));
+  
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
   ACE_Sig_Action no_sigpipe((ACE_SignalHandler) SIG_IGN);
@@ -50,14 +71,12 @@ int main(int argc, char **argv) {
   
   LOG_DEBUG("Creating acceptor...");
   
-  //TODO: make interface and port number specifiable on the command line
-  ACE_INET_Addr serverAddress(config->getGatewayPort(), config->getGatewayInterface().c_str());
-  
-  LOG_INFO("Listening on port " << serverAddress.get_port_number() << " on interface " << serverAddress.get_host_addr());
+  //TODO: make interface and port number specifiable on the command line  
+  LOG_INFO("Listening on port " << config->getGatewayPort() << " on interface " << config->getGatewayInterface());
   
   //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor
   //for accept events
-  ACE_Acceptor<GatewayServiceHandler, ACE_SOCK_Acceptor> acceptor(serverAddress);
+  NetworkAcceptor<ammo::gateway::protocol::GatewayWrapper, GatewayEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0xdeadbeef> acceptor(config->getGatewayInterface(), config->getGatewayPort());
   
   //Initializes the cross-gateway connections
   GatewayCore::getInstance()->initCrossGateway();
@@ -67,5 +86,6 @@ int main(int argc, char **argv) {
   LOG_DEBUG("Starting event loop...");
   reactor->run_reactor_event_loop();
   LOG_DEBUG("Event loop terminated.");
+  GatewayCore::getInstance()->terminate();
   return 0;
 }

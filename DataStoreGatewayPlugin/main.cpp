@@ -1,17 +1,19 @@
+#include "ace/Select_Reactor.h"
 #include "ace/Reactor.h"
-
 #include "ace/OS_NS_unistd.h" 
 #include "ace/Signal.h" 
+#include "ace/Time_Value.h"
+#include "ace/OS_NS_time.h"
+#include "ace/Date_Time.h"
 
 #include "log.h"
 #include "version.h"
 
-#include "DataStore.h"
+#include "DataStoreReceiver.h"
 #include "DataStoreConfigManager.h"
 
-#include "ace/Time_Value.h"
-#include "ace/OS_NS_time.h"
-#include "ace/Date_Time.h"
+#include "UserSwitch.inl"
+#include "LogConfig.inl"
 
 using namespace ammo::gateway;
 
@@ -33,13 +35,24 @@ public:
 
 int main (int /* argc */, char ** /* argv */)
 {
-  LOG_INFO ("AMMO Location Store Gateway Plugin ("
+  
+  dropPrivileges();
+  setupLogging("DataStoreGatewayPlugin");
+  LOG_FATAL("=========");
+  LOG_FATAL("AMMO Location Store Gateway Plugin ("
             << VERSION
             << " built on "
             << __DATE__
             << " at "
             << __TIME__
             << ")");
+  
+  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
+  //to the WFMO reactor, which has radically different semantics and
+  //violates assumptions we made in our code
+  ACE_Select_Reactor selectReactor;
+  ACE_Reactor newReactor(&selectReactor);
+  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(&newReactor));
   
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
@@ -58,6 +71,8 @@ int main (int /* argc */, char ** /* argv */)
 	// in the constructor. This macro avoids the 'unused' warning.  
 	ACE_UNUSED_ARG (config);
 
+  // Make sure that the receiver and connector have been created and
+  // passed to the config manager before calling this method.
 	if (!receiver->init ())
 	  {
 	    // Error msg already output, just exit w/o starting reactor.
@@ -66,7 +81,7 @@ int main (int /* argc */, char ** /* argv */)
 	  
 //====================================
 /*
-  std::string mime_t ("application/vnd.edu.vu.isis.ammo.private_contacts");
+  std::string mime_t ("ammo/edu.vu.isis.ammo.private_contacts");
   std::string orig_user ("kyle.anderson");
   std::string uri ("kokomo");
   std::string data ("{\"first_name\":\"Jimmy\",\"middle_initial\":\"I\",\"last_name\":\"Bork\",\"rank\":\"sgt\",\"call_sign\":\"\",\"branch\":\"\",\"unit\":\"\",\"email\":\"\",\"phone\":\"\"}");

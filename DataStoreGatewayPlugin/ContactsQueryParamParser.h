@@ -12,20 +12,6 @@ public:
 
   void parse (const std::string &params);
 
-  // Member accessors.
-  const std::string &contact_owner (void) const;
-  const std::string &uri (void) const;
-  const std::string &first_name (void) const;
-  const std::string &middle_initial (void) const;
-  const std::string &last_name (void) const;
-  const std::string &rank (void) const;
-  const std::string &call_sign (void) const;
-  const std::string &branch (void) const;
-  const std::string &unit (void) const;
-  const std::string &email (void) const;
-  const std::string &phone (void) const;
-
-private:
   std::string contact_owner_;
   std::string uri_;
   std::string first_name_;

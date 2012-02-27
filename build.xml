@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Gateway" default="build">
 
+    <target name="help">
+        <echo message="To see available targets run 'ant -p' or 'ant -projecthelp' " />
+    </target>
+
     <property name="project" value="${ant.project.name}"/>
     <property name="build" location="build"/>
     <property name="dist" location="dist"/>
@@ -10,9 +14,18 @@
     <property name="gatewayversion.out" value="common/version.h" />
     <property name="gatewayversion-mpb.template" value="gatewayversion.mpb.in" />
     <property name="gatewayversion-mpb.out" value="gatewayversion.mpb" />
+    
+    <condition property="isWindows">
+      <os family="windows" />
+    </condition>
+    
+    <condition property="isUnix">
+      <os family="unix" />
+    </condition>
 
     <description>
         Build file for the AMMO ${project}
+
     </description>
     
     <target name="-clean-gatewayversion">
@@ -22,9 +35,9 @@
           <fileset file="${gatewayversion-mpb.out}" />
         </delete>
     </target>
-
-    <target name="-init-gatewayversion" unless="gatewayversion">
-        <exec executable="git" dir="." 
+    
+    <target name="-init-gatewayversion-unix" if="isUnix">
+      <exec executable="git" dir="." 
               searchpath="true" 
               outputproperty="gatewayversion">
           <arg value="describe" />
@@ -41,24 +54,61 @@
         <loadfile property="gateway-reversion" srcFile="${gatewayversion.file}" failonerror="false"/>
         <condition  property="is.new.gatewayversion" >
            <equals arg1="${gatewayversion}" arg2="${gateway-reversion}"/>
-        </condition>        
+        </condition>  
+    </target>
+    
+    <target name="-init-gatewayversion-windows" if="isWindows">
+        <exec executable="cmd" dir="."
+              searchpath="true"
+              outputproperty="gatewayversion">
+           <arg value="/c" />
+           <arg value=' git describe --match "release-*"' />
+        </exec>
+        <exec executable="powershell" dir="."
+              searchpath="true"
+              outputproperty="gatewayversion-stripped">
+           <arg value="-Command" />
+           <arg value=" git describe --match 'release-*' | %{$$_ -replace 'release-', ''} | %{$$_ -replace '-g.*', ''}" />
+        </exec>
+
+        <loadfile property="gateway-reversion" srcFile="${gatewayversion.file}" failonerror="false"/>
+        <condition  property="is.new.gatewayversion" >
+           <equals arg1="${gatewayversion}" arg2="${gateway-reversion}"/>
+        </condition>  
     </target>
 
-    <target name="-update-gatewayversion" depends="-init-gatewayversion" unless="is.new.gatewayversion">
+    <target name="-init-gatewayversion" depends="-init-gatewayversion-unix,-init-gatewayversion-windows" unless="gatewayversion">
+              
+    </target>
+
+    <target name="update-gatewayversion" depends="-init-gatewayversion" unless="is.new.gatewayversion">
         <echo message="${gatewayversion}" file="${gatewayversion.file}"/>
-        <copy file="${gatewayversion.template}" tofile="${gatewayversion.out}"/>
+        <copy file="${gatewayversion.template}" tofile="${gatewayversion.out}" overwrite="true"/>
         <replace file="${gatewayversion.out}" token="&lt;VERSION&gt;" value="${gatewayversion}"/>
-        <copy file="${gatewayversion-mpb.template}" tofile="${gatewayversion-mpb.out}"/>
+        <copy file="${gatewayversion-mpb.template}" tofile="${gatewayversion-mpb.out}" overwrite="true"/>
         <replace file="${gatewayversion-mpb.out}" token="&lt;VERSION&gt;" value="${gatewayversion-stripped}"/>
     </target>
-
-    <target name="build" depends="configure">
+    
+    <target name="build-unix" if="isUnix" depends="configure">
         <echo message="Building ${project}..."/>
         <exec executable="make" dir="." searchpath="true" failonerror="true">
         </exec>
     </target>
+    
+    <target name="build-windows" if="isWindows" depends="configure">
+        <echo message="Building ${project}..."/>
+        <exec executable="msbuild" dir="." searchpath="true" failonerror="true">
+		<arg value="/p:Configuration=Release" />
+        </exec>
+    </target>
 
-    <target name="dist" depends="build">
+    <target name="build" depends="configure, build-unix, build-windows"
+        description="Build the ${project}" >
+        
+    </target>
+
+    <target name="dist" depends="build"
+        description="Tar the ${project} for release into ${dist}">
         <!-- versioning of tarballs includes setting the
              version to indicate the git checkout that tags
              the current release. This allows us to rebuild
@@ -85,15 +135,16 @@
         <!--Copy over distribution template (includes launch scripts)-->
         <exec executable="sh" dir="." searchpath="true">
             <arg value="-c" />
-            <arg value="cp -r ${dist_template}/* ${dist}/temp/gateway-${gwversion}" />
+            <arg value="cp -L -r ${dist_template}/* ${dist}/temp/gateway-${gwversion}" />
         </exec>
         <!--Copy the actual build-->
         <exec executable="sh" dir="." searchpath="true">
             <arg value="-c" />
-            <arg value="cp -r ${build}/* ${dist}/temp/gateway-${gwversion}" />
+            <arg value="cp -L -r ${build}/* ${dist}/temp/gateway-${gwversion}" />
         </exec>
         <!--Create the buildinfo file, with versioning and OS info-->
-        <echo file="${dist}/temp/gateway-${gwversion}/buildinfo" append="false">AMMO Gateway, version ${gwversion}, built ${build_time}
+        <echo file="${dist}/temp/gateway-${gwversion}/buildinfo" 
+              append="false">AMMO Gateway, version ${gwversion}, built ${build_time}
 
 Built on ${os.arch} ${os.name} ${os.version}
 </echo>
@@ -106,43 +157,60 @@ Built on ${os.arch} ${os.name} ${os.version}
         <delete dir="${dist}/temp/gateway-${gwversion}" />
     </target>
 
-    <target name="clean-dist">
+    <target name="clean-dist"
+        description="clean ${dist} only" >
         <echo message="Cleaning ${project} ${dist} dir..."/>
         <delete>
             <fileset dir="${dist}" includes="*.tar.gz" />
         </delete>
     </target>
-
-    <target name="clean" depends="-clean-gatewayversion,clean-dist">
+    
+    <target name="clean-unix" depends="-clean-gatewayversion,clean-dist" if="isUnix"
+        description="clean ${build} and ${dist} dirs" >
         <echo message="Cleaning ${project}"/>
         <exec executable="make" dir="." searchpath="true">
            <arg value="clean"/>
         </exec>
     </target>
     
-    <target name="realclean" depends="-clean-gatewayversion,clean-dist">
+    <target name="clean-windows" depends="-clean-gatewayversion,clean-dist" if="isWindows">
+        <echo message="Cleaning ${project}"/>
+        <exec executable="msbuild" dir="." searchpath="true">
+           <arg value="/t:clean"/>
+        </exec>
+    </target>
+
+    <target name="clean" depends="-clean-gatewayversion,clean-dist,clean-unix,clean-windows"
+        description="clean ${build} and ${dist} dirs" >
+    </target>
+    
+    <target name="realclean-unix" depends="-clean-gatewayversion,clean-dist" if="isUnix">
         <echo message="Cleaning ${project}"/>
         <exec executable="make" dir="." searchpath="true">
            <arg value="realclean"/>
         </exec>
     </target>
-
-    <target name="configure"
-        description="constructing makefiles" depends="-update-gatewayversion">
+    
+    <target name="realclean" depends="-clean-gatewayversion,clean-dist,realclean-unix,clean-windows"
+        description="clean all build products and generated code" >
+    </target>
+    
+    <target name="configure-unix" depends="update-gatewayversion" if="isUnix">
         <exec executable="mwc.pl" dir="." searchpath="true">
            <arg value="--type"/> <arg value="gnuace"/>
            <arg value="Gateway.mwc"/>
         </exec>
     </target>
+    
+    <target name="configure-windows" description="build the  makefiles" depends="update-gatewayversion" if="isWindows">
+        <exec executable="cmd" dir="." searchpath="true">
+           <arg value="/c"/>
+           <arg value="mwc.pl --type vc10 Gateway.mwc"/>
+        </exec>
+    </target>
 
-    <target name="help">
-        <echo message="Targets for ${project} are the following:" />
-        <echo message="configure - build the makefiles" />
-        <echo message="build - Build the ${project}" />
-        <echo message="dist  - Tar the ${project} for release into ${dist}" />
-        <echo message="clean - Clean ${build} and ${dist} dirs" />
-        <echo message="clean-dist - Clean ${dist} only" />
-        <echo message="realclean - Clean all build products and generated code" />
+    <target name="configure"
+        description="build the  makefiles" depends="update-gatewayversion,configure-unix,configure-windows">
     </target>
 
 </project>

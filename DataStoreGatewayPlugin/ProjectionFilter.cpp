@@ -1,12 +1,9 @@
-#include "ace/OS_NS_stdlib.h"
-
 #include "log.h"
 
 #include "ProjectionFilter.h"
+#include "DataStoreUtils.h"
 
 ProjectionFilter::ProjectionFilter (void)
-  : digits_ ("0123456789"),
-    real_items_ (digits_ + '.')
 {
 }
 
@@ -27,17 +24,15 @@ ProjectionFilter::match_int (const std::string &token,
       return true;
     }
     
-  if (token.find_first_not_of (digits_) != std::string::npos)
+  long val = 0;
+  
+  if (DataStoreUtils::safe_atol (token, val))
     {
-      LOG_ERROR ("projection field '"
-                 << token.c_str ()
-                 << "' is malformed");
-
-      return false;
+      return (lower_bound ? val <= data : val >= data);
     }
     
-  long val = ACE_OS::atol (token.c_str ());
-  return (lower_bound ? val <= data : val >= data);
+  // Error msg output by safe_atol().
+  return false;
 }
                     
 bool
@@ -50,17 +45,15 @@ ProjectionFilter::match_real (const std::string &token,
       return true;
     }
     
-  if (token.find_first_not_of (real_items_) != std::string::npos)
+  double val = 0.0;
+  
+  if (DataStoreUtils::safe_atof (token, val))
     {
-      LOG_ERROR ("projection field '"
-                 << token.c_str ()
-                 << "' is malformed");
-
-      return false;
+      return (lower_bound ? val <= data : val >= data);
     }
     
-  double val = ACE_OS::atof (token.c_str ());
-  return (lower_bound ? val <= data : val >= data);
+  // Error msg output by safe_atof().
+  return false;
 }
                      
 
