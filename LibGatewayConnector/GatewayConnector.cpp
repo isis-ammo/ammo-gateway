@@ -253,6 +253,17 @@ bool ammo::gateway::GatewayConnector::unregisterPullResponseInterest(string mime
   return true;
 }
 
+void ammo::gateway::GatewayConnector::onConnectReceived() {
+  if(delegate != NULL) {
+    delegate->onConnect(this);
+  }
+}
+
+void ammo::gateway::GatewayConnector::onDisconnectReceived() {
+  if(delegate != NULL) {
+    delegate->onDisconnect(this);
+  }
+}
 
 void ammo::gateway::GatewayConnector::onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg) {
   LOG_INFO("Got associate result of " << msg.result());
