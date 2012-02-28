@@ -2,6 +2,23 @@ import sys
 import time
 import datetime
 import math
+import os
+
+repo_dir = os.getenv("AMMO_REPO_DIR");
+if repo_dir is None:
+   head,tail = os.path.split(os.getcwd())
+   while tail != "JavaGatewayConnector":
+      head,tail = os.path.split(head)
+      if not tail:
+         print "not proper directory " + jar_dir
+         sys.exit
+   jar_dir = os.path.join(head,"JavaGatewayConnector")
+else:
+   jar_dir = repo_dir+"/Gateway/JavaGatewayConnector"
+
+if not os.path.isdir(jar_dir):
+   print "not a directory " + jar_dir
+   sys.exit
 
 latencies = []
 
@@ -21,12 +38,11 @@ if __name__ == "__main__":
   #                   default="global")
   
   # (options, args) = parser.parse_args()
-  
-  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/dist/lib/gatewaypluginapi.jar")
-  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/json-20090211.jar")
-  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/slf4j-api-1.6.4.jar")
-  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/slf4j-simple-1.6.4.jar")
-  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/protobuf.jar")
+  sys.path.append(jar_dir+"/dist/lib/gatewaypluginapi.jar")
+  sys.path.append(jar_dir+"/libs/json-20090211.jar")
+  sys.path.append(jar_dir+"/libs/slf4j-api-1.6.4.jar")
+  sys.path.append(jar_dir+"/libs/slf4j-simple-1.6.4.jar")
+  sys.path.append(jar_dir+"/libs/protobuf.jar")
 
   from edu.vu.isis.ammo.gateway import GatewayConnector
   from edu.vu.isis.ammo.gateway import PushData
