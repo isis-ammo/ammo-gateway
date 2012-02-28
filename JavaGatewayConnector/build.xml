@@ -16,9 +16,9 @@
   </target>
 
     <target name="-pre-build">
-        <echo>configure ammo core libraries for ${basedir}.</echo>
+        <!--<echo>configure ammo core libraries for ${basedir}.</echo>-->
         <!-- configure protobuf -->
-        <mkdir dir="libs"/>
+        <!--<mkdir dir="libs"/>
         <symlink taskname="add-protobuf-lib" action="single" overwrite="true" 
               link="${basedir}/libs/protobuf.jar" 
               resource="/usr/share/java/protobuf.jar"/>
@@ -33,7 +33,7 @@
                    </resourcecount>
                </not>
            </condition>
-        </fail>
+        </fail>-->
     </target>
 
     <property name="proto.dir" value="../common/protocol"/>
@@ -55,7 +55,7 @@
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <javac
-       classpath="${basedir}/libs/protobuf.jar;${basedir}/libs/json-20090211.jar;${basedir}/libs/slf4j-api-1.6.4.jar" srcdir="${src};${gen}" destdir="${build}"/>
+       classpath="${basedir}/libs/protobuf-java-2.3.0.jar;${basedir}/libs/json-20090211.jar;${basedir}/libs/slf4j-api-1.6.4.jar" srcdir="${src};${gen}" destdir="${build}"/>
     <!-- <javac srcdir="${gen}" destdir="${build}"/> -->
   </target>
 
