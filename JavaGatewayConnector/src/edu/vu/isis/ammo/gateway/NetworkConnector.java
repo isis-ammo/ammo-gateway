@@ -194,7 +194,7 @@ class NetworkConnector {
     // appropriate destination.
     private boolean deliverMessage( GatewayPrivateMessages.GatewayWrapper message )
     {
-	logger.trace( "In deliverMessage() {} ", message );
+	logger.info( "In deliverMessage() {} ", message );
 	// hand it off to parentconnector
 	if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.ASSOCIATE_RESULT) {
 	    logger.debug("Received Associate Result ...");
@@ -718,7 +718,8 @@ class NetworkConnector {
 			}
 		    catch ( Exception ex )
 			{
-			    logger.warn("sender threw exception {}", ex.getMessage(), ex );
+			    logger.warn("sender threw exception {}, {}", ex.getMessage() );
+			    ex.printStackTrace();
 
 			    // if ( msg.handler != null )
 			    // 	mChannel.ackToHandler( msg.handler, ChannelDisposal.REJECTED );
@@ -762,6 +763,78 @@ class NetworkConnector {
             mSocketChannel = iSocketChannel;
         }
 
+	class Message {
+	    int  payloadSize;
+	    byte priority;
+	    byte error;
+	    short reserved;
+	    int  payloadChksum;
+	    int  headerChksum;
+	    byte[] payload;
+	    int  receivedSize;
+	}
+
+	Message extractHeader(ByteBuffer bbuf) {
+	    try {
+		bbuf.mark();
+		
+		// scan for magic
+		while (true) {
+		    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[3]) continue;
+		    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[2]) continue;
+		    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[1]) continue;
+		    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[0]) continue;
+		    break;
+		}
+		// got a magic sequence - now should see the header proper
+		Message ret = new Message();
+		ret.payloadSize = bbuf.getInt();
+		ret.priority = bbuf.get();
+		ret.error = bbuf.get();
+		ret.reserved = bbuf.getShort(); // reserved field - just eat it
+		ret.payloadChksum = bbuf.getInt();
+		ret.headerChksum = bbuf.getInt();
+
+		CRC32 crc = new CRC32();
+		crc.update( bbuf.array(), bbuf.position() - GATEWAY_HEADER_SIZE, GATEWAY_HEADER_SIZE - 4 ); // header checksum is over the (length of header - size of checksum field)
+		
+		if ( ret.headerChksum != (int)crc.getValue() ) {
+		    logger.error("extractHeader: header checksum mismatch: sent {}, computed {}", Long.toHexString(ret.headerChksum), Long.toHexString( (int)crc.getValue() ) );
+		    return null;
+		}
+		// allocate space for message
+		ret.payload = new byte[ret.payloadSize];
+		ret.receivedSize = 0; // set the received counter to 0
+		return ret;
+	    } catch(BufferUnderflowException ex) {
+		logger.error("extractHeader: {}", ex.getMessage());
+		bbuf.reset();
+	    }
+	    return null;
+	}
+
+	int extractMessage(ByteBuffer bbuf, Message message) {
+	    if (message == null)
+		return 0;
+
+	    logger.info("extractMessage: in buf {}, in msg {}", bbuf.remaining(), message.receivedSize);
+	    int toGet = message.payloadSize - message.receivedSize;
+	    toGet = Math.min(toGet, bbuf.remaining());
+	    bbuf.get(message.payload, message.receivedSize, toGet);
+	    message.receivedSize += toGet;
+	    
+	    if (message.receivedSize >= message.payloadSize) { // got a complete message
+		CRC32 crc = new CRC32();
+		crc.update(message.payload);
+
+		if ( message.payloadChksum != (int)crc.getValue() ) {
+		    logger.error("extractMessage: payload checksum mismatch: sent {}, received {}", Long.toHexString(message.payloadChksum), Long.toHexString( (int)crc.getValue() ));
+		}
+		return 0;	// revert back to reading header
+	    }
+	    return 1;		// continue to read more in message
+	}
+
         /**
          * Block on reading from the SocketChannel until we get some data.
          * Then examine the buffer to see if we have any complete packets.
@@ -775,120 +848,40 @@ class NetworkConnector {
 
             ByteBuffer bbuf = ByteBuffer.allocate( TCP_RECV_BUFF_SIZE );
             bbuf.order( endian ); // mParent.endian
-
+	    bbuf.clear();
+	    int readState = 0;	// HEADER, 1 = PAYLOAD
+	    Message message = null;
+	    
             while ( mState != NetworkConnector.INTERRUPTED ) {
                 try {
                     int bytesRead =  mSocketChannel.read( bbuf );
-                    logger.debug( "SocketChannel getting header read bytes={}", bytesRead );
+                    logger.info( "SocketChannel getting header read bytes={}", bytesRead );
                     if (bytesRead == 0) continue;
 
-                    setReceiverState( NetworkConnector.START );
+		    setReceiverState( NetworkConnector.START );
 
                     // prepare to drain buffer
                     bbuf.flip();
 
-		    int messageSize = 0;
-		    char priority = 0;
-		    char error = 0;
-		    int payloadChksum = 0;
-		    // extract header loop
-		    try {
-			while ( bbuf.remaining() > 0 ) {
-			    bbuf.mark();
-			    int start = bbuf.arrayOffset() + bbuf.position();
-
-			    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[3]) continue;
-			    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[2]) continue;
-			    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[1]) continue;
-			    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[0]) continue;
-			    // found magic sequence - now rest of header
-			    messageSize = bbuf.getInt();
-			    priority = bbuf.getChar();
-			    error = bbuf.getChar();
-			    char resvd0 = bbuf.getChar();
-			    char resvd1 = bbuf.getChar();
-			    payloadChksum = bbuf.getInt();
-			    int hdCsum = bbuf.getInt();
-
-			    // valid header csum
-			    CRC32 crcHdr = new CRC32();
-			    crcHdr.update(bbuf.array(), start, GATEWAY_HEADER_SIZE - 4 );
-			    if (hdCsum != (int)crcHdr.getValue() ) {
-				continue;
-			    }
-			}
-		    } catch (BufferUnderflowException buex) {
-			logger.error( "not enough bytes to get header {}", buex.getStackTrace() );
-			bbuf.reset();
-			// TBD SKN - not clear what the action here should be?
-			// will doing a reset keep getting us stuck here? shouldn't be actually eat the bad bytes
-			
-			continue; 
-		    }
-		    
-		    if (messageSize < 1) {
-			logger.warn("discarding empty message error {}", (int)error);
-			// TODO cause the reconnection behavior to change based on the error code
-			continue;
-		    }
-
-		    // if the message is TOO BIG then throw away the message
-		    if (messageSize > MAX_MESSAGE_SIZE) {
-			logger.warn("discarding message of size {} with checksum {}", 
-				    messageSize, Long.toHexString(payloadChksum));
-			int size = messageSize;
-			while (true) {
-			    if (bbuf.remaining() < size) {
-				int rem =  bbuf.remaining();
-				size -= rem;
-				bbuf.clear();
-				bytesRead =  mSocketChannel.read( bbuf );
-				bbuf.flip();
-				continue;
-			    }
-			    bbuf.position(size);
+		    switch(readState) {
+		    case 0:	// HEADER
+			message = extractHeader(bbuf);
+			if (message == null)
 			    break;
-			}
-			continue;
-		    }
+			readState = 1; // found a good header continue reading
 
-		    // extract the payload
-		    byte[] payload = new byte[messageSize];
-		    int size = messageSize;
-		    int offset = 0;
-		    while (true) {
-			if (bbuf.remaining() < size) {
-			    int rem =  bbuf.remaining();
-			    bbuf.get(payload, offset, rem);
-			    offset += rem;
-			    size -= rem;
-			    bbuf.clear();
-			    bytesRead =  mSocketChannel.read( bbuf );
-			    bbuf.flip();
-			    continue;
-			}
-			bbuf.get(payload, offset, size);
-
-			// validate checksum
-			CRC32 crcPayload = new CRC32();
-			crcPayload.update(payload);
-			if (payloadChksum != (int)crcPayload.getValue() ) {
-			    logger.error( "checksum mismatch: sent {}, computed {}",
-					  Long.toHexString(payloadChksum),
-					  Long.toHexString(crcPayload.getValue() ));
-			    break;
-			}
-
-			GatewayPrivateMessages.GatewayWrapper agm =
-			    GatewayPrivateMessages.GatewayWrapper.parseFrom(payload);
-			setReceiverState( NetworkConnector.DELIVER );
-			mDestination.deliverMessage( agm );
-			logger.info( "processed a message {}", 
-				     Long.toHexString(payloadChksum) );
+		    case 1:	// PAYLOAD
+			readState = extractMessage(bbuf, message);
+			if (readState == 0) { // done with message - dispatch it
+			    GatewayPrivateMessages.GatewayWrapper agm = GatewayPrivateMessages.GatewayWrapper.parseFrom(message.payload);
+			    setReceiverState( NetworkConnector.DELIVER );
+			    mDestination.deliverMessage( agm );
+			    logger.info( "processed a message {}",
+					 Long.toHexString(message.payloadChksum) );
+			}			    
 			break;
 		    }
-                    // prepare to fill buffer
-                    // if any bytes remain in the buffer they are a partial header
+
                     bbuf.compact();
                 } catch (ClosedChannelException ex) {
                     logger.warn("receiver threw exception {}", ex.getStackTrace());

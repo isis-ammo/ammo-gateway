@@ -46,7 +46,7 @@ if __name__ == "__main__":
       print "Pushing Data."
       ret = connector.pushData(data)
       print ret
-      time.sleep(5)
+      time.sleep(0.01)
       
   except KeyboardInterrupt:
     print "Got ^C...  Closing"

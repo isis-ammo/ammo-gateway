@@ -5,20 +5,32 @@ import math
 
 latencies = []
 
-def onDataReceived(connector, msg):
-  receivedTime = time.time()
-  # if msg.type == AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE:
-  #   splitMessage = msg.data_message.data.split("/")
-  #   sequenceNumber = int(splitMessage[0])
-  #   sentTime = float(splitMessage[1])
-  #   timeDifference = receivedTime - sentTime
-  #   print "{0},{1:.9f}".format(sequenceNumber, timeDifference)
-  #   latencies.append(timeDifference)
-
-
 
 if __name__ == "__main__":
   print "Java API Tester"
+
+  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/dist/lib/gatewaypluginapi-20120227.jar")
+  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/json-20090211.jar")
+  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/slf4j-api-1.6.4.jar")
+  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/slf4j-simple-1.6.4.jar")
+  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/protobuf.jar")
+
+  from edu.vu.isis.ammo.gateway import GatewayConnector
+  from edu.vu.isis.ammo.gateway import DataPushReceiverListener
+  from edu.vu.isis.ammo.gateway import PushData
+  from org.json import JSONException
+
+
+  class DataPushReceiver(DataPushReceiverListener):
+    def __init__(self):
+      print "Constructor"
+
+    def onPushDataReceived(self, sender, data):
+      receivedTime = time.time()
+      print data.uri
+      print data.mimeType
+
+
   
   # parser = optparse.OptionParser()
   # parser.add_option("-g", "--gateway", dest="gateway",
@@ -33,33 +45,17 @@ if __name__ == "__main__":
   
   # (options, args) = parser.parse_args()
   
-  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/dist/lib/gatewaypluginapi-20120227.jar")
-  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/json-20090211.jar")
-  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/slf4j-api-1.6.4.jar")
-  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/slf4j-simple-1.6.4.jar")
-  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/protobuf.jar")
-
-  from edu.vu.isis.ammo.gateway import GatewayConnector
-  from edu.vu.isis.ammo.gateway import PushData
-  from org.json import JSONException
 
   connector = GatewayConnector( None )
-  data = PushData( )
-  data.uri = "java api test"
-  data.mimeType = "ammo/edu.vu.isis.ammo.dash.event"
-  data.originUserName = "testDriver"
-  data.data = "My BIG FAT JSON String"
+  receiver  = DataPushReceiver( )
   
   try:
     time.sleep(3)
     print "Subscribing."
     # register a data listener
-    connector.registerDataInterest("ammo/edu.vu.isis.ammo.dash.event", None, None);
+    connector.registerDataInterest("ammo/edu.vu.isis.ammo.dash.event", receiver, None);
 
     while True:
-      print "Pushing Data."
-      ret = connector.pushData(data)
-      print ret
       time.sleep(5)
       
   except KeyboardInterrupt:

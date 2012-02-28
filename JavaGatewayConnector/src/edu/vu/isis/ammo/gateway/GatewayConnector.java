@@ -5,7 +5,12 @@ import ammo.gateway.protocol.GatewayPrivateMessages;
 import java.util.HashMap;
 import com.google.protobuf.ByteString;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class GatewayConnector {
+    private static final Logger logger = LoggerFactory.getLogger(GatewayConnector.class);
     /**
      * Creates a new GatewayConnector with the given GatewayConnectorDelegate and
      * establishes a connection to the gateway core.
@@ -219,6 +224,8 @@ public class GatewayConnector {
       * @return true if the operation succeeded; false if the operation failed.
       */
     public boolean registerDataInterest(String mime_type, DataPushReceiverListener listener, MessageScope scope) {
+	logger.info("registerDataInterest: mime {}, listener {}", mime_type, listener );
+	
 	GatewayPrivateMessages.GatewayWrapper.Builder msg =
 	    GatewayPrivateMessages.GatewayWrapper.newBuilder();
 	GatewayPrivateMessages.RegisterDataInterest.Builder di =
@@ -230,6 +237,8 @@ public class GatewayConnector {
 
 	msg.setRegisterDataInterest(di.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.REGISTER_DATA_INTEREST);
+
+	receiverListeners.put(mime_type, listener);
 
 	if (connector.isConnected()) {
 	    connector.sendMessage(msg.build() );
@@ -265,6 +274,8 @@ public class GatewayConnector {
 	msg.setUnregisterDataInterest(di.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.UNREGISTER_DATA_INTEREST);
 
+	receiverListeners.remove(mime_type);
+
 	if (connector.isConnected()) {
 	    connector.sendMessage(msg.build());
 	    return true;
@@ -296,6 +307,8 @@ public class GatewayConnector {
 	msg.setRegisterPullInterest(di.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.REGISTER_PULL_INTEREST);
 
+	pullRequestListeners.put(mime_type, listener);
+
 	if (connector.isConnected()) {
 	    connector.sendMessage(msg.build() );
 	    return true;
@@ -325,6 +338,8 @@ public class GatewayConnector {
 
 	msg.setUnregisterPullInterest(di.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.UNREGISTER_PULL_INTEREST);
+
+	pullRequestListeners.remove(mime_type);
 
 	if (connector.isConnected()) {
 	    connector.sendMessage(msg.build() );
@@ -383,6 +398,7 @@ public class GatewayConnector {
     protected void onPushDataReceived(final GatewayPrivateMessages.PushData msg) {
 	String mimeType = msg.getMimeType();
 	DataPushReceiverListener listener = receiverListeners.get( mimeType );
+	logger.info("onPushDataReceived: mime {}, listener {}", mimeType, listener);
 	if (listener != null) {
 	    PushData pushData = new PushData();
 	    pushData.uri = msg.getUri();
