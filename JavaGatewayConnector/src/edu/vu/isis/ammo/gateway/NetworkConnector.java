@@ -832,23 +832,25 @@ class NetworkConnector {
                     // prepare to drain buffer
                     bbuf.flip();
 
-		    switch(readState) {
-		    case 0:	// HEADER
-			message = extractHeader(bbuf);
-			if (message == null)
-			    break;
-			readState = 1; // found a good header continue reading
+		    while (bbuf.remaining() > 0) { // while there is data - eat it from buffer, before reading more
+			switch(readState) {
+			case 0:	// HEADER
+			    message = extractHeader(bbuf);
+			    if (message == null)
+				break;
+			    readState = 1; // found a good header continue reading
 
-		    case 1:	// PAYLOAD
-			readState = extractMessage(bbuf, message);
-			if (readState == 0) { // done with message - dispatch it
-			    GatewayPrivateMessages.GatewayWrapper agm =
-				GatewayPrivateMessages.GatewayWrapper.parseFrom(message.payload);
-			    setReceiverState( NetworkConnector.DELIVER );
-			    mDestination.deliverMessage( agm );
-			    logger.info( "processed a message {}", agm.getType() );
-			}			    
-			break;
+			case 1:	// PAYLOAD
+			    readState = extractMessage(bbuf, message);
+			    if (readState == 0) { // done with message - dispatch it
+				GatewayPrivateMessages.GatewayWrapper agm =
+				    GatewayPrivateMessages.GatewayWrapper.parseFrom(message.payload);
+				setReceiverState( NetworkConnector.DELIVER );
+				mDestination.deliverMessage( agm );
+				logger.info( "processed a message {}", agm.getType() );
+			    }			    
+			    break;
+			}
 		    }
 
                     bbuf.compact();
