@@ -70,59 +70,38 @@ class NetworkConnector {
      */
     private static final int TCP_RECV_BUFF_SIZE = 0x15554; // the maximum receive buffer size
     private static final int MAX_MESSAGE_SIZE = 0x100000;  // arbitrary max size
-    private boolean isEnabled = true;
 
-    private Socket socket = null;
-    private ConnectorThread connectorThread;
+    private SocketChannel mSocketChannel;
 
-    // New threads
-    private SenderThread mSender;
-    private ReceiverThread mReceiver;
-
-    @SuppressWarnings("unused")
-	private int connectTimeout = 5 * 1000; // this should come from network preferences
-    @SuppressWarnings("unused")
-	private int socketTimeout = 5 * 1000; // milliseconds.
+    // Three threads
+    private ConnectorThread connectorThread; // long running
+    private SenderThread mSender;	     // created after connection
+    private ReceiverThread mReceiver;	     // created after connection
 
     private String gatewayHost = null;
     private int gatewayPort = -1;
 
     private ByteOrder endian = ByteOrder.LITTLE_ENDIAN;
-    private final Object syncObj;
-
-    private boolean shouldBeDisabled = false;
-    private long flatLineTime;
-    private SocketChannel mSocketChannel;
 
     private final SenderQueue mSenderQueue;
-
-    private final AtomicBoolean mIsAuthorized;
-
     private final GatewayConnector mGatewayConnector;
 
     /**
      * Constants
      **/
-    static final int PENDING         =  0; // the run failed by some unhandled exception
     static final int EXCEPTION       =  1; // the run failed by some unhandled exception
 
     static final int CONNECTING      = 20; // trying to connect
     static final int CONNECTED       = 21; // the socket is good an active
 
-
     static final int DISCONNECTED    = 30; // the socket is disconnected
     static final int STALE           = 31; // indicating there is a message
-    static final int LINK_WAIT       = 32; // indicating the underlying link is down
-    static final int LINK_ACTIVE     = 33; // indicating the underlying link is down -- unused
-    static final int DISABLED		= 34; // indicating the link is disabled
-
 
     static final int WAIT_CONNECT    = 40; // waiting for connection
     static final int SENDING         = 41; // indicating the next thing is the size
     static final int TAKING          = 42; // indicating the next thing is the size
     static final int INTERRUPTED     = 43; // the run was canceled via an interrupt
 
-    static final int SHUTDOWN        = 51; // the run is being stopped -- unused
     static final int START           = 52; // indicating the next thing is the size
     static final int RESTART         = 53; // indicating the next thing is the size
     static final int WAIT_RECONNECT  = 54; // waiting for connection
@@ -148,16 +127,10 @@ class NetworkConnector {
 	this.mGatewayConnector = gatewayConnector;
 	this.gatewayHost = gatewayHost;
 	this.gatewayPort = gatewayPort;
-	this.syncObj = this;
 
-	mIsAuthorized = new AtomicBoolean( false );
 	this.connectorThread = new ConnectorThread(this);
-	this.flatLineTime = 20 * 1000; // 20 seconds in milliseconds
-
 	mSenderQueue = new SenderQueue( this );
-
 	this.connectorThread.start();
-	logger.info("Thread <{}>NetworkConnector::<constructor> - starting connectorthread", Thread.currentThread().getId());
     }
 
     public boolean isConnected() { 
@@ -165,21 +138,6 @@ class NetworkConnector {
     }
 
     public boolean close() { return false; }
-
-    public boolean setConnectTimeout(int value) {
-	logger.trace("Thread <{}>::setConnectTimeout {}", Thread.currentThread().getId(), value);
-	this.connectTimeout = value;
-	return true;
-    }
-    public boolean setSocketTimeout(int value) {
-	logger.trace("Thread <{}>::setSocketTimeout {}", Thread.currentThread().getId(), value);
-	this.socketTimeout = value;
-	return true;
-    }
-
-    public void setFlatLineTime(long flatLineTime) {
-	this.flatLineTime = flatLineTime;  // currently broken
-    }
 
     public String toString() {
 	return new StringBuilder().append("channel ").append(super.toString())
@@ -194,7 +152,7 @@ class NetworkConnector {
     // appropriate destination.
     private boolean deliverMessage( GatewayPrivateMessages.GatewayWrapper message )
     {
-	logger.info( "In deliverMessage() {} ", message );
+	logger.info( "deliverMessage() {} ", message );
 	// hand it off to parentconnector
 	if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.ASSOCIATE_RESULT) {
 	    logger.debug("Received Associate Result ...");
@@ -210,9 +168,75 @@ class NetworkConnector {
 	    mGatewayConnector.onPullResponseReceived(message.getPullResponse() );
 	}
 
-
 	return true;
     }
+
+    /**
+     * do your best to send the message.
+     * This makes use of the blocking "put" call.
+     * A proper producer-consumer should use put or add and not offer.
+     * "put" is blocking call.
+     * If this were on the UI thread then offer would be used.
+     *
+     * @param agm GatewayPrivateMessages.GatewayWrapper
+     * @return
+     */
+    public boolean sendMessage( GatewayPrivateMessages.GatewayWrapper agm )
+    {
+        return mSenderQueue.put( agm );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    //
+    class SenderQueue
+    {
+        public SenderQueue( NetworkConnector iChannel )
+        {
+            mChannel = iChannel;
+            mDistQueue = new PriorityBlockingQueue<GatewayPrivateMessages.GatewayWrapper>( 20 );
+        }
+
+        public boolean put(GatewayPrivateMessages.GatewayWrapper iMessage )
+        {
+            logger.info( "insert into sender queue: {}", mDistQueue.size() );
+            try {
+		if (! mDistQueue.offer( iMessage, 1, TimeUnit.SECONDS )) {
+		    logger.warn("channel not taking messages {}", "BUSY" );
+		    return false;
+		}
+	    } catch (InterruptedException e) {
+		return false;
+	    }
+            return true;
+        }
+
+        public GatewayPrivateMessages.GatewayWrapper take() throws InterruptedException
+        {
+            logger.info( "taking from SenderQueue" );
+	    // This is where the authorized SenderThread blocks.
+	    return mDistQueue.take();
+        }
+
+
+        // Somehow synchronize this here.
+        public synchronized void reset()
+        {
+            logger.info( "reset()ing the SenderQueue" );
+            // Tell the distributor that we couldn't send these
+            // packets.
+            // GatewayPrivateMessages.GatewayWrapper msg = mDistQueue.poll();
+            // while ( msg != null )
+	    // 	{
+	    // 	    if ( msg.handler != null )
+	    // 		mChannel.ackToHandler( msg.handler, ChannelDisposal.PENDING );
+	    // 	    msg = mDistQueue.poll();
+	    // 	}
+        }
+
+        private BlockingQueue<GatewayPrivateMessages.GatewayWrapper> mDistQueue;
+        private NetworkConnector mChannel;
+    }
+
 
     /**
      * manages the connection.
@@ -223,7 +247,7 @@ class NetworkConnector {
      *
      */
     private class ConnectorThread extends Thread {
-	private final Logger logger = LoggerFactory.getLogger( "net.tcp.connector" );
+	private final Logger logger = LoggerFactory.getLogger( ConnectorThread.class );
 
 	private final String DEFAULT_HOST = "127.0.0.1";
 	private final int DEFAULT_PORT = 12475;
@@ -239,8 +263,9 @@ class NetworkConnector {
 	// AtomicBoolean to keep track of whether we need to call it.
 	public void socketOperationFailed()
 	{
-	    if ( mIsConnected.compareAndSet( true, false ))
-		state.reset();
+	    if ( mIsConnected.compareAndSet( true, false )) {
+		disconnect();
+	    }
 	}
 
 
@@ -253,71 +278,24 @@ class NetworkConnector {
 
 	private class State {
 	    private int value;
-	    private int actual;
-
-	    private long attempt; // used to uniquely name the connection
 
 	    public State() {
 		this.value = DISCONNECTED;
-		this.attempt = Long.MIN_VALUE;
 	    }
 	    public synchronized void set(int state) {
 		logger.info("Thread <{}>State::set", Thread.currentThread().getId());
-                if ( state == STALE ) {
-		    this.reset();
-                } else {
-                    this.value = state;
-                    this.notifyAll();
-                }
+		this.value = state;
+		this.notifyAll();
 	    }
-
             public synchronized int get() { return this.value; }
 
             public synchronized boolean isConnected() {
                 return this.value == CONNECTED;
             }
-
-
-            /**
-             * Previously this method would only set the state to stale
-             * if the current state were CONNECTED.  It may be important
-             * to return to STALE from other states as well.
-             * For example during a failed link attempt.
-             * Therefore if the attempt value matches then reset to STALE
-             * This also causes a reset to reliably perform a notify.
-             *
-             * @param attempt value (an increasing integer)
-             * @return
-             */
-            public synchronized boolean failure(long attempt) {
-                if (attempt != this.attempt) return true;
-                return this.reset();
-            }
-            public synchronized boolean reset() {
-                attempt++;
-                this.value = DISCONNECTED;
-                this.notifyAll();
-                return true;
-            }
-
         }
 
         public boolean isConnected() {
             return this.state.isConnected();
-        }
-        public long getAttempt() {
-            return this.state.attempt;
-        }
-
-        /**
-         * reset forces the channel closed if open.
-         */
-        public void reset() {
-            this.state.failure(this.state.attempt);
-        }
-
-        public void failure(long attempt) {
-            this.state.failure(attempt);
         }
 
         /**
@@ -340,31 +318,17 @@ class NetworkConnector {
 	{
             try {
                 logger.info("Thread <{}>ConnectorThread::run", Thread.currentThread().getId());
-                MAINTAIN_CONNECTION: while (true) {
+                while (true) {
                     switch (this.state.get()) {
                     case NetworkConnector.DISCONNECTED:
-                        if ( !this.connect() ) {
-                            this.state.set(NetworkConnector.CONNECTING);
-                        } else {
-                            this.state.set(NetworkConnector.CONNECTED);
-                        }
-                        break;
-
-                    case NetworkConnector.CONNECTING: // keep trying
-                        try {
-                            long attempt = this.getAttempt();
-                            Thread.sleep(GATEWAY_RETRY_TIME);
-                            if ( this.connect() ) {
-                                this.state.set(NetworkConnector.CONNECTED);
-                            } else {
-                                this.failure(attempt);
-                            }
-                        } catch (InterruptedException ex) {
-                            logger.info("sleep interrupted - intentional disable, exiting thread ...");
-                            this.reset();
-                            break MAINTAIN_CONNECTION;
-                        }
-                        break;
+			if ( !this.connect() ) {
+			    try {
+				Thread.sleep(GATEWAY_RETRY_TIME);
+			    } catch (InterruptedException ex) {
+				logger.info("sleep interrupted - intentional disable, exiting thread ...");
+			    }
+			}
+			break;
 
                     case NetworkConnector.CONNECTED:
 			try {
@@ -374,44 +338,22 @@ class NetworkConnector {
 			    }
 			} catch (InterruptedException ex) {
 			    logger.warn("connection intentionally disabled {}", this.state );
-			    this.state.set(NetworkConnector.DISCONNECTED);
-			    break MAINTAIN_CONNECTION;
 			}
 			break;
-
-                    default:
-                        try {
-                            long attempt = this.getAttempt();
-                            Thread.sleep(GATEWAY_RETRY_TIME);
-                            this.failure(attempt);
-                        } catch (InterruptedException ex) {
-                            logger.info("sleep interrupted - intentional disable, exiting thread ...");
-                            break MAINTAIN_CONNECTION;
-                        }
                     }
                 }
 
             } catch (Exception ex) {
-                this.state.set(NetworkConnector.EXCEPTION);
                 logger.error("channel exception {} \n {}", ex.getLocalizedMessage(), ex.getStackTrace());
             }
-            try {
-                if (this.parent.socket == null) {
-                    logger.error("channel closing without active socket}");
-                    return;
-                }
-                this.parent.socket.close();
-            } catch (IOException ex) {
-                logger.error("channel closing without proper socket {}", ex.getStackTrace());
-            }
-            logger.error("channel closing");
+		
         }
 
 
         private boolean connect()
         {
-            logger.info( "Thread <{}>ConnectorThread::connect",
-                         Thread.currentThread().getId() );
+	    // connect should only be called from connector thread 
+            logger.info( "Thread <{}>ConnectorThread::connect", Thread.currentThread().getId() );
 
             // Resolve the hostname to an IP address.
             String host = (parent.gatewayHost != null) ? parent.gatewayHost : DEFAULT_HOST;
@@ -456,7 +398,8 @@ class NetworkConnector {
             logger.info( "connection to {}:{} established ", ipaddr, port );
 
             mIsConnected.set( true );
-	    // parent.mGatewayConnector.onConnect(); // send on connect message
+	    state.set(NetworkConnector.CONNECTED);
+	    parent.mGatewayConnector.onConnect(); // send on connect message
 
             // Create the sending thread.
             if ( parent.mSender != null )
@@ -479,11 +422,13 @@ class NetworkConnector {
 
         private boolean disconnect()
         {
+	    // disconnect should only be called from sender/receiver or app thread 
             logger.info( "Thread <{}>ConnectorThread::disconnect",
                          Thread.currentThread().getId() );
+	    boolean ret = true;
             try {
 		mIsConnected.set( false );
-		// parent.mGatewayConnector.onDisconnect();
+		parent.mGatewayConnector.onDisconnect();
 
 		if ( mSender != null ) {
 		    logger.debug( "interrupting SenderThread" );
@@ -517,86 +462,14 @@ class NetworkConnector {
 		// Do this here, too, since if we exited early because
 		// of an exception, we want to make sure that we're in
 		// an unauthorized state.
-		return false;
+		ret = false;
 	    }
             logger.debug( "returning after successful disconnect()." );
-            return true;
+	    state.set(NetworkConnector.DISCONNECTED);
+            return ret;
         }
     }
 
-
-    /**
-     * do your best to send the message.
-     * This makes use of the blocking "put" call.
-     * A proper producer-consumer should use put or add and not offer.
-     * "put" is blocking call.
-     * If this were on the UI thread then offer would be used.
-     *
-     * @param agm GatewayPrivateMessages.GatewayWrapper
-     * @return
-     */
-    public boolean sendMessage( GatewayPrivateMessages.GatewayWrapper agm )
-    {
-        return mSenderQueue.putFromDistributor( agm );
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    //
-    class SenderQueue
-    {
-        public SenderQueue( NetworkConnector iChannel )
-        {
-            mChannel = iChannel;
-
-            mDistQueue = new PriorityBlockingQueue<GatewayPrivateMessages.GatewayWrapper>( 20 );
-        }
-
-
-        // In the new design, aren't we supposed to let the
-        // AmmoService know if the outgoing queue is full or not?
-        public boolean putFromDistributor(GatewayPrivateMessages.GatewayWrapper iMessage )
-        {
-            logger.info( "insert into sender queue: {}", mDistQueue.size() );
-            try {
-		if (! mDistQueue.offer( iMessage, 1, TimeUnit.SECONDS )) {
-		    logger.warn("channel not taking messages {}", "BUSY" );
-		    return false;
-		}
-	    } catch (InterruptedException e) {
-		return false;
-	    }
-            return true;
-        }
-
-
-        public GatewayPrivateMessages.GatewayWrapper take() throws InterruptedException
-        {
-            logger.info( "taking from SenderQueue" );
-
-	    // This is where the authorized SenderThread blocks.
-	    return mDistQueue.take();
-        }
-
-
-        // Somehow synchronize this here.
-        public synchronized void reset()
-        {
-            logger.info( "reset()ing the SenderQueue" );
-            // Tell the distributor that we couldn't send these
-            // packets.
-            // GatewayPrivateMessages.GatewayWrapper msg = mDistQueue.poll();
-            // while ( msg != null )
-	    // 	{
-	    // 	    if ( msg.handler != null )
-	    // 		mChannel.ackToHandler( msg.handler, ChannelDisposal.PENDING );
-	    // 	    msg = mDistQueue.poll();
-	    // 	}
-        }
-
-
-        private BlockingQueue<GatewayPrivateMessages.GatewayWrapper> mDistQueue;
-        private NetworkConnector mChannel;
-    }
 
     ///////////////////////////////////////////////////////////////////////////
     //
@@ -641,7 +514,6 @@ class NetworkConnector {
 		} catch ( InterruptedException ex )	{
 		    logger.debug( "interrupted taking messages from send queue: {}",
 				  ex.getLocalizedMessage() );
-		    setSenderState( NetworkConnector.INTERRUPTED );
 		    break;
 		}
 
@@ -678,15 +550,12 @@ class NetworkConnector {
 		    // if ( msg.handler != null )
 		    // 	mChannel.ackToHandler( msg.handler, ChannelDisposal.SENT );
 		}  catch ( Exception ex ) {
-		    logger.warn("sender threw exception {}", ex.getMessage() );
-		    ex.printStackTrace();
-
-		    // if ( msg.handler != null )
-		    // 	mChannel.ackToHandler( msg.handler, ChannelDisposal.REJECTED );
-		    setSenderState( NetworkConnector.INTERRUPTED );
-		    mParent.socketOperationFailed();
+		    logger.warn("sender threw exception {} \n {}", ex.getMessage(), ex.getStackTrace() );
+		    break;
 		}
 	    }
+	    logger.error("sender thread exiting...");
+	    mParent.socketOperationFailed();
         }
 
 
@@ -824,10 +693,12 @@ class NetworkConnector {
                 try {
                     int bytesRead =  mSocketChannel.read( bbuf );
                     logger.info( "SocketChannel read bytes={}", bytesRead );
+		    
+		    if (bytesRead < 0)
+			break;
 
-                    if (bytesRead == 0 && bbuf.remaining() == 0) continue; // no bytes to process
-
-		    setReceiverState( NetworkConnector.START );
+                    if (bytesRead == 0 && bbuf.remaining() == 0)
+			continue; // no bytes to process
 
                     // prepare to drain buffer
                     bbuf.flip();
@@ -845,25 +716,21 @@ class NetworkConnector {
 			    if (readState == 0) { // done with message - dispatch it
 				GatewayPrivateMessages.GatewayWrapper agm =
 				    GatewayPrivateMessages.GatewayWrapper.parseFrom(message.payload);
-				setReceiverState( NetworkConnector.DELIVER );
+				logger.info( "received a message {}", agm.getType() );
 				mDestination.deliverMessage( agm );
-				logger.info( "processed a message {}", agm.getType() );
 			    }			    
 			    break;
 			}
 		    }
 
                     bbuf.compact();
-                } catch (ClosedChannelException ex) {
-                    logger.warn("receiver threw exception {}", ex.getStackTrace());
-                    setReceiverState( NetworkConnector.INTERRUPTED );
-                    mParent.socketOperationFailed();
                 } catch ( Exception ex ) {
                     logger.warn("receiver threw exception {}", ex.getStackTrace());
-                    setReceiverState( NetworkConnector.INTERRUPTED );
-                    mParent.socketOperationFailed();
+		    break;
                 }
             }
+	    logger.error("exiting receiver thread ...");
+	    mParent.socketOperationFailed();
         }
 
         private void setReceiverState( int iState )

@@ -446,6 +446,16 @@ public class GatewayConnector {
 	    listener.onPullResponseReceived(this, resp);
 	}
     }
+
+    void onConnect() {
+	if (delegate != null)
+	    delegate.onConnect(this);
+    }
+
+    void onDisconnect() {
+	if (delegate != null)
+	    delegate.onDisconnect(this);
+    }
       
     private GatewayConnectorDelegate delegate;
 
