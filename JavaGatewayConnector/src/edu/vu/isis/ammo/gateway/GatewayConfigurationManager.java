@@ -56,22 +56,22 @@ class GatewayConfigurationManager {
 		if(input.has("GatewayInterface")) {
 		    gatewayInterface = input.getString("GatewayInterface");
 		} else {
-		    //  LOG_ERROR("Error: GatewayInterface is missing or wrong type (should be string)");
+		    logger.error("<constructor>: GatewayInterface is missing or wrong type (should be string)");
 		}
       
 		if(input.has("GatewayAddress")) {
 		    gatewayAddress = input.getString("GatewayAddress");
 		} else {
-		    // LOG_ERROR("Error: GatewayAddress is missing or wrong type (should be string)");
+		    logger.error("<constructor>: GatewayAddress is missing or wrong type (should be string)");
 		}
       
 		if(input.has("GatewayPort")) {
 		    gatewayPort = input.getInt("GatewayPort");
 		} else {
-		    // LOG_ERROR("Error: GatewayPort is missing or wrong type (should be integer)");
+		    logger.error("<constructor>: GatewayPort is missing or wrong type (should be integer)");
 		}
 	    } else {
-		// LOG_ERROR("JSON parsing error in config file '" << configFileName << "'.  Using defaults.");
+		logger.error("<constructor> JSON parsing error in config file {}. using defaults", configFile);
 	    }
 	    
 	    } catch (JSONException jsx) {
@@ -105,7 +105,7 @@ class GatewayConfigurationManager {
 			if (new File(filePath).exists() == false) {
 			    filePath = new String("../etc/") + CONFIG_FILE;
 			    if (new File(filePath).exists() == false) {
-				// LOG_ERROR
+				logger.error("findConfigFile: unable to find config file");
 				return "";
 			    }
 			}
@@ -114,7 +114,7 @@ class GatewayConfigurationManager {
 	    }
 	}
 
-	// LOG_INFO
+	logger.info("findConfigFile: using config file {}", filePath);
 	return filePath;
     }
 

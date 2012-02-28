@@ -22,7 +22,7 @@ if __name__ == "__main__":
   
   # (options, args) = parser.parse_args()
   
-  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/dist/lib/gatewaypluginapi-20120227.jar")
+  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/dist/lib/gatewaypluginapi.jar")
   sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/json-20090211.jar")
   sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/slf4j-api-1.6.4.jar")
   sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/slf4j-simple-1.6.4.jar")
@@ -41,12 +41,16 @@ if __name__ == "__main__":
   
   try:
     time.sleep(3)
+    counter = 0
 
     while True:
       print "Pushing Data."
+#      data.uri += counter
       ret = connector.pushData(data)
       print ret
       time.sleep(0.01)
+#      time.sleep(5)
+#      counter += 1
       
   except KeyboardInterrupt:
     print "Got ^C...  Closing"

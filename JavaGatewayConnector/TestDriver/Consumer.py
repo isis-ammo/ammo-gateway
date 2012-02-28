@@ -9,7 +9,7 @@ latencies = []
 if __name__ == "__main__":
   print "Java API Tester"
 
-  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/dist/lib/gatewaypluginapi-20120227.jar")
+  sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/dist/lib/gatewaypluginapi.jar")
   sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/json-20090211.jar")
   sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/slf4j-api-1.6.4.jar")
   sys.path.append("/home/ammmo/ammo/Gateway/JavaGatewayConnector/libs/slf4j-simple-1.6.4.jar")
@@ -27,6 +27,7 @@ if __name__ == "__main__":
 
     def onPushDataReceived(self, sender, data):
       receivedTime = time.time()
+      print receivedTime
       print data.uri
       print data.mimeType
 

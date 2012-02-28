@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class GatewayConnector {
     private static final Logger logger = LoggerFactory.getLogger(GatewayConnector.class);
+
     /**
      * Creates a new GatewayConnector with the given GatewayConnectorDelegate and
      * establishes a connection to the gateway core.
@@ -127,7 +128,7 @@ public class GatewayConnector {
 	    connector.sendMessage(msg.build());
 	    return true;
 	} else {
-	    // error
+	    logger.error("pushData: data sent while not connected to gateway, dropped ...");
 	    return false;
 	}
     }
@@ -166,7 +167,7 @@ public class GatewayConnector {
 	    connector.sendMessage(msg.build());
 	    return true;
 	} else {
-	    // error
+	    logger.error("pullRequest: request sent while not connected to gateway, dropped ...");
 	    return false;
 	}
 
@@ -202,6 +203,7 @@ public class GatewayConnector {
 	    connector.sendMessage(msg.build() );
 	    return true;
 	} else {
+	    logger.error("pullResponse: response sent while not connected to gateway, dropped ...");
 	    return false;
 	}
     }
@@ -244,10 +246,9 @@ public class GatewayConnector {
 	    connector.sendMessage(msg.build() );
 	    return true;
 	} else {
+	    logger.error("registerDataInterest: regeisterDataInterest sent while not connected to gateway, dropped ...");
 	    return false;
 	}
-
-
     }
       
       /**
@@ -280,6 +281,7 @@ public class GatewayConnector {
 	    connector.sendMessage(msg.build());
 	    return true;
 	} else {
+	    logger.error("unregisterDataInterest:  sent while not connected to gateway, dropped ...");
 	    return false;
 	}
 
@@ -313,6 +315,7 @@ public class GatewayConnector {
 	    connector.sendMessage(msg.build() );
 	    return true;
 	} else {
+	    logger.error("registerPullInterest:  sent while not connected to gateway, dropped ...");
 	    return false;
 	}
     }
@@ -345,6 +348,7 @@ public class GatewayConnector {
 	    connector.sendMessage(msg.build() );
 	    return true;
 	} else {
+	    logger.error("unregisterPullInterest:  sent while not connected to gateway, dropped ...");
 	    return false;
 	}
 	
@@ -413,6 +417,7 @@ public class GatewayConnector {
     protected void onPullRequestReceived(final GatewayPrivateMessages.PullRequest msg) {
 	String mimeType = msg.getMimeType();
 	PullRequestReceiverListener listener = pullRequestListeners.get( mimeType );
+	logger.info("onPullRequestReceived: mime {}, listener {}", mimeType, listener);
 	if (listener != null) {
 	    PullRequest req = new PullRequest();
 	    req.requestUid = msg.getRequestUid();
@@ -429,6 +434,7 @@ public class GatewayConnector {
     protected void onPullResponseReceived(final GatewayPrivateMessages.PullResponse msg) {
 	String mimeType = msg.getMimeType();
 	PullResponseReceiverListener listener = pullResponseListeners.get( mimeType );
+	logger.info("onPullResponseReceived: mime {}, listener {}", mimeType, listener);
 	if (listener != null) {
 	    PullResponse resp = new PullResponse();
 	    resp.requestUid = msg.getRequestUid();

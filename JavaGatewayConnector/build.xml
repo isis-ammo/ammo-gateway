@@ -65,7 +65,7 @@
     <mkdir dir="${dist}/lib"/>
 
     <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-    <jar jarfile="${dist}/lib/gatewaypluginapi-${DSTAMP}.jar" basedir="${build}"/>
+    <jar jarfile="${dist}/lib/gatewaypluginapi.jar" basedir="${build}"/>
   </target>
 
   <target name="clean"

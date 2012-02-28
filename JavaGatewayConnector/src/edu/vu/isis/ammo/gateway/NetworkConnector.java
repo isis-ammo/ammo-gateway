@@ -178,7 +178,7 @@ class NetworkConnector {
     }
 
     public void setFlatLineTime(long flatLineTime) {
-	//this.flatLineTime = flatLineTime;  // currently broken
+	this.flatLineTime = flatLineTime;  // currently broken
     }
 
     public String toString() {
@@ -233,12 +233,6 @@ class NetworkConnector {
 	private final State state;
 
 	private AtomicBoolean mIsConnected;
-
-	public void statusChange()
-	{
-	    // parent.statusChange();
-	}
-
 
 	// Called by the sender and receiver when they have an exception on the
 	// SocketChannel.  We only want to call reset() once, so we use an
@@ -342,7 +336,8 @@ class NetworkConnector {
          * @return
          */
         @Override
-	    public void run() {
+	    public void run()
+	{
             try {
                 logger.info("Thread <{}>ConnectorThread::run", Thread.currentThread().getId());
                 MAINTAIN_CONNECTION: while (true) {
@@ -372,31 +367,15 @@ class NetworkConnector {
                         break;
 
                     case NetworkConnector.CONNECTED:
-			{
-			    // send on connect here??
-			    try {
-				synchronized (this.state) {
-				    while (this.isConnected())
-					{
-					    // if ( HEARTBEAT_ENABLED )
-					    // 	parent.sendHeartbeatIfNeeded();
-
-					    // wait for somebody to change the connection status
-					    this.state.wait(BURP_TIME);
-
-					    // if ( HEARTBEAT_ENABLED && parent.hasWatchdogExpired() )
-					    // 	{
-					    // 	    logger.warn( "Watchdog timer expired!!" );
-					    // 	    failure( getAttempt() );
-					    // 	}
-					}
-				}
-			    } catch (InterruptedException ex) {
-				logger.warn("connection intentionally disabled {}", this.state );
-				this.state.set(NetworkConnector.DISCONNECTED);
-				break MAINTAIN_CONNECTION;
+			try {
+			    synchronized (this.state) {
+				while (this.isConnected())
+				    this.state.wait(BURP_TIME);
 			    }
-			    // when do we generate onconnect / ondisconnect
+			} catch (InterruptedException ex) {
+			    logger.warn("connection intentionally disabled {}", this.state );
+			    this.state.set(NetworkConnector.DISCONNECTED);
+			    break MAINTAIN_CONNECTION;
 			}
 			break;
 
@@ -438,49 +417,41 @@ class NetworkConnector {
             String host = (parent.gatewayHost != null) ? parent.gatewayHost : DEFAULT_HOST;
             int port =  (parent.gatewayPort > 10) ? parent.gatewayPort : DEFAULT_PORT;
             InetAddress ipaddr = null;
-            try
-		{
-		    ipaddr = InetAddress.getByName( host );
-		}
-            catch ( UnknownHostException e )
-		{
-		    logger.warn( "could not resolve host name" );
-		    return false;
-		}
+            try	{
+		ipaddr = InetAddress.getByName( host );
+	    } catch ( UnknownHostException e ) {
+		logger.warn( "could not resolve host name" );
+		return false;
+	    }
 
             // Create the SocketChannel.
             InetSocketAddress sockAddr = new InetSocketAddress( ipaddr, port );
-            try
-		{
-		    if ( parent.mSocketChannel != null )
-			logger.error( "Tried to create mSocketChannel when we already had one." );
-		    parent.mSocketChannel = SocketChannel.open( sockAddr );
-		    @SuppressWarnings("unused")
-			boolean result = parent.mSocketChannel.finishConnect();
-		}
-            catch ( AsynchronousCloseException ex ) {
+            try {
+		if ( parent.mSocketChannel != null )
+		    logger.error( "Tried to create mSocketChannel when we already had one." );
+		parent.mSocketChannel = SocketChannel.open( sockAddr );
+		@SuppressWarnings("unused")
+		    boolean result = parent.mSocketChannel.finishConnect();
+	    } catch ( AsynchronousCloseException ex ) {
                 logger.warn( "connection to {}:{} {} async close failure: {}",
                              new Object[]{ipaddr, port, 
                                           ex.getLocalizedMessage()});
                 parent.mSocketChannel = null;
                 return false;
-            }
-            catch ( ClosedChannelException ex ) {
+            } catch ( ClosedChannelException ex ) {
                 logger.warn( "connection to {}:{} {} closed channel failure: {}",
                              new Object[]{ipaddr, port, 
                                           ex.getLocalizedMessage()});
                 parent.mSocketChannel = null;
                 return false;
-            }
-            catch ( Exception e )
-		{
-		    logger.warn( "connection to {}:{} {} failed: {}",
-				 new Object[]{ipaddr, port, 
-					      e.getClass().getName(),
-					      e.getLocalizedMessage()});
-		    parent.mSocketChannel = null;
-		    return false;
-		}
+            } catch ( Exception e ) {
+		logger.warn( "connection to {}:{} {} failed: {}",
+			     new Object[]{ipaddr, port, 
+					  e.getClass().getName(),
+					  e.getLocalizedMessage()});
+		parent.mSocketChannel = null;
+		return false;
+	    }
 
             logger.info( "connection to {}:{} established ", ipaddr, port );
 
@@ -510,51 +481,44 @@ class NetworkConnector {
         {
             logger.info( "Thread <{}>ConnectorThread::disconnect",
                          Thread.currentThread().getId() );
-            try
-		{
-		    mIsConnected.set( false );
-		    // parent.mGatewayConnector.onDisconnect();
+            try {
+		mIsConnected.set( false );
+		// parent.mGatewayConnector.onDisconnect();
 
-		    if ( mSender != null ) {
-			logger.debug( "interrupting SenderThread" );
-			mSender.interrupt();
-		    }
-		    if ( mReceiver != null ) {
-			logger.debug( "interrupting ReceiverThread" );
-			mReceiver.interrupt();
-		    }
-
-		    mSenderQueue.reset();
-
-		    if ( parent.mSocketChannel != null )
-			{
-			    Socket s = parent.mSocketChannel.socket();
-			    if ( s != null )
-				{
-				    logger.debug( "Closing underlying socket." );
-				    s.close();
-				    logger.debug( "Done" );
-				}
-			    else
-				{
-				    logger.debug( "SocketChannel had no underlying socket!" );
-				}
-			    logger.info( "Closing SocketChannel..." );
-			    parent.mSocketChannel.close();
-			    parent.mSocketChannel = null;
-			}
-
-		    parent.mSender = null;
-		    parent.mReceiver = null;
+		if ( mSender != null ) {
+		    logger.debug( "interrupting SenderThread" );
+		    mSender.interrupt();
 		}
-            catch ( IOException e )
-		{
-		    logger.error( "Caught IOException" );
-		    // Do this here, too, since if we exited early because
-		    // of an exception, we want to make sure that we're in
-		    // an unauthorized state.
-		    return false;
+		if ( mReceiver != null ) {
+		    logger.debug( "interrupting ReceiverThread" );
+		    mReceiver.interrupt();
 		}
+
+		mSenderQueue.reset();
+
+		if ( parent.mSocketChannel != null ) {
+		    Socket s = parent.mSocketChannel.socket();
+		    if ( s != null ) {
+			logger.debug( "Closing underlying socket." );
+			s.close();
+			logger.debug( "Done" );
+		    } else {
+			logger.debug( "SocketChannel had no underlying socket!" );
+		    }
+		    logger.info( "Closing SocketChannel..." );
+		    parent.mSocketChannel.close();
+		    parent.mSocketChannel = null;
+		}
+
+		parent.mSender = null;
+		parent.mReceiver = null;
+	    } catch ( IOException e ) {
+		logger.error( "Caught IOException" );
+		// Do this here, too, since if we exited early because
+		// of an exception, we want to make sure that we're in
+		// an unauthorized state.
+		return false;
+	    }
             logger.debug( "returning after successful disconnect()." );
             return true;
         }
@@ -584,7 +548,6 @@ class NetworkConnector {
         {
             mChannel = iChannel;
 
-            // mDistQueue = new LinkedBlockingQueue<GatewayPrivateMessages.GatewayWrapper>( 20 );
             mDistQueue = new PriorityBlockingQueue<GatewayPrivateMessages.GatewayWrapper>( 20 );
         }
 
@@ -593,7 +556,7 @@ class NetworkConnector {
         // AmmoService know if the outgoing queue is full or not?
         public boolean putFromDistributor(GatewayPrivateMessages.GatewayWrapper iMessage )
         {
-            logger.info( "putFromDistributor()" );
+            logger.info( "insert into sender queue: {}", mDistQueue.size() );
             try {
 		if (! mDistQueue.offer( iMessage, 1, TimeUnit.SECONDS )) {
 		    logger.warn("channel not taking messages {}", "BUSY" );
@@ -606,7 +569,7 @@ class NetworkConnector {
         }
 
 
-        public synchronized GatewayPrivateMessages.GatewayWrapper take() throws InterruptedException
+        public GatewayPrivateMessages.GatewayWrapper take() throws InterruptedException
         {
             logger.info( "taking from SenderQueue" );
 
@@ -657,86 +620,81 @@ class NetworkConnector {
          */
         @Override
 	    public void run()
-        {
+	{
             logger.info( "Thread <{}>::run()", Thread.currentThread().getId() );
 
             // Block on reading from the queue until we get a message to send.
             // Then send it on the socket channel. Upon getting a socket error,
             // notify our parent and go into an error state.
+	    ByteBuffer hbuf = ByteBuffer.allocate( GATEWAY_HEADER_SIZE );
+	    if (hbuf == null) {
+		logger.error("failed to allocate memory for header byte buffer: {}", GATEWAY_HEADER_SIZE); 
+	    }
+	    hbuf.order(endian);
 
-            while ( mState != NetworkConnector.INTERRUPTED )
-		{
-		    GatewayPrivateMessages.GatewayWrapper msg = null;
-		    try
-			{
-			    setSenderState( NetworkConnector.TAKING );
-			    msg = mQueue.take(); // The main blocking call
-			    logger.debug( "Took a message from the send queue" );
-			}
-		    catch ( InterruptedException ex )
-			{
-			    logger.debug( "interrupted taking messages from send queue: {}",
-					  ex.getLocalizedMessage() );
-			    setSenderState( NetworkConnector.INTERRUPTED );
-			    break;
-			}
-
-		    try
-			{
-			    int payloadSize = msg.getSerializedSize();
-			    byte[] payload = msg.toByteArray();
-			    CRC32 crc32Payload = new CRC32();
-			    crc32Payload.update(payload);
-
-			    ByteBuffer buf = ByteBuffer.allocate( GATEWAY_HEADER_SIZE + payloadSize );
-			    buf.order(endian);
-			    buf.putInt( GATEWAY_MESSAGE_MAGIC );
-			    buf.putInt(payloadSize);
-			    buf.put( (byte)msg.getMessagePriority() );
-			    buf.put( (byte)0);
-			    buf.put( (byte)0);
-			    buf.put( (byte)0);
-			    buf.putInt( (int)crc32Payload.getValue() );
-
-			    CRC32 crc32Header = new CRC32();
-			    crc32Header.update( buf.array(), 0, GATEWAY_HEADER_SIZE - 4 );
-
-			    buf.putInt( (int)crc32Header.getValue() );
-			    logger.info("Sending message size: {} {}", GATEWAY_HEADER_SIZE, payloadSize);
-			    buf.put(payload);
-			    
-			    buf.flip();
-
-			    setSenderState( NetworkConnector.SENDING );
-			    @SuppressWarnings("unused")
-				int bytesWritten = mSocketChannel.write( buf );
-			    logger.info( "Wrote packet to SocketChannel" );
-
-			    // legitimately sent to gateway.
-			    // if ( msg.handler != null )
-			    // 	mChannel.ackToHandler( msg.handler, ChannelDisposal.SENT );
-			}
-		    catch ( Exception ex )
-			{
-			    logger.warn("sender threw exception {}, {}", ex.getMessage() );
-			    ex.printStackTrace();
-
-			    // if ( msg.handler != null )
-			    // 	mChannel.ackToHandler( msg.handler, ChannelDisposal.REJECTED );
-			    setSenderState( NetworkConnector.INTERRUPTED );
-			    mParent.socketOperationFailed();
-			}
+            while ( mState != NetworkConnector.INTERRUPTED ) {
+		GatewayPrivateMessages.GatewayWrapper msg = null;
+		try	{
+		    setSenderState( NetworkConnector.TAKING );
+		    msg = mQueue.take(); // The main blocking call
+		    logger.debug( "Took a message from the send queue" );
+		} catch ( InterruptedException ex )	{
+		    logger.debug( "interrupted taking messages from send queue: {}",
+				  ex.getLocalizedMessage() );
+		    setSenderState( NetworkConnector.INTERRUPTED );
+		    break;
 		}
+
+		try	{
+		    int payloadSize = msg.getSerializedSize();
+		    byte[] payload = msg.toByteArray();
+		    ByteBuffer pbuf = ByteBuffer.wrap(payload);
+		    pbuf.position( payloadSize );
+		    pbuf.flip();
+
+		    hbuf.clear(); // prepare buffer for writing
+		    hbuf.putInt( GATEWAY_MESSAGE_MAGIC );
+		    hbuf.putInt(payloadSize);
+		    hbuf.put( (byte)msg.getMessagePriority() );
+		    hbuf.put( (byte)0);
+		    hbuf.put( (byte)0);
+		    hbuf.put( (byte)0);
+		    // payload checksum
+		    CRC32 crc32Payload = new CRC32();
+		    crc32Payload.update(payload);
+		    hbuf.putInt( (int)crc32Payload.getValue() );
+		    // header checksum
+		    CRC32 crc32Header = new CRC32();
+		    crc32Header.update( hbuf.array(), 0, GATEWAY_HEADER_SIZE - 4 );
+		    hbuf.putInt( (int)crc32Header.getValue() );
+		    hbuf.flip();
+
+		    setSenderState( NetworkConnector.SENDING );
+		    @SuppressWarnings("unused")
+			long bytesWritten = mSocketChannel.write( new ByteBuffer[]{hbuf, pbuf} );
+		    logger.info( "Wrote {} bytes to SocketChannel", bytesWritten );
+
+		    // legitimately sent to gateway.
+		    // if ( msg.handler != null )
+		    // 	mChannel.ackToHandler( msg.handler, ChannelDisposal.SENT );
+		}  catch ( Exception ex ) {
+		    logger.warn("sender threw exception {}", ex.getMessage() );
+		    ex.printStackTrace();
+
+		    // if ( msg.handler != null )
+		    // 	mChannel.ackToHandler( msg.handler, ChannelDisposal.REJECTED );
+		    setSenderState( NetworkConnector.INTERRUPTED );
+		    mParent.socketOperationFailed();
+		}
+	    }
         }
 
 
         private void setSenderState( int iState )
         {
-            synchronized ( this )
-		{
-		    mState = iState;
-		}
-            mParent.statusChange();
+            synchronized ( this ) {
+		mState = iState;
+	    }
         }
 
         public synchronized int getSenderState() { return mState; }
@@ -774,7 +732,8 @@ class NetworkConnector {
 	    int  receivedSize;
 	}
 
-	Message extractHeader(ByteBuffer bbuf) {
+	Message extractHeader(ByteBuffer bbuf)
+	{
 	    try {
 		bbuf.mark();
 		
@@ -795,13 +754,15 @@ class NetworkConnector {
 		ret.payloadChksum = bbuf.getInt();
 		ret.headerChksum = bbuf.getInt();
 
+		// header checksum is over the (length of header - size of checksum field)
 		CRC32 crc = new CRC32();
-		crc.update( bbuf.array(), bbuf.position() - GATEWAY_HEADER_SIZE, GATEWAY_HEADER_SIZE - 4 ); // header checksum is over the (length of header - size of checksum field)
+		crc.update( bbuf.array(), bbuf.position() - GATEWAY_HEADER_SIZE, GATEWAY_HEADER_SIZE - 4 ); 
 		
 		if ( ret.headerChksum != (int)crc.getValue() ) {
 		    logger.error("extractHeader: header checksum mismatch: sent {}, computed {}", Long.toHexString(ret.headerChksum), Long.toHexString( (int)crc.getValue() ) );
 		    return null;
 		}
+
 		// allocate space for message
 		ret.payload = new byte[ret.payloadSize];
 		ret.receivedSize = 0; // set the received counter to 0
@@ -813,11 +774,16 @@ class NetworkConnector {
 	    return null;
 	}
 
-	int extractMessage(ByteBuffer bbuf, Message message) {
-	    if (message == null)
+	int extractMessage(ByteBuffer bbuf, Message message)
+	{
+	    if (message == null) {
+		logger.error("extractMessage: message is null - internal error");
 		return 0;
+	    }
 
-	    logger.info("extractMessage: in buf {}, in msg {}", bbuf.remaining(), message.receivedSize);
+	    logger.info("extractMessage: available in buf {}, read in msg {}",
+			bbuf.remaining(),
+			message.receivedSize);
 	    int toGet = message.payloadSize - message.receivedSize;
 	    toGet = Math.min(toGet, bbuf.remaining());
 	    bbuf.get(message.payload, message.receivedSize, toGet);
@@ -828,7 +794,9 @@ class NetworkConnector {
 		crc.update(message.payload);
 
 		if ( message.payloadChksum != (int)crc.getValue() ) {
-		    logger.error("extractMessage: payload checksum mismatch: sent {}, received {}", Long.toHexString(message.payloadChksum), Long.toHexString( (int)crc.getValue() ));
+		    logger.error("extractMessage: payload checksum mismatch: sent {}, received {}",
+				 Long.toHexString(message.payloadChksum),
+				 Long.toHexString( (int)crc.getValue() ));
 		}
 		return 0;	// revert back to reading header
 	    }
@@ -855,8 +823,9 @@ class NetworkConnector {
             while ( mState != NetworkConnector.INTERRUPTED ) {
                 try {
                     int bytesRead =  mSocketChannel.read( bbuf );
-                    logger.info( "SocketChannel getting header read bytes={}", bytesRead );
-                    if (bytesRead == 0) continue;
+                    logger.info( "SocketChannel read bytes={}", bytesRead );
+
+                    if (bytesRead == 0 && bbuf.remaining() == 0) continue; // no bytes to process
 
 		    setReceiverState( NetworkConnector.START );
 
@@ -873,11 +842,11 @@ class NetworkConnector {
 		    case 1:	// PAYLOAD
 			readState = extractMessage(bbuf, message);
 			if (readState == 0) { // done with message - dispatch it
-			    GatewayPrivateMessages.GatewayWrapper agm = GatewayPrivateMessages.GatewayWrapper.parseFrom(message.payload);
+			    GatewayPrivateMessages.GatewayWrapper agm =
+				GatewayPrivateMessages.GatewayWrapper.parseFrom(message.payload);
 			    setReceiverState( NetworkConnector.DELIVER );
 			    mDestination.deliverMessage( agm );
-			    logger.info( "processed a message {}",
-					 Long.toHexString(message.payloadChksum) );
+			    logger.info( "processed a message {}", agm.getType() );
 			}			    
 			break;
 		    }
@@ -897,11 +866,9 @@ class NetworkConnector {
 
         private void setReceiverState( int iState )
         {
-            synchronized ( this )
-		{
-		    mState = iState;
-		}
-            mParent.statusChange();
+            synchronized ( this ) {
+		mState = iState;
+	    }
         }
 
         public synchronized int getReceiverState() { return mState; }
