@@ -5,3 +5,5 @@ Debug/
 Release/
 libgatewayconnector.so*
 libgatewayconnector.dylib*
+build/
+dist/
