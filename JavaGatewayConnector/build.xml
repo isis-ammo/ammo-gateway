@@ -2,10 +2,10 @@
 <project name="JavaGatewayConnector" default="help">
 
   <!-- set global properties for this build -->
-  <property name="src" location="${basedir}/src"/>
-  <property name="gen" location="${basedir}/gen"/>
-  <property name="build" location="${basedir}/build"/>
-  <property name="dist"  location="${basedir}/dist"/>
+  <property name="java-lib-src" location="${basedir}/src"/>
+  <property name="java-lib-gen" location="${basedir}/gen"/>
+  <property name="java-lib-build" location="${basedir}/build"/>
+  <property name="java-lib-dist"  location="${basedir}/dist"/>
   
   <condition property="isWindows">
       <os family="windows" />
@@ -19,8 +19,8 @@
     <!-- Create the time stamp -->
     <tstamp/>
     <!-- Create the build directory structure used by compile -->
-    <mkdir dir="${build}"/>
-    <mkdir dir="${gen}"/>
+    <mkdir dir="${java-lib-build}"/>
+    <mkdir dir="${java-lib-gen}"/>
   </target>
   
     <target name="-pre-build-unix" if="isUnix">
@@ -88,31 +88,31 @@
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <javac
-       classpath="${basedir}/libs/protobuf.jar;${basedir}/libs/json-20090211.jar;${basedir}/libs/slf4j-api-1.6.4.jar" srcdir="${src};${gen}" destdir="${build}"/>
+       classpath="${basedir}/libs/protobuf.jar;${basedir}/libs/json-20090211.jar;${basedir}/libs/slf4j-api-1.6.4.jar" srcdir="${java-lib-src};${java-lib-gen}" destdir="${java-lib-build}"/>
     <!-- <javac srcdir="${gen}" destdir="${build}"/> -->
   </target>
 
   <target name="dist" depends="compile"
         description="generate the distribution" >
     <!-- Create the distribution directory -->
-    <mkdir dir="${dist}/lib"/>
+    <mkdir dir="${java-lib-dist}/lib"/>
 
     <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-    <jar jarfile="${dist}/lib/gatewaypluginapi.jar" basedir="${build}"/>
+    <jar jarfile="${java-lib-dist}/lib/gatewaypluginapi.jar" basedir="${java-lib-build}"/>
   </target>
 
   <target name="clean"
         description="clean up" >
     <!-- Delete the ${build} and ${dist} directory trees -->
-    <delete dir="${build}"/>
-    <delete dir="${dist}"/>
+    <delete dir="${java-lib-build}"/>
+    <delete dir="${java-lib-dist}"/>
   </target>
 
 
   <target name="realclean" depends="clean"
         description="real clean up" >
     <!-- Delete the ${build} and ${dist} directory trees -->
-    <delete dir="${gen}"/>
+    <delete dir="${java-lib-gen}"/>
   </target>
 
 
