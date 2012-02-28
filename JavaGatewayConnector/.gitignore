@@ -7,3 +7,4 @@ libgatewayconnector.so*
 libgatewayconnector.dylib*
 build/
 dist/
+docs/
