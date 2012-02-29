@@ -3,6 +3,9 @@
 
     <target name="help">
         <echo message="To see available targets run 'ant -p' or 'ant -projecthelp' " />
+        <java classname="org.apache.tools.ant.Main">
+            <arg value="-projecthelp" />
+        </java>
     </target>
 
     <property name="project" value="${ant.project.name}"/>
