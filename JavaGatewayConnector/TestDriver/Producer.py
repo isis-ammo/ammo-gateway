@@ -45,10 +45,33 @@ if __name__ == "__main__":
   sys.path.append(jar_dir+"/libs/protobuf.jar")
 
   from edu.vu.isis.ammo.gateway import GatewayConnector
+  from edu.vu.isis.ammo.gateway import GatewayConnectorDelegate
+
   from edu.vu.isis.ammo.gateway import PushData
   from org.json import JSONException
 
-  connector = GatewayConnector( None )
+  isConnected = int(0)
+
+  class GatewayConnectorD(GatewayConnectorDelegate):
+    def __init__(self):
+      print "GatewayConnectorDelegate.<constructor>"
+
+    def onConnect(self, sender):
+      global isConnected
+      print "GatewayConnectorDelegate.onConnect"
+      isConnected = int(1)
+
+    def onDisconnect(self, sender):
+      global isConnected
+      print "GatewayConnectorDelegate.onDisonnect"
+      isConnected = int(0)
+
+    def onAuthenticationResponse(self, sender, result):
+      print "GatewayConnectorDelegate.onAuthenticationResponse"
+
+  delegate  = GatewayConnectorD( )
+  connector = GatewayConnector( delegate )
+
   data = PushData( )
   data.uri = "java api test"
   data.mimeType = "ammo/edu.vu.isis.ammo.dash.event"
@@ -60,12 +83,15 @@ if __name__ == "__main__":
     counter = 0
 
     while True:
-      print "Pushing Data."
-#      data.uri += counter
-      ret = connector.pushData(data)
-      print ret
-      time.sleep(0.01)
-#      time.sleep(5)
+      if isConnected == 1:
+         print "Pushing Data."
+         ret = connector.pushData(data)
+         print ret
+         time.sleep(0.01)
+         #time.sleep(5)
+      else:
+         time.sleep(5)
+
 #      counter += 1
       
   except KeyboardInterrupt:

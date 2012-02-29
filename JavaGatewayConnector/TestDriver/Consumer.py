@@ -33,21 +33,40 @@ if __name__ == "__main__":
   sys.path.append(jar_dir+"/libs/protobuf.jar")
 
   from edu.vu.isis.ammo.gateway import GatewayConnector
+  from edu.vu.isis.ammo.gateway import GatewayConnectorDelegate
+  
   from edu.vu.isis.ammo.gateway import DataPushReceiverListener
   from edu.vu.isis.ammo.gateway import PushData
   from org.json import JSONException
 
-
   class DataPushReceiver(DataPushReceiverListener):
     def __init__(self):
-      print "Constructor"
+      print "DataPushReceiverListener.<constructor>"
 
     def onPushDataReceived(self, sender, data):
+      print "DataPushReceiverListener.onPushDataReceived"
       receivedTime = time.time()
       print receivedTime
       print data.uri
       print data.mimeType
 
+  class GatewayConnectorD(GatewayConnectorDelegate):
+    def __init__(self):
+      print "GatewayConnectorDelegate.<constructor>"
+
+    def onConnect(self, sender):
+      print "GatewayConnectorDelegate.onConnect"
+      print "Subscribing."
+      receiver  = DataPushReceiver( )
+      sender.registerDataInterest("ammo/edu.vu.isis.ammo.dash.event", receiver, None);
+
+    def onDisconnect(self, sender):
+      print "GatewayConnectorDelegate.onDisonnect"
+
+    def onAuthenticationResponse(self, sender, result):
+      print "GatewayConnectorDelegate.onAuthenticationResponse"
+
+      
 
   
   # parser = optparse.OptionParser()
@@ -63,16 +82,10 @@ if __name__ == "__main__":
   
   # (options, args) = parser.parse_args()
   
-
-  connector = GatewayConnector( None )
-  receiver  = DataPushReceiver( )
+  delegate  = GatewayConnectorD( )
+  connector = GatewayConnector( delegate )
   
   try:
-    time.sleep(3)
-    print "Subscribing."
-    # register a data listener
-    connector.registerDataInterest("ammo/edu.vu.isis.ammo.dash.event", receiver, None);
-
     while True:
       time.sleep(5)
       

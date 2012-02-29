@@ -9,26 +9,34 @@
   </target>
 
   <!-- set global properties for this build -->
-  <property name="release" value="1.3.5"/>
-
-  <property name="src" location="src"/>
-  <property name="gen" location="gen"/>
-  <property name="build" location="build"/>
-  <property name="docs" location="docs/api"/>
-  <property name="dist"  location="dist"/>
+  <property name="java-lib-release" value="1.3.5"/>
+  
+  <property name="java-lib-src" location="${basedir}/src"/>
+  <property name="java-lib-gen" location="${basedir}/gen"/>
+  <property name="java-lib-build" location="${basedir}/build"/>
+  <property name="java-lib-dist"  location="${basedir}/dist"/>
+  <property name="java-lib-docs" location="${basedir}/docs/api"/>
+  
+  <condition property="isWindows">
+      <os family="windows" />
+    </condition>
+    
+    <condition property="isUnix">
+      <os family="unix" />
+    </condition>
 
   <target name="init" depends="-pre-build">
     <!-- Create the time stamp -->
     <tstamp/>
     <!-- Create the build directory structure used by compile -->
-    <mkdir dir="${build}"/>
-    <mkdir dir="${gen}"/>
+    <mkdir dir="${java-lib-build}"/>
+    <mkdir dir="${java-lib-gen}"/>
   </target>
-
-    <target name="-pre-build">
-        <!--<echo>configure ammo core libraries for ${basedir}.</echo>-->
+  
+    <target name="-pre-build-unix" if="isUnix">
+      <echo>configure ammo core libraries for ${basedir}.</echo>
         <!-- configure protobuf -->
-        <!--<mkdir dir="libs"/>
+        <mkdir dir="libs"/>
         <symlink taskname="add-protobuf-lib" action="single" overwrite="true" 
               link="${basedir}/libs/protobuf.jar" 
               resource="/usr/share/java/protobuf.jar"/>
@@ -43,9 +51,34 @@
                    </resourcecount>
                </not>
            </condition>
-        </fail>-->
+        </fail>
+    </target>
+    
+    <target name="-pre-build-windows" if="isWindows">
+      <echo>configure ammo core libraries for ${basedir}.</echo>
+        <!-- configure protobuf -->
+        <mkdir dir="libs"/>
+        <copy taskname="add-protobuf-lib" overwrite="true" 
+              tofile="${basedir}/libs/protobuf.jar" 
+              file="${basedir}/libs/protobuf-java-2.3.0.jar"/>
+
+        <fail message="Files are missing.">
+           <condition>
+               <not>
+                   <resourcecount count="1">
+                       <fileset id="simlinks" dir="libs">
+                         <include name="protobuf.jar"/>
+                       </fileset>
+                   </resourcecount>
+               </not>
+           </condition>
+        </fail>
     </target>
 
+    <target name="-pre-build" depends="-pre-build-windows,-pre-build-unix">
+    
+    </target>
+    
     <property name="proto.dir" value="../common/protocol"/>
 
     <target name="protobuf">
@@ -65,25 +98,25 @@
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <javac
-       classpath="${basedir}/libs/protobuf-java-2.3.0.jar;${basedir}/libs/json-20090211.jar;${basedir}/libs/slf4j-api-1.6.4.jar" srcdir="${src};${gen}" destdir="${build}"/>
+       classpath="${basedir}/libs/protobuf.jar;${basedir}/libs/json-20090211.jar;${basedir}/libs/slf4j-api-1.6.4.jar" srcdir="${java-lib-src};${java-lib-gen}" destdir="${java-lib-build}"/>
     <!-- <javac srcdir="${gen}" destdir="${build}"/> -->
   </target>
 
   <target name="dist" depends="compile, document"
         description="generate the distribution" >
     <!-- Create the distribution directory -->
-    <mkdir dir="${dist}/lib"/>
+    <mkdir dir="${java-lib-dist}/lib"/>
 
     <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-    <jar jarfile="${dist}/lib/gatewaypluginapi.jar" basedir="${build}"/>
+    <jar jarfile="${java-lib-dist}/lib/gatewaypluginapi.jar" basedir="${java-lib-build}"/>
     <!-- rename for upload to nexus repository -->
-    <copy tofile="${dist}/lib/gatewaypluginapi-${release}.jar" 
-          file="${dist}/lib/gatewaypluginapi.jar"/>
+    <copy tofile="${java-lib-dist}/lib/gatewaypluginapi-${java-lib-release}.jar" 
+          file="${java-lib-dist}/lib/gatewaypluginapi.jar"/>
 
     <!-- Put everything in ${docs} into the MyProject-${DSTAMP}.jar file -->
-    <jar jarfile="${dist}/lib/gatewaypluginapi-${release}-javadocs.jar" basedir="${docs}"/>
+    <jar jarfile="${java-lib-dist}/lib/gatewaypluginapi-${java-lib-release}-javadocs.jar" basedir="${java-lib-docs}"/>
 
-    <jar jarfile="${dist}/lib/gatewaypluginapi-${release}-sources.jar">
+    <jar jarfile="${java-lib-dist}/lib/gatewaypluginapi-${java-lib-release}-sources.jar">
        <fileset dir="src" defaultexcludes="yes">
           <include name="edu/vu/isis/ammo/**"/>
        </fileset>
@@ -95,8 +128,8 @@
 
   <target name="document" depends="init,protobuf"
         description="build the javadoc " >
-    <javadoc destdir="${docs}" author="true" version="true"
-          use="true" windowtitle="Gateway Connector API">
+    <javadoc destdir="${java-lib-docs}" author="true" version="true"
+          use="true" public="true" windowtitle="Gateway Connector API">
 
        <packageset dir="src" defaultexcludes="yes">
           <include name="edu/vu/isis/ammo/**"/>
@@ -119,15 +152,15 @@
   <target name="clean"
         description="clean up" >
     <!-- Delete the ${build} and ${dist} directory trees -->
-    <delete dir="${build}"/>
-    <delete dir="${dist}"/>
+    <delete dir="${java-lib-build}"/>
+    <delete dir="${java-lib-dist}"/>
   </target>
 
 
   <target name="realclean" depends="clean"
         description="real clean up" >
     <!-- Delete the ${build} and ${dist} directory trees -->
-    <delete dir="${gen}"/>
+    <delete dir="${java-lib-gen}"/>
   </target>
 
 
