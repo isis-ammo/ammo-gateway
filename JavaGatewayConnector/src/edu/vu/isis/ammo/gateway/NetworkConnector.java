@@ -465,6 +465,22 @@ class NetworkConnector {
 		ret = false;
 	    }
             logger.debug( "returning after successful disconnect()." );
+
+	    // we need to pend on the sender / receiver thread before we attempt a reconnect
+	    try {
+		if (mSender != null && Thread.currentThread().getId() != mSender.getId() )
+		    mSender.join();
+	    } catch (java.lang.InterruptedException ex) {
+		logger.warn("disconnect: interrupted exception while waiting for sender thread to die");
+	    }
+	    try {
+		if (mReceiver != null && Thread.currentThread().getId() != mReceiver.getId() )
+		    mReceiver.join();
+	    } catch (java.lang.InterruptedException ex) {
+		logger.warn("disconnect: interrupted exception while waiting for receiver thread to die");
+	    }
+
+	    // setting the state to disconnected will cause the connector thread to attempt a reconnect
 	    state.set(NetworkConnector.DISCONNECTED);
             return ret;
         }
