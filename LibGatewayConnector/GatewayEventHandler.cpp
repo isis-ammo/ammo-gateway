@@ -9,10 +9,12 @@ using namespace ammo::gateway::internal;
 
 void GatewayEventHandler::onConnect(std::string &peerAddress) {
   LOG_TRACE("GatewayEventHandler::onConnect(" << peerAddress << ")");
+  parent->onConnectReceived();
 }
 
 void GatewayEventHandler::onDisconnect() {
   LOG_TRACE("GatewayEventHandler::onDisconnect()");
+  parent->onDisconnectReceived();
 }
 
 int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrapper *msg) {

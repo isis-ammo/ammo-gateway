@@ -329,7 +329,9 @@ namespace ammo {
       
     private:
       void init(GatewayConnectorDelegate *delegate, ammo::gateway::internal::GatewayConfigurationManager *config); 
-    
+      
+      void onConnectReceived();
+      void onDisconnectReceived();
       void onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg);
       void onPushDataReceived(const ammo::gateway::protocol::PushData &msg, char messagePriority);
       void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg, char messagePriority);

@@ -3,6 +3,9 @@
 
     <target name="help">
         <echo message="To see available targets run 'ant -p' or 'ant -projecthelp' " />
+        <java classname="org.apache.tools.ant.Main">
+            <arg value="-projecthelp" />
+        </java>
     </target>
 
     <property name="project" value="${ant.project.name}"/>
@@ -102,9 +105,8 @@
         </exec>
     </target>
 
-    <target name="build" depends="configure, build-unix, build-windows"
+    <target name="build" depends="configure, build-unix, build-windows, -java-plugin-connector"
         description="Build the ${project}" >
-        
     </target>
 
     <target name="dist" depends="build"
@@ -211,6 +213,10 @@ Built on ${os.arch} ${os.name} ${os.version}
 
     <target name="configure"
         description="build the  makefiles" depends="update-gatewayversion,configure-unix,configure-windows">
+    </target>
+
+    <target name="-java-plugin-connector">
+        <ant antfile="build.xml" dir="JavaGatewayConnector" target="dist"/>
     </target>
 
 </project>
