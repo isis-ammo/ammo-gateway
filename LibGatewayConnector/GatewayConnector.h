@@ -13,10 +13,12 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "ace/Connector.h"
-#include "ace/SOCK_Connector.h"
+
+#include "NetworkConnector.h"
+#include "NetworkEnumerations.h"
 
 #include "LibGatewayConnector_Export.h"
+#include "protocol/GatewayPrivateMessages.pb.h"
 
 #include "Enumerations.h"
 
@@ -28,7 +30,7 @@ namespace ammo {
     class PullResponseReceiverListener;
     namespace internal {
       class GatewayConfigurationManager;
-      class GatewayServiceHandler;
+      class GatewayEventHandler;
     };
     namespace protocol {
       class AssociateResult;
@@ -89,6 +91,9 @@ namespace ammo {
       bool liveQuery;              ///< Specifies a live query--  results are returned continously as they
                                    ///  become available.  The exact behavior of this option is defined
                                    ///  by the plugin handling the request.  Optional.
+      ammo::gateway::MessageScope scope;///< The scope of this object (determines how many gateways to send
+                                        ///  this object to in a multiple gateway configuration).  Optional,
+                                        ///  will default to SCOPE_LOCAL.
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PullRequest &pullReq) {
         os << "Pull << " << pullReq.requestUid << " from " << pullReq.pluginId << " for type " << pullReq.mimeType << " query: " << pullReq.query;
@@ -275,7 +280,7 @@ namespace ammo {
       *
       * @return true if the operation succeeded; false if the operation failed.
       */
-      bool registerPullInterest(std::string mime_type, PullRequestReceiverListener *listener);
+      bool registerPullInterest(std::string mime_type, PullRequestReceiverListener *listener, MessageScope scope = SCOPE_LOCAL);
       
       /**
       * Unregisters interest in pull requests for the specified data type.  Will
@@ -286,7 +291,7 @@ namespace ammo {
       * 
       * @return true if the operation succeeded; false if the operation failed.
       */
-      bool unregisterPullInterest(std::string mime_type);
+      bool unregisterPullInterest(std::string mime_type, MessageScope scope = SCOPE_LOCAL);
       
       /**
       * Registers a listener to be called when data is received as a response from a
@@ -315,7 +320,9 @@ namespace ammo {
       
     private:
       void init(GatewayConnectorDelegate *delegate, ammo::gateway::internal::GatewayConfigurationManager *config); 
-    
+      
+      void onConnectReceived();
+      void onDisconnectReceived();
       void onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg);
       void onPushDataReceived(const ammo::gateway::protocol::PushData &msg);
       void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg);
@@ -326,12 +333,12 @@ namespace ammo {
       std::map<std::string, PullRequestReceiverListener *> pullRequestListeners;
       std::map<std::string, PullResponseReceiverListener *> pullResponseListeners;
     
-      ACE_Connector<ammo::gateway::internal::GatewayServiceHandler, ACE_SOCK_Connector> *connector;
-      ammo::gateway::internal::GatewayServiceHandler *handler;
+      ammo::gateway::internal::NetworkConnector<ammo::gateway::protocol::GatewayWrapper, ammo::gateway::internal::GatewayEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0xdeadbeef> *connector;
+      ammo::gateway::internal::GatewayEventHandler *handler;
       
       bool connected;
       
-      friend class ammo::gateway::internal::GatewayServiceHandler;
+      friend class ammo::gateway::internal::GatewayEventHandler;
     };
     
     /**

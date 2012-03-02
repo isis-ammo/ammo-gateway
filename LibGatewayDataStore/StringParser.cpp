@@ -2,6 +2,9 @@
 
 #include "log.h"
 
+#include "ace/Connector.h"
+#include "ace/SOCK_Connector.h"
+
 #include "StringParser.h"
 
 StringParser::StringParser (void)

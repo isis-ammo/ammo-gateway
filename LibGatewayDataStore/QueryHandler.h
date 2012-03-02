@@ -5,7 +5,7 @@
 
 #include "LibGatewayDataStore_Export.h"
 
-class sqlite3;
+struct sqlite3;
 
 namespace Json
 {

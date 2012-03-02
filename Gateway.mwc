@@ -1,15 +1,15 @@
 workspace(AndroidGatewayPlugin) {
+  LDAPPlugin/
   LibGatewayConnector/
   LibGatewayDataStore/
   LibJSON/
   GatewayCore/
   AndroidGatewayPlugin/
+  DataStoreGatewayPlugin/
   specific(!prop:windows) {
     LibGeotransMgrs/
     SamplePushReceiverGatewayPlugin/
     SamplePushTestDriverPlugin/
-    DataStoreGatewayPlugin/
-    LDAPPlugin/
     SpotPushReceiverGatewayPlugin/
     AtsGatewayPlugin/
     PassGatewayPlugin/

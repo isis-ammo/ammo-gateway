@@ -1,13 +1,22 @@
 project(LdapGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
   exename=LdapGatewayPlugin
 
-  libs+= json ldap
+  libs+= json
   includes+=. $(GATEWAY_ROOT)/LibJSON
   includes+=. $(GATEWAY_ROOT)/LibGatewayConnector
   libpaths += $(GATEWAY_ROOT)/build/lib
+
+  specific(prop:windows) {
+    macros += WINLDAP
+    lit_libs += Wldap32
+  } else {
+    macros += OPENLDAP
+    libs += ldap
+  }
   
   Source_Files {
     main.cpp
+    LdapClient.cpp
     LdapPushReceiver.cpp
     LdapConfigurationManager.cpp
     cdecode.c

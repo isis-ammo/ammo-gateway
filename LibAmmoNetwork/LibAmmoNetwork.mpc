@@ -1,0 +1,17 @@
+project(LibAmmoNetwork) : aceexe, protobuf, gatewaycommon {
+  after += LibJSON
+  
+  sharedname = ammonetwork
+  
+  dynamicflags += LIBAMMONETWORK_BUILD_DLL
+  
+  includes += $(GATEWAY_ROOT)/LibJSON
+
+  libs += json
+
+  Protobuf_Files {
+  }
+  
+  Source_Files {
+  }
+}

@@ -1,5 +1,5 @@
 #include "AndroidMessageProcessor.h"
-#include "AndroidServiceHandler.h"
+#include "AndroidEventHandler.h"
 
 #include "log.h"
 
@@ -7,7 +7,7 @@ using namespace ammo::gateway;
 
 const char DEFAULT_PRIORITY = 50;
 
-AndroidMessageProcessor::AndroidMessageProcessor(AndroidServiceHandler *serviceHandler) :
+AndroidMessageProcessor::AndroidMessageProcessor(AndroidEventHandler *serviceHandler) :
 closed(false),
 closeMutex(),
 newMessageMutex(),
@@ -151,6 +151,13 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       ammo::protocol::PullRequest pullRequest = msg.pull_request();
       // register for pull response - 
       gatewayConnector->registerPullResponseInterest(pullRequest.mime_type(), this);
+      
+      MessageScope scope;
+      if(pullRequest.scope() == ammo::protocol::LOCAL) {
+        scope = SCOPE_LOCAL;
+      } else {
+        scope = SCOPE_GLOBAL;
+      }
       // now send request
       PullRequest req;
       req.requestUid = pullRequest.request_uid();
@@ -161,6 +168,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       req.maxResults = pullRequest.max_results();
       req.startFromCount = pullRequest.start_from_count();
       req.liveQuery = pullRequest.live_query();
+      req.scope = scope;
       gatewayConnector->pullRequest(req);
     } else {
       if(!deviceIdAuthenticated) {

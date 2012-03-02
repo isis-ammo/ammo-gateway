@@ -11,7 +11,7 @@ project {
   libpaths += $(PROTOBUF_ROOT)/lib
   
   specific(prop:windows) {
-    lit_libs += libprotobuf //libs += protobuf on Windows tries to link against protobufd.lib, which is the wrong name
+    lit_libs += protobuf //libs += protobuf on Windows tries to link against protobufd.lib, which is the wrong name
   } else {
     libs += protobuf
   }

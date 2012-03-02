@@ -4,7 +4,9 @@
 #include "DataStoreConfigManager.h"
 
 class QueryHandler;
-class sqlite3;
+class DataStoreConfigManager;
+
+struct sqlite3;
 
 namespace ammo
 {
