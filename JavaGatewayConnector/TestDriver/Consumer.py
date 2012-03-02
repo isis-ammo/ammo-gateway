@@ -91,7 +91,6 @@ if __name__ == "__main__":
       
   except KeyboardInterrupt:
     print "Got ^C...  Closing"
-    reactor.callFromThread(reactor.stop)
     print "MeanLatency,StdDev,Samples"
     if len(latencies) > 0:
       meanLatency = sum(latencies) / len(latencies)
@@ -101,7 +100,3 @@ if __name__ == "__main__":
       print str(meanLatency) + "," + str(stddev) + "," + str(len(latencies))
     else:
       print "0,0"
-  except:
-    print "Unexpected error...  dying."
-    reactor.callFromThread(reactor.stop)
-    raise
