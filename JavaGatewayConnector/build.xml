@@ -41,7 +41,7 @@
               link="${basedir}/libs/protobuf.jar" 
               resource="/usr/share/java/protobuf.jar"/>
 
-        <fail message="Files are missing.">
+        <fail message="The Protocol Buffers library for Java is missing.  On Ubuntu, install libprotobuf-java.">
            <condition>
                <not>
                    <resourcecount count="1">
