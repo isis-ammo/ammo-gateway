@@ -27,6 +27,7 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -190,10 +191,24 @@ class NetworkConnector {
     //
     class SenderQueue
     {
+	class PriorityComparator implements Comparator<GatewayPrivateMessages.GatewayWrapper> {
+	    @Override
+		public int  compare(GatewayPrivateMessages.GatewayWrapper x, GatewayPrivateMessages.GatewayWrapper y)
+	    {
+		if (x.getMessagePriority() > y.getMessagePriority() )
+		    return 1;
+		else if (x.getMessagePriority() == y.getMessagePriority() )
+		    return 0;
+
+		return -1;
+	    }
+	    
+	}
+
         public SenderQueue( NetworkConnector iChannel )
         {
             mChannel = iChannel;
-            mDistQueue = new PriorityBlockingQueue<GatewayPrivateMessages.GatewayWrapper>( 20 );
+            mDistQueue = new PriorityBlockingQueue<GatewayPrivateMessages.GatewayWrapper>( 20, new PriorityComparator() );
         }
 
         public boolean put(GatewayPrivateMessages.GatewayWrapper iMessage )
