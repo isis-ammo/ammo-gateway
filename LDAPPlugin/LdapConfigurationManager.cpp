@@ -68,7 +68,7 @@ void LdapConfigurationManager::configFromFile(string fileName)
             }
           else
             {
-              cerr << "Error: LdapServerAddress is missing or wrong type (should be string)" << endl << flush;
+              LOG_ERROR("Error: LdapServerAddress is missing or wrong type (should be string)");
             }
 
           if(root["LdapServerPort"].isInt())
@@ -77,7 +77,7 @@ void LdapConfigurationManager::configFromFile(string fileName)
             }
           else
             {
-              cerr << "Error: LdapServerPort is missing or wrong type (should be integer)" << endl << flush;
+              LOG_ERROR("Error: LdapServerPort is missing or wrong type (should be integer)");
             }
 
           if(root["LdapUsername"].isString())
@@ -86,7 +86,7 @@ void LdapConfigurationManager::configFromFile(string fileName)
             }
           else
             {
-              cerr << "Error: LdapUsername is missing or wrong type (should be string)" << endl << flush;
+              LOG_ERROR("Error: LdapUsername is missing or wrong type (should be string)");
             }
 
           if(root["LdapPassword"].isString())
@@ -95,20 +95,19 @@ void LdapConfigurationManager::configFromFile(string fileName)
             }
           else
             {
-              cerr << "Error: LdapPassword is missing or wrong type (should be integer)" << endl << flush;
+             LOG_ERROR("Error: LdapPassword is missing or wrong type (should be integer)");
             }
         }
       else
         {
-          cerr << "JSON parsing error in config file '" 
-	       << fileName << "'.  Using defaults." << endl << flush;
+          LOG_ERROR("JSON parsing error in config file '" 
+	       << fileName << "'.  Using defaults.");
         }
       configFile.close();
     }
   else
     {
-      cout << "Could not read from config file '" 
-	   << fileName << "'.  Using defaults." << endl << flush;
+      LOG_WARN("Could not read from config file '" << fileName << "'.  Using defaults.");
     }
 
 }

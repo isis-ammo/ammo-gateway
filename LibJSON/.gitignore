@@ -2,5 +2,6 @@ Makefile*
 *.o
 .depend*
 Debug/
+Release/
 libjson.so*
 libjson.dylib*

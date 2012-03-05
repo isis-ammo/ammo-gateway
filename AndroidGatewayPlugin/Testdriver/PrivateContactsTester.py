@@ -25,7 +25,7 @@ if __name__ == "__main__":
     connector.start()
     connector.waitForAuthentication()
     
-    mimeType = "application/vnd.edu.vu.isis.ammo.private_contacts"
+    mimeType = "ammo/edu.vu.isis.ammo.private_contacts"
     
     print "Subscribing to type ", mimeType
     

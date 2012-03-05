@@ -85,8 +85,14 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       LOG_TRACE("  " << msg->DebugString());
       
       ammo::gateway::protocol::PullRequest pullMsg = msg->pull_request();
+      MessageScope scope;
+      if(pullMsg.scope() == ammo::gateway::protocol::GLOBAL) {
+        scope = SCOPE_GLOBAL;
+      } else {
+        scope = SCOPE_LOCAL;
+      }
       bool result = GatewayCore::getInstance()->pullRequest(this, pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
-        pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), this);
+        pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), scope);
       if(result == true) {
         registeredPullResponsePluginIds.insert(pullMsg.plugin_id());
       }
@@ -97,13 +103,22 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       LOG_TRACE("  " << msg->DebugString());
       
       ammo::gateway::protocol::PullResponse pullRsp = msg->pull_response();
+      
       GatewayCore::getInstance()->pullResponse( pullRsp.request_uid(), pullRsp.plugin_id(), pullRsp.mime_type(), pullRsp.uri(), pullRsp.encoding(), pullRsp.data() );
       break;
     }
     case ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST: {
       LOG_DEBUG("Received Register Pull Interest...");
       std::string mime_type = msg->register_pull_interest().mime_type();
-      bool result = GatewayCore::getInstance()->registerPullInterest(mime_type, this);
+      
+      MessageScope scope;
+      if(msg->register_pull_interest().scope() == ammo::gateway::protocol::GLOBAL) {
+        scope = SCOPE_GLOBAL;
+      } else {
+        scope = SCOPE_LOCAL;
+      }
+      
+      bool result = GatewayCore::getInstance()->registerPullInterest(mime_type, scope, this);
       if(result == true) {
         registeredPullRequestHandlers.push_back(mime_type);
       }
@@ -112,7 +127,15 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
     case ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST: {
       LOG_DEBUG("Received Unregister Pull Interest...");
       std::string mime_type = msg->unregister_pull_interest().mime_type();
-      bool result = GatewayCore::getInstance()->unregisterPullInterest(mime_type, this);
+      
+      MessageScope scope;
+      if(msg->unregister_pull_interest().scope() == ammo::gateway::protocol::GLOBAL) {
+        scope = SCOPE_GLOBAL;
+      } else {
+        scope = SCOPE_LOCAL;
+      }
+      
+      bool result = GatewayCore::getInstance()->unregisterPullInterest(mime_type, scope, this);
       if(result == true) {
         for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
           if((*it) == mime_type) {
@@ -207,7 +230,7 @@ GatewayEventHandler::~GatewayEventHandler() {
   
   LOG_DEBUG("Unregistering pull request handlers...");
   for(std::vector<std::string>::iterator it = registeredPullRequestHandlers.begin(); it != registeredPullRequestHandlers.end(); it++) {
-    GatewayCore::getInstance()->unregisterPullInterest(*it, this);
+    GatewayCore::getInstance()->unregisterPullInterest(*it, SCOPE_ALL, this);
   }
   
   LOG_DEBUG("Unregistering pull response plugin IDs...");

@@ -36,22 +36,22 @@ LdapPushReceiver::LdapPushReceiver() : ldap(0)
 
   string ldapAddress = config->getLdapServerAddress();
   int ldapPort = config->getLdapServerPort();
-  cout << "Attempting Connection to LDAP Server @:" << ldapAddress << ':' << ldapPort << endl;
+  LOG_INFO("Attempting Connection to LDAP Server @:" << ldapAddress << ':' << ldapPort);
 
   // Create LDAP instance
   this->ldap = LdapClient::createInstance();
   if (!this->ldap) {
-      cout << "Error Creating LDAP Client" << endl;
+      LOG_ERROR("Error Creating LDAP Client");
       return;
   }
-  cout << "Succeeded Creating LDAP Client" << endl;
+  LOG_TRACE("Succeeded Creating LDAP Client");
 
   // Initialize LDAP instance with connection data.
   if (!this->ldap->init(ldapAddress, ldapPort)) {
-      cout << "Error Initializing LDAP Library: " << this->ldap->getLastErrorMsg() << endl;
+      LOG_ERROR("Error Initializing LDAP Library: " << this->ldap->getLastErrorMsg());
       return;
   }
-  cout << "Succeeded Initializing LDAP Library" << endl;
+  LOG_TRACE("Succeeded Initializing LDAP Library");
 
   // Set LDAP to version 3.
   int version = LDAP_VERSION3;
@@ -61,11 +61,11 @@ LdapPushReceiver::LdapPushReceiver() : ldap(0)
   string passwd = config->getLdapPassword();
 
   // Bind LDAP to a user.
-  cout << "Attempting bind operation w/user : " << basedn << " ... " << endl;
+  LOG_INFO("Attempting bind operation w/user : " << basedn << " ... ");
   if (!this->ldap->bind(basedn, passwd)) {
-      cout << "Error Binding to LDAP Server: " << this->ldap->getLastErrorMsg() << endl;
+      LOG_ERROR("Error Binding to LDAP Server: " << this->ldap->getLastErrorMsg());
   }
-  cout << "Connected to LDAP Server @" << ldapAddress << endl;
+  LOG_INFO("Connected to LDAP Server @");
 }
 
 //============================================================
@@ -97,8 +97,8 @@ void LdapPushReceiver::onDisconnect(GatewayConnector *sender)
 //============================================================
 void LdapPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData)
 {
-  cout << "Got data." << endl;
-  cout << "  " << pushData << endl;;
+  LOG_DEBUG("Got data.");
+  LOG_TRACE("  " << pushData);
 
   if(pushData.mimeType == CONTACT_MIME_TYPE)
     {
@@ -113,13 +113,13 @@ void LdapPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gatewa
           // Edit the LDAP entry for this contact
           if (!editContact(*contact))
             {
-              cout << "ERROR while updated LDAP for: " << contact->name << endl << flush;
+              LOG_ERROR("ERROR while updated LDAP for: " << contact->name);
             }
         }
     }
   else
     {
-      cout << "ERROR!  Invalid Mime Type." << endl << flush;
+      LOG_ERROR("ERROR!  Invalid Mime Type.");
     }
 
 }
@@ -219,7 +219,7 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
   char *attrs[] = { const_cast<char *>("*"), NULL };
   const std::string basedn = "dc=ammo,dc=tdm";
 
-  cout << "LDAP Starting Search for: " << filter << endl;
+  LOG_DEBUG("LDAP Starting Search for: " << filter);
   if (!this->ldap->search(basedn, /* LDAP search base dn (distinguished name) */
                           LDAP_SCOPE_SUBTREE, /* scope - root and all descendants */
                           filter, /* filter - query expression */
@@ -230,11 +230,11 @@ bool LdapPushReceiver::get(std::string query, std::vector<std::string> &jsonResu
                           timeout,
                           0, // number of results : 0 = unlimited
                           &results)) {
-      cout << "LDAP search failed for " << filter << ": "
-           << hex << this->ldap->getLastError() << " - " << this->ldap->getLastErrorMsg() << endl;
+      LOG_ERROR("LDAP search failed for " << filter << ": "
+           << hex << this->ldap->getLastError() << " - " << this->ldap->getLastErrorMsg());
       return false;
   }
-  cout << "LDAP Search Returned " << ldap->countEntries(results) << " results" << endl;
+  LOG_DEBUG("LDAP Search Returned " << ldap->countEntries(results) << " results");
 
   // Pack the search results into JSON objects and store in a vector
   LDAPMessage *entry = ldap->firstEntry(results);
@@ -269,7 +269,7 @@ std::string LdapPushReceiver::payloadToJson(std::string &data)
     }
 
   std::string jsonOut(&data[0], jsonEnd);
-  cout << "JSON string: " << jsonOut << endl;
+  LOG_TRACE("JSON string: " << jsonOut);
 
   return jsonOut;
 }
@@ -287,12 +287,12 @@ bool LdapPushReceiver::parseJson(std::string input, Json::Value& jsonRoot)
 
   if(!parseSuccess)
     {
-      cout << "JSON parsing error:" << endl;
-      cout << jsonReader.getFormatedErrorMessages() << endl;
+      LOG_ERROR("JSON parsing error:");
+      LOG_ERROR(jsonReader.getFormatedErrorMessages());
       return parseSuccess;
     }
 
-  cout << "Parsed JSON: " << jsonRoot.toStyledString() << endl;
+  LOG_TRACE("Parsed JSON: " << jsonRoot.toStyledString());
   return parseSuccess;
 }
 
@@ -508,7 +508,7 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
     // be inserted into LDAP ..
     //using the memcpy for now ... later will add the decode function
     memcpy (image, vals[0]->bv_val, len);
-    cout << "Ret string" << ret.data () << endl;
+    LOG_TRACE("Ret string" << ret.data ());
 
     int buffer_len = 1/*first null terminator*/
       + 6/*The string "photo" and a null terminator*/
@@ -539,7 +539,7 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
 
     //get the length of the root_str, needed for memcpy in the end
     int root_len = ret.length ();
-    cout << "Before Allocation " << endl;
+    LOG_TRACE("Before Allocation ");
 
     char* root_str = new char[root_len + index];
     memset (root_str, 0 , root_len + index);
@@ -569,7 +569,7 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
     //need also to delete the root_str ..
     ret = root_str;
   }
-  cout << "JSON: " << root.toStyledString() << endl;
+  LOG_TRACE("JSON: " << root.toStyledString());
   return ret;
 #else
   return root.toStyledString();
@@ -584,8 +584,8 @@ string LdapPushReceiver::jsonForObject(LDAPMessage *entry) {
 //============================================================
 bool LdapPushReceiver::editContact(const LdapContact& contact)
 {
-  cout << "LdapPushReceiver::editContact()" << endl << flush;
-  cout << contact.name << endl << flush;
+  LOG_DEBUG("LdapPushReceiver::editContact()");
+  LOG_TRACE("  " << contact.name);
   return true;
 }
 

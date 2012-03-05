@@ -111,4 +111,6 @@ int main(int argc, char **argv) {
   LOG_DEBUG("Starting event loop...");
   reactor->run_reactor_event_loop();
   LOG_DEBUG("Event loop terminated.");
+
+  return 0;
 }

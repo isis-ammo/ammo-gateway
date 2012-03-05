@@ -116,6 +116,7 @@ eventHandler(NULL),
 sendQueueMutex(), 
 receiveQueueMutex()
 {
+  LOG_TRACE("In NetworkServiceHandler() ctor");
   eventHandler = static_cast<NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber> *>(new EventHandler());
   eventHandler->setServiceHandler(this);
 }
@@ -205,7 +206,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
         
         try {
           collectedData = new char[messageHeader.size];
-        } catch (std::bad_alloc &e) {
+        } catch (std::bad_alloc) {
           LOG_ERROR((long) this << " Couldn't allocate memory for message of size " << messageHeader.size);
           sendErrorPacket(MESSAGE_TOO_LARGE);
           return -1;

@@ -135,8 +135,8 @@ ${MementoSection} "Gateway Core (required)" SecCore
 
   SetShellVarContext all
   SetOutPath $APPDATA\ammo-gateway
-  File build\etc\GatewayConfig.json
-  File build\etc\LoggingConfig.json
+  File build\etc\win32\GatewayConfig.json
+  File build\etc\win32\LoggingConfig.json
 
 ${MementoSectionEnd}
 
@@ -170,7 +170,7 @@ ${MementoSection} "LDAP Gateway Plugin (required)" SecLdapPlug
   SetOverwrite on
   File build\bin\LdapGatewayPlugin.exe
   SetOutPath $APPDATA\ammo-gateway
-  File build\etc\LdapPluginConfig.json
+  File build\etc\win32\LdapPluginConfig.json
 
 ${MementoSectionEnd}
 
@@ -188,7 +188,7 @@ ${MementoSection} "Data Store Gateway Plugin (required)" SecDatPlug
   SetOverwrite on
   File build\bin\DataStoreGatewayPlugin.exe
   SetOutPath $APPDATA\ammo-gateway
-  File build\etc\DataStorePluginConfig.json
+  File build\etc\win32\DataStorePluginConfig.json
 
 ${MementoSectionEnd}
 

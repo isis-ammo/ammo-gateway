@@ -23,6 +23,12 @@ public:
   
   bool sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser);
   
+  bool sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection, unsigned int maxResults, unsigned int startFromCount, bool liveQuery);
+  bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data);
+  
+  bool sendRegisterPullInterest(std::string mimeType);
+  bool sendUnregisterPullInterest(std::string mimeType);
+  
 private:
   std::string gatewayId;
   bool gatewayIdAuthenticated;
@@ -30,7 +36,8 @@ private:
   bool registeredWithGateway;
   
   std::vector<std::string> registeredHandlers;
-  std::vector<std::string> registeredPullRequestHandlers;
+  std::vector<std::string> registeredPullHandlers;
+  std::set<std::string> registeredPullResponsePluginIds;
 };
 
 #endif

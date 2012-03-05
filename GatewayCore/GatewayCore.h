@@ -21,7 +21,17 @@ struct SubscriptionInfo {
   unsigned int references;
 };
 
+struct PullRequestHandlerInfo {
+  std::string handlerId;
+  unsigned int references;
+};
+
 struct LocalSubscriptionInfo {
+  GatewayEventHandler *handler;
+  MessageScope scope;
+};
+
+struct LocalPullHandlerInfo {
   GatewayEventHandler *handler;
   MessageScope scope;
 };
@@ -36,13 +46,13 @@ public:
   bool registerDataInterest(std::string mime_type, MessageScope messageScope,  GatewayEventHandler *handler);
   bool unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayEventHandler *handler);
   
-  bool registerPullInterest(std::string mime_type, GatewayEventHandler *handler);
-  bool unregisterPullInterest(std::string mime_type, GatewayEventHandler *handler);
+  bool registerPullInterest(std::string mime_type, MessageScope scope, GatewayEventHandler *handler);
+  bool unregisterPullInterest(std::string mime_type, MessageScope scope, GatewayEventHandler *handler);
   
   bool pushData(GatewayEventHandler *sender, std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope);
   
   bool pullRequest(GatewayEventHandler *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
-                   unsigned int maxResults, unsigned int startFromCount, bool liveQuery, GatewayEventHandler *originatingPlugin);
+                   unsigned int maxResults, unsigned int startFromCount, bool liveQuery, MessageScope scope);
   bool pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data);
   
   bool unregisterPullResponsePluginId(std::string pluginId, GatewayEventHandler *handler);
@@ -58,7 +68,14 @@ public:
   bool subscribeCrossGateway(std::string mimeType, std::string originHandlerId);
   bool unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId);
   
+  bool registerPullInterestCrossGateway(std::string mimeType, std::string originHandlerId);
+  bool unregisterPullInterestCrossGateway(std::string mimeType, std::string originHandlerId);
+  
   bool pushCrossGateway(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originHandlerId);
+  bool pullRequestCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection, unsigned int maxResults, unsigned int startFromCount, bool liveQuery, std::string originHandlerId);
+  bool pullResponseCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data, std::string originHandlerId);
+  
+  bool unregisterPullResponsePluginIdCrossGateway(std::string pluginId, std::string handler);
   
   void terminate();
   
@@ -71,7 +88,9 @@ private:
   
   typedef std::multimap<std::string, LocalSubscriptionInfo> PushHandlerMap;
   PushHandlerMap pushHandlers;
-  std::multimap<std::string, GatewayEventHandler *> pullHandlers;
+  
+  typedef std::multimap<std::string, LocalPullHandlerInfo> PullHandlerMap;
+  PullHandlerMap pullHandlers;
   
   std::map<std::string, GatewayEventHandler *> plugins;
   
@@ -79,6 +98,12 @@ private:
   typedef std::multimap<std::string, SubscriptionInfo> CrossGatewaySubscriptionMap;
   CrossGatewaySubscriptionMap subscriptions;
   
+  typedef std::multimap<std::string, PullRequestHandlerInfo> CrossGatewayPullRequestHandlerMap;
+  CrossGatewayPullRequestHandlerMap crossGatewayPullRequestHandlers;
+  
+  typedef std::map<std::string, std::string> PullRequestReturnIdMap;
+  PullRequestReturnIdMap cgPullRequestReturnIds;
+
   CrossGatewayConnectionManager *connectionManager;
   CrossGatewayEventHandler *parentHandler;
   

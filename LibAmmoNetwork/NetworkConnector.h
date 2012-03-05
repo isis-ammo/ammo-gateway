@@ -46,7 +46,8 @@ int ammo::gateway::internal::NetworkConnector<ProtobufMessageWrapper, EventHandl
   ACE_INET_Addr serverAddress(port, address.c_str());
   connector = new ACE_Connector<ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>, ACE_SOCK_Connector>();
   int status = connector->connect(serviceHandler, serverAddress);
-  if(serviceHandler) {
+  if(status == 0 && serviceHandler) {
+    LOG_TRACE("NetworkConnector assigning EventHandler to handler");
     handler = dynamic_cast<EventHandler *>(serviceHandler->eventHandler);
   }
   return status;

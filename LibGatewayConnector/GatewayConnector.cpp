@@ -105,6 +105,12 @@ bool ammo::gateway::GatewayConnector::pullRequest(PullRequest &request) {
   pullMsg->set_start_from_count(request.startFromCount);
   pullMsg->set_live_query(request.liveQuery);
   
+  if(request.scope == SCOPE_LOCAL) {
+    pullMsg->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    pullMsg->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
+
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
   
   LOG_DEBUG("Sending Pull Request message to gateway core");
@@ -188,10 +194,16 @@ bool ammo::gateway::GatewayConnector::unregisterDataInterest(string mime_type, M
   }
 }
 
-bool ammo::gateway::GatewayConnector::registerPullInterest(string mime_type, PullRequestReceiverListener *listener) {
-  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+bool ammo::gateway::GatewayConnector::registerPullInterest(string mime_type, PullRequestReceiverListener *listener, MessageScope scope) {
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();;
   ammo::gateway::protocol::RegisterPullInterest *di = msg->mutable_register_pull_interest();
   di->set_mime_type(mime_type);
+  
+  if(scope == SCOPE_LOCAL) {
+    di->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    di->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST);
   
@@ -207,10 +219,16 @@ bool ammo::gateway::GatewayConnector::registerPullInterest(string mime_type, Pul
   }
 }
 
-bool ammo::gateway::GatewayConnector::unregisterPullInterest(string mime_type) {
+bool ammo::gateway::GatewayConnector::unregisterPullInterest(string mime_type, MessageScope scope) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::UnregisterPullInterest *di = msg->mutable_unregister_pull_interest();
   di->set_mime_type(mime_type);
+  
+  if(scope == SCOPE_LOCAL) {
+    di->set_scope(ammo::gateway::protocol::LOCAL);
+  } else {
+    di->set_scope(ammo::gateway::protocol::GLOBAL);
+  }
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST);
   
@@ -235,6 +253,17 @@ bool ammo::gateway::GatewayConnector::unregisterPullResponseInterest(string mime
   return true;
 }
 
+void ammo::gateway::GatewayConnector::onConnectReceived() {
+  if(delegate != NULL) {
+    delegate->onConnect(this);
+  }
+}
+
+void ammo::gateway::GatewayConnector::onDisconnectReceived() {
+  if(delegate != NULL) {
+    delegate->onDisconnect(this);
+  }
+}
 
 void ammo::gateway::GatewayConnector::onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg) {
   LOG_INFO("Got associate result of " << msg.result());
@@ -321,7 +350,8 @@ ammo::gateway::PullRequest::PullRequest() :
   projection(""),
   maxResults(0),
   startFromCount(0),
-  liveQuery(false)
+  liveQuery(false),
+  scope(ammo::gateway::SCOPE_LOCAL)
 {
   
 }

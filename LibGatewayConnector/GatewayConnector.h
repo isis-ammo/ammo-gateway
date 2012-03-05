@@ -91,6 +91,9 @@ namespace ammo {
       bool liveQuery;              ///< Specifies a live query--  results are returned continously as they
                                    ///  become available.  The exact behavior of this option is defined
                                    ///  by the plugin handling the request.  Optional.
+      ammo::gateway::MessageScope scope;///< The scope of this object (determines how many gateways to send
+                                        ///  this object to in a multiple gateway configuration).  Optional,
+                                        ///  will default to SCOPE_LOCAL.
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PullRequest &pullReq) {
         os << "Pull << " << pullReq.requestUid << " from " << pullReq.pluginId << " for type " << pullReq.mimeType << " query: " << pullReq.query;
@@ -277,7 +280,7 @@ namespace ammo {
       *
       * @return true if the operation succeeded; false if the operation failed.
       */
-      bool registerPullInterest(std::string mime_type, PullRequestReceiverListener *listener);
+      bool registerPullInterest(std::string mime_type, PullRequestReceiverListener *listener, MessageScope scope = SCOPE_LOCAL);
       
       /**
       * Unregisters interest in pull requests for the specified data type.  Will
@@ -288,7 +291,7 @@ namespace ammo {
       * 
       * @return true if the operation succeeded; false if the operation failed.
       */
-      bool unregisterPullInterest(std::string mime_type);
+      bool unregisterPullInterest(std::string mime_type, MessageScope scope = SCOPE_LOCAL);
       
       /**
       * Registers a listener to be called when data is received as a response from a
@@ -317,7 +320,9 @@ namespace ammo {
       
     private:
       void init(GatewayConnectorDelegate *delegate, ammo::gateway::internal::GatewayConfigurationManager *config); 
-    
+      
+      void onConnectReceived();
+      void onDisconnectReceived();
       void onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg);
       void onPushDataReceived(const ammo::gateway::protocol::PushData &msg);
       void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg);
