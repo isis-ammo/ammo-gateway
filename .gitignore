@@ -5,11 +5,14 @@ bin/
 *.suo
 *.ilk
 *.pdb
+*.so
+*.so.*
 *.vcproj
 *.vcproj.*
 *.vcxproj
 *.vcxproj.*
 *.opensdf
+*.depend.*
 *.sdf
 ipch/
 Makefile*
@@ -18,3 +21,5 @@ GNUmakefile*
 *_db.sql3
 nbproject/
 gatewayversion.mpb
+build/
+serialization/

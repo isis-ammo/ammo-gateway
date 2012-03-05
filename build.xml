@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Gateway" default="build">
 
+    <property name="repo-root" location=".."/>
+
     <target name="help">
         <echo message="To see available targets run 'ant -p' or 'ant -projecthelp' " />
         <java classname="org.apache.tools.ant.Main">
@@ -105,7 +107,7 @@
         </exec>
     </target>
 
-    <target name="build" depends="configure, build-unix, build-windows, -java-plugin-connector"
+    <target name="build" depends="generate, configure, build-unix, build-windows, -java-plugin-connector"
         description="Build the ${project}" >
     </target>
 
@@ -217,6 +219,14 @@ Built on ${os.arch} ${os.name} ${os.version}
 
     <target name="-java-plugin-connector">
         <ant antfile="build.xml" dir="JavaGatewayConnector" target="dist"/>
+    </target>
+
+
+    <target name="generate" 
+        description="Generating data store source" >
+        <mkdir dir="gen"/>
+        <ant antfile="build.xml" dir="${repo-root}/AmmoGenerator" target="c++"/>
+        <ant antfile="build.xml" dir="${repo-root}/AmmoGenerator" target="c++-serial"/>
     </target>
 
 </project>
