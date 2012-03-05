@@ -26,6 +26,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       //TODO: split out into a different function and do more here
       ammo::gateway::protocol::GatewayWrapper *newMsg = new ammo::gateway::protocol::GatewayWrapper();
       newMsg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT);
+      newMsg->set_message_priority(PRIORITY_AUTH);
       newMsg->mutable_associate_result()->set_result(ammo::gateway::protocol::AssociateResult_Status_SUCCESS);
       this->sendMessage(newMsg);
       username = msg->associate_device().user();
@@ -77,7 +78,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       } else {
         scope = SCOPE_LOCAL;
       }
-      GatewayCore::getInstance()->pushData(this, msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), this->username, scope);
+      GatewayCore::getInstance()->pushData(this, msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), this->username, scope, msg->message_priority());
       break;
     } 
     case ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST: {
@@ -92,7 +93,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
         scope = SCOPE_LOCAL;
       }
       bool result = GatewayCore::getInstance()->pullRequest(this, pullMsg.request_uid(), pullMsg.plugin_id(), pullMsg.mime_type(), pullMsg.query(),
-        pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), scope);
+        pullMsg.projection(), pullMsg.max_results(), pullMsg.start_from_count(), pullMsg.live_query(), scope, msg->message_priority());
       if(result == true) {
         registeredPullResponsePluginIds.insert(pullMsg.plugin_id());
       }
@@ -104,7 +105,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       
       ammo::gateway::protocol::PullResponse pullRsp = msg->pull_response();
       
-      GatewayCore::getInstance()->pullResponse( pullRsp.request_uid(), pullRsp.plugin_id(), pullRsp.mime_type(), pullRsp.uri(), pullRsp.encoding(), pullRsp.data() );
+      GatewayCore::getInstance()->pullResponse( pullRsp.request_uid(), pullRsp.plugin_id(), pullRsp.mime_type(), pullRsp.uri(), pullRsp.encoding(), pullRsp.data(), msg->message_priority());
       break;
     }
     case ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST: {
@@ -162,7 +163,7 @@ int GatewayEventHandler::onError(const char errorCode) {
   return 0;
 }
 
-bool GatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope scope) {
+bool GatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope scope, char priority) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
   pushMsg->set_uri(uri);
@@ -172,6 +173,7 @@ bool GatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, 
   pushMsg->set_origin_user(originUser);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
+  msg->set_message_priority(priority);
   
   LOG_DEBUG("Sending Data Push message to connected plugin");
   this->sendMessage(msg);
@@ -181,7 +183,7 @@ bool GatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, 
 
 bool GatewayEventHandler::sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, 
                                            std::string query, std::string projection, unsigned int maxResults, 
-                                           unsigned int startFromCount, bool liveQuery) {
+                                           unsigned int startFromCount, bool liveQuery, char priority) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PullRequest *pullMsg = msg->mutable_pull_request();
   pullMsg->set_request_uid(requestUid);
@@ -194,6 +196,7 @@ bool GatewayEventHandler::sendPullRequest(std::string requestUid, std::string pl
   pullMsg->set_live_query(liveQuery);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
+  msg->set_message_priority(priority);
   
   LOG_DEBUG("Sending Pull Request message to connected plugin");
   this->sendMessage(msg);
@@ -203,7 +206,7 @@ bool GatewayEventHandler::sendPullRequest(std::string requestUid, std::string pl
 }
 
 bool GatewayEventHandler::sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType,
-                                              std::string uri, std::string encoding, const std::string& data) {
+                                              std::string uri, std::string encoding, const std::string& data, char priority) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PullResponse *pullRsp = msg->mutable_pull_response();
   pullRsp->set_request_uid(requestUid);
@@ -214,6 +217,7 @@ bool GatewayEventHandler::sendPullResponse(std::string requestUid, std::string p
   pullRsp->set_data(data);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
+  msg->set_message_priority(priority);
   
   LOG_DEBUG("Sending Pull Response message to connected plugin");
   this->sendMessage(msg);

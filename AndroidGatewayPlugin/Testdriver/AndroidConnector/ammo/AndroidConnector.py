@@ -101,8 +101,17 @@ class AuthenticationFailure(Exception):
     
     
 class MessageScope:
-    GLOBAL = 0
-    LOCAL = 1
+  GLOBAL = 0
+  LOCAL = 1
+
+class MessagePriority:
+  AUTH = 127
+  CTRL = 126
+  FLASH = 96
+  URGENT = 64
+  IMPORTANT = 32
+  NORMAL = 0
+  BACKGROUND = -32
     
 class AndroidConnector(threading.Thread):
   _address = ""
@@ -185,6 +194,7 @@ class AndroidConnector(threading.Thread):
   def _sendAuthMessage(self):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.AUTHENTICATION_MESSAGE
+    m.message_priority = MessagePriority.AUTH
     m.authentication_message.device_id = self._deviceId
     m.authentication_message.user_id = self._userId
     m.authentication_message.user_key = self._userKey
@@ -215,12 +225,13 @@ class AndroidConnector(threading.Thread):
     '''
     return not self._messageQueue.empty()
     
-  def push(self, uri, mimeType, data, scope = MessageScope.GLOBAL):
+  def push(self, uri, mimeType, data, scope = MessageScope.GLOBAL, priority = MessagePriority.NORMAL):
     '''
     Sends a push message with the specified URI and MIME type to the gateway.
     '''
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
+    m.message_priority = priority
     m.data_message.uri = uri
     m.data_message.mime_type = mimeType
     m.data_message.data = data
@@ -240,6 +251,7 @@ class AndroidConnector(threading.Thread):
     '''
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.SUBSCRIBE_MESSAGE
+    m.message_priority = MessagePriority.CTRL
     m.subscribe_message.mime_type = mimeType
     if scope == MessageScope.GLOBAL:
       m.subscribe_message.scope = AmmoMessages_pb2.GLOBAL
@@ -247,7 +259,7 @@ class AndroidConnector(threading.Thread):
       m.subscribe_message.scope = AmmoMessages_pb2.LOCAL
     reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
-  def pullRequest(self, mimeType, query, projection, maxResults, startFromCount, liveQuery):
+  def pullRequest(self, mimeType, query, projection, maxResults, startFromCount, liveQuery, priority = MessagePriority.NORMAL):
     '''
     Sends a pull request with the specified parameters.  Note that the request
     UID and device ID are automatically set to the correct values (request UID
@@ -256,6 +268,7 @@ class AndroidConnector(threading.Thread):
     '''
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
+    m.message_priority = priority
     m.pull_request.request_uid = uuid.uuid1().hex
     m.pull_request.mime_type = mimeType
     m.pull_request.query = query

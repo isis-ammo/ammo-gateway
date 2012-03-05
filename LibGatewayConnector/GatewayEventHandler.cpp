@@ -9,12 +9,16 @@ using namespace ammo::gateway::internal;
 
 void GatewayEventHandler::onConnect(std::string &peerAddress) {
   LOG_TRACE("GatewayEventHandler::onConnect(" << peerAddress << ")");
-  parent->onConnectReceived();
+  if(parent) {
+    parent->onConnectReceived();
+  }
 }
 
 void GatewayEventHandler::onDisconnect() {
   LOG_TRACE("GatewayEventHandler::onDisconnect()");
-  parent->onDisconnectReceived();
+  if(parent) {
+    parent->onDisconnectReceived();
+  }
 }
 
 int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrapper *msg) {
@@ -46,4 +50,6 @@ int GatewayEventHandler::onError(const char errorCode) {
 
 void GatewayEventHandler::setParentConnector(ammo::gateway::GatewayConnector *parent) {
   this->parent = parent;
+  parent->onConnectReceived(); //we have to call this here, because parent isn't
+                              //set yet on initial connect
 }
