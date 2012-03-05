@@ -15,7 +15,7 @@ namespace ammo {
         NetworkEventHandler();
         virtual ~NetworkEventHandler();
         
-        void sendMessage(ProtobufMessageWrapper *msg, char priority = 0);
+        void sendMessage(ProtobufMessageWrapper *msg);
         
         virtual void onConnect(std::string &peerAddress) = 0;
         virtual void onDisconnect() = 0;
@@ -43,8 +43,8 @@ ammo::gateway::internal::NetworkEventHandler<ProtobufMessageWrapper, SyncMethod,
 }
 
 template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
-void ammo::gateway::internal::NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber>::sendMessage(ProtobufMessageWrapper *msg, char priority) {
-  serviceHandler->sendMessage(msg, priority);
+void ammo::gateway::internal::NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber>::sendMessage(ProtobufMessageWrapper *msg) {
+  serviceHandler->sendMessage(msg);
 }
 
 template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>

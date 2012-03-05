@@ -7,14 +7,22 @@
 using namespace std;
 using namespace ammo::gateway::internal;
 
+GatewayEventHandler::GatewayEventHandler() : parent(NULL) {
+
+}
+
 void GatewayEventHandler::onConnect(std::string &peerAddress) {
   LOG_TRACE("GatewayEventHandler::onConnect(" << peerAddress << ")");
-  parent->onConnectReceived();
+  if(parent) {
+    parent->onConnectReceived();
+  }
 }
 
 void GatewayEventHandler::onDisconnect() {
   LOG_TRACE("GatewayEventHandler::onDisconnect()");
-  parent->onDisconnectReceived();
+  if(parent) {
+    parent->onDisconnectReceived();
+  }
 }
 
 int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrapper *msg) {
@@ -25,13 +33,13 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
     parent->onAssociateResultReceived(msg->associate_result());
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
-    parent->onPushDataReceived(msg->push_data());
+    parent->onPushDataReceived(msg->push_data(), msg->message_priority());
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG("Received Pull Request...");
-    parent->onPullRequestReceived(msg->pull_request());
+    parent->onPullRequestReceived(msg->pull_request(), msg->message_priority());
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
     LOG_DEBUG("Received Pull Response...");
-    parent->onPullResponseReceived(msg->pull_response());
+    parent->onPullResponseReceived(msg->pull_response(), msg->message_priority());
   }
   
   delete msg;
@@ -46,4 +54,6 @@ int GatewayEventHandler::onError(const char errorCode) {
 
 void GatewayEventHandler::setParentConnector(ammo::gateway::GatewayConnector *parent) {
   this->parent = parent;
+  parent->onConnectReceived(); //we have to call this here, because parent isn't
+                              //set yet on initial connect
 }

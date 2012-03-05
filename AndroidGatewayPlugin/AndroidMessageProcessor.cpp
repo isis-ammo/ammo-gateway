@@ -107,14 +107,15 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       pushData.data = dataMessage.data();
       pushData.scope = scope;
       pushData.encoding = dataMessage.encoding();
+      pushData.priority = msg.message_priority();
       gatewayConnector->pushData(pushData);
       ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
       ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
       ack->set_uri(dataMessage.uri());
       ackMsg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
       LOG_DEBUG(commsHandler << " Sending push acknowledgment to connected device...");
-      ackMsg->set_message_priority(DEFAULT_PRIORITY);
-      commsHandler->sendMessage(ackMsg, DEFAULT_PRIORITY);
+      ackMsg->set_message_priority(pushData.priority);
+      commsHandler->sendMessage(ackMsg);
       
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
@@ -169,6 +170,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       req.startFromCount = pullRequest.start_from_count();
       req.liveQuery = pullRequest.live_query();
       req.scope = scope;
+      req.priority = msg.message_priority();
       gatewayConnector->pullRequest(req);
     } else {
       if(!deviceIdAuthenticated) {
@@ -183,10 +185,10 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     ammo::protocol::Heartbeat *ack = heartbeatAck->mutable_heartbeat();
     ack->set_sequence_number(heartbeat.sequence_number());
     heartbeatAck->set_type(ammo::protocol::MessageWrapper_MessageType_HEARTBEAT);
-    heartbeatAck->set_message_priority(DEFAULT_PRIORITY);
+    heartbeatAck->set_message_priority(ammo::gateway::PRIORITY_CTRL);
     
     LOG_DEBUG((long) commsHandler << " Sending heartbeat acknowledgement to connected device...");
-    commsHandler->sendMessage(heartbeatAck, DEFAULT_PRIORITY);
+    commsHandler->sendMessage(heartbeatAck);
   }
 }
 
@@ -210,10 +212,10 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
   dataMsg->set_data(dataString);
   
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
-  msg->set_message_priority(DEFAULT_PRIORITY);
+  msg->set_message_priority(pushData.priority);
   
   LOG_DEBUG((long) commsHandler << " Sending Data Push message to connected device");
-  commsHandler->sendMessage(msg, DEFAULT_PRIORITY);
+  commsHandler->sendMessage(msg);
 }
 
 void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, ammo::gateway::PullResponse &response) {
@@ -232,10 +234,10 @@ void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, a
   pullMsg->set_data(dataString);
   
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);
-  msg->set_message_priority(DEFAULT_PRIORITY);
+  msg->set_message_priority(response.priority);
   
   LOG_DEBUG((long) commsHandler << " Sending Pull Response message to connected device");
-  commsHandler->sendMessage(msg, DEFAULT_PRIORITY);
+  commsHandler->sendMessage(msg);
 }
 
 
@@ -248,7 +250,7 @@ void AndroidMessageProcessor::onAuthenticationResponse(GatewayConnector *sender,
   
   ammo::protocol::MessageWrapper *newMsg = new ammo::protocol::MessageWrapper();
   newMsg->set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
-  newMsg->set_message_priority(DEFAULT_PRIORITY);
+  newMsg->set_message_priority(ammo::gateway::PRIORITY_AUTH);
   newMsg->mutable_authentication_result()->set_result(result ? ammo::protocol::AuthenticationResult_Status_SUCCESS : ammo::protocol::AuthenticationResult_Status_SUCCESS);
-  commsHandler->sendMessage(newMsg, DEFAULT_PRIORITY);
+  commsHandler->sendMessage(newMsg);
 }
