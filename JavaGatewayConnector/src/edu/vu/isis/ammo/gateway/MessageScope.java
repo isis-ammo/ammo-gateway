@@ -1,6 +1,6 @@
 package edu.vu.isis.ammo.gateway;
 
-enum MessageScope {
+public enum MessageScope {
     SCOPE_GLOBAL(0),
     SCOPE_LOCAL(1);
 
