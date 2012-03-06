@@ -7,6 +7,10 @@
 using namespace std;
 using namespace ammo::gateway::internal;
 
+GatewayEventHandler::GatewayEventHandler() : parent(NULL) {
+
+}
+
 void GatewayEventHandler::onConnect(std::string &peerAddress) {
   LOG_TRACE("GatewayEventHandler::onConnect(" << peerAddress << ")");
   if(parent) {
