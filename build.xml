@@ -214,7 +214,8 @@ Built on ${os.arch} ${os.name} ${os.version}
     </target>
 
     <target name="configure"
-        description="build the  makefiles" depends="update-gatewayversion,configure-unix,configure-windows">
+        description="build the  makefiles" 
+        depends="generate,update-gatewayversion,configure-unix,configure-windows">
     </target>
 
     <target name="-java-plugin-connector">
