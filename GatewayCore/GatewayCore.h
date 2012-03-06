@@ -49,11 +49,11 @@ public:
   bool registerPullInterest(std::string mime_type, MessageScope scope, GatewayEventHandler *handler);
   bool unregisterPullInterest(std::string mime_type, MessageScope scope, GatewayEventHandler *handler);
   
-  bool pushData(GatewayEventHandler *sender, std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope);
+  bool pushData(GatewayEventHandler *sender, std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope, char priority);
   
   bool pullRequest(GatewayEventHandler *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
-                   unsigned int maxResults, unsigned int startFromCount, bool liveQuery, MessageScope scope);
-  bool pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data);
+                   unsigned int maxResults, unsigned int startFromCount, bool liveQuery, MessageScope scope, char priority);
+  bool pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data, char priority);
   
   bool unregisterPullResponsePluginId(std::string pluginId, GatewayEventHandler *handler);
   
@@ -71,9 +71,9 @@ public:
   bool registerPullInterestCrossGateway(std::string mimeType, std::string originHandlerId);
   bool unregisterPullInterestCrossGateway(std::string mimeType, std::string originHandlerId);
   
-  bool pushCrossGateway(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originHandlerId);
-  bool pullRequestCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection, unsigned int maxResults, unsigned int startFromCount, bool liveQuery, std::string originHandlerId);
-  bool pullResponseCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data, std::string originHandlerId);
+  bool pushCrossGateway(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originHandlerId, char priority);
+  bool pullRequestCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection, unsigned int maxResults, unsigned int startFromCount, bool liveQuery, std::string originHandlerId, char priority);
+  bool pullResponseCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data, std::string originHandlerId, char priority);
   
   bool unregisterPullResponsePluginIdCrossGateway(std::string pluginId, std::string handler);
   

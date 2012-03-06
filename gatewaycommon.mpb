@@ -16,6 +16,11 @@ project : gatewayversion {
                 /usr/lib/x86_64-linux-gnu
   }
   
+  specific(prop:microsoft) {
+    DisableSpecificWarnings += 4251
+    link_options += /ignore:4099
+  }
+  
   //Disable -Wunused-parameter and -Wno-type-limits.  -Wno-type-limits is only
   //available on GCC 4.3 and newer, so we need to check for that conditionally
   verbatim(gnuace, bottom) {
