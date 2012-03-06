@@ -22,6 +22,7 @@ void CrossGatewayEventHandler::onConnect(std::string &peerAddress) {
   //send an authentication message to the other gateway
   ammo::gateway::protocol::GatewayWrapper *newMsg = new ammo::gateway::protocol::GatewayWrapper();
   newMsg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_CROSS_GATEWAY);
+  newMsg->set_message_priority(PRIORITY_AUTH);
   newMsg->mutable_associate_cross_gateway()->set_gateway_id(GatewayConfigurationManager::getInstance()->getCrossGatewayId());
   newMsg->mutable_associate_cross_gateway()->set_key(GatewayConfigurationManager::getInstance()->getCrossGatewayId());
   LOG_DEBUG("Sending associate message to connected gateway...");
@@ -40,6 +41,7 @@ int CrossGatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::Gatewa
     //TODO: split out into a different function and do more here
     ammo::gateway::protocol::GatewayWrapper *newMsg = new ammo::gateway::protocol::GatewayWrapper();
     newMsg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT);
+    newMsg->set_message_priority(PRIORITY_AUTH);
     newMsg->mutable_associate_result()->set_result(ammo::gateway::protocol::AssociateResult_Status_SUCCESS);
     this->sendMessage(newMsg);
     gatewayId = msg->associate_cross_gateway().gateway_id();
@@ -69,19 +71,19 @@ int CrossGatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::Gatewa
     }
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
-    GatewayCore::getInstance()->pushCrossGateway(msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), msg->push_data().origin_user(), gatewayId);
+    GatewayCore::getInstance()->pushCrossGateway(msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), msg->push_data().origin_user(), gatewayId, msg->message_priority());
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG("Received Pull Request...");
     bool result = GatewayCore::getInstance()->pullRequestCrossGateway(msg->pull_request().request_uid(), msg->pull_request().plugin_id(), msg->pull_request().mime_type(), msg->pull_request().query(),
                                                         msg->pull_request().projection(), msg->pull_request().max_results(), msg->pull_request().start_from_count(),
-                                                        msg->pull_request().live_query(), gatewayId);
+                                                        msg->pull_request().live_query(), gatewayId, msg->message_priority());
     if(result == true) {
       registeredPullResponsePluginIds.insert(msg->pull_request().plugin_id());
     }
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
     LOG_DEBUG("Received Pull Response...");
     GatewayCore::getInstance()->pullResponseCrossGateway(msg->pull_response().request_uid(), msg->pull_response().plugin_id(), msg->pull_response().mime_type(),
-                                                         msg->pull_response().uri(), msg->pull_response().encoding(), msg->pull_response().data(), gatewayId);
+                                                         msg->pull_response().uri(), msg->pull_response().encoding(), msg->pull_response().data(), gatewayId, msg->message_priority());
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST) {
     LOG_DEBUG("Received Register Pull Interest...");
     std::string mime_type = msg->register_pull_interest().mime_type();
@@ -119,6 +121,7 @@ bool CrossGatewayEventHandler::sendSubscribeMessage(std::string mime_type) {
   subscribeMsg->set_mime_type(mime_type);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_DATA_INTEREST);
+  msg->set_message_priority(PRIORITY_CTRL);
   
   LOG_DEBUG("Sending Subscribe message to connected gateway");
   this->sendMessage(msg);
@@ -132,6 +135,7 @@ bool CrossGatewayEventHandler::sendUnsubscribeMessage(std::string mime_type) {
   unsubscribeMsg->set_mime_type(mime_type);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_DATA_INTEREST);
+  msg->set_message_priority(PRIORITY_CTRL);
   
   LOG_DEBUG("Sending Subscribe message to connected gateway");
   this->sendMessage(msg);
@@ -139,7 +143,7 @@ bool CrossGatewayEventHandler::sendUnsubscribeMessage(std::string mime_type) {
   return true;
 }
 
-bool CrossGatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser) {
+bool CrossGatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, char priority) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
   pushMsg->set_uri(uri);
@@ -149,6 +153,7 @@ bool CrossGatewayEventHandler::sendPushedData(std::string uri, std::string mimeT
   pushMsg->set_origin_user(originUser);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
+  msg->set_message_priority(priority);
   
   LOG_DEBUG("Sending Data Push message to connected gateway");
   this->sendMessage(msg);
@@ -157,7 +162,7 @@ bool CrossGatewayEventHandler::sendPushedData(std::string uri, std::string mimeT
 }
 
 bool CrossGatewayEventHandler::sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, 
-                                                 std::string projection, unsigned int maxResults, unsigned int startFromCount, bool liveQuery) {
+                                                 std::string projection, unsigned int maxResults, unsigned int startFromCount, bool liveQuery, char priority) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PullRequest *pullMsg = msg->mutable_pull_request();
   pullMsg->set_request_uid(requestUid);
@@ -170,6 +175,7 @@ bool CrossGatewayEventHandler::sendPullRequest(std::string requestUid, std::stri
   pullMsg->set_live_query(liveQuery);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST);
+  msg->set_message_priority(priority);
   
   LOG_DEBUG("Sending Pull Request message to connected gateway");
   this->sendMessage(msg);
@@ -178,7 +184,7 @@ bool CrossGatewayEventHandler::sendPullRequest(std::string requestUid, std::stri
 }
 
 bool CrossGatewayEventHandler::sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType,
-                                                  std::string uri, std::string encoding, const std::string& data) {
+                                                  std::string uri, std::string encoding, const std::string& data, char priority) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PullResponse *pullRsp = msg->mutable_pull_response();
   pullRsp->set_request_uid(requestUid);
@@ -189,6 +195,7 @@ bool CrossGatewayEventHandler::sendPullResponse(std::string requestUid, std::str
   pullRsp->set_data(data);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE);
+  msg->set_message_priority(priority);
   
   LOG_DEBUG("Sending Pull Response message to connected gateway");
   this->sendMessage(msg);
@@ -203,6 +210,7 @@ bool CrossGatewayEventHandler::sendRegisterPullInterest(std::string mimeType) {
   di->set_mime_type(mimeType);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST);
+  msg->set_message_priority(PRIORITY_CTRL);
   
   LOG_DEBUG("Sending Register Pull Interest message to connected gateway");
   this->sendMessage(msg);
@@ -216,6 +224,7 @@ bool CrossGatewayEventHandler::sendUnregisterPullInterest(std::string mimeType) 
   di->set_mime_type(mimeType);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_UNREGISTER_PULL_INTEREST);
+  msg->set_message_priority(PRIORITY_CTRL);
   
   LOG_DEBUG("Sending Unregister Pull Interest message to connected gateway");
   this->sendMessage(msg);

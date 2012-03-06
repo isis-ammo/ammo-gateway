@@ -1,0 +1,5 @@
+1. handle scope in recreating subscriptions
+2. test with jgroups
+3. address jgroups compilation compatibility wrt android 
+4. read configuration file for statically creating subscriptions
+
