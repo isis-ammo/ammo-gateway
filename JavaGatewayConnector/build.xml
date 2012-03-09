@@ -9,7 +9,7 @@
   </target>
 
   <!-- set global properties for this build -->
-  <property name="java-lib-release" value="1.3.5"/>
+  <property name="java-lib-release" value="1.3.9"/>
   
   <property name="java-lib-src" location="${basedir}/src"/>
   <property name="java-lib-gen" location="${basedir}/gen"/>
@@ -114,9 +114,11 @@
           file="${java-lib-dist}/lib/gatewaypluginapi.jar"/>
 
     <!-- Put everything in ${docs} into the MyProject-${DSTAMP}.jar file -->
-    <jar jarfile="${java-lib-dist}/lib/gatewaypluginapi-${java-lib-release}-javadocs.jar" basedir="${java-lib-docs}"/>
+    <jar jarfile="${java-lib-dist}/lib/gatewaypluginapi-javadocs.jar" basedir="${java-lib-docs}"/>
+    <copy tofile="${java-lib-dist}/lib/gatewaypluginapi-${java-lib-release}-javadocs.jar" 
+          file="${java-lib-dist}/lib/gatewaypluginapi-javadocs.jar"/>
 
-    <jar jarfile="${java-lib-dist}/lib/gatewaypluginapi-${java-lib-release}-sources.jar">
+    <jar jarfile="${java-lib-dist}/lib/gatewaypluginapi-sources.jar">
        <fileset dir="src" defaultexcludes="yes">
           <include name="edu/vu/isis/ammo/**"/>
        </fileset>
@@ -124,6 +126,8 @@
           <include name="edu/vu/isis/ammo/**"/>
        </fileset>
     </jar>
+    <copy tofile="${java-lib-dist}/lib/gatewaypluginapi-${java-lib-release}-sources.jar" 
+          file="${java-lib-dist}/lib/gatewaypluginapi-sources.jar"/>
   </target>
 
   <target name="document" depends="init,protobuf"

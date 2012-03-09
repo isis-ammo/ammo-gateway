@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=1.3.5
+VERSION=1.3.9
 REPO_URI=http://fiddler.aterrasys.com:8081/nexus/content/repositories/vanderbilt/
 GW_API=gatewaypluginapi
 
