@@ -25,14 +25,57 @@ enum MessageScope {
   LOCAL = 1;
 }
 
+/**
+* DEVICE_DELIVERED : delivered by the plugin to a device (android device)
+* PLUGIN_DELIVERED = delivered by the gateway to a plugin
+* ANDROID_PLUGIN_RECEIVED = 2: delivered to the android plugin by the android device
+*/
+enum AcknowledgementThresholds {
+  DEVICE_DELIVERED = 0;
+  PLUGIN_DELIVERED = 1;
+  ANDROID_PLUGIN_RECEIVED = 2;
+}
+
+
+/**
+* When data is to be sent to the Gateway for distribution.
+* 
+* uri : is a unique identifier of the primary source of the data.
+* scope : the scope of this message (used to determine how many gateways
+*         to send this message to in a multiple-gateway configuration).
+* mime_type : the subcription key (topic)
+* encoding : an application specified encoding for the data element
+* origin_device : used for routing acknowledgements back to the
+*                 originating device. 
+* data : the payload, application specific
+* thresholds : when any are crossed an acknowlegement is sent
+*/
 message PushData {
   required string uri = 1;
   optional string mime_type = 2;
   optional string encoding = 6 [default = "json"];
-  optional bytes data = 3;
   optional string origin_user = 4;
+  optional string origin_device = 7;
+  optional bytes data = 3;
   optional MessageScope scope = 5 [default = GLOBAL];
+  repeated AcknowledgementThresholds thresholds = 8;
 }
+
+/**
+* Sent from the Android plugin to the device when a DataMessage is
+* received.
+*
+* uri : this must match the uri of the corresponding DataMessage
+* destination_device : this must match the origin_device of the
+*                      corresponding DataMessage
+* acknowledging_device : this device id of the acknowledging device or plugin. 
+*/
+message PushAcknowledgement {
+  required string uri = 1;
+  optional string destination_device = 2;
+  optional string acknowledging_device = 3;
+}
+
 
 message PullRequest {
   required string request_uid = 1;
@@ -87,6 +130,7 @@ message GatewayWrapper {
     REGISTER_PULL_INTEREST = 7;
     UNREGISTER_PULL_INTEREST = 8;
     ASSOCIATE_CROSS_GATEWAY = 9;
+    PUSH_ACKNOWLEDGEMENT = 10;
   }
   
   required MessageType type = 1;
@@ -103,4 +147,5 @@ message GatewayWrapper {
   optional RegisterPullInterest register_pull_interest = 9;
   optional UnregisterPullInterest unregister_pull_interest = 10;
   optional AssociateCrossGateway associate_cross_gateway = 11;
+  optional PushAcknowledgement push_acknowledgement = 13;
 }
