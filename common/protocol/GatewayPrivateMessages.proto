@@ -40,7 +40,7 @@ enum AcknowledgementThresholds {
 /**
 * When data is to be sent to the Gateway for distribution.
 * 
-* uri : is a unique identifier of the primary source of the data.
+* uid : is a unique identifier of the primary source of the data.
 * scope : the scope of this message (used to determine how many gateways
 *         to send this message to in a multiple-gateway configuration).
 * mime_type : the subcription key (topic)
@@ -51,7 +51,7 @@ enum AcknowledgementThresholds {
 * thresholds : when any are crossed an acknowlegement is sent
 */
 message PushData {
-  required string uri = 1;
+  required string uid = 1;
   optional string mime_type = 2;
   optional string encoding = 6 [default = "json"];
   optional string origin_user = 4;
@@ -65,13 +65,13 @@ message PushData {
 * Sent from the Android plugin to the device when a DataMessage is
 * received.
 *
-* uri : this must match the uri of the corresponding DataMessage
+* uid : this must match the uid of the corresponding DataMessage
 * destination_device : this must match the origin_device of the
 *                      corresponding DataMessage
 * acknowledging_device : this device id of the acknowledging device or plugin. 
 */
 message PushAcknowledgement {
-  required string uri = 1;
+  required string uid = 1;
   optional string destination_device = 2;
   optional string acknowledging_device = 3;
 }
@@ -93,7 +93,7 @@ message PullResponse {
   required string request_uid = 1;
   required string plugin_id = 2;
   required string mime_type = 3;
-  required string uri = 4;
+  required string uid = 4;
   optional string encoding = 6 [default = "json"];
   required bytes data = 5;
 }
