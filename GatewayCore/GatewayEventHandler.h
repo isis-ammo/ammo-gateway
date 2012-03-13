@@ -18,10 +18,10 @@ public:
   virtual int onMessageAvailable(ammo::gateway::protocol::GatewayWrapper *msg);
   virtual int onError(const char errorCode);
   
-  bool sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope scope, char priority);
+  bool sendPushedData(std::string uid, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope scope, char priority);
   bool sendPullRequest(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
 		       unsigned int maxResults, unsigned int startFromCount, bool liveQuery, char priority);
-  bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string& data, char priority);
+  bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uid, std::string encoding, const std::string& data, char priority);
   
 private:
   std::string username;

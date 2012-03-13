@@ -225,14 +225,14 @@ class AndroidConnector(threading.Thread):
     '''
     return not self._messageQueue.empty()
     
-  def push(self, uri, mimeType, data, scope = MessageScope.GLOBAL, priority = MessagePriority.NORMAL):
+  def push(self, uid, mimeType, data, scope = MessageScope.GLOBAL, priority = MessagePriority.NORMAL):
     '''
-    Sends a push message with the specified URI and MIME type to the gateway.
+    Sends a push message with the specified UID and MIME type to the gateway.
     '''
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.message_priority = priority
-    m.data_message.uri = uri
+    m.data_message.uid = uid
     m.data_message.mime_type = mimeType
     m.data_message.data = data
     if scope == MessageScope.GLOBAL:

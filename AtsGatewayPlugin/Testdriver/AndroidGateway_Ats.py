@@ -81,7 +81,7 @@ if __name__ == "__main__":
   if(sys.argv[3] == "push"):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
-    m.data_message.uri = "type:urn:aterrasys.com:/api/chat/invite"
+    m.data_message.uid = "type:urn:aterrasys.com:/api/chat/invite"
     m.data_message.mime_type = "urn:aterrasys.com:/api/chat/invite"
     m.data_message.data = "This is a message intended for the Aterrasys service."
     print "Sending data message", m.data_message.data
@@ -90,7 +90,7 @@ if __name__ == "__main__":
   elif(sys.argv[3] == "pushLoc"):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
-    m.data_message.uri = "type:urn:aterrasys.com:/api/location/post/"
+    m.data_message.uid = "type:urn:aterrasys.com:/api/location/post/"
     m.data_message.mime_type = "urn:aterrasys.com:/api/location/post/"
     m.data_message.data = '{"lat":2000000,"lon":2000000}'
     print "Sending data message", m.data_message.data
@@ -99,7 +99,7 @@ if __name__ == "__main__":
   elif(sys.argv[3] == "pushLocs"):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
-    m.data_message.uri = "type:urn:aterrasys.com:/api/locations/post/"
+    m.data_message.uid = "type:urn:aterrasys.com:/api/locations/post/"
     m.data_message.mime_type = "urn:aterrasys.com:/api/locations/post/"
     m.data_message.data = '[{"user":"sbasu","lat":2000000,"lon":2000000},{"user":"dutch","lat":2000000,"lon":2000000}]'
     print "Sending data message", m.data_message.data

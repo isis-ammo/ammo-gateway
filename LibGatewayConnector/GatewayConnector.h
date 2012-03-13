@@ -45,9 +45,9 @@ namespace ammo {
     class LibGatewayConnector_Export PushData {
     public:
       PushData();
-      std::string uri;                  ///< The URI of this piece of data.  This URI should be a universally
+      std::string uid;                  ///< The UID of this piece of data.  This UID should be a universally
                                         ///  unique identifier for the object being pushed (no two pieces of
-                                        ///  data should have the same URI).
+                                        ///  data should have the same UID).
       std::string mimeType;             ///< The MIME type of this piece of data.  This MIME type is used to
                                         ///  determine which other gateway plugins will receive this pushed
                                         ///  data.
@@ -67,7 +67,7 @@ namespace ammo {
                                         ///  if messages are queued.
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PushData &pushData) {
-        os << "URI: " << pushData.uri << " type: " << pushData.mimeType;
+        os << "UID: " << pushData.uid << " type: " << pushData.mimeType;
         return os;
       }
     };
@@ -118,7 +118,7 @@ namespace ammo {
                               ///  Must match the identifier from the initial request or data
                               ///  will not be routed correctly.
       std::string mimeType;   ///< The data type of the data in this response.
-      std::string uri;        ///< The URI of the data in this response.
+      std::string uid;        ///< The UID of the data in this response.
       std::string encoding;   ///< The encoding of the data in this response (optional; defaults
                               ///  to "json" if not specified).
       std::string data;       ///< The data to be sent to the requestor.
@@ -192,7 +192,7 @@ namespace ammo {
       *       will send an authentication request, but the gateway will always
       *       will always return 'success' (and this method will always return
       *       true).  We should actually perform authentication here (pending more
-      *       information from the security people).
+      *       information from the secuidty people).
       * 
       * @param device The unique ID of the device connecting to the gateway
       * @param user The unique ID of the user associated with the device connecting
@@ -209,13 +209,13 @@ namespace ammo {
     
       //Sender-side
       /**
-       * Pushes a piece of data (with a particular URI and type) to the gateway.
+       * Pushes a piece of data (with a particular UID and type) to the gateway.
        * 
        * Data pushed with this method can be received by listeners registered with
        * registerDataInterest.  All listeners registered for the type specified by
        * mimeType will receive this piece of data.
        * 
-       * @param pushData The data to be pushed to the gateway.  uri and mimeType
+       * @param pushData The data to be pushed to the gateway.  uid and mimeType
        *                 must be set, or this call must fail (other parameters
        *                 are optional, and will use sane defaults).
        * 

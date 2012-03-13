@@ -102,7 +102,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       }
       
       PushData pushData;
-      pushData.uri = dataMessage.uri();
+      pushData.uid = dataMessage.uid();
       pushData.mimeType = dataMessage.mime_type();
       pushData.data = dataMessage.data();
       pushData.scope = scope;
@@ -111,7 +111,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       gatewayConnector->pushData(pushData);
       ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
       ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
-      ack->set_uri(dataMessage.uri());
+      ack->set_uid(dataMessage.uid());
       ackMsg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
       LOG_DEBUG(commsHandler << " Sending push acknowledgment to connected device...");
       ackMsg->set_message_priority(pushData.priority);
@@ -206,7 +206,7 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
   std::string dataString(pushData.data.begin(), pushData.data.end());
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
   ammo::protocol::DataMessage *dataMsg = msg->mutable_data_message();
-  dataMsg->set_uri(pushData.uri);
+  dataMsg->set_uid(pushData.uid);
   dataMsg->set_mime_type(pushData.mimeType);
   dataMsg->set_encoding(pushData.encoding);
   dataMsg->set_data(dataString);
@@ -220,7 +220,7 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
 
 void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, ammo::gateway::PullResponse &response) {
   LOG_DEBUG((long) commsHandler << " Sending pull response to device...");
-  LOG_DEBUG((long) commsHandler << "    URI: " << response.uri << ", Type: " << response.mimeType);
+  LOG_DEBUG((long) commsHandler << "    UID: " << response.uid << ", Type: " << response.mimeType);
   
   std::string dataString(response.data.begin(), response.data.end());
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper();
@@ -229,7 +229,7 @@ void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, a
   pullMsg->set_request_uid(response.requestUid);
   pullMsg->set_plugin_id(response.pluginId);
   pullMsg->set_mime_type(response.mimeType);
-  pullMsg->set_uri(response.uri);
+  pullMsg->set_uid(response.uid);
   pullMsg->set_encoding(response.encoding);
   pullMsg->set_data(dataString);
   

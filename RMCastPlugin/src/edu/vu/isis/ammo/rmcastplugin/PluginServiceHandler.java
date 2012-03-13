@@ -65,7 +65,7 @@ class PluginServiceHandler implements
 	if (message.getType() == AmmoMessages.MessageWrapper.MessageType.DATA_MESSAGE) { // data message convert to push message
 	    PushData pushData = new PushData();
 	    AmmoMessages.DataMessage dataMessage = message.getDataMessage();
-	    pushData.uri =  dataMessage.getUri();
+	    pushData.uid =  dataMessage.getUid();
 	    pushData.mimeType = dataMessage.getMimeType();
 	    pushData.encoding = dataMessage.getEncoding();
 	    pushData.data = dataMessage.getData().toByteArray();
@@ -151,7 +151,7 @@ class PluginServiceHandler implements
 	AmmoMessages.DataMessage.Builder pushMsg =
 	    AmmoMessages.DataMessage.newBuilder();
 
-	pushMsg.setUri( pushData.uri );
+	pushMsg.setUid( pushData.uid );
 	pushMsg.setMimeType( pushData.mimeType );
 	pushMsg.setEncoding( pushData.encoding );
 	pushMsg.setData( ByteString.copyFrom(pushData.data) );

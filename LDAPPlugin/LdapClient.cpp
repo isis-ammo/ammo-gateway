@@ -137,10 +137,10 @@ bool OpenLdapClient::init(const std::string& host, int port)
         return false;
     }
 
-    std::stringstream uri_buf;
-    uri_buf << "ldap://" << host << ':' << port;
+    std::stringstream uid_buf;
+    uid_buf << "ldap://" << host << ':' << port;
 
-    this->retval = ldap_initialize(&this->ldap, uri_buf.str().c_str());
+    this->retval = ldap_initialize(&this->ldap, uid_buf.str().c_str());
 
     return this->retval == LDAP_SUCCESS;
 }

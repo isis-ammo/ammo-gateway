@@ -73,7 +73,7 @@ if __name__ == "__main__":
   connector = GatewayConnector( delegate )
 
   data = PushData( )
-  data.uri = "java api test"
+  data.uid = "java api test"
   data.mimeType = "ammo/edu.vu.isis.ammo.dash.event"
   data.originUserName = "testDriver"
   data.data = "My BIG FAT JSON String"

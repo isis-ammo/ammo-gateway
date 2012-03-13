@@ -29,7 +29,7 @@ if __name__ == "__main__":
     
     print "Subscribing to type ", mimeType
     
-    uri = "type:edu.vanderbilt.isis.ammo.Test"
+    uid = "type:edu.vanderbilt.isis.ammo.Test"
     
     firstName = "Jimmy"
     middleInitial = "I"
@@ -52,7 +52,7 @@ if __name__ == "__main__":
       data += "\"phone\":\"\" }"
       output_msg = "Sending data message " + str(n)
       print output_msg
-      connector.push(uri, mimeType, data)
+      connector.push(uid, mimeType, data)
       n += 1
 	
     # Send a single pull request.
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     phone = ""
     
     query = userName + ","
-    query += uri + ","
+    query += uid + ","
     query += firstName + ","
     query += middleInitial + ","
     query += lastName + ","

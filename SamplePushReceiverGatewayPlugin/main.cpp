@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
   
   for(;;) {
     PushData pushData;
-    pushData.uri = "someUrl";
+    pushData.uid = "someUrl";
     pushData.mimeType = "sometype";
     pushData.data = "someData";
     gatewayConnector->pushData(pushData);

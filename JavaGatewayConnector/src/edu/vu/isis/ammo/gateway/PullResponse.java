@@ -10,7 +10,7 @@ public class PullResponse {
         requestUid = null;
         pluginId = null;
         mimeType = null;
-        uri = null;
+        uid = null;
         encoding = new String("json");
         data = null;
     }
@@ -35,9 +35,9 @@ public class PullResponse {
     public String mimeType;
     
     /**
-     * The URI of the data in this response.
+     * The UID of the data in this response.
      */
-    public String uri;
+    public String uid;
     
     /**
      * The encoding of the data in this response (optional; defaults

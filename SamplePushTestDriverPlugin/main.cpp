@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
   
   
   PushData pushData;
-  pushData.uri = "foo";
+  pushData.uid = "foo";
   pushData.mimeType = "text/plain";
   pushData.data = "baz";
   gatewayConnector->pushData(pushData);

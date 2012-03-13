@@ -80,7 +80,7 @@ if __name__ == "__main__":
       print "Authentication failed..."
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
-    m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
+    m.data_message.uid = "type:edu.vanderbilt.isis.ammo.Test"
     m.data_message.mime_type = "text/plain"
     m.data_message.data = "This is some text being pushed out to the gateway." + str(count)
     count = count + 1
@@ -118,7 +118,7 @@ if __name__ == "__main__":
       time.sleep(0.5)
       m = AmmoMessages_pb2.MessageWrapper()
       m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
-      m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
+      m.data_message.uid = "type:edu.vanderbilt.isis.ammo.Test"
       m.data_message.mime_type = "text/plain"
       m.data_message.data = "This is some text being pushed out to the gateway." + str(count)
       count = count + 1

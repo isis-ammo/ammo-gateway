@@ -50,7 +50,7 @@ PassAmmmoPublisher::pushPli (const string &lid,
   
   // This field isn't used by the gateway, but we set it anyway
   // to some non-empty semi-informative value.
-  pd.uri = "nevada:locations";
+  pd.uid = "nevada:locations";
   
   pd.mimeType =
     PassConfigurationManager::getInstance ()->getPassContentTopic ();

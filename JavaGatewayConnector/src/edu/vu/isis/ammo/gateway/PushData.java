@@ -8,7 +8,7 @@ public class PushData {
     * Creates a new data object with default parameters.
     */
     public PushData() {
-        uri = null;
+        uid = null;
         mimeType = null;
         encoding = new String("json");
         data = null;
@@ -17,11 +17,11 @@ public class PushData {
     }
 
     /**
-     * The URI of this piece of data.  This URI should be a universally
+     * The UID of this piece of data.  This UID should be a universally
      * unique identifier for the object being pushed (no two pieces of
-     * data should have the same URI).
+     * data should have the same UID).
      */
-    public String uri;
+    public String uid;
     
     /**
      * The MIME type of this piece of data.  This MIME type is used to
@@ -56,6 +56,6 @@ public class PushData {
     public MessageScope scope;
     
     @Override public String toString() {
-        return new String("Push URI: " + uri + " type: " + mimeType);
+        return new String("Push UID: " + uid + " type: " + mimeType);
     }
 }

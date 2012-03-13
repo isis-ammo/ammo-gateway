@@ -86,7 +86,7 @@ OriginalQueryHandler::handleQuery (void)
       
       ammo::gateway::PullResponse response =
         ammo::gateway::PullResponse::createFromPullRequest (pr_);
-      response.uri = uri;
+      response.uid = uri;
       response.data = data;
 		
       bool good_response =

@@ -34,7 +34,7 @@ void SpotPushReceiver::onDisconnect(GatewayConnector *sender) {
 
 void SpotPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData) {
   cout << "Got data." << endl;
-  cout << "  URI: " << pushData.uri << endl;
+  cout << "  UID: " << pushData.uid << endl;
   cout << "  Mime type: " << pushData.mimeType << endl;
   cout << "  Data: " << string(pushData.data.begin(), pushData.data.end()) << endl;
   cout << "  Origin Username: " << pushData.originUsername << endl;
@@ -169,11 +169,11 @@ void SpotPushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gatewa
      jsonBso << "}";
      cout << jsonBso.str() << endl << flush;
      
-     ostringstream bsouri;
-     bsouri << "bft:bso/" << sr.content_guid;
+     ostringstream bsouid;
+     bsouid << "bft:bso/" << sr.content_guid;
      if(sender) {
        PushData pd;
-       pd.uri = bsouri.str();
+       pd.uid = bsouid.str();
        pd.mimeType = BSO_MIME_TYPE;
        pd.data = jsonBso.str();
        sender->pushData(pd);

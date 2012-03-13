@@ -64,7 +64,7 @@ ContactsQueryHandler::handleQuery (void)
       ammo::gateway::PullResponse response =
         ammo::gateway::PullResponse::createFromPullRequest (pr_);
       response.mimeType = pvt_contacts_mimetype;
-      response.uri = uri;
+      response.uid = uri;
       this->encode_row (stmt, response.data);
       
 //      LOG_TRACE ("row: " << response.data.c_str ());

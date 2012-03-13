@@ -56,7 +56,7 @@ void AtsHandler::onPushDataReceived(GatewayConnector *sender,
 {
    CURLcode res; 
    LOG_INFO( "Got push data.");
-   LOG_INFO( "  URI: " << pushData.uri);
+   LOG_INFO( "  UID: " << pushData.uid);
    LOG_INFO( "  Data type: " << pushData.mimeType);
    LOG_INFO( "  Data: " << pushData.data.substr(0, 128));
    LOG_INFO( "  Origin User Name: " << pushData.originUsername);
@@ -94,7 +94,7 @@ void AtsHandler::onPushDataReceived(GatewayConnector *sender,
    if (pushData.mimeType == RTC_CREATE_CHANNEL_NS) {
       std::string data = channelCreate(curl, pushData.mimeType, pushData.data);
       ammo::gateway::PushData pd;
-      pd.uri = pushData.uri;
+      pd.uid = pushData.uid;
       pd.mimeType = pushData.mimeType;
       pd.data = pushData.data;
       sender->pushData(pd);
@@ -143,7 +143,7 @@ void AtsHandler::onPullRequestReceived(GatewayConnector *sender, ammo::gateway::
       std::string data = listPeople(curl, pullReq.mimeType, pullReq.query);
       LOG_INFO( "pull " << pullReq.mimeType << " result: " << data.substr(0, 128));
       PullResponse resp = PullResponse::createFromPullRequest(pullReq);
-      resp.uri = pullReq.query;
+      resp.uid = pullReq.query;
       resp.data = data;
       sender->pullResponse(resp);
       LOG_INFO( "send response: " << pullReq.requestUid);
@@ -152,7 +152,7 @@ void AtsHandler::onPullRequestReceived(GatewayConnector *sender, ammo::gateway::
    if (pullReq.mimeType == RTC_LIST_CHANNEL_NS) {
       std::string data = listChannels(curl, pullReq.mimeType, pullReq.query);
       PullResponse resp = PullResponse::createFromPullRequest(pullReq);
-      resp.uri = pullReq.query;
+      resp.uid = pullReq.query;
       resp.data = data;
       sender->pullResponse(resp);
       LOG_INFO(" Pull " << pullReq.mimeType << " result: " << data.substr(0, 128));
@@ -162,7 +162,7 @@ void AtsHandler::onPullRequestReceived(GatewayConnector *sender, ammo::gateway::
                std::string data = listLocations(curl, pullReq.mimeType, pullReq.query);
                LOG_INFO(" Pull " << pullReq.mimeType << " result: " << std::string(data.begin(), data.begin()+128));
           PullResponse resp = PullResponse::createFromPullRequest(pullReq);
-          resp.uri = pullReq.query;
+          resp.uid = pullReq.query;
           resp.data = data;
           sender->pullResponse(resp);
           LOG_INFO(" Pull " << pullReq.mimeType << " result: " << std::string(data.begin(), data.begin()+128));
@@ -171,7 +171,7 @@ void AtsHandler::onPullRequestReceived(GatewayConnector *sender, ammo::gateway::
        if (pullReq.mimeType == PLI_LIST_UNIT_NS){
                std::string data = listUnits(curl, pullReq.mimeType, pullReq.query);
           PullResponse resp = PullResponse::createFromPullRequest(pullReq);
-          resp.uri = pullReq.query;
+          resp.uid = pullReq.query;
           resp.data = data;
           sender->pullResponse(resp);
           LOG_DEBUG(" Pull " << pullReq.mimeType << " result: " << std::string(data.begin(), data.begin()+128));
@@ -180,7 +180,7 @@ void AtsHandler::onPullRequestReceived(GatewayConnector *sender, ammo::gateway::
        if (pullReq.mimeType == PLI_MEMBERS_NS){
                std::string data = listMembers(curl, pullReq.mimeType, pullReq.query);
           PullResponse resp = PullResponse::createFromPullRequest(pullReq);
-          resp.uri = pullReq.query;
+          resp.uid = pullReq.query;
           resp.data = data;
           sender->pullResponse(resp);
           LOG_INFO(" Pull " << pullReq.mimeType << " result: " << std::string(data.begin(), data.begin()+128));
@@ -197,7 +197,7 @@ void AtsHandler::onPullResponseReceived (GatewayConnector *sender, ammo::gateway
    LOG_INFO( "  ReqId: " << response.requestUid );
    LOG_INFO( "  Plugin: " << response.pluginId );
    LOG_INFO( "  Data type: " << response.mimeType );
-   LOG_INFO( "  Uri: " << response.uri );
+   LOG_INFO( "  Uid: " << response.uid );
    LOG_INFO( "  Data: " << std::string(response.data.begin(), response.data.end()) );
 
    CURL *curl = curl_easy_init();

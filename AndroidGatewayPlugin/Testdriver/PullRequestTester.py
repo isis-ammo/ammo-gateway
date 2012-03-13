@@ -82,9 +82,9 @@ if __name__ == "__main__":
     time.sleep(0.5)
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
-    m.data_message.uri = "type:edu.vanderbilt.isis.ammo.Test"
+    m.data_message.uid = "type:edu.vanderbilt.isis.ammo.Test"
     m.data_message.mime_type = "ammo/edu.vu.isis.ammo.sms.message"
-    m.data_message.data = "{ \"sms_uri\" : \"type:edu.vanderbilt.isis.ammo.Test\", "
+    m.data_message.data = "{ \"sms_uid\" : \"type:edu.vanderbilt.isis.ammo.Test\", "
     m.data_message.data += "\"sender\" : \"sgt_kill_em_all@151st.mil\", "
     m.data_message.data += "\"recipient\" : \"soldier_"
     m.data_message.data += str(n)

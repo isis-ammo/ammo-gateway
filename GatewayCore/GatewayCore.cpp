@@ -124,8 +124,8 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, MessageScope sco
   return foundSubscription;
 }
 
-bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope, char priority) {
-  LOG_DEBUG("  Pushing data with uri: " << uri);
+bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uid, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope, char priority) {
+  LOG_DEBUG("  Pushing data with uid: " << uid);
   LOG_DEBUG("                    type: " << mimeType);
   LOG_DEBUG("                    scope: " << messageScope);
   set<GatewayEventHandler *>::iterator it;
@@ -134,7 +134,7 @@ bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uri, std::st
   
   for(it = handlers.begin(); it != handlers.end(); ++it) {
     if((*it) != sender) { //don't send pushed data to plugin that originated it, if it's subscribed to the same topic
-      (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, messageScope, priority);
+      (*it)->sendPushedData(uid, mimeType, encoding, data, originUser, messageScope, priority);
     }
   }
   
@@ -148,7 +148,7 @@ bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uri, std::st
 
       for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
         LOG_TRACE("Sending cross-gateway data");
-        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, encoding, data, originUser, priority);
+        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uid, mimeType, encoding, data, originUser, priority);
       }
     }
   }
@@ -191,21 +191,21 @@ bool GatewayCore::pullRequest(GatewayEventHandler *sender, std::string requestUi
   return true;
 }
 
-bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string& data, char priority) {
+bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uid, std::string encoding, const std::string& data, char priority) {
   LOG_DEBUG("  Sending pull response with type: " << mimeType);
   LOG_DEBUG("                        pluginId: " << pluginId);
 
   map<string, GatewayEventHandler *>::iterator it = plugins.find(pluginId);
   if ( it != plugins.end() ) {
     //check for something here?
-    (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uri, encoding, data, priority);
+    (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uid, encoding, data, priority);
     return true;
   } else {
     PullRequestReturnIdMap::iterator it2 = cgPullRequestReturnIds.find(pluginId);
     if(it2 != cgPullRequestReturnIds.end()) {
       std::map<std::string, CrossGatewayEventHandler *>::iterator cgHandlerIt = crossGatewayHandlers.find(it2->second);
       if(cgHandlerIt != crossGatewayHandlers.end()) {
-        (*cgHandlerIt).second->sendPullResponse(requestUid, pluginId, mimeType, uri, encoding, data, priority);
+        (*cgHandlerIt).second->sendPullResponse(requestUid, pluginId, mimeType, uid, encoding, data, priority);
       }
       return true;
     }
@@ -422,8 +422,8 @@ bool GatewayCore::unregisterPullInterestCrossGateway(std::string mimeType, std::
   return false;
 }
 
-bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originHandlerId, char priority) {
-  LOG_DEBUG("  Received cross-gateway push data with uri: " << uri);
+bool GatewayCore::pushCrossGateway(std::string uid, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originHandlerId, char priority) {
+  LOG_DEBUG("  Received cross-gateway push data with uid: " << uid);
   LOG_DEBUG("                                       type: " << mimeType);
   LOG_DEBUG("                                       from: " << originHandlerId);
   
@@ -437,7 +437,7 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, std::s
     for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
       if((*it).second.scope == SCOPE_GLOBAL) {
         LOG_TRACE("Sending push data");
-        (*it).second.handler->sendPushedData(uri, mimeType, encoding, data, originUser, SCOPE_GLOBAL, priority);
+        (*it).second.handler->sendPushedData(uid, mimeType, encoding, data, originUser, SCOPE_GLOBAL, priority);
       }
     }
   }
@@ -452,7 +452,7 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, std::s
     for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
       if(originHandlerId != (*it).second.handlerId) {
         LOG_TRACE("Sending cross-gateway data");
-        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, encoding, data, originUser, priority);
+        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uid, mimeType, encoding, data, originUser, priority);
       }
     }
   }
@@ -498,12 +498,12 @@ bool GatewayCore::pullRequestCrossGateway(std::string requestUid, std::string pl
   return true;
 }
 
-bool GatewayCore::pullResponseCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data, std::string originHandlerId, char priority) {
+bool GatewayCore::pullResponseCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string uid, std::string encoding, const std::string &data, std::string originHandlerId, char priority) {
   //check for a local plugin with this ID
   map<string, GatewayEventHandler *>::iterator it = plugins.find(pluginId);
   if ( it != plugins.end() ) {
     //check for something here?
-    (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uri, encoding, data, priority);
+    (*it).second->sendPullResponse(requestUid, pluginId, mimeType, uid, encoding, data, priority);
     return true;
   } else {
     PullRequestReturnIdMap::iterator it2 = cgPullRequestReturnIds.find(pluginId);
@@ -513,7 +513,7 @@ bool GatewayCore::pullResponseCrossGateway(std::string requestUid, std::string p
       } else {
         std::map<std::string, CrossGatewayEventHandler *>::iterator cgHandlerIt = crossGatewayHandlers.find(it2->second);
         if(cgHandlerIt != crossGatewayHandlers.end()) {
-          (*cgHandlerIt).second->sendPullResponse(requestUid, pluginId, mimeType, uri, encoding, data, priority);
+          (*cgHandlerIt).second->sendPullResponse(requestUid, pluginId, mimeType, uid, encoding, data, priority);
         }
         return true;
       }

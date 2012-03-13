@@ -61,7 +61,7 @@ public class GatewayConnector {
       *       will send an authentication request, but the gateway will always
       *       will always return 'success' (and this method will always return
       *       true).  We should actually perform authentication here (pending more
-      *       information from the security people).
+      *       information from the secuidty people).
       * 
       * @param device The unique ID of the device connecting to the gateway
       * @param user The unique ID of the user associated with the device connecting
@@ -97,13 +97,13 @@ public class GatewayConnector {
     
       //Sender-side
       /**
-       * Pushes a piece of data (with a particular URI and type) to the gateway.
+       * Pushes a piece of data (with a particular UID and type) to the gateway.
        * 
        * Data pushed with this method can be received by listeners registered with
        * registerDataInterest.  All listeners registered for the type specified by
        * mimeType will receive this piece of data.
        * 
-       * @param pushData The data to be pushed to the gateway.  uri and mimeType
+       * @param pushData The data to be pushed to the gateway.  uid and mimeType
        *                 must be set, or this call must fail (other parameters
        *                 are optional, and will use sane defaults).
        * 
@@ -114,7 +114,7 @@ public class GatewayConnector {
 	    GatewayPrivateMessages.GatewayWrapper.newBuilder();
 	GatewayPrivateMessages.PushData.Builder pushMsg =
 	    GatewayPrivateMessages.PushData.newBuilder();
-	pushMsg.setUri(pushData.uri);
+	pushMsg.setUid(pushData.uid);
 	pushMsg.setMimeType(pushData.mimeType);
 	pushMsg.setEncoding(pushData.encoding);
 	pushMsg.setData( ByteString.copyFrom(pushData.data) );
@@ -192,7 +192,7 @@ public class GatewayConnector {
 	pullResp.setRequestUid(response.requestUid);
 	pullResp.setPluginId(response.pluginId);
 	pullResp.setMimeType(response.mimeType);
-	pullResp.setUri(response.uri);
+	pullResp.setUid(response.uid);
 	pullResp.setEncoding(response.encoding);
 	pullResp.setData( ByteString.copyFrom(response.data) );
 
@@ -405,7 +405,7 @@ public class GatewayConnector {
 	logger.info("onPushDataReceived: mime {}, listener {}", mimeType, listener);
 	if (listener != null) {
 	    PushData pushData = new PushData();
-	    pushData.uri = msg.getUri();
+	    pushData.uid = msg.getUid();
 	    pushData.mimeType = mimeType;
 	    pushData.encoding = msg.getEncoding();
 	    pushData.data = msg.getData().toByteArray();
@@ -440,7 +440,7 @@ public class GatewayConnector {
 	    resp.requestUid = msg.getRequestUid();
 	    resp.pluginId = msg.getPluginId();
 	    resp.mimeType = msg.getMimeType();
-	    resp.uri = msg.getUri();
+	    resp.uid = msg.getUid();
 	    resp.encoding = msg.getEncoding();
 	    resp.data = msg.getData().toByteArray();
 	    listener.onPullResponseReceived(this, resp);

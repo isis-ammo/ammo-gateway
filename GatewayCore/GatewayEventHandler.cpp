@@ -78,7 +78,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       } else {
         scope = SCOPE_LOCAL;
       }
-      GatewayCore::getInstance()->pushData(this, msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), this->username, scope, msg->message_priority());
+      GatewayCore::getInstance()->pushData(this, msg->push_data().uid(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), this->username, scope, msg->message_priority());
       break;
     } 
     case ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST: {
@@ -105,7 +105,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       
       ammo::gateway::protocol::PullResponse pullRsp = msg->pull_response();
       
-      GatewayCore::getInstance()->pullResponse( pullRsp.request_uid(), pullRsp.plugin_id(), pullRsp.mime_type(), pullRsp.uri(), pullRsp.encoding(), pullRsp.data(), msg->message_priority());
+      GatewayCore::getInstance()->pullResponse( pullRsp.request_uid(), pullRsp.plugin_id(), pullRsp.mime_type(), pullRsp.uid(), pullRsp.encoding(), pullRsp.data(), msg->message_priority());
       break;
     }
     case ammo::gateway::protocol::GatewayWrapper_MessageType_REGISTER_PULL_INTEREST: {
@@ -163,10 +163,10 @@ int GatewayEventHandler::onError(const char errorCode) {
   return 0;
 }
 
-bool GatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope scope, char priority) {
+bool GatewayEventHandler::sendPushedData(std::string uid, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope scope, char priority) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
-  pushMsg->set_uri(uri);
+  pushMsg->set_uid(uid);
   pushMsg->set_mime_type(mimeType);
   pushMsg->set_encoding(encoding);
   pushMsg->set_data(data);
@@ -206,13 +206,13 @@ bool GatewayEventHandler::sendPullRequest(std::string requestUid, std::string pl
 }
 
 bool GatewayEventHandler::sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType,
-                                              std::string uri, std::string encoding, const std::string& data, char priority) {
+                                              std::string uid, std::string encoding, const std::string& data, char priority) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PullResponse *pullRsp = msg->mutable_pull_response();
   pullRsp->set_request_uid(requestUid);
   pullRsp->set_plugin_id(pluginId);
   pullRsp->set_mime_type(mimeType);
-  pullRsp->set_uri(uri);
+  pullRsp->set_uid(uid);
   pullRsp->set_encoding(encoding);
   pullRsp->set_data(data);
   

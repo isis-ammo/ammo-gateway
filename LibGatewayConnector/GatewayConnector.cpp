@@ -71,7 +71,7 @@ bool ammo::gateway::GatewayConnector::associateDevice(string device, string user
 bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
-  pushMsg->set_uri(pushData.uri);
+  pushMsg->set_uid(pushData.uid);
   pushMsg->set_mime_type(pushData.mimeType);
   pushMsg->set_encoding(pushData.encoding);
   pushMsg->set_data(pushData.data);
@@ -132,7 +132,7 @@ bool ammo::gateway::GatewayConnector::pullResponse(PullResponse &response) {
   pullMsg->set_request_uid(response.requestUid);
   pullMsg->set_plugin_id(response.pluginId);
   pullMsg->set_mime_type(response.mimeType);
-  pullMsg->set_uri(response.uri);
+  pullMsg->set_uid(response.uid);
   pullMsg->set_encoding(response.encoding);
   pullMsg->set_data(response.data);
   
@@ -283,7 +283,7 @@ void ammo::gateway::GatewayConnector::onAssociateResultReceived(const ammo::gate
 void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::protocol::PushData &msg, char messagePriority) {
   ammo::gateway::PushData pushData;
   
-  pushData.uri = msg.uri();
+  pushData.uid = msg.uid();
   pushData.mimeType = msg.mime_type();
   pushData.encoding = msg.encoding();
   pushData.data.assign(msg.data().begin(), msg.data().end());
@@ -323,7 +323,7 @@ void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway
       response.requestUid = msg.request_uid();
       response.pluginId = msg.plugin_id();
       response.mimeType = msg.mime_type();
-      response.uri = msg.uri();
+      response.uid = msg.uid();
       response.encoding = msg.encoding();
       response.data.assign(msg.data().begin(), msg.data().end());
       response.priority = messagePriority;
@@ -343,7 +343,7 @@ void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayCo
 
 //Constructors for PushMessage, PullRequest, PullResponse--  set up sane defaults
 ammo::gateway::PushData::PushData() :
-  uri(""),
+  uid(""),
   mimeType(""),
   encoding("json"),
   data(),
@@ -373,7 +373,7 @@ ammo::gateway::PullResponse::PullResponse() :
   requestUid(""),
   pluginId(""),
   mimeType(""),
-  uri(""),
+  uid(""),
   encoding("json"),
   data(),
   priority(ammo::gateway::PRIORITY_NORMAL)

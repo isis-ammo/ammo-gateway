@@ -26,7 +26,7 @@ if __name__ == "__main__":
     connector.waitForAuthentication()
     
     print "Subscribing to type text/plain"
-    connector.push("someUri", "blah_asdf", "directed message from user " + userName)
+    connector.push("someUid", "blah_asdf", "directed message from user " + userName)
     connector.pullRequest("blah", ",,1302228081,,stuff", "", 0, 0, False)
     
     while True:
