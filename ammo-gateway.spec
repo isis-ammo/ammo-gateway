@@ -102,6 +102,8 @@ rm -rf %{buildroot}
 /usr/include/ammo-json/writer.h
 /usr/lib/libgatewayconnector.so
 /usr/lib/libgatewayconnector.so.AMMO_VERSION_STRING
+/usr/lib/libgatewaydatastore.so
+/usr/lib/libgatewaydatastore.so.AMMO_VERSION_STRING
 /usr/lib/libgeotrans-mgrs.so
 /usr/lib/libgeotrans-mgrs.so.AMMO_VERSION_STRING
 /usr/lib/libjson.so
