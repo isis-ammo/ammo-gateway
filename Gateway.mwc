@@ -1,6 +1,6 @@
 workspace(AndroidGatewayPlugin) {
-  app_specific
-  serialization
+  app_specific/
+  serialization/
   LDAPPlugin/
   LibGatewayConnector/
   LibGatewayDataStore/
