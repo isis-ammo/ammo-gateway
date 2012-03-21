@@ -35,9 +35,9 @@ enum MessageScope {
 * android_plugin_received : delivered to the android plugin by the android device
 */
 message AcknowledgementThresholds {
-  optional bool device_delivered = 0 [default = false];
-  optional bool plugin_delivered = 1 [default = false];
-  optional bool android_plugin_received = 2 [default = true];
+  optional bool device_delivered = 1 [default = false];
+  optional bool plugin_delivered = 2 [default = false];
+  optional bool android_plugin_received = 3 [default = true];
 }
 
 /**
