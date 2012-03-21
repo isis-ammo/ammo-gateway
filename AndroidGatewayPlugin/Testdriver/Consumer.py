@@ -32,7 +32,7 @@ if __name__ == "__main__":
                     default="127.0.0.1")
   parser.add_option("-p", "--port", dest="port", type="int",
                     help="Gateway port to connect to (default %default)",
-                    default=32869)
+                    default=33289)
   parser.add_option("-s", "--scope", dest="scope",
                     help="Subscription scope (either local or global; default %default)",
                     default="global")
