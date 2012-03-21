@@ -26,14 +26,12 @@ enum MessageScope {
 }
 
 /**
-* DEVICE_DELIVERED : delivered by the plugin to a device (android device)
-* PLUGIN_DELIVERED = delivered by the gateway to a plugin
-* ANDROID_PLUGIN_RECEIVED = 2: delivered to the android plugin by the android device
+* device_delivered : delivered by the plugin to a device (android device)
+* plugin_delivered : delivered by the gateway to a plugin
 */
-enum AcknowledgementThresholds {
-  DEVICE_DELIVERED = 0;
-  PLUGIN_DELIVERED = 1;
-  ANDROID_PLUGIN_RECEIVED = 2;
+message AcknowledgementThresholds {
+  optional bool device_delivered = 1 [default = false];
+  optional bool plugin_delivered = 2 [default = false];
 }
 
 
@@ -58,22 +56,35 @@ message PushData {
   optional string origin_device = 7;
   optional bytes data = 3;
   optional MessageScope scope = 5 [default = GLOBAL];
-  repeated AcknowledgementThresholds thresholds = 8;
+  optional AcknowledgementThresholds thresholds = 8;
 }
 
 /**
-* Sent from the Android plugin to the device when a DataMessage is
-* received.
+* Sent when a DataMessage is received, if requested.
 *
 * uid : this must match the uid of the corresponding DataMessage
 * destination_device : this must match the origin_device of the
 *                      corresponding DataMessage
 * acknowledging_device : this device id of the acknowledging device or plugin. 
+* status : indicates the disposition of the message as it crosses the threshold
+*     SUCCESS    the threshold was crossed without incident 
+*     FAIL       the threshold was reached, but the message failed and will be canceled 
+*     UNKNOWN    the request is of an indeterminate disposition
+*     REJECTED   the threshold rejected the request
 */
 message PushAcknowledgement {
   required string uid = 1;
   optional string destination_device = 2;
   optional string acknowledging_device = 3;
+  
+  enum PushStatus {
+    UNKNOWN   = 0;
+    SUCCESS   = 1;
+    FAIL      = 2;
+    REJECTED  = 3;
+  }
+   
+  optional PushStatus status = 4;
 }
 
 
