@@ -3,7 +3,6 @@
 #include "ace/Connector.h"
 #include "ace/SOCK_Connector.h"
 
-#include "ace/OS_NS_sys_stat.h"
 #include <ace/OS_NS_sys_stat.h>
 #include <ace/OS_NS_unistd.h>
 
@@ -92,7 +91,8 @@ DataStoreReceiver::init (void)
 	  "origin_user TEXT,"
 	  "tv_sec INTEGER NOT NULL,"
 	  "tv_usec INTEGER,"
-	  "data BLOB)";
+	  "data BLOB,"
+	  "checksum BLOB)";
 	
   char *db_err = 0;
 	

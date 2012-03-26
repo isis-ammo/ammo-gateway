@@ -1,6 +1,6 @@
 #include <sqlite3.h>
 
-#include "ace/OS_NS_sys_time.h"
+#include <ace/OS_NS_sys_time.h>
 
 #include "GatewayConnector.h"
 #include "log.h"
@@ -21,7 +21,7 @@ OriginalPushHandler::handlePush (void)
 	
   int status =
 	  sqlite3_prepare (db_,
-			               "insert into data_table values (?,?,?,?,?,?)",
+			               "insert into data_table values (?,?,?,?,?,?,?)",
 			               -1,
 			               &stmt_,
 			               0);
@@ -35,6 +35,9 @@ OriginalPushHandler::handlePush (void)
       return false;
     }
     
+  // Populate our checksum buffer with a new checksum.
+  this->new_checksum (tv);
+    
   unsigned int index = 1;
   
   bool good_binds =
@@ -43,7 +46,8 @@ OriginalPushHandler::handlePush (void)
     && DataStoreUtils::bind_text (db_, stmt_, index, pd_.originUsername, true)
     && DataStoreUtils::bind_int (db_, stmt_, index, tv.sec ())
     && DataStoreUtils::bind_int (db_, stmt_, index, tv.usec ())
-    && DataStoreUtils::bind_blob (db_, stmt_, index, pd_.data.data (), pd_.data.length (), true);
+    && DataStoreUtils::bind_blob (db_, stmt_, index, pd_.data.data (), pd_.data.length (), true)
+    && DataStoreUtils::bind_blob (db_, stmt_, index, checksum_, PushHandler::CS_SIZE, true);
 
   if (good_binds)
     {	

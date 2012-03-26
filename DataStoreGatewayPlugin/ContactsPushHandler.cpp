@@ -1,4 +1,7 @@
+#include <strstream>
 #include <sqlite3.h>
+
+#include <ace/OS_NS_sys_time.h>
 
 #include "GatewayConnector.h"
 #include "log.h"
@@ -36,7 +39,8 @@ ContactsPushHandler::handlePush (void)
 	  "email TEXT,"
 	  "phone TEXT,"
 	  "photo BLOB,"
-	  "insignia BLOB)";
+	  "insignia BLOB,"
+	  "checksum BLOB)";
 	  
 	bool good_table_open =
 	  DataStoreUtils::createTable (db_,
@@ -50,7 +54,7 @@ ContactsPushHandler::handlePush (void)
 
   std::string insert_str ("insert into ");
   insert_str += tbl_name;
-  insert_str += " values (?,?,?,?,?,?,?,?,?,?,?,?)";
+  insert_str += " values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
   
   //LOG_TRACE ("insert str: " << insert_str.c_str ());
 	
@@ -73,6 +77,10 @@ ContactsPushHandler::handlePush (void)
       return false;
     }
     
+  // Populate our checksum buffer with a new checksum.
+  ACE_Time_Value tv (ACE_OS::gettimeofday ());
+  this->new_checksum (tv);
+	
   unsigned int index = 1;
     
   bool good_binds =
@@ -85,7 +93,8 @@ ContactsPushHandler::handlePush (void)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["branch"].asString (), true)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["unit"].asString (), true)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["email"].asString (), true)
-    && DataStoreUtils::bind_text (db_, stmt_, index, root["phone"].asString (), true);
+    && DataStoreUtils::bind_text (db_, stmt_, index, root["phone"].asString (), true)
+    && DataStoreUtils::bind_blob (db_, stmt_, index, checksum_, PushHandler::CS_SIZE, true);
     
 	if (good_binds)
 	  {
