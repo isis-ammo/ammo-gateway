@@ -1,4 +1,4 @@
-#include <strstream>
+#include <sstream>
 #include <sqlite3.h>
 #include <openssl/sha.h>
 
@@ -27,10 +27,10 @@ PushHandler::~PushHandler (void)
 void
 PushHandler::new_checksum (ACE_Time_Value &tv)
 {
-  std::ostrstream o;
-  o << tv.sec () << tv.usec ();
+  std::basic_ostringstream<char> o;
+  o << tv.sec () << tv.usec () << std::ends;
   
-  (void) SHA1 (reinterpret_cast<unsigned char *> (o.str ()),
+  (void) SHA1 (reinterpret_cast<const unsigned char *> (o.str ().c_str ()),
                PushHandler::CS_SIZE,
                checksum_);
 }

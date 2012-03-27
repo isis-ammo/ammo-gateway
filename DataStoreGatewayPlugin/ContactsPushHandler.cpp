@@ -81,7 +81,11 @@ ContactsPushHandler::handlePush (void)
   ACE_Time_Value tv (ACE_OS::gettimeofday ());
   this->new_checksum (tv);
 	
-  unsigned int index = 1;
+  unsigned int index = 1U;
+  
+  // Skip the last 2 binary columns (not used at present)
+  // to bind the checksum in the last column.
+  unsigned int final = 13U;
     
   bool good_binds =
     DataStoreUtils::bind_text (db_, stmt_, index, pd_.uri, true)
@@ -94,7 +98,7 @@ ContactsPushHandler::handlePush (void)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["unit"].asString (), true)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["email"].asString (), true)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["phone"].asString (), true)
-    && DataStoreUtils::bind_blob (db_, stmt_, index, checksum_, PushHandler::CS_SIZE, true);
+    && DataStoreUtils::bind_blob (db_, stmt_, final, checksum_, PushHandler::CS_SIZE, true);
     
 	if (good_binds)
 	  {

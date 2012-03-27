@@ -43,6 +43,10 @@ DataStoreDispatcher::dispatchPushData (sqlite3 *db,
 	  {
       LOG_TRACE ("data store successful");
     }
+  else
+    {
+      LOG_ERROR ("data store failed");
+    }
 }
 
 void

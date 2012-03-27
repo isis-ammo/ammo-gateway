@@ -137,7 +137,7 @@ ContactsQueryHandler::encode_row (sqlite3_stmt *stmt,
   static const Json::StaticString ph ("phone");
   value[ph] =
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 9));
-  
+    
   Json::FastWriter writer;
   output = writer.write (value);
 }

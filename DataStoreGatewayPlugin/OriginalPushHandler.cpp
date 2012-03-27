@@ -38,7 +38,7 @@ OriginalPushHandler::handlePush (void)
   // Populate our checksum buffer with a new checksum.
   this->new_checksum (tv);
     
-  unsigned int index = 1;
+  unsigned int index = 1U;
   
   bool good_binds =
     DataStoreUtils::bind_text (db_, stmt_, index, pd_.uri, true)
@@ -47,7 +47,7 @@ OriginalPushHandler::handlePush (void)
     && DataStoreUtils::bind_int (db_, stmt_, index, tv.sec ())
     && DataStoreUtils::bind_int (db_, stmt_, index, tv.usec ())
     && DataStoreUtils::bind_blob (db_, stmt_, index, pd_.data.data (), pd_.data.length (), true)
-    && DataStoreUtils::bind_blob (db_, stmt_, index, checksum_, PushHandler::CS_SIZE, true);
+    && DataStoreUtils::bind_blob (db_, stmt_, index, &checksum_, PushHandler::CS_SIZE, true);
 
   if (good_binds)
     {	
