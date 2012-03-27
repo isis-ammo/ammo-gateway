@@ -44,7 +44,7 @@ namespace ammo {
     */
     struct PluginInstanceId {
     public:
-      PluginInstanceId(std::string newPluginName, std::string newInstanceId) : pluginName(newPluginName), newInstanceId(newInstanceId) {
+      PluginInstanceId(std::string newPluginName, std::string newInstanceId) : pluginName(newPluginName), instanceId(newInstanceId) {
         //don't need to do anything
       };
       
@@ -461,7 +461,7 @@ namespace ammo {
                                      bool remotePlugin,
                                      std::string &gatewayId);
       
-      virtual void onPointToPointMessageReceived(GatewayConnector *sender, ammo::gateway::PointToPointMessage &message) = 0;
+      virtual void onPointToPointMessageReceived(GatewayConnector *sender, ammo::gateway::PointToPointMessage &message);
     };
     
     /**
