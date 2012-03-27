@@ -124,7 +124,8 @@ class ReliableMulticastConnector {
 	+ 4 // payload checksum
 	+ 4; // header checksum
     static final int GATEWAY_MESSAGE_MAGIC = 0xdeadbeef;
-    static final byte[] GATEWAY_MESSAGE_MAGICB = { (byte)0xde, (byte)0xad, (byte)0xbe, (byte)0xef };
+    //static final byte[] GATEWAY_MESSAGE_MAGICB = { (byte)0xde, (byte)0xad, (byte)0xbe, (byte)0xef };
+    static final byte[] GATEWAY_MESSAGE_MAGICB = { (byte)0xed, (byte)0xad, (byte)0xbe, (byte)0xef };
     
 
     public ReliableMulticastConnector(PluginServiceHandler plugin, String multicastAddr, int multicastPort) {
@@ -599,7 +600,7 @@ class ReliableMulticastConnector {
 	    if (readState == 0)	{// should have received a full message
 		try {
 		    AmmoMessages.MessageWrapper agm =
-			AmmoMessages.MessageWrapper.parseFrom(message.payload);
+		        AmmoMessages.MessageWrapper.parseFrom(message.payload);
 		    logger.info( "received a message {}", agm.getType() );
 		    mDestination.deliverMessage( agm );
 		} catch(com.google.protobuf.InvalidProtocolBufferException ex) {
@@ -644,8 +645,9 @@ class ReliableMulticastConnector {
 		while (true) {
 		    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[3]) continue;
 		    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[2]) continue;
-		    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[1]) continue;
+		    //if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[1]) continue;
 		    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[0]) continue;
+		    bbuf.get();   // this is the VERSION byte - TBD SKN process this to differentiate between FULL and TERSE encoding
 		    break;
 		}
 		// got a magic sequence - now should see the header proper
