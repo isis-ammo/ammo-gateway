@@ -34,6 +34,12 @@ public:
   static const unsigned long CS_SIZE = 20U;
   
 protected:
+  // This overload is used by ContactsPushHandler, and includes
+  // the originUsername and the data blob in the checksum.
+  void new_checksum (void);
+  
+  // This overload is used by OriginalPushHandler, and includes
+  // the data blob and the generated timestamp in the checksum.
   void new_checksum (ACE_Time_Value &tv);
     
 protected:
@@ -41,6 +47,9 @@ protected:
   sqlite3_stmt *stmt_;
   const ammo::gateway::PushData &pd_;
   unsigned char checksum_[CS_SIZE];
+  
+private:
+  void create_checksum (const std::string &ibuf);
 };
 
 #endif // #ifndef PUSH_HANDLER_H

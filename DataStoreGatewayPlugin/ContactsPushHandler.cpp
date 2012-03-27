@@ -78,8 +78,7 @@ ContactsPushHandler::handlePush (void)
     }
     
   // Populate our checksum buffer with a new checksum.
-  ACE_Time_Value tv (ACE_OS::gettimeofday ());
-  this->new_checksum (tv);
+  this->new_checksum ();
 	
   unsigned int index = 1U;
   
