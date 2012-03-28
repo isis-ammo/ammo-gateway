@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
   ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
   
   string androidAddress = "0.0.0.0";
-  int androidPort = 32869;
+  int androidPort = 33289;
   
   queue<string> argumentQueue;
   for(int i=1; i < argc; i++) {
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
     } else {
       LOG_FATAL("Usage: AndroidGatewayPlguin [--listenPort port] [--listenAddress address]");
       LOG_FATAL("  --listenPort port        Sets the listening port for the Android ");
-      LOG_FATAL("                           interface (default 32869)");
+      LOG_FATAL("                           interface (default 33289)");
       LOG_FATAL("  --listenAddress address  Sets the listening address for the Android");
       LOG_FATAL("                           interface (default 0.0.0.0, or all interfaces)");
       return 1;

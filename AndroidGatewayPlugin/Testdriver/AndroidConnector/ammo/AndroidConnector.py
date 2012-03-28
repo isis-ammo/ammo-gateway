@@ -323,7 +323,7 @@ class AndroidConnector(threading.Thread):
 # type, then prints out any data that it receives with that type.
 if __name__ == "__main__":
   print "Android Gateway Tester"
-  connector = AndroidConnector("localhost", 32869, "device:test/pythonTestDriver1", "user:user/testPythonUser1", "")
+  connector = AndroidConnector("localhost", 33289, "device:test/pythonTestDriver1", "user:user/testPythonUser1", "")
   
   try:
     connector.start()
