@@ -145,7 +145,13 @@ int SerialServiceHandler::open(void *ptr)
   
   // Other "c" bits
   //cfg.c_iflag |= IGNBRK; // Ignore break condition
+  // The constant IUCLC is not present on OSX, so we only use it on non-OSX
+  // platforms (where __APPLE__ is not defined).
+  #ifndef __APPLE__
   cfg.c_iflag &= ~( IGNBRK | BRKINT | IGNPAR | PARMRK | INPCK | ISTRIP | INLCR | IGNCR | ICRNL | IUCLC );
+  #else 
+  cfg.c_iflag &= ~( IGNBRK | BRKINT | IGNPAR | PARMRK | INPCK | ISTRIP | INLCR | IGNCR | ICRNL );
+  #endif
   
   // Other "l" bits
   cfg.c_lflag &= ~IEXTEN;

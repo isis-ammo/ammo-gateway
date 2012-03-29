@@ -11,11 +11,11 @@
 
 using namespace std;
 
-ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate) : delegate(delegate), handler(NULL), connected(false) {
+ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate, std::string pluginName, std::string instanceId) : delegate(delegate), handler(NULL), connected(false) {
   init(delegate, ammo::gateway::internal::GatewayConfigurationManager::getInstance());
 }
 
-ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate, std::string configFile) : delegate(delegate), handler(NULL), connected(false) {
+ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate, std::string pluginName, std::string instanceId, std::string configFile) : delegate(delegate), handler(NULL), connected(false) {
   init(delegate, ammo::gateway::internal::GatewayConfigurationManager::getInstance(configFile.c_str()));
 }
 
@@ -147,6 +147,10 @@ bool ammo::gateway::GatewayConnector::pullResponse(PullResponse &response) {
     LOG_ERROR("Not connected to gateway; can't send data");
     return false;
   }
+}
+
+bool ammo::gateway::GatewayConnector::pointToPointMessage(PointToPointMessage &message) {
+  return false;
 }
 
 bool ammo::gateway::GatewayConnector::registerDataInterest(string mime_type, DataPushReceiverListener *listener, MessageScope scope) {
@@ -339,6 +343,23 @@ void ammo::gateway::GatewayConnector::onPullResponseReceived(const ammo::gateway
 
 void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayConnector *sender, bool result) {
   //LOG_INFO("GatewayConnectorDelegate::onAuthenticationResponse : result = " << result);
+}
+
+void ammo::gateway::GatewayConnectorDelegate::onRemoteGatewayConnected(GatewayConnector *sender,
+                                            std::string &gatewayId,
+                                            PluginList &connectedPlugins) {
+  //Do nothing by default
+}
+
+void ammo::gateway::GatewayConnectorDelegate::onPluginConnected(GatewayConnector *sender,
+                                     PluginInstanceId pluginId,
+                                     bool remotePlugin,
+                                     std::string &gatewayId){
+  //Do nothing by default
+}
+
+void ammo::gateway::GatewayConnectorDelegate::onPointToPointMessageReceived(GatewayConnector *sender, ammo::gateway::PointToPointMessage &message) {
+  //Do nothing by default
 }
 
 //Constructors for PushMessage, PullRequest, PullResponse--  set up sane defaults

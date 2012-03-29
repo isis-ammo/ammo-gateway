@@ -40,6 +40,19 @@ namespace ammo {
     };
     
     /**
+    * Identifies an instance of a plugin, by plugin name and instance ID.
+    */
+    struct PluginInstanceId {
+    public:
+      PluginInstanceId(std::string newPluginName, std::string newInstanceId) : pluginName(newPluginName), instanceId(newInstanceId) {
+        //don't need to do anything
+      };
+      
+      std::string pluginName;
+      std::string instanceId;
+    };
+    
+    /**
      * A data object.
      */
     class LibGatewayConnector_Export PushData {
@@ -146,6 +159,18 @@ namespace ammo {
       }
     };
     
+    class LibGatewayConnector_Export PointToPointMessage {
+    public:
+      PointToPointMessage();
+      std::string uid;
+      std::string destinationGateway; //leave blank if plugin is on local gateway
+      PluginInstanceId pluginId;
+      std::string mimeType;
+      std::string encoding;
+      std::string data;
+      char priority;
+    };
+    
     /**
     * This class is used to connect a gateway plugin to the core gateway.  Each 
     * plugin should use at least one instance of this class; a plugin may create
@@ -163,8 +188,19 @@ namespace ammo {
       * @param delegate A GatewayConnectorDelegate object to be used by this
       *                 GatewayConnector instance.  May be NULL (no delegate methods
       *                 will be called).
+      * @param pluginName The name of this plugin (must be unique to the plugin,
+      *                   but multiple instances of the plugin may share the
+      *                   same name if differentiated by the instanceId
+      *                   parameter.
+      * @param instanceId A unique identifier identifying this instance of the
+      *                   plugin; should be globally unique across all instances
+      *                   of this plugin across the whole network.  If set to an
+      *                   empty string (""), an instance ID will be randomly
+      *                   generated for this instance (most plugins will
+      *                   probably do this, although a custom human-readable ID 
+      *                   can be nice for debugging and logging).
       */
-      GatewayConnector(GatewayConnectorDelegate *delegate);
+      GatewayConnector(GatewayConnectorDelegate *delegate, std::string pluginName, std::string instanceId);
       
       /**
       * Creates a new GatewayConnector with the given GatewayConnectorDelegate and
@@ -173,9 +209,20 @@ namespace ammo {
       * @param delegate A GatewayConnectorDelegate object to be used by this
       *                 GatewayConnector instance.  May be NULL (no delegate methods
       *                 will be called).
+      * @param pluginName The name of this plugin (must be unique to the plugin,
+      *                   but multiple instances of the plugin may share the
+      *                   same name if differentiated by the instanceId
+      *                   parameter.
+      * @param instanceId A unique identifier identifying this instance of the
+      *                   plugin; should be globally unique across all instances
+      *                   of this plugin across the whole network.  If set to an
+      *                   empty string (""), an instance ID will be randomly
+      *                   generated for this instance (most plugins will
+      *                   probably do this, although a custom human-readable ID 
+      *                   can be nice for debugging and logging).
       * @param configfile A path to the gateway config file.
       */
-      GatewayConnector(GatewayConnectorDelegate *delegate, std::string configfile);
+      GatewayConnector(GatewayConnectorDelegate *delegate, std::string pluginName, std::string instanceId, std::string configfile);
     
       /**
       * Destroys a GatewayConnector.
@@ -247,6 +294,8 @@ namespace ammo {
        * @return true if the operation succeeded; false if the operation failed.
        */
       bool pullResponse(PullResponse &response);
+      
+      bool pointToPointMessage(PointToPointMessage &message);
     
     
       //Receiver-side
@@ -357,6 +406,8 @@ namespace ammo {
     */
     class LibGatewayConnector_Export GatewayConnectorDelegate {
     public:
+      typedef std::vector<PluginInstanceId> PluginList;
+      
       /**
       * Called when the GatewayConnector connects to the gateway core.
       * 
@@ -382,6 +433,35 @@ namespace ammo {
       *               failed.
       */
       virtual void onAuthenticationResponse(GatewayConnector *sender, bool result);
+      
+      /**
+      * Called when a remote gateway connects to this gateway.
+      *
+      * @param sender The GatewayConnector instance which received the notification.
+      * @param gatewayId The name of the remote gateway which connected.
+      * @param connectedPlugins The list of connected plugins.
+      */
+      virtual void onRemoteGatewayConnected(GatewayConnector *sender,
+                                            std::string &gatewayId,
+                                            PluginList &connectedPlugins);
+      
+      /**
+      * Called when a plugin connects to the gateway.
+      * 
+      * @param sender The GatewayConnector instance which received the notification.
+      * @param pluginId The name and instance ID of the plugin which connected.
+      * @param remotePlugin True if the plugin is connected to a remote gateway;
+      *                     false if the plugin is connected to the local gateway.
+      * @param gatewayId If the plugin is connected to a remote gateway, is the
+      *                  name of that remote gateway.  Undefined if the plugin
+      *                  is connected to a local gateway (remotePlugin is false).
+      */
+      virtual void onPluginConnected(GatewayConnector *sender,
+                                     PluginInstanceId pluginId,
+                                     bool remotePlugin,
+                                     std::string &gatewayId);
+      
+      virtual void onPointToPointMessageReceived(GatewayConnector *sender, ammo::gateway::PointToPointMessage &message);
     };
     
     /**
