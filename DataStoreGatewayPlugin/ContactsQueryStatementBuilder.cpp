@@ -71,19 +71,17 @@ ContactsQueryStatementBuilder::build (void)
 bool
 ContactsQueryStatementBuilder::bind (void)
 {
-  unsigned int index = 1;
-
   return
-    DataStoreUtils::bind_text (db_, stmt_, index, parser_.uri_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.first_name_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.middle_initial_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.last_name_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.rank_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.call_sign_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.branch_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.unit_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.email_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.phone_, false);
+    this->bindText (parser_.uri_)
+    && this->bindText (parser_.first_name_)
+    && this->bindText (parser_.middle_initial_)
+    && this->bindText (parser_.last_name_)
+    && this->bindText (parser_.rank_)
+    && this->bindText (parser_.call_sign_)
+    && this->bindText (parser_.branch_)
+    && this->bindText (parser_.unit_)
+    && this->bindText (parser_.email_)
+    && this->bindText (parser_.phone_);
 }
 
 

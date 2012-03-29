@@ -105,7 +105,7 @@
     <mkdir dir="${plugin-dist}/lib"/>
 
     <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-    <jar jarfile="${plugin-dist}/lib/rmcastplugin.jar" basedir="${plugin-build}"/>
+    <jar jarfile="${plugin-dist}/lib/rmcastplugin.jar" basedir="${plugin-build}" includes="edu/vu/**"/>
 
   </target>
 
