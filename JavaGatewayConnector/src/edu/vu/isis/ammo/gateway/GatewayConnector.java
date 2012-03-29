@@ -117,6 +117,7 @@ public class GatewayConnector {
 	pushMsg.setUid(pushData.uid);
 	pushMsg.setMimeType(pushData.mimeType);
 	pushMsg.setEncoding(pushData.encoding);
+	pushMsg.setOriginUser(pushData.originUserName);
 	pushMsg.setData( ByteString.copyFrom(pushData.data) );
 	pushMsg.setScope( (pushData.scope == MessageScope.SCOPE_LOCAL) ?
 			  GatewayPrivateMessages.MessageScope.LOCAL :
@@ -408,6 +409,7 @@ public class GatewayConnector {
 	    pushData.uid = msg.getUid();
 	    pushData.mimeType = mimeType;
 	    pushData.encoding = msg.getEncoding();
+	    pushData.originUserName = msg.getOriginUser();
 	    pushData.data = msg.getData().toByteArray();
 
 	    listener.onPushDataReceived(this, pushData);
