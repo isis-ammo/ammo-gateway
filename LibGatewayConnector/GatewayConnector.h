@@ -164,7 +164,9 @@ namespace ammo {
       PointToPointMessage();
       std::string uid;
       std::string destinationGateway; //leave blank if plugin is on local gateway
-      PluginInstanceId pluginId;
+      PluginInstanceId destinationPluginId;
+      std::string sourceGateway; //callers don't need to fill source attributes out themselves
+      PluginInstanceId sourcePluginId; 
       std::string mimeType;
       std::string encoding;
       std::string data;
@@ -385,8 +387,17 @@ namespace ammo {
       void onPushDataReceived(const ammo::gateway::protocol::PushData &msg, char messagePriority);
       void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg, char messagePriority);
       void onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg, char messagePriority);
+      void onPointToPointMessageReceived(const ammo::gateway::protocol::PointToPointMessage &msg, char messagePriority);
+      void onRemoteGatewayConnectedNotification(const ammo::gateway::protocol::RemoteGatewayConnectedNotification &msg);
+      void onPluginConnectedNotification(const ammo::gateway::protocol::PluginConnectedNotification &msg);
+      
+      bool associatePlugin();
       
       GatewayConnectorDelegate *delegate;
+      
+      std::string pluginName;
+      std::string instanceId;
+      
       std::map<std::string, DataPushReceiverListener *> receiverListeners;
       std::map<std::string, PullRequestReceiverListener *> pullRequestListeners;
       std::map<std::string, PullResponseReceiverListener *> pullResponseListeners;
@@ -442,8 +453,8 @@ namespace ammo {
       * @param connectedPlugins The list of connected plugins.
       */
       virtual void onRemoteGatewayConnected(GatewayConnector *sender,
-                                            std::string &gatewayId,
-                                            PluginList &connectedPlugins);
+                                            const std::string &gatewayId,
+                                            const PluginList &connectedPlugins);
       
       /**
       * Called when a plugin connects to the gateway.
@@ -457,11 +468,11 @@ namespace ammo {
       *                  is connected to a local gateway (remotePlugin is false).
       */
       virtual void onPluginConnected(GatewayConnector *sender,
-                                     PluginInstanceId pluginId,
-                                     bool remotePlugin,
-                                     std::string &gatewayId);
+                                     const PluginInstanceId &pluginId,
+                                     const bool remotePlugin,
+                                     const std::string &gatewayId);
       
-      virtual void onPointToPointMessageReceived(GatewayConnector *sender, ammo::gateway::PointToPointMessage &message);
+      virtual void onPointToPointMessageReceived(GatewayConnector *sender, const ammo::gateway::PointToPointMessage &message);
     };
     
     /**
