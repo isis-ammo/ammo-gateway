@@ -40,6 +40,15 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_RESPONSE) {
     LOG_DEBUG("Received Pull Response...");
     parent->onPullResponseReceived(msg->pull_response(), msg->message_priority());
+  } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_POINT_TO_POINT_MESSAGE) {
+    LOG_DEBUG("Received Point To Point Message...");
+    parent->onPointToPointMessageReceived(msg->point_to_point_message(), msg->message_priority());
+  } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REMOTE_GATEWAY_CONNECTED_NOTIFICATION) {
+    LOG_DEBUG("Received Remote Gateway Connected Notification...");
+    parent->onRemoteGatewayConnectedNotification(msg->remote_gateway_connected_notification());
+  } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PLUGIN_CONNECTED_NOTIFICATION) {
+    LOG_DEBUG("Received Plugin Connected Notification...");
+    parent->onPluginConnectedNotification(msg->plugin_connected_notification());
   }
   
   delete msg;

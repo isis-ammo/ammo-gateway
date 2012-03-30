@@ -4,6 +4,7 @@
 #include <string>
 #include <set>
 #include <queue>
+#include <vector>
 
 #include "NetworkEventHandler.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
@@ -23,9 +24,21 @@ public:
 		       unsigned int maxResults, unsigned int startFromCount, bool liveQuery, char priority);
   bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string& data, char priority);
   
+  bool sendPointToPointMessage(std::string uid, std::string destinationGateway, std::string destinationPluginName, std::string destinationInstanceId, std::string sourceGateway, std::string sourcePluginName, std::string sourceInstanceId, std::string mimeType, std::string encoding, std::string data, char priority);
+  
+  bool sendPluginAuthenticationResponse(bool success, std::string message);
+  
+  bool sendRemoteGatewayConnectedNotification(std::string gatewayId, std::vector<std::pair<std::string, std::string> > connectedPlugins);
+  bool sendPluginConnectedNotification(std::string pluginName, std::string instanceId, bool remotePlugin, std::string gatewayId);
+  
+  
+  
 private:
   std::string username;
   bool usernameAuthenticated;
+  
+  std::string pluginName;
+  std::string instanceId;
   
   std::vector<std::string> registeredHandlers;
   std::vector<std::string> registeredPullRequestHandlers;

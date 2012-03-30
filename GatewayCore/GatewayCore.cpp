@@ -252,7 +252,7 @@ void GatewayCore::setParentHandler(CrossGatewayEventHandler *handler) {
   this->parentHandler = handler;
 }
   
-bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGatewayEventHandler *handler) {
+bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGatewayEventHandler *handler, std::vector<std::pair<std::string, std::string> > connectedPlugins) {
   LOG_DEBUG("Registering cross-gateway handler " << handlerId);
   crossGatewayHandlers[handlerId] = handler;
   //send existing subscriptions

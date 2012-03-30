@@ -95,7 +95,7 @@
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <javac
-       classpath="${basedir}/libs/protobuf.jar;${basedir}/libs/json-20090211.jar;${basedir}/libs/slf4j-api-1.6.4.jar;${basedir}/libs/jgroups.jar;${basedir}/libs/gatewaypluginapi.jar" srcdir="${plugin-src};${plugin-gen}" destdir="${plugin-build}"/>
+       classpath="${basedir}/libs/protobuf.jar;${basedir}/libs/json-20090211.jar;${basedir}/libs/slf4j-api-1.6.4.jar;${basedir}/libs/gatewaypluginapi.jar" srcdir="${plugin-src};${plugin-gen}" destdir="${plugin-build}"/>
     <!-- <javac srcdir="${gen}" destdir="${build}"/> -->
   </target>
 
@@ -105,7 +105,7 @@
     <mkdir dir="${plugin-dist}/lib"/>
 
     <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-    <jar jarfile="${plugin-dist}/lib/rmcastplugin.jar" basedir="${plugin-build}" includes="edu/vu/**"/>
+    <jar jarfile="${plugin-dist}/lib/mcastplugin.jar" basedir="${plugin-build}" includes="edu/vu/**"/>
 
   </target>
 

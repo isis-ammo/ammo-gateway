@@ -8,7 +8,7 @@ perform, display, or disclose computer software or computer software
 documentation in whole or in part, in any manner and for any 
 purpose whatsoever, and to have or authorize others to do so.
 */
-package edu.vu.isis.ammo.rmcastplugin;
+package edu.vu.isis.ammo.mcastplugin;
 
 import edu.vu.isis.ammo.gateway.*;
 import edu.vu.isis.ammo.core.pb.AmmoMessages;
@@ -20,13 +20,13 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 
 /**
- * class RMCastPlugin
+ * class McastPlugin
  **/ 
 
 
-class RMCastPlugin 
+class McastPlugin 
 {
-    static ReliableMulticastConnector mRmcastConnector = null;
+    static MulticastConnector mMcastConnector = null;
     static GatewayConnector mGatewayConnector = null;
     static PluginServiceHandler mServiceHandler = null;
 
@@ -37,10 +37,10 @@ class RMCastPlugin
 	mServiceHandler = new PluginServiceHandler();
 
 	mGatewayConnector = new GatewayConnector( mServiceHandler );
-    mServiceHandler.setGatewayConnector( mGatewayConnector );
+	mServiceHandler.setGatewayConnector( mGatewayConnector );
 
-    mRmcastConnector = new ReliableMulticastConnector(mServiceHandler, "", 1234);
-	mServiceHandler.setRmcastConnector( mRmcastConnector );
+	mMcastConnector = new MulticastConnector(mServiceHandler, "228.10.10.90", 9982);
+	mServiceHandler.setMcastConnector( mMcastConnector );
 	
 	while(true) {
 	    try {

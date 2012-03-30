@@ -77,8 +77,8 @@ int main(int argc, char **argv) {
   AtsHandler* dataHandler = new AtsHandler();
   
   GatewayConnector* gwc = (config->hasGatewayConfig())
-         ? new GatewayConnector(dataHandler, config->getGatewayConfig())
-         : new GatewayConnector(dataHandler);
+         ? new GatewayConnector(dataHandler, "AtsGatewayPlugin", "", config->getGatewayConfig())
+         : new GatewayConnector(dataHandler, "AtsGatewayPlugin", "");
   
   setRegisterPullInterest(gwc, RTC_LIST_PEOPLE_NS, dataHandler);
   setRegisterPullInterest(gwc, RTC_LIST_CHANNEL_NS, dataHandler);

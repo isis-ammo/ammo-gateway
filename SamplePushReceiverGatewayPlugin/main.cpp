@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
   
   SamplePushReceiver *pushReceiver = new SamplePushReceiver();
   
-  GatewayConnector *gatewayConnector = new GatewayConnector(pushReceiver);
+  GatewayConnector *gatewayConnector = new GatewayConnector(pushReceiver, "SamplePushReceiverGatewayPlugin", "");
   
   gatewayConnector->registerDataInterest("text/plain", pushReceiver);
   

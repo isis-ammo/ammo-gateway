@@ -29,6 +29,13 @@ public:
   bool sendRegisterPullInterest(std::string mimeType);
   bool sendUnregisterPullInterest(std::string mimeType);
   
+  bool sendPointToPointMessage(std::string uid, std::string destinationGateway, std::string destinationPluginName, std::string destinationInstanceId, std::string sourceGateway, std::string sourcePluginName, std::string sourceInstanceId, std::string mimeType, std::string encoding, std::string data, char priority);
+  
+  bool sendRemoteGatewayConnectedNotification(std::string gatewayId, std::vector<std::pair<std::string, std::string> > connectedPlugins);
+  bool sendRemoteGatewayDisconnectedNotification(std::string gatewayId);
+  
+  bool sendPluginConnectedNotification(std::string pluginName, std::string instanceId, bool remotePlugin, std::string gatewayId);
+  
 private:
   std::string gatewayId;
   bool gatewayIdAuthenticated;

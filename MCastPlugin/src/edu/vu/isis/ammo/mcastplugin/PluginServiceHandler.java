@@ -8,7 +8,7 @@ perform, display, or disclose computer software or computer software
 documentation in whole or in part, in any manner and for any 
 purpose whatsoever, and to have or authorize others to do so.
 */
-package edu.vu.isis.ammo.rmcastplugin;
+package edu.vu.isis.ammo.mcastplugin;
 
 import edu.vu.isis.ammo.gateway.*;
 import edu.vu.isis.ammo.core.pb.AmmoMessages;
@@ -33,7 +33,7 @@ class PluginServiceHandler implements
 			       PullRequestReceiverListener,
 			       PullResponseReceiverListener
 {
-    private ReliableMulticastConnector mRmcastConnector = null;
+    private MulticastConnector mMcastConnector = null;
     private GatewayConnector mGatewayConnector = null;
 
     private HashMap<String,Integer> subscriptions = null;
@@ -50,17 +50,17 @@ class PluginServiceHandler implements
 	mGatewayConnector = gatewayConnector;
     }
 
-    public void setRmcastConnector(ReliableMulticastConnector rmcastConnector)
+    public void setMcastConnector(MulticastConnector mcastConnector)
     {
-	mRmcastConnector = rmcastConnector;
+	mMcastConnector = mcastConnector;
     }
 
 
-    public void onConnect() { }	// from RMCastConnector
+    public void onConnect() { }	// from MCastConnector
 
-    public void onDisconnect() { } // from RMCastConnector
+    public void onDisconnect() { } // from MCastConnector
 
-    public void onAmmoMessageReceived( AmmoMessages.MessageWrapper message ) // from RMCastConnector
+    public void onAmmoMessageReceived( AmmoMessages.MessageWrapper message ) // from MCastConnector
     {
 	if (message.getType() == AmmoMessages.MessageWrapper.MessageType.DATA_MESSAGE) { // data message convert to push message
 	    PushData pushData = new PushData();
@@ -159,8 +159,8 @@ class PluginServiceHandler implements
 	pushMsg.setScope( pushData.scope == MessageScope.SCOPE_GLOBAL ? AmmoMessages.MessageScope.GLOBAL : AmmoMessages.MessageScope.LOCAL );
 
 	msg.setDataMessage( pushMsg.build() );
-	// send to rmcastConnector
-	mRmcastConnector.sendMessage( msg.build() );
+	// send to mcastConnector
+	mMcastConnector.sendMessage( msg.build() );
 	
     }
 
