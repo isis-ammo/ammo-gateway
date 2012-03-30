@@ -35,10 +35,11 @@ class RMCastPlugin
     public static void main(String[] args)
     {
 	mServiceHandler = new PluginServiceHandler();
-	mRmcastConnector = new ReliableMulticastConnector(mServiceHandler, "", 1234);
-	mGatewayConnector = new GatewayConnector( mServiceHandler );
 
-	mServiceHandler.setGatewayConnector( mGatewayConnector );
+	mGatewayConnector = new GatewayConnector( mServiceHandler );
+    mServiceHandler.setGatewayConnector( mGatewayConnector );
+
+    mRmcastConnector = new ReliableMulticastConnector(mServiceHandler, "", 1234);
 	mServiceHandler.setRmcastConnector( mRmcastConnector );
 	
 	while(true) {

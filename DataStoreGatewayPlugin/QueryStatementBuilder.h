@@ -23,6 +23,9 @@ protected:
                   const char *stub,
                   bool is_int);
                   
+  bool bindText (const std::string &token);
+  bool bindInteger (const std::string &token);
+
 protected:
   const std::string &params_;
   sqlite3 *db_;
@@ -30,6 +33,7 @@ protected:
   bool has_term_;
   std::string query_str_;
   std::string digits_;
+  int bind_index_;
 };
 
 #endif // QUERY_STATEMENT_BUILDER_H
