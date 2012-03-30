@@ -57,7 +57,7 @@ int main(int argc, char **argv)
   LdapConfigurationManager::getInstance();
   LOG_DEBUG("Creating gateway connector...");
   LdapPushReceiver *pushReceiver = new LdapPushReceiver();
-  GatewayConnector *gatewayConnector = new GatewayConnector(pushReceiver);
+  GatewayConnector *gatewayConnector = new GatewayConnector(pushReceiver, "LdapGatewayPlugin", "");
   
   // Register data interests with Gateway Core:
   LOG_DEBUG("Registering interest in " << CONTACT_MIME_TYPE);

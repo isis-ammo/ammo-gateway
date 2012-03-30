@@ -62,7 +62,7 @@ int main (int /* argc */, char ** /* argv */)
   
   DataStoreReceiver *receiver = new DataStoreReceiver ();
 
-  GatewayConnector *gatewayConnector = new GatewayConnector (receiver);
+  GatewayConnector *gatewayConnector = new GatewayConnector (receiver, "DataStoreGatewayPlugin", "");
 
   DataStoreConfigManager *config =
 	  DataStoreConfigManager::getInstance (receiver, gatewayConnector);

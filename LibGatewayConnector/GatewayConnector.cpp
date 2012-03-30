@@ -493,6 +493,20 @@ ammo::gateway::PullResponse::PullResponse() :
   
 }
 
+ammo::gateway::PointToPointMessage::PointToPointMessage() :
+  uid(""),
+  destinationGateway(""),
+  destinationPluginId(),
+  sourceGateway(""),
+  sourcePluginId(),
+  mimeType(""),
+  encoding(""),
+  data(""),
+  priority(ammo::gateway::PRIORITY_NORMAL)
+{
+  
+}
+
 ammo::gateway::PullResponse ammo::gateway::PullResponse::createFromPullRequest(ammo::gateway::PullRequest &request) {
   ammo::gateway::PullResponse newResponse;
   newResponse.requestUid = request.requestUid;

@@ -47,6 +47,9 @@ namespace ammo {
       PluginInstanceId(std::string newPluginName, std::string newInstanceId) : pluginName(newPluginName), instanceId(newInstanceId) {
         //don't need to do anything
       };
+      PluginInstanceId() : pluginName(""), instanceId("") {
+        
+      };
       
       std::string pluginName;
       std::string instanceId;

@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
   
   SpotPushReceiver *pushReceiver = new SpotPushReceiver();
   
-  GatewayConnector *gatewayConnector = new GatewayConnector(pushReceiver);
+  GatewayConnector *gatewayConnector = new GatewayConnector(pushReceiver, "SpotPushReceiverGatewayPlugin", "");
   
   gatewayConnector->registerDataInterest("ammo/edu.vu.isis.ammo.report.report_base", pushReceiver);
   

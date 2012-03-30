@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
   
   cout << "Creating gateway connector..." << endl << flush;
     
-  GatewayConnector *gatewayConnector = new GatewayConnector(NULL);
+  GatewayConnector *gatewayConnector = new GatewayConnector(NULL, "SamplePushTestDriverPlugin", "");
   
   
   PushData pushData;
