@@ -42,6 +42,8 @@ public:
   
   static GatewayCore* getInstance();
   
+  bool registerPlugin(std::string pluginId, std::string instanceId, GatewayEventHandler *handler);
+  bool unregisterPlugin(std::string pluginId, std::string instanceId, GatewayEventHandler *handler);
   
   bool registerDataInterest(std::string mime_type, MessageScope messageScope,  GatewayEventHandler *handler);
   bool unregisterDataInterest(std::string mime_type, MessageScope messageScope, GatewayEventHandler *handler);
@@ -55,6 +57,8 @@ public:
                    unsigned int maxResults, unsigned int startFromCount, bool liveQuery, MessageScope scope, char priority);
   bool pullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data, char priority);
   
+  bool pointToPointMessage(GatewayEventHandler *sender, std::string uid, std::string destinationGateway, std::string destinationPluginName, std::string destinationInstanceId, std::string sourcePluginName, std::string sourceInstanceId, std::string mimeType, std::string encoding, std::string data, char priority);
+  
   bool unregisterPullResponsePluginId(std::string pluginId, GatewayEventHandler *handler);
   
   //Methods for cross-gateway communication
@@ -62,8 +66,10 @@ public:
   
   void setParentHandler(CrossGatewayEventHandler *handler);
   
-  bool registerCrossGatewayConnection(std::string handlerId, CrossGatewayEventHandler *handler);
+  bool registerCrossGatewayConnection(std::string handlerId, CrossGatewayEventHandler *handler, std::vector<std::pair<std::string, std::string> >);
   bool unregisterCrossGatewayConnection(std::string handlerId);
+  
+  bool pluginConnectedCrossGateway(std::string handlerId, std::string pluginName, std::string instanceId);
   
   bool subscribeCrossGateway(std::string mimeType, std::string originHandlerId);
   bool unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId);
@@ -86,13 +92,16 @@ private:
   
   static GatewayCore* sharedInstance;
   
+  typedef std::map<std::string, GatewayEventHandler *> PluginInstanceMap;
+  PluginInstanceMap pluginInstances;
+  
   typedef std::multimap<std::string, LocalSubscriptionInfo> PushHandlerMap;
   PushHandlerMap pushHandlers;
   
   typedef std::multimap<std::string, LocalPullHandlerInfo> PullHandlerMap;
   PullHandlerMap pullHandlers;
   
-  std::map<std::string, GatewayEventHandler *> plugins;
+  std::map<std::string, GatewayEventHandler *> plugins; //for pull requests (don't currently use authenticated plugin name)
   
   std::map<std::string, CrossGatewayEventHandler *> crossGatewayHandlers;
   typedef std::multimap<std::string, SubscriptionInfo> CrossGatewaySubscriptionMap;

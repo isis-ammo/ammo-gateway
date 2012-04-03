@@ -9,6 +9,12 @@ message AssociateDevice {
 message AssociateCrossGateway {
   required string gateway_id = 1;
   required string key = 2;
+  
+  message PluginInstanceId {
+    required string plugin_name = 1;
+    required string instance_id = 2;
+  }
+  repeated PluginInstanceId connected_plugins = 3;
 }
 
 message AssociatePlugin {
