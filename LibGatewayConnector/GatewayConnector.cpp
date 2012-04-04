@@ -400,6 +400,10 @@ void ammo::gateway::GatewayConnector::onRemoteGatewayConnectedNotification(const
   for(google::protobuf::RepeatedPtrField<ammo::gateway::protocol::RemoteGatewayConnectedNotification::PluginInstanceId>::iterator it = connectedPluginsField.begin(); it != connectedPluginsField.end(); ++it) {
     connectedPlugins.push_back(PluginInstanceId(it->plugin_name(), it->instance_id()));
   }
+  
+  if(delegate) {
+    delegate->onRemoteGatewayConnected(this, msg.gateway_id(), connectedPlugins);
+  }
 }
 
 void ammo::gateway::GatewayConnector::onPluginConnectedNotification(const ammo::gateway::protocol::PluginConnectedNotification &msg) {

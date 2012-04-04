@@ -25,6 +25,15 @@ void CrossGatewayEventHandler::onConnect(std::string &peerAddress) {
   newMsg->set_message_priority(PRIORITY_AUTH);
   newMsg->mutable_associate_cross_gateway()->set_gateway_id(GatewayConfigurationManager::getInstance()->getCrossGatewayId());
   newMsg->mutable_associate_cross_gateway()->set_key(GatewayConfigurationManager::getInstance()->getCrossGatewayId());
+  
+  std::vector<std::pair<std::string, std::string> > connectedPlugins = GatewayCore::getInstance()->getLocalPlugins();
+  
+  for(std::vector<std::pair<std::string, std::string> >::iterator it = connectedPlugins.begin(); it != connectedPlugins.end(); ++it) {
+    ammo::gateway::protocol::AssociateCrossGateway::PluginInstanceId *plugin = newMsg->mutable_associate_cross_gateway()->add_connected_plugins();
+    plugin->set_plugin_name(it->first);
+    plugin->set_instance_id(it->second);
+  }
+  
   LOG_DEBUG("Sending associate message to connected gateway...");
   this->sendMessage(newMsg);
 }
@@ -46,7 +55,16 @@ int CrossGatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::Gatewa
     this->sendMessage(newMsg);
     gatewayId = msg->associate_cross_gateway().gateway_id();
     gatewayIdAuthenticated = true;
-    GatewayCore::getInstance()->registerCrossGatewayConnection(gatewayId, this);
+    
+    //deserialize list of connected plugins
+    google::protobuf::RepeatedPtrField<ammo::gateway::protocol::AssociateCrossGateway::PluginInstanceId> connectedPluginsField = msg->associate_cross_gateway().connected_plugins();
+    std::vector<std::pair<std::string, std::string> > connectedPlugins;
+    
+    for(google::protobuf::RepeatedPtrField<ammo::gateway::protocol::AssociateCrossGateway::PluginInstanceId>::iterator it = connectedPluginsField.begin(); it != connectedPluginsField.end(); ++it) {
+      connectedPlugins.push_back(std::make_pair(it->plugin_name(), it->instance_id()));
+    }
+    
+    GatewayCore::getInstance()->registerCrossGatewayConnection(gatewayId, this, connectedPlugins);
     registeredWithGateway = true;
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_ASSOCIATE_RESULT) {
     //TODO: Handle remote auth success/failure
@@ -103,7 +121,34 @@ int CrossGatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::Gatewa
         }
       }
     }
-  }
+  } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_POINT_TO_POINT_MESSAGE) {
+    LOG_DEBUG("Received Point to Point Message...");
+    ammo::gateway::protocol::PointToPointMessage ptp = msg->point_to_point_message();
+    
+    GatewayCore::getInstance()->pointToPointMessageCrossGateway(gatewayId, ptp.uid(), ptp.destination_gateway(), ptp.destination_plugin_name(), ptp.destination_instance_id(), ptp.source_gateway(), ptp.source_plugin_name(), ptp.source_instance_id(), ptp.mime_type(), ptp.encoding(), ptp.data(), msg->message_priority());
+  } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PLUGIN_CONNECTED_NOTIFICATION) {
+    LOG_DEBUG("Received Plugin Connected notification...");
+    ammo::gateway::protocol::PluginConnectedNotification ptp = msg->plugin_connected_notification();
+    
+    GatewayCore::getInstance()->pluginConnectedCrossGateway(ptp.gateway_id(), ptp.plugin_name(), ptp.instance_id());
+  } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REMOTE_GATEWAY_CONNECTED_NOTIFICATION) {
+    LOG_DEBUG("Received Remote Gateway Connected notification...");
+    ammo::gateway::protocol::RemoteGatewayConnectedNotification notif = msg->remote_gateway_connected_notification();
+    
+    google::protobuf::RepeatedPtrField<ammo::gateway::protocol::RemoteGatewayConnectedNotification::PluginInstanceId> connectedPluginsField = notif.connected_plugins();
+    std::vector<std::pair<std::string, std::string> > connectedPlugins;
+    
+    for(google::protobuf::RepeatedPtrField<ammo::gateway::protocol::RemoteGatewayConnectedNotification::PluginInstanceId>::iterator it = connectedPluginsField.begin(); it != connectedPluginsField.end(); ++it) {
+      connectedPlugins.push_back(std::make_pair(it->plugin_name(), it->instance_id()));
+    }
+    
+    GatewayCore::getInstance()->gatewayConnectedCrossGateway(notif.gateway_id(), gatewayId, connectedPlugins);
+  } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REMOTE_GATEWAY_DISCONNECTED_NOTIFICATION) {
+    LOG_DEBUG("Received Remote Gateway Disconnected notification...");
+    ammo::gateway::protocol::RemoteGatewayDisconnectedNotification notif = msg->remote_gateway_disconnected_notification();
+    
+    GatewayCore::getInstance()->gatewayDisconnectedCrossGateway(notif.gateway_id(), gatewayId);
+  } 
   
   delete msg;  
   
@@ -227,6 +272,69 @@ bool CrossGatewayEventHandler::sendUnregisterPullInterest(std::string mimeType) 
   msg->set_message_priority(PRIORITY_CTRL);
   
   LOG_DEBUG("Sending Unregister Pull Interest message to connected gateway");
+  this->sendMessage(msg);
+  
+  return true;
+}
+
+bool CrossGatewayEventHandler::sendPointToPointMessage(std::string uid, std::string destinationGateway, std::string destinationPluginName, std::string destinationInstanceId, 
+std::string sourceGateway, std::string sourcePluginName, std::string sourceInstanceId, std::string mimeType, std::string encoding, std::string data, char priority) {
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::PointToPointMessage *ptp = msg->mutable_point_to_point_message();
+  ptp->set_uid(uid);
+  ptp->set_destination_gateway(destinationGateway);
+  ptp->set_destination_plugin_name(destinationPluginName);
+  ptp->set_destination_instance_id(destinationInstanceId);
+  ptp->set_source_gateway(sourceGateway);
+  ptp->set_source_plugin_name(sourcePluginName);
+  ptp->set_source_instance_id(sourceInstanceId);
+  ptp->set_mime_type(mimeType);
+  ptp->set_encoding(encoding);
+  ptp->set_data(data);
+  
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_POINT_TO_POINT_MESSAGE);
+  msg->set_message_priority(priority);
+  
+  LOG_DEBUG("Sending Point to Point message to connected gateway");
+  this->sendMessage(msg);
+  
+  return true;
+}
+
+bool CrossGatewayEventHandler::sendRemoteGatewayConnectedNotification(std::string gatewayId, std::vector<std::pair<std::string, std::string> > connectedPlugins) {
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::RemoteGatewayConnectedNotification *notif = msg->mutable_remote_gateway_connected_notification();
+  
+  notif->set_gateway_id(gatewayId);
+  
+  for(std::vector<std::pair<std::string, std::string> >::iterator it = connectedPlugins.begin(); it != connectedPlugins.end(); ++it) {
+    ammo::gateway::protocol::RemoteGatewayConnectedNotification::PluginInstanceId *plugin = notif->add_connected_plugins();
+    plugin->set_plugin_name(it->first);
+    plugin->set_instance_id(it->second);
+  }
+  
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REMOTE_GATEWAY_CONNECTED_NOTIFICATION);
+  msg->set_message_priority(PRIORITY_CTRL);
+  
+  LOG_DEBUG("Sending Remote Gateway Connected message to connected gateway");
+  this->sendMessage(msg);
+  
+  return true;
+}
+
+bool CrossGatewayEventHandler::sendPluginConnectedNotification(std::string pluginName, std::string instanceId, bool remotePlugin, std::string gatewayId) {
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::PluginConnectedNotification *notif = msg->mutable_plugin_connected_notification();
+  
+  notif->set_plugin_name(pluginName);
+  notif->set_instance_id(instanceId);
+  notif->set_remote_plugin(remotePlugin);
+  notif->set_gateway_id(gatewayId);
+  
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PLUGIN_CONNECTED_NOTIFICATION);
+  msg->set_message_priority(PRIORITY_CTRL);
+  
+  LOG_DEBUG("Sending Plugin Connected message to connected gateway");
   this->sendMessage(msg);
   
   return true;

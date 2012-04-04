@@ -241,7 +241,7 @@ bool GatewayEventHandler::sendPullResponse(std::string requestUid, std::string p
   return true;
 }
 
-bool GatewayEventHandler::sendPointToPointMessage(GatewayEventHandler *sender, std::string uid, std::string destinationGateway, std::string destinationPluginName, std::string destinationInstanceId, 
+bool GatewayEventHandler::sendPointToPointMessage(std::string uid, std::string destinationGateway, std::string destinationPluginName, std::string destinationInstanceId, 
 std::string sourceGateway, std::string sourcePluginName, std::string sourceInstanceId, std::string mimeType, std::string encoding, std::string data, char priority) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PointToPointMessage *ptp = msg->mutable_point_to_point_message();

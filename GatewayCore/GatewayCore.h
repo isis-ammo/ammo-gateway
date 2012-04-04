@@ -69,7 +69,10 @@ public:
   bool registerCrossGatewayConnection(std::string handlerId, CrossGatewayEventHandler *handler, std::vector<std::pair<std::string, std::string> >);
   bool unregisterCrossGatewayConnection(std::string handlerId);
   
-  bool pluginConnectedCrossGateway(std::string handlerId, std::string pluginName, std::string instanceId);
+  bool pluginConnectedCrossGateway(std::string gatewayId, std::string pluginName, std::string instanceId);
+  
+  bool gatewayConnectedCrossGateway(std::string gatewayId, std::string localHandlerId, std::vector<std::pair<std::string, std::string> >);
+  bool gatewayDisconnectedCrossGateway(std::string gatewayId, std::string localHandlerId);
   
   bool subscribeCrossGateway(std::string mimeType, std::string originHandlerId);
   bool unsubscribeCrossGateway(std::string mimeType, std::string originHandlerId);
@@ -79,9 +82,13 @@ public:
   
   bool pushCrossGateway(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originHandlerId, char priority);
   bool pullRequestCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection, unsigned int maxResults, unsigned int startFromCount, bool liveQuery, std::string originHandlerId, char priority);
-  bool pullResponseCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data, std::string originHandlerId, char priority);
+  bool pullResponseCrossGateway(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string &data, std::string originHandlerId, char priority);  
+  
+  bool pointToPointMessageCrossGateway(std::string originHandlerId, std::string uid, std::string destinationGateway, std::string destinationPluginName, std::string destinationInstanceId, std::string sourceGateway, std::string sourcePluginName, std::string sourceInstanceId, std::string mimeType, std::string encoding, std::string data, char priority);
   
   bool unregisterPullResponsePluginIdCrossGateway(std::string pluginId, std::string handler);
+  
+  std::vector<std::pair<std::string, std::string> > getLocalPlugins();
   
   void terminate();
   

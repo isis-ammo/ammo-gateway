@@ -24,7 +24,7 @@ public:
 		       unsigned int maxResults, unsigned int startFromCount, bool liveQuery, char priority);
   bool sendPullResponse(std::string requestUid, std::string pluginId, std::string mimeType, std::string uri, std::string encoding, const std::string& data, char priority);
   
-  bool sendPointToPointMessage(GatewayEventHandler *sender, std::string uid, std::string destinationGateway, std::string destinationPluginName, std::string destinationInstanceId, std::string sourceGateway, std::string sourcePluginName, std::string sourceInstanceId, std::string mimeType, std::string encoding, std::string data, char priority);
+  bool sendPointToPointMessage(std::string uid, std::string destinationGateway, std::string destinationPluginName, std::string destinationInstanceId, std::string sourceGateway, std::string sourcePluginName, std::string sourceInstanceId, std::string mimeType, std::string encoding, std::string data, char priority);
   
   bool sendPluginAuthenticationResponse(bool success, std::string message);
   

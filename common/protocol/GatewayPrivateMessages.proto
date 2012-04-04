@@ -114,6 +114,10 @@ message RemoteGatewayConnectedNotification {
   repeated PluginInstanceId connected_plugins = 2;
 }
 
+message RemoteGatewayDisconnectedNotification {
+  required string gateway_id = 1;
+}
+
 message PluginConnectedNotification {
   required string plugin_name = 1;
   required string instance_id = 2;
@@ -136,7 +140,8 @@ message GatewayWrapper {
     ASSOCIATE_PLUGIN = 10;
     POINT_TO_POINT_MESSAGE = 11;
     REMOTE_GATEWAY_CONNECTED_NOTIFICATION = 12;
-    PLUGIN_CONNECTED_NOTIFICATION = 13;
+    REMOTE_GATEWAY_DISCONNECTED_NOTIFICATION = 13;
+    PLUGIN_CONNECTED_NOTIFICATION = 14;
   }
   
   required MessageType type = 1;
@@ -156,5 +161,6 @@ message GatewayWrapper {
   optional AssociatePlugin associate_plugin = 13;
   optional PointToPointMessage point_to_point_message = 14;
   optional RemoteGatewayConnectedNotification remote_gateway_connected_notification = 15;
-  optional PluginConnectedNotification plugin_connected_notification = 16;
+  optional RemoteGatewayDisconnectedNotification remote_gateway_disconnected_notification = 16;
+  optional PluginConnectedNotification plugin_connected_notification = 17;
 }
