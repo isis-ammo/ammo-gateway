@@ -173,7 +173,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   int count = 0;
   
   if(state == READING_HEADER) {
-    count = this->peer().recv(&messageHeader, sizeof(messageHeader) - position);
+    count = this->peer().recv(&messageHeader + position, sizeof(messageHeader) - position);
   } else if(state == READING_DATA) {
     count = this->peer().recv(collectedData + position, messageHeader.size - position);
     //LOG_TRACE("DATA Read " << count << " bytes");
