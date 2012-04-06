@@ -711,7 +711,6 @@ class NetworkConnector {
         @Override
 	    public void run()
         {
-			long headerSuccess = 0;
             logger.info( "Thread <{}>::run()", Thread.currentThread().getId() );
 
 
