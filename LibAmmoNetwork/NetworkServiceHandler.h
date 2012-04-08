@@ -173,10 +173,11 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   int count = 0;
   
   if(state == READING_HEADER) {
-    count = this->peer().recv(&messageHeader + position, sizeof(messageHeader) - position);
+    count = this->peer().recv(((char *) &messageHeader) + position, sizeof(messageHeader) - position);
+    LOG_TRACE((long) this << " HEADER read " << count << " bytes");
   } else if(state == READING_DATA) {
     count = this->peer().recv(collectedData + position, messageHeader.size - position);
-    //LOG_TRACE("DATA Read " << count << " bytes");
+    LOG_TRACE((long) this << " DATA Read " << count << " bytes");
   } else {
     LOG_ERROR((long) this << " Invalid state!");
     return -1;
@@ -187,6 +188,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   if(count > 0) {
     if(state == READING_HEADER) {
       position += count;
+      LOG_TRACE((long) this << "   HEADER read " << position << "/" << sizeof(messageHeader) << " bytes so far");
       if(position == sizeof(messageHeader)) {
         if(messageHeader.magicNumber == MagicNumber) {
           unsigned int calculatedChecksum = ACE::crc32(&messageHeader, sizeof(messageHeader) - sizeof(messageHeader.headerChecksum));
@@ -213,8 +215,9 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
         state = READING_DATA;
       }
     } else if(state == READING_DATA) {
-      LOG_TRACE((long) this << " Got some data...");
+      //LOG_TRACE((long) this << " Got some data...");
       position += count;
+      LOG_TRACE((long) this << "    DATA read " << position << "/" << messageHeader.size << " bytes so far");
       if(position == messageHeader.size) {
         //LOG_TRACE("Got all the data... processing");
         processData(collectedData, messageHeader.size, messageHeader.checksum, messageHeader.priority);
