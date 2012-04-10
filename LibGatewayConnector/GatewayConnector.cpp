@@ -27,8 +27,8 @@ void ammo::gateway::GatewayConnector::init(GatewayConnectorDelegate *delegate, a
     const ACE_CString *instanceUuidString = instanceUuid->to_string();
     this->instanceId = instanceUuidString->c_str();
     //TODO: figure out if we're really responsible for deleting this
-    delete instanceUuidString;
-    delete instanceUuid;
+    //delete instanceUuidString;
+    //delete instanceUuid;
   }
   
   connector = new ammo::gateway::internal::NetworkConnector<ammo::gateway::protocol::GatewayWrapper, ammo::gateway::internal::GatewayEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0xdeadbeef>();

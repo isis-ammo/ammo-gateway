@@ -130,7 +130,7 @@ int CrossGatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::Gatewa
     LOG_DEBUG("Received Plugin Connected notification...");
     ammo::gateway::protocol::PluginConnectedNotification ptp = msg->plugin_connected_notification();
     
-    GatewayCore::getInstance()->pluginConnectedCrossGateway(ptp.gateway_id(), ptp.plugin_name(), ptp.instance_id());
+    GatewayCore::getInstance()->pluginConnectedCrossGateway(ptp.gateway_id(), gatewayId, ptp.plugin_name(), ptp.instance_id());
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_REMOTE_GATEWAY_CONNECTED_NOTIFICATION) {
     LOG_DEBUG("Received Remote Gateway Connected notification...");
     ammo::gateway::protocol::RemoteGatewayConnectedNotification notif = msg->remote_gateway_connected_notification();
@@ -317,6 +317,21 @@ bool CrossGatewayEventHandler::sendRemoteGatewayConnectedNotification(std::strin
   msg->set_message_priority(PRIORITY_CTRL);
   
   LOG_DEBUG("Sending Remote Gateway Connected message to connected gateway");
+  this->sendMessage(msg);
+  
+  return true;
+}
+
+bool CrossGatewayEventHandler::sendRemoteGatewayDisconnectedNotification(std::string gatewayId) {
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::RemoteGatewayDisconnectedNotification *notif = msg->mutable_remote_gateway_disconnected_notification();
+  
+  notif->set_gateway_id(gatewayId);
+  
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_REMOTE_GATEWAY_DISCONNECTED_NOTIFICATION);
+  msg->set_message_priority(PRIORITY_CTRL);
+  
+  LOG_DEBUG("Sending Remote Gateway Disconnected message to connected gateway");
   this->sendMessage(msg);
   
   return true;
