@@ -314,3 +314,55 @@ DataStoreReceiver::match_requested_checksums (
   return true;
 }
 
+bool
+DataStoreReceiver::collect_missing_checksums (
+  const std::vector<std::string> &checksums)
+{
+  checksums_.clear ();
+  sqlite3_stmt *stmt = 0;
+  const char *qry =
+    "SELECT * FROM data_table WHERE checksum = ?";
+  
+  int status = sqlite3_prepare (db_, qry, -1, &stmt, 0);
+
+  if (status != SQLITE_OK)
+    {
+      LOG_ERROR ("Preparation of checksums-missing query failed: "
+                 << sqlite3_errmsg (db_));
+
+      return false;
+    }
+    
+  for (std::vector<std::string>::const_iterator i = checksums.begin ();
+       i != checksums.end ();
+       ++i)
+    {
+      status = sqlite3_bind_blob (stmt,
+                                  1,
+                                  i->c_str (),
+                                  DataStoreUtils::CS_SIZE,
+                                  SQLITE_STATIC);
+
+      if (status != SQLITE_OK)
+        {
+          LOG_ERROR ("Bind to checksums-missing query failed: "
+                     << sqlite3_errmsg (db_));
+
+          return false;
+        }
+    
+      status = sqlite3_step (stmt);
+      
+      if (status == SQLITE_DONE)
+        {
+          // Above return code means checksum not found in db.
+          checksums_.push_back (*i);
+        }
+        
+      sqlite3_reset (stmt);
+    }
+    
+  sqlite3_finalize (stmt);  
+  return true;
+}
+

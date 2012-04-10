@@ -41,6 +41,9 @@ private:
   
   // Match entries whose checksums are equal to any in the list arg.
   bool match_requested_checksums (const std::vector<std::string> &checksums);
+  
+  // Identify which checksums from a list are not in the local db.
+  bool collect_missing_checksums (const std::vector<std::string> &checksums);
 
 private:
   // Dispatcher for pushes and pulls.
