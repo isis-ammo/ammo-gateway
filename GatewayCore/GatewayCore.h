@@ -36,6 +36,11 @@ struct LocalPullHandlerInfo {
   MessageScope scope;
 };
 
+struct PluginInfo {
+  GatewayEventHandler *handler;
+  std::string pluginName;
+};
+
 class GatewayCore {
 public:
   GatewayCore();
@@ -69,9 +74,9 @@ public:
   bool registerCrossGatewayConnection(std::string handlerId, CrossGatewayEventHandler *handler, std::vector<std::pair<std::string, std::string> >);
   bool unregisterCrossGatewayConnection(std::string handlerId);
   
-  bool pluginConnectedCrossGateway(std::string gatewayId, std::string pluginName, std::string instanceId);
+  bool pluginConnectedCrossGateway(std::string gatewayId, std::string localHandlerId, std::string pluginName, std::string instanceId);
   
-  bool gatewayConnectedCrossGateway(std::string gatewayId, std::string localHandlerId, std::vector<std::pair<std::string, std::string> >);
+  bool gatewayConnectedCrossGateway(std::string gatewayId, std::string localHandlerId, std::vector<std::pair<std::string, std::string> > connectedPlugins);
   bool gatewayDisconnectedCrossGateway(std::string gatewayId, std::string localHandlerId);
   
   bool subscribeCrossGateway(std::string mimeType, std::string originHandlerId);
@@ -97,9 +102,11 @@ public:
 private:
   std::set<GatewayEventHandler *> getPushHandlersForType(std::string mimeType);
   
+  std::string localGatewayId;
+  
   static GatewayCore* sharedInstance;
   
-  typedef std::map<std::string, GatewayEventHandler *> PluginInstanceMap;
+  typedef std::map<std::string, PluginInfo> PluginInstanceMap; //key:  plugin instance ID
   PluginInstanceMap pluginInstances;
   
   typedef std::multimap<std::string, LocalSubscriptionInfo> PushHandlerMap;
@@ -110,7 +117,12 @@ private:
   
   std::map<std::string, GatewayEventHandler *> plugins; //for pull requests (don't currently use authenticated plugin name)
   
-  std::map<std::string, CrossGatewayEventHandler *> crossGatewayHandlers;
+  typedef std::map<std::string, CrossGatewayEventHandler *> CrossGatewayHandlerMap;
+  CrossGatewayHandlerMap crossGatewayHandlers;
+  
+  typedef std::map<std::string, std::string> GatewayRouteMap;
+  GatewayRouteMap gatewayRoutes; //key: gateway ID, value: handler ID through which that gateway is accessible
+  
   typedef std::multimap<std::string, SubscriptionInfo> CrossGatewaySubscriptionMap;
   CrossGatewaySubscriptionMap subscriptions;
   
