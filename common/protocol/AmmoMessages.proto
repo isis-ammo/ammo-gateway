@@ -123,6 +123,7 @@ message SubscribeMessage {
   required string mime_type = 1;
   optional string query = 2;
   optional MessageScope scope = 3 [default = GLOBAL];
+  optional string origin_device = 4;
 }
 
 /**
