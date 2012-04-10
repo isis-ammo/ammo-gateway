@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "DataStoreUtils.h"
+
 struct sqlite3;
 struct sqlite3_stmt;
 
@@ -29,10 +31,6 @@ public:
                
   ~PushHandler (void);
   
-  // Size of sha1 checksum, defined here so it can be
-  // changed easily if some other checksum creator is needed.
-  static const unsigned long CS_SIZE = 20U;
-  
 protected:
   // This overload is used by ContactsPushHandler, and includes
   // the originUsername and the data blob in the checksum.
@@ -46,7 +44,7 @@ protected:
   sqlite3 *db_;
   sqlite3_stmt *stmt_;
   const ammo::gateway::PushData &pd_;
-  unsigned char checksum_[CS_SIZE];
+  unsigned char checksum_[DataStoreUtils::CS_SIZE];
   
 private:
   void create_checksum (const std::string &ibuf);

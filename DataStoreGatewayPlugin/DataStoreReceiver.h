@@ -10,7 +10,6 @@ struct sqlite3;
 class DataStoreReceiver : public ammo::gateway::DataPushReceiverListener,
 					                public ammo::gateway::GatewayConnectorDelegate,
                           public ammo::gateway::PullRequestReceiverListener
-
 {
 public:
   DataStoreReceiver (void);
@@ -35,6 +34,13 @@ private:
   // Create all directories that don't exist, expanding
   // environment variables if necessary.
   bool check_path (void);
+  
+  // Match entries stored later than tv's value, and store
+  // their checksums in the class member.
+  bool fetch_recent_checksums (const ACE_Time_Value &tv);
+  
+  // Match entries whose checksums are equal to any in the list arg.
+  bool match_requested_checksums (const std::vector<std::string> &checksums);
 
 private:
   // Dispatcher for pushes and pulls.
@@ -45,6 +51,9 @@ private:
   
   // Set by the config manager.
   std::string db_filepath_;
+  
+  // Persistent container for checksums.
+  std::vector<std::string> checksums_;
 };
 
 #endif        //  #ifndef DATA_STORE_RECEIVER_H
