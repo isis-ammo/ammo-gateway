@@ -57,10 +57,11 @@ int CrossGatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::Gatewa
     gatewayIdAuthenticated = true;
     
     //deserialize list of connected plugins
-    google::protobuf::RepeatedPtrField<ammo::gateway::protocol::AssociateCrossGateway::PluginInstanceId> connectedPluginsField = msg->associate_cross_gateway().connected_plugins();
     std::vector<std::pair<std::string, std::string> > connectedPlugins;
     
-    for(google::protobuf::RepeatedPtrField<ammo::gateway::protocol::AssociateCrossGateway::PluginInstanceId>::iterator it = connectedPluginsField.begin(); it != connectedPluginsField.end(); ++it) {
+	//RepeatedPtrField has no assignment operator or copy constructor under Protobuf 2.3.0 on Windows,
+	//so we have to call connected_plugins() each time we want to access the field
+    for(google::protobuf::RepeatedPtrField<const ammo::gateway::protocol::AssociateCrossGateway::PluginInstanceId>::iterator it = msg->associate_cross_gateway().connected_plugins().begin(); it != msg->associate_cross_gateway().connected_plugins().end(); ++it) {
       connectedPlugins.push_back(std::make_pair(it->plugin_name(), it->instance_id()));
     }
     
@@ -135,10 +136,9 @@ int CrossGatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::Gatewa
     LOG_DEBUG("Received Remote Gateway Connected notification...");
     ammo::gateway::protocol::RemoteGatewayConnectedNotification notif = msg->remote_gateway_connected_notification();
     
-    google::protobuf::RepeatedPtrField<ammo::gateway::protocol::RemoteGatewayConnectedNotification::PluginInstanceId> connectedPluginsField = notif.connected_plugins();
     std::vector<std::pair<std::string, std::string> > connectedPlugins;
     
-    for(google::protobuf::RepeatedPtrField<ammo::gateway::protocol::RemoteGatewayConnectedNotification::PluginInstanceId>::iterator it = connectedPluginsField.begin(); it != connectedPluginsField.end(); ++it) {
+    for(google::protobuf::RepeatedPtrField<const ammo::gateway::protocol::RemoteGatewayConnectedNotification::PluginInstanceId>::iterator it = notif.connected_plugins().begin(); it != notif.connected_plugins().end(); ++it) {
       connectedPlugins.push_back(std::make_pair(it->plugin_name(), it->instance_id()));
     }
     

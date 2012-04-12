@@ -394,10 +394,9 @@ void ammo::gateway::GatewayConnector::onPointToPointMessageReceived(const ammo::
 }
 
 void ammo::gateway::GatewayConnector::onRemoteGatewayConnectedNotification(const ammo::gateway::protocol::RemoteGatewayConnectedNotification &msg) {
-  google::protobuf::RepeatedPtrField<ammo::gateway::protocol::RemoteGatewayConnectedNotification::PluginInstanceId> connectedPluginsField = msg.connected_plugins();
   ammo::gateway::GatewayConnectorDelegate::PluginList connectedPlugins;
   
-  for(google::protobuf::RepeatedPtrField<ammo::gateway::protocol::RemoteGatewayConnectedNotification::PluginInstanceId>::iterator it = connectedPluginsField.begin(); it != connectedPluginsField.end(); ++it) {
+  for(google::protobuf::RepeatedPtrField<const ammo::gateway::protocol::RemoteGatewayConnectedNotification::PluginInstanceId>::iterator it = msg.connected_plugins().begin(); it != msg.connected_plugins().end(); ++it) {
     connectedPlugins.push_back(PluginInstanceId(it->plugin_name(), it->instance_id()));
   }
   
