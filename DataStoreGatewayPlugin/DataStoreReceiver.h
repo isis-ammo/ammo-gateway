@@ -16,16 +16,47 @@ public:
   ~DataStoreReceiver (void);
 	
   // GatewayConnectorDelegate methods
-  virtual void onConnect (ammo::gateway::GatewayConnector *sender);
-  virtual void onDisconnect (ammo::gateway::GatewayConnector *sender);
+  // ========================================================
+  
+  virtual void
+  onConnect (
+    ammo::gateway::GatewayConnector *sender);
+  
+  virtual void
+  onDisconnect (
+    ammo::gateway::GatewayConnector *sender);
+  
+  virtual void
+  onRemoteGatewayConnected (
+    ammo::gateway::GatewayConnector *sender,
+    const std::string &gatewayId,
+    const PluginList &connectedPlugins);
+  
+  virtual void
+  onPluginConnected (
+    ammo::gateway::GatewayConnector *sender,
+    const ammo::gateway::PluginInstanceId &pluginId,
+    const bool remotePlugin,
+    const std::string &gatewayId);
+  
+  virtual void
+  onPointToPointMessageReceived (
+    ammo::gateway::GatewayConnector *sender,
+    const ammo::gateway::PointToPointMessage &message);
+                                              
+  //============================================================
   
   // DataPushReceiverListener methods
-  virtual void onPushDataReceived (ammo::gateway::GatewayConnector *sender,
-							                     ammo::gateway::PushData &pushData);
+  virtual void
+  onPushDataReceived (
+    ammo::gateway::GatewayConnector *sender,
+		ammo::gateway::PushData &pushData);
 	
   // PullRequestReceiverListener methods
-  virtual void onPullRequestReceived (ammo::gateway::GatewayConnector *sender,
-                                      ammo::gateway::PullRequest &pullReq);
+  virtual void
+  onPullRequestReceived (
+    ammo::gateway::GatewayConnector *sender,
+    ammo::gateway::PullRequest &pullReq);
                                
   void db_filepath (const std::string &path);
   bool init (void);

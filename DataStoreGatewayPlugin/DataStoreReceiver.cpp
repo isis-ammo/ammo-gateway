@@ -38,6 +38,33 @@ DataStoreReceiver::onDisconnect (GatewayConnector * /* sender */)
 }
 
 void
+DataStoreReceiver::onRemoteGatewayConnected (
+  GatewayConnector *sender,
+  const std::string &gatewayId,
+  const PluginList &connectedPlugins)
+{
+  // TODO
+}
+
+void
+DataStoreReceiver::onPluginConnected (
+  GatewayConnector *sender,
+  const PluginInstanceId &pluginId,
+  const bool remotePlugin,
+  const std::string &gatewayId)
+{
+  // TODO
+}
+
+void
+DataStoreReceiver::onPointToPointMessageReceived (
+  GatewayConnector *sender,
+  const PointToPointMessage &message)
+{
+  // TODO
+}
+
+void
 DataStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
                                        PushData &pushData)
 {

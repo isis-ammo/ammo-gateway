@@ -57,22 +57,31 @@ DataStoreConfigManager::DataStoreConfigManager (
                   "SMSMimeType",
                   "ReportMimeType",
                   "LocationsMimeType",
-                  "PrivateContactsMimeType"
+                  "PrivateContactsMimeType",
+                  "RequestChecksums",
+                  "SendChecksums",
+                  "RequestObjects",
+                  "SendObjects"
                 };
                 
-              const unsigned long ARRAY_SIZE = 6;
+              const unsigned long CONTRACT_ARRAY_SIZE = 6;
+              const unsigned long TOTAL_ARRAY_SIZE = 10;
                 
-              void (DataStoreConfigManager::*store_ops[ARRAY_SIZE]) (const string &) =
+              void (DataStoreConfigManager::*store_ops[TOTAL_ARRAY_SIZE]) (const string &) =
                 {
                   &DataStoreConfigManager::setEventMimeType,
                   &DataStoreConfigManager::setMediaMimeType,
                   &DataStoreConfigManager::setSMSMimeType,
                   &DataStoreConfigManager::setReportMimeType,
                   &DataStoreConfigManager::setLocationsMimeType,
-                  &DataStoreConfigManager::setPrivateContactsMimeType
+                  &DataStoreConfigManager::setPrivateContactsMimeType,
+                  &DataStoreConfigManager::setReqCsumsMimeType,
+                  &DataStoreConfigManager::setSendCsumsMimeType,
+                  &DataStoreConfigManager::setReqObjsMimeType,
+                  &DataStoreConfigManager::setSendObjsMimeType,
                 };
                 
-              for (unsigned long i = 0; i < ARRAY_SIZE; ++i)
+              for (unsigned long i = 0; i < TOTAL_ARRAY_SIZE; ++i)
                 {
                   if (! root_[ mime_type_labels[i] ].isString ())
                     {
@@ -83,10 +92,14 @@ DataStoreConfigManager::DataStoreConfigManager (
                     }
                     
                   string mime_type (root_[ mime_type_labels[i] ].asString ());
-                  LOG_DEBUG ("Registering interest in " << mime_type);
-                  connector_->registerDataInterest (mime_type, receiver_);
-                  connector_->registerPullInterest (mime_type, receiver_);
                   (this->*store_ops[i])(mime_type);
+                  
+                  if (i < CONTRACT_ARRAY_SIZE)
+                    {
+                      LOG_DEBUG ("Registering interest in " << mime_type);
+                      connector_->registerDataInterest (mime_type, receiver_);
+                      connector_->registerPullInterest (mime_type, receiver_);
+                    }
                 }
                 
               if (root_["DatabasePath"].isString ())
@@ -96,6 +109,16 @@ DataStoreConfigManager::DataStoreConfigManager (
               else
                 {
                   LOG_ERROR ("DatabasePath string is missing "
+                             << "or malformed in config file");
+                }
+                
+              if (root_["SyncReachBackSecs"].isInt ())
+                {
+                  sync_reach_back_secs_ = root_["SyncReachBackSecs"].asInt ();
+                }
+              else
+                {
+                  LOG_ERROR ("Gateway sync time offset is missing "
                              << "or malformed in config file");
                 }
             }
@@ -213,6 +236,60 @@ void
 DataStoreConfigManager::setPrivateContactsMimeType (const std::string &val)
 {
   private_contacts_mime_type_ = val;
+}
+
+const std::string &
+DataStoreConfigManager::getReqCsumsMimeType (void) const
+{
+  return req_csums_mime_type_;
+}
+
+void
+DataStoreConfigManager::setReqCsumsMimeType (const std::string &val)
+{
+  req_csums_mime_type_ = val;
+}
+
+const std::string &
+DataStoreConfigManager::getSendCsumsMimeType (void) const
+{
+  return send_csums_mime_type_;
+}
+
+void
+DataStoreConfigManager::setSendCsumsMimeType (const std::string &val)
+{
+  send_csums_mime_type_ = val;
+}
+
+const std::string &
+DataStoreConfigManager::getReqObjsMimeType (void) const
+{
+  return req_objs_mime_type_;
+}
+
+void
+DataStoreConfigManager::setReqObjsMimeType (const std::string &val)
+{
+   req_objs_mime_type_ = val;
+}
+
+const std::string &
+DataStoreConfigManager::getSendObjsMimeType (void) const
+{
+   return send_objs_mime_type_;
+}
+
+void
+DataStoreConfigManager::setSendObjsMimeType (const std::string &val)
+{
+  send_objs_mime_type_ = val;
+}
+	
+unsigned long
+DataStoreConfigManager::getSyncReachBackSecs (void) const
+{
+  return sync_reach_back_secs_;
 }
 
 #ifndef WIN32

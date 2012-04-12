@@ -40,6 +40,19 @@ public:
 	const std::string &getPrivateContactsMimeType (void) const;
 	void setPrivateContactsMimeType (const std::string &val);
 	
+	const std::string &getReqCsumsMimeType (void) const;
+	void setReqCsumsMimeType (const std::string &val);
+	
+	const std::string &getSendCsumsMimeType (void) const;
+	void setSendCsumsMimeType (const std::string &val);
+	
+	const std::string &getReqObjsMimeType (void) const;
+	void setReqObjsMimeType (const std::string &val);
+	
+	const std::string &getSendObjsMimeType (void) const;
+	void setSendObjsMimeType (const std::string &val);
+	
+	unsigned long getSyncReachBackSecs (void) const;
 	
 private:
   DataStoreConfigManager (
@@ -62,6 +75,13 @@ private:
   std::string report_mime_type_;
   std::string locations_mime_type_;
   std::string private_contacts_mime_type_;
+  
+  std::string req_csums_mime_type_;
+  std::string send_csums_mime_type_;
+  std::string req_objs_mime_type_;
+  std::string send_objs_mime_type_;
+  
+  unsigned long sync_reach_back_secs_;
 };
 
 #endif // DATASTORE_CONFIG_MANAGER_H
