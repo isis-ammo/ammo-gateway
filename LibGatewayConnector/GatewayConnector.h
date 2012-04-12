@@ -165,15 +165,24 @@ namespace ammo {
     class LibGatewayConnector_Export PointToPointMessage {
     public:
       PointToPointMessage();
-      std::string uid;
-      std::string destinationGateway; //leave blank if plugin is on local gateway
-      PluginInstanceId destinationPluginId;
-      std::string sourceGateway; //callers don't need to fill source attributes out themselves
-      PluginInstanceId sourcePluginId; 
-      std::string mimeType;
-      std::string encoding;
-      std::string data;
-      char priority;
+      std::string uid;                       ///< The unique identifier for this message.
+      std::string destinationGateway;        ///< The gateway that the plugin which will receive this message
+                                             ///  is connected to.  Should be blank if the receiving plugin
+                                             ///  is connected to the local gateway.
+      PluginInstanceId destinationPluginId;  ///< The identifier (plugin name and instance ID) of the plugin
+                                             ///  which will receive this message.
+      std::string sourceGateway;             ///< The ID of the gateway which this message was sent from.  Plugins
+                                             ///  sending point-to-point messages do not need to specify this
+                                             ///  ID themselves; it will be set automatically by the gateway.
+      PluginInstanceId sourcePluginId;       ///< The identifier (plugin name and instance ID) of the plugin
+                                             ///  which sent this message.  Plugins sending point-to-point
+                                             ///  messages do not need to specify this ID themselves; it will be
+                                             ///  set automatically by the gateway.
+      std::string mimeType;                  ///< The data type of the data in this message.
+      std::string encoding;                  ///< The encoding of the data in this message.
+      std::string data;                      ///< The data to be sent.
+      char priority;                         ///< Priority of this message.  Messages with higher priority
+	                                           ///  values will be sent first if multiple messages are queued.
     };
     
     /**
