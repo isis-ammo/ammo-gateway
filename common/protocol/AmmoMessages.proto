@@ -76,17 +76,21 @@ message TerseMessage {
 * destination_device : this must match the origin_device of the
 *                      corresponding DataMessage
 * acknowledging_device : this device id of the acknowledging device or plugin. 
+*
+* threshold : the threshold that was crossed.
+*
 * status : indicates the disposition of the message as it crosses the threshold
 *     SUCCESS    the threshold was crossed without incident 
 *     FAIL            the threshold was reached, but the message failed and will be canceled 
 *     UNKNOWN the request is of an indeterminate disposition
 *     REJECTED   the threshold rejected the request
-
+*
 */
 message PushAcknowledgement {
   required string uid = 1;
   optional string destination_device = 2;
   optional string acknowledging_device = 3;
+  optional AcknowledgementThresholds threshold = 5;
   
   enum PushStatus {
     UNKNOWN   = 0;
@@ -118,6 +122,9 @@ message AuthenticationMessage {
 
 /**
 * Subscribes to data of the specified type.
+*
+* origin_device : unnecessary for the gateway but
+*         handhelds need to keep track.
 */
 message SubscribeMessage {
   required string mime_type = 1;
