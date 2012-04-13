@@ -66,16 +66,6 @@ private:
   // environment variables if necessary.
   bool check_path (void);
   
-  // Match entries stored later than tv's value, and store
-  // their checksums in the class member.
-  bool fetch_recent_checksums (const ACE_Time_Value &tv);
-  
-  // Match entries whose checksums are equal to any in the list arg.
-  bool match_requested_checksums (const std::vector<std::string> &checksums);
-  
-  // Identify which checksums from a list are not in the local db.
-  bool collect_missing_checksums (const std::vector<std::string> &checksums);
-
 private:
   // Dispatcher for pushes and pulls.
   DataStoreDispatcher dispatcher_;
@@ -86,8 +76,8 @@ private:
   // Set by the config manager.
   std::string db_filepath_;
   
-  // Persistent container for checksums.
-  std::vector<std::string> checksums_;
+  // Holder for data store plugin.
+  std::string pluginName_;
 };
 
 #endif        //  #ifndef DATA_STORE_RECEIVER_H

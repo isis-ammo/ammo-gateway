@@ -1,8 +1,5 @@
 #include <sqlite3.h>
 
-#include "ace/Connector.h"
-#include "ace/SOCK_Connector.h"
-
 #include <ace/OS_NS_sys_stat.h>
 #include <ace/OS_NS_unistd.h>
 
@@ -12,11 +9,13 @@
 #include "DataStoreDispatcher.h"
 #include "DataStoreConfigManager.h"
 #include "DataStoreUtils.h"
+#include "GatewaySyncSerialization.h"
 
 using namespace ammo::gateway;
 
 DataStoreReceiver::DataStoreReceiver (void)
-  : db_ (0)
+  : db_ (0),
+    pluginName_ ("DataStorePlugin")
 {
 }
 
@@ -43,7 +42,12 @@ DataStoreReceiver::onRemoteGatewayConnected (
   const std::string &gatewayId,
   const PluginList &connectedPlugins)
 {
-  // TODO
+  for (PluginList::const_iterator i = connectedPlugins.begin ();
+       i != connectedPlugins.end ();
+       ++i)
+    {
+      this->onPluginConnected (sender, *i, true, gatewayId);
+    }
 }
 
 void
@@ -53,7 +57,31 @@ DataStoreReceiver::onPluginConnected (
   const bool remotePlugin,
   const std::string &gatewayId)
 {
-  // TODO
+  // Interested only in connected DataStorePlugins.
+  if (pluginId.pluginName != pluginName_)
+    {
+      return;
+    }
+    
+  PointToPointMessage request;
+  
+  // Leave blank if the plugin is local.
+  request.destinationGateway = (remotePlugin ? gatewayId : "");
+  
+  request.destinationPluginId = pluginId;
+  
+  request.mimeType =
+    DataStoreConfigManager::getInstance ()->getReqCsumsMimeType ();
+    
+  requestChecksumsMessageData request_data;
+  request_data.tv_sec_ =
+    DataStoreConfigManager::getInstance ()->getSyncReachBackSecs ();
+    
+  // Supporting only the default encoding for now.
+  request.data = request_data.encodeJson ();
+  request.encoding = "json";
+  
+  sender->pointToPointMessage (request);
 }
 
 void
@@ -61,7 +89,7 @@ DataStoreReceiver::onPointToPointMessageReceived (
   GatewayConnector *sender,
   const PointToPointMessage &message)
 {
-  // TODO
+  dispatcher_.dispatchPointToPointMessage (db_, sender, message);
 }
 
 void
@@ -209,187 +237,6 @@ DataStoreReceiver::check_path (void)
       db_filepath_ += delimiter;
     }
     
-  return true;
-}
-
-bool
-DataStoreReceiver::fetch_recent_checksums (const ACE_Time_Value &tv)
-{
-  checksums_.clear ();
-  
-  // TODO - the private contacts tables.
-  const char * query_str =
-    "SELECT checksum FROM data_table WHERE "
-    "tv_sec>? OR tv_sec=? AND tv_usec>=?";
-
-  sqlite3_stmt *stmt = 0;
-  
-  int status = sqlite3_prepare (db_,
-                                query_str,
-                                ACE_OS::strlen (query_str),
-                                &stmt,
-                                0);
-
-  if (status != SQLITE_OK)
-    {
-      LOG_ERROR ("Preparation of recent checksum query failed: "
-                 << sqlite3_errmsg (db_));
-
-      return false;
-    }
-
-  status = sqlite3_bind_int (stmt, 1, tv.sec ());
-  
-  if (status != SQLITE_OK)
-    {
-      LOG_ERROR ("Bind of integer at index 1 failed: "
-                 << sqlite3_errmsg (db_));
-
-      return false;
-    }
-
-  status = sqlite3_bind_int (stmt, 2, tv.sec ());
-  
-  if (status != SQLITE_OK)
-    {
-      LOG_ERROR ("Bind of integer at index 2 failed: "
-                 << sqlite3_errmsg (db_));
-
-      return false;
-    }
-
-  status = sqlite3_bind_int (stmt, 3, tv.usec ());
-
-  if (status != SQLITE_OK)
-    {
-      LOG_ERROR ("Bind of integer at index 3 failed: "
-                 << sqlite3_errmsg (db_));
-
-      return false;
-    }
-
-  while (sqlite3_step (stmt) == SQLITE_ROW)
-    {
-      std::string tmp ((char *) sqlite3_column_blob (stmt, 0),
-                       DataStoreUtils::CS_SIZE);
-      checksums_.push_back (tmp);
-    }
-    
-  sqlite3_finalize (stmt);
-  return true;
-}
-
-bool
-DataStoreReceiver::match_requested_checksums (
-  const std::vector<std::string> &checksums)
-{
-  // TODO - private contacts tables.
-  std::string query_str (
-    "SELECT * from data_table WHERE checksum IN (");
-    
-  for (unsigned long i = 0; i < checksums.size (); ++i)
-    {
-      query_str.append (i == 0 ? "?" : ",?");
-    }
-    
-  query_str.append (")");
-    
-  sqlite3_stmt *stmt = 0;
-  
-  int status = sqlite3_prepare (db_,
-                                query_str.c_str (),
-                                query_str.length (),
-                                &stmt,
-                                0);
-
-  if (status != SQLITE_OK)
-    {
-      LOG_ERROR ("Preparation of checksum match query failed: "
-                 << sqlite3_errmsg (db_));
-
-      return false;
-    }
-    
-  unsigned int slot = 1U;
-    
-  for (std::vector<std::string>::const_iterator i = checksums.begin ();
-       i != checksums.end ();
-       ++i)
-    {
-      bool good_bind = DataStoreUtils::bind_blob (db_,
-                                                  stmt,
-                                                  slot,
-                                                  i->c_str (),
-                                                  i->length (),
-                                                  false);
-                                                  
-      if (!good_bind)
-        {
-          // Other useful info already output by bind_blob().
-          LOG_ERROR (" - in match_requested_checksums()");
-		
-          return false;
-        }
-    }
-
-  while (sqlite3_step (stmt) == SQLITE_ROW)
-    {
-      // TODO - Prep selected object for remote reply.
-    }
-    
-  sqlite3_finalize (stmt);
-  return true;
-}
-
-bool
-DataStoreReceiver::collect_missing_checksums (
-  const std::vector<std::string> &checksums)
-{
-  checksums_.clear ();
-  sqlite3_stmt *stmt = 0;
-  const char *qry =
-    "SELECT * FROM data_table WHERE checksum = ?";
-  
-  int status = sqlite3_prepare (db_, qry, -1, &stmt, 0);
-
-  if (status != SQLITE_OK)
-    {
-      LOG_ERROR ("Preparation of checksums-missing query failed: "
-                 << sqlite3_errmsg (db_));
-
-      return false;
-    }
-    
-  for (std::vector<std::string>::const_iterator i = checksums.begin ();
-       i != checksums.end ();
-       ++i)
-    {
-      status = sqlite3_bind_blob (stmt,
-                                  1,
-                                  i->c_str (),
-                                  DataStoreUtils::CS_SIZE,
-                                  SQLITE_STATIC);
-
-      if (status != SQLITE_OK)
-        {
-          LOG_ERROR ("Bind to checksums-missing query failed: "
-                     << sqlite3_errmsg (db_));
-
-          return false;
-        }
-    
-      status = sqlite3_step (stmt);
-      
-      if (status == SQLITE_DONE)
-        {
-          // Above return code means checksum not found in db.
-          checksums_.push_back (*i);
-        }
-        
-      sqlite3_reset (stmt);
-    }
-    
-  sqlite3_finalize (stmt);  
   return true;
 }
 

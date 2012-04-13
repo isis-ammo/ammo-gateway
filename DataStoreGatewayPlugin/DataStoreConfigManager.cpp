@@ -27,7 +27,8 @@ DataStoreConfigManager::DataStoreConfigManager (
       DataStoreReceiver *receiver,
       GatewayConnector *connector)
   : receiver_ (receiver),
-    connector_ (connector)
+    connector_ (connector),
+    sync_reach_back_secs_ (0)
 {
   LOG_TRACE ("Parsing config file...");
 	
@@ -286,7 +287,7 @@ DataStoreConfigManager::setSendObjsMimeType (const std::string &val)
   send_objs_mime_type_ = val;
 }
 	
-unsigned long
+long
 DataStoreConfigManager::getSyncReachBackSecs (void) const
 {
   return sync_reach_back_secs_;

@@ -52,7 +52,7 @@ public:
 	const std::string &getSendObjsMimeType (void) const;
 	void setSendObjsMimeType (const std::string &val);
 	
-	unsigned long getSyncReachBackSecs (void) const;
+	long getSyncReachBackSecs (void) const;
 	
 private:
   DataStoreConfigManager (
@@ -81,7 +81,7 @@ private:
   std::string req_objs_mime_type_;
   std::string send_objs_mime_type_;
   
-  unsigned long sync_reach_back_secs_;
+  long sync_reach_back_secs_;
 };
 
 #endif // DATASTORE_CONFIG_MANAGER_H

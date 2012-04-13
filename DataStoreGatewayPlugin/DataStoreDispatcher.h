@@ -11,6 +11,7 @@ namespace ammo
   {
     class PullRequest;
     class GatewayConnector;
+    class PointToPointMessage;
   }
 }
 
@@ -19,17 +20,51 @@ class DataStoreDispatcher
 public:
   DataStoreDispatcher (void);
   
-  void dispatchPushData (sqlite3 *db,
-                         ammo::gateway::PushData &pd);
+  void
+  dispatchPushData (
+    sqlite3 *db,
+    ammo::gateway::PushData &pd);
                        
-  void dispatchPullRequest (sqlite3 *db,
-                            ammo::gateway::GatewayConnector *sender,
-                            ammo::gateway::PullRequest &pr);
+  void
+  dispatchPullRequest (
+    sqlite3 *db,
+    ammo::gateway::GatewayConnector *sender,
+    ammo::gateway::PullRequest &pr);
+                            
+  void
+  dispatchPointToPointMessage (
+    sqlite3 *db,
+    ammo::gateway::GatewayConnector *sender,
+    const ammo::gateway::PointToPointMessage &msg);
                             
   void set_cfg_mgr (DataStoreConfigManager *cfg_mgr);
-                            
+  
 private:
+  // Match entries stored later than tv's value, and store
+  // their checksums in the class member.
+  bool fetch_recent_checksums (sqlite3 *db,
+                               const ACE_Time_Value &tv);
+  
+  // Match entries whose checksums are equal to any in the list arg.
+  bool match_requested_checksums (sqlite3 *db,
+                                  const std::vector<std::string> &checksums);
+  
+  // Identify which checksums from a list are not in the local db.
+  bool collect_missing_checksums (sqlite3 *db,
+                                  const std::vector<std::string> &checksums);
+  
+  // Generate a uid for point-to-point messages.
+  const char *gen_uuid (void);
+                     
+private:
+  // Store an instance of the config manager for convenience.
   DataStoreConfigManager *cfg_mgr_;
+
+  // Persistent container for collected checksums.
+  std::vector<std::string> checksums_;
+  
+  // Holder for generated UUIDs.
+  const ACE_CString *new_uuid_;
 };
 
 #endif /* DATA_STORE_DISPATCHER_H */

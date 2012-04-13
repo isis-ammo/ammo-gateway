@@ -24,6 +24,8 @@ project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin
     DataStoreUtils.cpp
     EventProjectionParser.cpp
     EventQueryHandler.cpp
+    GatewaySync.pb.cc
+    GatewaySyncSerialization.cpp
     main.cpp
     MediaProjectionParser.cpp
     MediaQueryHandler.cpp
