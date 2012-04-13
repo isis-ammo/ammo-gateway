@@ -54,12 +54,22 @@ requestChecksumsMessageData::decodeProtobuf (
 
 //============================================================
 
+sendChecksumsMessageData::sendChecksumsMessageData (void)
+  : jsonKey_ ("RecentChecksums")
+{
+}
+
+sendChecksumsMessageData::sendChecksumsMessageData (const char *keyname)
+  : jsonKey_ (keyname)
+{
+}
+
 std::string
 sendChecksumsMessageData::encodeJson (void)
 {
   std::ostringstream sstream;
   sstream << "{"
-          << "\"Checksums\": [";
+          << "\"" << jsonKey_ << "\": [";
           
   for (std::vector<std::string>::const_iterator i = checksums_.begin ();
        i != checksums_.end ();
@@ -95,10 +105,10 @@ sendChecksumsMessageData::decodeJson (const std::string &data)
     }
     
   for (Json::Value::UInt i = 0;
-       i < root["Checksums"].size ();
+       i < root[jsonKey_.c_str ()].size ();
        ++i)
     {
-      checksums_.push_back (root["Checksums"][i].asString ());
+      checksums_.push_back (root[jsonKey_.c_str ()][i].asString ());
     }
     
   return true;
@@ -116,3 +126,12 @@ sendChecksumsMessageData::decodeProtobuf (
 {
   return true;
 }
+
+//==============================================================
+
+requestObjectsMessageData::requestObjectsMessageData (void)
+  : sendChecksumsMessageData ("MissingChecksums")
+{
+}
+
+//==============================================================

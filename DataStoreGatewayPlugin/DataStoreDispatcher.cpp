@@ -103,11 +103,6 @@ DataStoreDispatcher::dispatchPointToPointMessage (
   GatewayConnector *sender,
   const PointToPointMessage &msg)
 {
-  if (sender == 0)
-    {
-      LOG_WARN ("Sender is null, no responses will be sent");
-    }
-		
   //LOG_DEBUG ("point-to-point message type: " << msg.mimeType);
   
   if (msg.mimeType == cfg_mgr_->getReqCsumsMimeType ())
@@ -115,6 +110,7 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       PointToPointMessage reply;
       reply.destinationGateway = msg.sourceGateway;
       reply.destinationPluginId = msg.sourcePluginId;
+      reply.uid = this->gen_uuid ();
       reply.mimeType =
         DataStoreConfigManager::getInstance ()->getSendCsumsMimeType ();
   
@@ -133,13 +129,42 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       reply.data = encoder.encodeJson ();
       reply.encoding = "json";
       
-      sender->pointToPointMessage (reply);
+      if (sender != 0)
+        {
+          sender->pointToPointMessage (reply);
+        }
     }
   else if (msg.mimeType == cfg_mgr_->getSendCsumsMimeType ())
     {
+      PointToPointMessage reply;
+      reply.destinationGateway = msg.sourceGateway;
+      reply.destinationPluginId = msg.sourcePluginId;
+      reply.uid = this->gen_uuid ();
+      reply.mimeType =
+        DataStoreConfigManager::getInstance ()->getReqObjsMimeType ();
+      
+      sendChecksumsMessageData decoder;
+      decoder.decodeJson (msg.data);
+      this->collect_missing_checksums (db, decoder.checksums_);
+      
+      requestObjectsMessageData encoder;
+      encoder.checksums_ = decoder.checksums_;
+      reply.data = encoder.encodeJson ();
+      reply.encoding = "json";
+      
+      if (sender != 0)
+        {
+          sender->pointToPointMessage (reply);
+        }
     }
   else if (msg.mimeType == cfg_mgr_->getReqObjsMimeType ())
     {
+      PointToPointMessage reply;
+      reply.destinationGateway = msg.sourceGateway;
+      reply.destinationPluginId = msg.sourcePluginId;
+      reply.uid = this->gen_uuid ();
+      reply.mimeType =
+        DataStoreConfigManager::getInstance ()->getSendObjsMimeType ();
     }
   else if (msg.mimeType == cfg_mgr_->getSendObjsMimeType ())
     {
