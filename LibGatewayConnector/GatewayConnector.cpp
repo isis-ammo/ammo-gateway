@@ -442,6 +442,13 @@ void ammo::gateway::GatewayConnectorDelegate::onAuthenticationResponse(GatewayCo
 void ammo::gateway::GatewayConnectorDelegate::onRemoteGatewayConnected(GatewayConnector *sender,
                                             const std::string &gatewayId,
                                             const PluginList &connectedPlugins) {
+#if 0
+  //LOG_TRACE("GatewayConnectorDelegate::onRemoteGatewayConnected : gatewayId = " << gatewayId);
+  //LOG_TRACE("    connectedPlugins: ");
+  //for(PluginList::const_iterator it = connectedPlugins.begin(); it != connectedPlugins.end(); it++) {
+  //  LOG_TRACE("        " << it->pluginName << ":" << it->instanceId);
+  //}
+#endif
   //Do nothing by default
 }
 
@@ -449,6 +456,9 @@ void ammo::gateway::GatewayConnectorDelegate::onPluginConnected(GatewayConnector
                                      const PluginInstanceId &pluginId,
                                      const bool remotePlugin,
                                      const std::string &gatewayId){
+  //LOG_TRACE("GatewayConnectorDelegate::onPluginConnected : pluginId = " << pluginId.pluginName << ":" << pluginId.instanceId);
+  //LOG_TRACE("    remotePlugin : " << remotePlugin);
+  //LOG_TRACE("    gatewayId : " << gatewayId);
   //Do nothing by default
 }
 
