@@ -20,6 +20,10 @@
 #include "UserSwitch.inl"
 #include "LogConfig.inl"
 
+#ifdef WIN32
+#include "WinSvc.inl"
+#endif
+
 #include "NetworkAcceptor.h"
 #include "AndroidEventHandler.h"
 #include "NetworkEnumerations.h"
@@ -42,29 +46,90 @@ public:
   }
 };
 
-int main(int argc, char **argv) {
+
+class App
+{
+public:
+  static App* instance();
+  static void destroy();
+private:
+  static App* _instance;
+
+private:
+  App();
+  ~App();
+
+public:
+  void init(int argc, char* argv[]);
+  void run();
+  void stop();
+
+private:
+  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
+  //to the WFMO reactor, which has radically different semantics and
+  //violates assumptions we made in our code
+  ACE_Select_Reactor selectReactor;
+  ACE_Reactor newReactor;
+  auto_ptr<ACE_Reactor> delete_instance;
+
+  ACE_Sig_Action no_sigpipe;
+  ACE_Sig_Action original_action;
+
+  SigintHandler* handleExit;
+
+  
+
+  //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor for accept events
+  NetworkAcceptor<ammo::protocol::MessageWrapper, AndroidEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0xfeedbeef>* acceptor;
+};
+
+App* App::_instance = NULL;
+
+App* App::instance()
+{
+  if (!_instance) {
+    _instance = new App();
+  }
+
+  return _instance;
+}
+
+void App::destroy()
+{
+  delete _instance;
+  _instance = NULL;
+}
+
+App::App() : newReactor(&selectReactor),
+             delete_instance(ACE_Reactor::instance(&newReactor)),
+			 no_sigpipe((ACE_SignalHandler) SIG_IGN),  // Set signal handler for SIGPIPE (so we don't crash if a device disconnects during write)
+			 handleExit(NULL),
+			 acceptor(NULL)
+{
+}
+
+App::~App()
+{
+  if (this->acceptor) {
+    delete this->acceptor;
+  }
+}
+
+void App::init(int argc, char* argv[])
+{
   dropPrivileges();
   setupLogging("AndroidGatewayPlugin");
   LOG_FATAL("=========");
   LOG_FATAL("AMMO Android Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
 
-  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
-  //to the WFMO reactor, which has radically different semantics and
-  //violates assumptions we made in our code
-  ACE_Select_Reactor selectReactor;
-  ACE_Reactor newReactor(&selectReactor);
-  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(&newReactor));
-
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
-  ACE_Sig_Action no_sigpipe((ACE_SignalHandler) SIG_IGN);
-  ACE_Sig_Action original_action;
   no_sigpipe.register_action(SIGPIPE, &original_action);
   
-  SigintHandler * handleExit = new SigintHandler();
+  handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
   ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
-  
+
   string androidAddress = "0.0.0.0";
   int androidPort = 32869;
   
@@ -91,26 +156,98 @@ int main(int argc, char **argv) {
       LOG_FATAL("                           interface (default 32869)");
       LOG_FATAL("  --listenAddress address  Sets the listening address for the Android");
       LOG_FATAL("                           interface (default 0.0.0.0, or all interfaces)");
-      return 1;
+      return;
     }
   }
   
   LOG_DEBUG("Creating acceptor...");
   
-  //TODO: make interface and port number specifiable on the command line
-  ACE_INET_Addr serverAddress(androidPort, androidAddress.c_str());
-  
-  LOG_INFO("Listening on port " << androidPort << " on interface " << androidAddress);
-  
   //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor
   //for accept events
-  NetworkAcceptor<ammo::protocol::MessageWrapper, AndroidEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0xfeedbeef> acceptor(androidAddress, androidPort);
-  
+  acceptor = new NetworkAcceptor<ammo::protocol::MessageWrapper, 
+                                 AndroidEventHandler, 
+								 ammo::gateway::internal::SYNC_MULTITHREADED, 
+								 0xfeedbeef>(androidAddress, 
+								             androidPort);
+
+  LOG_INFO("Listening on port " << androidPort << " on interface " << androidAddress);
+}
+
+void App::run()
+{
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();
   LOG_DEBUG("Starting event loop...");
   reactor->run_reactor_event_loop();
   LOG_DEBUG("Event loop terminated.");
+}
+
+void App::stop()
+{
+  ACE_Reactor::instance()->end_reactor_event_loop();
+}
+
+#ifdef WIN32
+
+void SvcInit(DWORD argc, LPTSTR* argv)
+{
+  App::instance()->init(argc, argv);
+}
+
+void SvcRun()
+{
+  App::instance()->run();
+}
+
+void SvcStop()
+{
+  App::instance()->stop();
+}
+
+int main(int argc, char* argv[])
+{
+  const std::string svcName = "AndroidGatewayPlugin";
+
+  // Service installation command line option
+  if (argc == 2) {
+    if (lstrcmpi(argv[1], TEXT("install")) == 0) {
+      try
+      {
+        WinSvc::install(svcName);
+		return 0;
+      }
+      catch (WinSvcException e)
+	  {
+        cerr << e.what();
+		return 1;
+	  }
+	}
+  }
+
+  // Normal service operation
+  WinSvc::callbacks_t callbacks(SvcInit, SvcRun, SvcStop);
+
+  App::instance();
+  try
+  {
+    WinSvc::instance(svcName, callbacks);
+    WinSvc::instance()->run();
+  }
+  catch (WinSvcException e)
+  {
+    LOG_FATAL(e.what());
+  }
+
+  App::destroy();
 
   return 0;
 }
+#else
+int main(int argc, char** argv)
+{
+  App::instance()->init(argc, argv);
+  App::instance()->run();
+  App::instance()->destroy();
+  return 0;
+}
+#endif
