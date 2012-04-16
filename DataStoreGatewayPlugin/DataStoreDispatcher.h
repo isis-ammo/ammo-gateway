@@ -1,6 +1,8 @@
 #ifndef DATA_STORE_DISPATCHER_H
 #define DATA_STORE_DISPATCHER_H
 
+#include "GatewaySyncSerialization.h"
+
 class QueryHandler;
 struct sqlite3;
 class DataStoreConfigManager;
@@ -42,19 +44,24 @@ public:
 private:
   // Match entries stored later than tv's value, and store
   // their checksums in the class member.
-  bool fetch_recent_checksums (sqlite3 *db,
-                               const ACE_Time_Value &tv);
+  bool
+  fetch_recent_checksums (sqlite3 *db,
+                          const ACE_Time_Value &tv);
   
   // Match entries whose checksums are equal to any in the list arg.
-  bool match_requested_checksums (sqlite3 *db,
-                                  const std::vector<std::string> &checksums);
+  bool
+  match_requested_checksums (sqlite3 *db,
+                             sendObjectsMessageData &holder,
+                             const std::vector<std::string> &checksums);
   
   // Identify which checksums from a list are not in the local db.
-  bool collect_missing_checksums (sqlite3 *db,
-                                  const std::vector<std::string> &checksums);
-  
+  bool
+  collect_missing_checksums (sqlite3 *db,
+                             const std::vector<std::string> &checksums);
+      
   // Generate a uid for point-to-point messages.
-  const char *gen_uuid (void);
+  const char *
+  gen_uuid (void);
                      
 private:
   // Store an instance of the config manager for convenience.

@@ -2,6 +2,9 @@
 #include <string>
 #include "GatewaySync.pb.h"
 
+#ifndef GATEWAY_SYNC_SERIALIZATION_H
+#define GATEWAY_SYNC_SERIALIZATION_H
+
 namespace ammo
 {
   namespace gateway
@@ -53,3 +56,28 @@ class requestObjectsMessageData : public sendChecksumsMessageData
 public:
   requestObjectsMessageData (void);
 };
+
+class sendObjectsMessageData
+{
+public:
+  struct dbRow
+  {
+    std::string uri_;
+    std::string mime_type_;
+    std::string origin_user_;
+    long tv_sec_;
+    long tv_usec_;
+    std::string data_;
+    std::string checksum_;
+  };
+  
+  std::vector<dbRow> objects_;
+  
+  std::string encodeJson (void);
+  bool decodeJson (const std::string &data);
+  
+  SendObjectsMessage *encodeProtobuf (void);
+  bool decodeProtobuf (const SendObjectsMessage *msg);
+};
+
+#endif // GATEWAY_SYNC_SERIALIZATION_H

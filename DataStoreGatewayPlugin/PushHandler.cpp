@@ -16,7 +16,19 @@ PushHandler::PushHandler (sqlite3 *db,
   : db_ (db),
     stmt_ (0),
     pd_ (pd),
-    checksum_ ({0})
+    tv_ (0)
+{
+}
+
+PushHandler::PushHandler (sqlite3 *db,
+                          const ammo::gateway::PushData &pd,
+                          const ACE_Time_Value *tv,
+                          const std::string &checksum)
+  : db_ (db),
+    stmt_ (0),
+    pd_ (pd),
+    checksum_ (checksum),
+    tv_ (tv)
 {
 }
 
@@ -45,8 +57,13 @@ PushHandler::new_checksum (ACE_Time_Value &tv)
 void
 PushHandler::create_checksum (const std::string &ibuf)
 {
+  unsigned char buf[DataStoreUtils::CS_SIZE + 1];
+  
   (void) SHA1 (reinterpret_cast<const unsigned char *> (ibuf.c_str ()),
                ibuf.length (),
-               checksum_);
+               buf);
+               
+  buf[DataStoreUtils::CS_SIZE] = '\0';
+  checksum_ = reinterpret_cast<char *> (buf);
 }
 

@@ -165,9 +165,46 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       reply.uid = this->gen_uuid ();
       reply.mimeType =
         DataStoreConfigManager::getInstance ()->getSendObjsMimeType ();
+        
+      sendChecksumsMessageData decoder;
+      decoder.decodeJson (msg.data);
+      sendObjectsMessageData encoder;
+      this->match_requested_checksums (db, encoder, decoder.checksums_);
+      reply.data = encoder.encodeJson ();
+      reply.encoding = "json";
+      
+      if (sender != 0)
+        {
+          sender->pointToPointMessage (reply);
+        }
     }
   else if (msg.mimeType == cfg_mgr_->getSendObjsMimeType ())
     {
+      sendObjectsMessageData decoder;
+      decoder.decodeJson (msg.data);
+      
+      for (std::vector<sendObjectsMessageData::dbRow>::const_iterator i =
+             decoder.objects_.begin ();
+           i != decoder.objects_.end ();
+           ++i)
+        {
+          PushData pd;
+          pd.uri = i->uri_;
+          pd.mimeType = i->mime_type_;
+          pd.originUsername = i->origin_user_;
+          pd.data = i->data_;
+          pd.encoding = msg.encoding;
+          pd.priority = msg.priority;
+          
+          ACE_Time_Value tv (i->tv_sec_, i->tv_usec_);
+          OriginalPushHandler handler (db, pd, &tv, i->checksum_);
+          bool good_data_store = handler.handlePush ();
+          
+          if (!good_data_store)
+            {
+              LOG_ERROR ("Data store failed on received object");
+            }
+        }
     }
 }
 
@@ -248,6 +285,7 @@ DataStoreDispatcher::fetch_recent_checksums (sqlite3 *db,
 bool
 DataStoreDispatcher::match_requested_checksums (
   sqlite3 *db,
+  sendObjectsMessageData &holder,
   const std::vector<std::string> &checksums)
 {
   // TODO - private contacts tables.
@@ -301,7 +339,28 @@ DataStoreDispatcher::match_requested_checksums (
 
   while (sqlite3_step (stmt) == SQLITE_ROW)
     {
-      // TODO - Prep selected object for remote reply.
+      sendObjectsMessageData::dbRow row;
+      
+      row.uri_ =
+        reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0));
+        
+      row.mime_type_ =
+        reinterpret_cast<const char *> (sqlite3_column_text (stmt, 1));
+        
+      row.origin_user_ =
+        reinterpret_cast<const char *> (sqlite3_column_text (stmt, 2));
+        
+      row.tv_sec_ = sqlite3_column_int (stmt, 3);
+      
+      row.tv_usec_ = sqlite3_column_int (stmt, 4);
+      
+	    size_t len = sqlite3_column_bytes (stmt, 5);
+      row.data_ = ((char *) sqlite3_column_blob (stmt, 5), len);
+      
+      row.checksum_ =
+        ((char *) sqlite3_column_blob (stmt, DataStoreUtils::CS_SIZE), len);
+        
+      holder.objects_.push_back (row);
     }
     
   sqlite3_finalize (stmt);
@@ -359,6 +418,13 @@ DataStoreDispatcher::collect_missing_checksums (
     
   sqlite3_finalize (stmt);  
   return true;
+}
+
+void
+update_db (sqlite3 *db,
+           const sendObjectsMessageData &data)
+
+{
 }
 
 const char *

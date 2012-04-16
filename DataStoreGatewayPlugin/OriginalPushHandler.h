@@ -9,6 +9,11 @@ public:
   OriginalPushHandler (sqlite3 *db,
                        const ammo::gateway::PushData &pd);
   
+  OriginalPushHandler (sqlite3 *db,
+                       const ammo::gateway::PushData &pd,
+                       const ACE_Time_Value *tv,
+                       const std::string &checksum);
+  
   bool handlePush (void);
 };
 
