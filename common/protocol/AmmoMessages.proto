@@ -38,6 +38,7 @@ message DataMessage {
   optional string encoding = 5 [default = "json"];
   optional bytes data = 2;
   optional MessageScope scope = 4 [default = GLOBAL];
+  optional string user_id = 6;
 }
 
 message TerseMessage {

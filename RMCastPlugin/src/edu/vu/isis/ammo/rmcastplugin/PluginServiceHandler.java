@@ -68,11 +68,13 @@ class PluginServiceHandler implements
 	    pushData.uri =  dataMessage.getUri();
 	    pushData.mimeType = dataMessage.getMimeType();
 	    pushData.encoding = dataMessage.getEncoding();
+	    pushData.originUserName = dataMessage.getUserId();
 	    pushData.data = dataMessage.getData().toByteArray();
 	    pushData.scope = (AmmoMessages.MessageScope.GLOBAL == dataMessage.getScope()) ?
 		MessageScope.SCOPE_GLOBAL :
 		MessageScope.SCOPE_LOCAL;
 	    mGatewayConnector.pushData(pushData);
+	    logger.info("received push message from: {} {}", pushData.originUserName, pushData);
 	} else 	if (message.getType() == AmmoMessages.MessageWrapper.MessageType.SUBSCRIBE_MESSAGE) {
 	    // subscribe message check the sub map to see if we are not already subscribed to this type
 	    AmmoMessages.SubscribeMessage subscribeMessage = message.getSubscribeMessage();
@@ -155,6 +157,7 @@ class PluginServiceHandler implements
 	pushMsg.setUri( pushData.uri );
 	pushMsg.setMimeType( pushData.mimeType );
 	pushMsg.setEncoding( pushData.encoding );
+	pushMsg.setUserId( pushData.originUserName );
 	pushMsg.setData( ByteString.copyFrom(pushData.data) );
 	pushMsg.setScope( pushData.scope == MessageScope.SCOPE_GLOBAL ? AmmoMessages.MessageScope.GLOBAL : AmmoMessages.MessageScope.LOCAL );
 

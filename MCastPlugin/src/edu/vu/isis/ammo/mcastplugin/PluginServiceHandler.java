@@ -68,6 +68,7 @@ class PluginServiceHandler implements
 	    pushData.uri =  dataMessage.getUri();
 	    pushData.mimeType = dataMessage.getMimeType();
 	    pushData.encoding = dataMessage.getEncoding();
+	    pushData.originUserName = dataMessage.getUserId();
 	    pushData.data = dataMessage.getData().toByteArray();
 	    pushData.scope = (AmmoMessages.MessageScope.GLOBAL == dataMessage.getScope()) ?
 		MessageScope.SCOPE_GLOBAL :
@@ -155,6 +156,7 @@ class PluginServiceHandler implements
 	pushMsg.setUri( pushData.uri );
 	pushMsg.setMimeType( pushData.mimeType );
 	pushMsg.setEncoding( pushData.encoding );
+	pushMsg.setUserId( pushData.originUserName );
 	pushMsg.setData( ByteString.copyFrom(pushData.data) );
 	pushMsg.setScope( pushData.scope == MessageScope.SCOPE_GLOBAL ? AmmoMessages.MessageScope.GLOBAL : AmmoMessages.MessageScope.LOCAL );
 
