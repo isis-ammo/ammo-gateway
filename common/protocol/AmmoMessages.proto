@@ -58,9 +58,11 @@ message DataMessage {
   optional string mime_type = 3;
   optional string encoding = 5 [default = "json"];
   optional string origin_device = 7;
+  optional string user_id = 6;
   optional bytes data = 2;
-  optional MessageScope scope = 4 [default = GLOBAL];
-  optional AcknowledgementThresholds thresholds = 6;
+  optional MessageScope scope = 4 [default = GLOBAL];  
+  optional AcknowledgementThresholds thresholds = 8;
+
 }
 
 message TerseMessage {

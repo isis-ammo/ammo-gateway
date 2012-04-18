@@ -107,6 +107,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       pushData.data = dataMessage.data();
       pushData.scope = scope;
       pushData.encoding = dataMessage.encoding();
+      pushData.originUsername = dataMessage.user_id();
       pushData.priority = msg.message_priority();
       gatewayConnector->pushData(pushData);
       ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();

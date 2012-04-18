@@ -37,9 +37,9 @@ class RMCastPlugin
 	mServiceHandler = new PluginServiceHandler();
 
 	mGatewayConnector = new GatewayConnector( mServiceHandler );
-    mServiceHandler.setGatewayConnector( mGatewayConnector );
+	mServiceHandler.setGatewayConnector( mGatewayConnector );
 
-    mRmcastConnector = new ReliableMulticastConnector(mServiceHandler, "", 1234);
+	mRmcastConnector = new ReliableMulticastConnector(mServiceHandler, "", 1234);
 	mServiceHandler.setRmcastConnector( mRmcastConnector );
 	
 	while(true) {

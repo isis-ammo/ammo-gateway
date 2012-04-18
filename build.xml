@@ -17,6 +17,8 @@
     <property name="gatewayversion.out" value="common/version.h" />
     <property name="gatewayversion-mpb.template" value="gatewayversion.mpb.in" />
     <property name="gatewayversion-mpb.out" value="gatewayversion.mpb" />
+    <property name="rmcastplugin.dir" location="RMCastPlugin"/>
+    <property name="mcastplugin.dir" location="MCastPlugin"/>
     
     <condition property="isWindows">
       <os family="windows" />
@@ -92,10 +94,14 @@
         <replace file="${gatewayversion-mpb.out}" token="&lt;VERSION&gt;" value="${gatewayversion-stripped}"/>
     </target>
     
-    <target name="build-unix" if="isUnix" depends="configure">
+    <target name="build-unix" if="isUnix" depends="configure, -java-plugin-connector">
         <echo message="Building ${project}..."/>
         <exec executable="make" dir="." searchpath="true" failonerror="true">
         </exec>
+        <ant antfile="build.xml" dir="${rmcastplugin.dir}" target="dist">
+        </ant>
+        <ant antfile="build.xml" dir="${mcastplugin.dir}" target="dist">
+        </ant>
     </target>
     
     <target name="build-windows" if="isWindows" depends="configure">

@@ -38,7 +38,7 @@ if __name__ == "__main__":
   #                   default="global")
   
   # (options, args) = parser.parse_args()
-  sys.path.append(jar_dir+"/dist/lib/gatewaypluginapi.jar")
+  sys.path.append(jar_dir+"/dist/lib/gatewaypluginapi-1.3.9.jar")
   sys.path.append(jar_dir+"/libs/json-20090211.jar")
   sys.path.append(jar_dir+"/libs/slf4j-api-1.6.4.jar")
   sys.path.append(jar_dir+"/libs/slf4j-simple-1.6.4.jar")
@@ -73,8 +73,12 @@ if __name__ == "__main__":
   connector = GatewayConnector( delegate )
 
   data = PushData( )
+
   data.uid = "java api test"
-  data.mimeType = "ammo/edu.vu.isis.ammo.dash.event"
+  # data.mimeType = "ammo/edu.vu.isis.ammo.dash.event"
+  data.mimeType = "ammo/transapps.chat.message_groupAll"
+  # data.mimeType = "ammo/com.aterrasys.nevada.locations"
+
   data.originUserName = "testDriver"
   data.data = "My BIG FAT JSON String"
   
@@ -87,8 +91,8 @@ if __name__ == "__main__":
          print "Pushing Data."
          ret = connector.pushData(data)
          print ret
-         time.sleep(0.01)
-         #time.sleep(5)
+         #time.sleep(0.01)
+         time.sleep(5)
       else:
          time.sleep(5)
 

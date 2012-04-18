@@ -78,7 +78,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       } else {
         scope = SCOPE_LOCAL;
       }
-      GatewayCore::getInstance()->pushData(this, msg->push_data().uid(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), this->username, scope, msg->message_priority());
+      GatewayCore::getInstance()->pushData(this, msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), msg->push_data().origin_user()/*this->username*/, scope, msg->message_priority());
       break;
     } 
     case ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST: {

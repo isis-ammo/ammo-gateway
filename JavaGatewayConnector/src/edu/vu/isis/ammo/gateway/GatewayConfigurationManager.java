@@ -50,7 +50,7 @@ class GatewayConfigurationManager {
 	String fileName = findConfigFile(configFile);
 	if (fileName != null) {
 	    try {
-	    final JSONTokener tokener = new JSONTokener( new FileReader(configFile) );
+	    final JSONTokener tokener = new JSONTokener( new FileReader(fileName) );
 	    final JSONObject input = new JSONObject( tokener );
 	    if (input != null) {
 		if(input.has("GatewayInterface")) {
