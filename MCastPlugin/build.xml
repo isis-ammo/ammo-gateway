@@ -37,13 +37,18 @@
         <symlink taskname="add-protobuf-lib" action="single" overwrite="true" 
               link="${basedir}/libs/protobuf.jar" 
               resource="/usr/share/java/protobuf.jar"/>
+        <symlink taskname="add-gatewayapi-lib" action="single" overwrite="true" 
+              link="${basedir}/libs/gatewaypluginapi.jar" 
+              resource="${basedir}/../JavaGatewayConnector/dist/lib/gatewaypluginapi-1.3.9.jar"/>
+
 
         <fail message="The Protocol Buffers library for Java is missing.  On Ubuntu, install libprotobuf-java.">
            <condition>
                <not>
-                   <resourcecount count="1">
+                   <resourcecount count="2">
                        <fileset id="simlinks" dir="libs">
                          <include name="protobuf.jar"/>
+                         <include name="gatewaypluginapi.jar"/>
                        </fileset>
                    </resourcecount>
                </not>

@@ -1,0 +1,1 @@
+java -Djava.net.preferIPv4Stack=true  -cp libs/gatewaypluginapi.jar:libs/slf4j-api-1.6.4.jar:libs/slf4j-simple-1.6.4.jar:libs/jgroups-gw.jar:libs/json-20090211.jar:libs/protobuf.jar:dist/lib/rmcastplugin.jar edu.vu.isis.ammo.rmcastplugin.RMCastPlugin

@@ -582,6 +582,7 @@ class NetworkConnector {
 		    // 	mChannel.ackToHandler( msg.handler, ChannelDisposal.SENT );
 		}  catch ( Exception ex ) {
 		    logger.warn("sender threw exception {} \n {}", ex.getMessage(), ex.getStackTrace() );
+		    ex.printStackTrace();
 		    break;
 		}
 	    }
@@ -756,7 +757,8 @@ class NetworkConnector {
 
                     bbuf.compact();
                 } catch ( Exception ex ) {
-                    logger.warn("receiver threw exception {}", ex.getStackTrace());
+                    logger.warn("receiver threw exception {}", ex.getMessage());
+		    ex.printStackTrace();
 		    break;
                 }
             }

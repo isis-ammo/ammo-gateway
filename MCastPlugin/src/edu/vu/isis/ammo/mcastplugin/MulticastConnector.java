@@ -61,7 +61,7 @@ import edu.vu.isis.ammo.core.pb.AmmoMessages;
  *
  */
 class MulticastConnector {
-    private static final Logger logger = LoggerFactory.getLogger(MulticastConnector.class);
+    private static final Logger logger = LoggerFactory.getLogger("net.mcast");
 
     private static final int BURP_TIME = 5 * 1000; // 5 seconds expressed in milliseconds
     
@@ -92,7 +92,7 @@ class MulticastConnector {
     private String mMulticastAddress = null;
     private int mMulticastPort = -1;
     private InetAddress mMulticastGroup = null;
-    private AtomicInteger mMulticastTTL;
+    private Integer mMulticastTTL;
 
     private ByteOrder endian = ByteOrder.LITTLE_ENDIAN;
 
@@ -140,6 +140,7 @@ class MulticastConnector {
 	this.mPlugin = plugin;
 	this.mMulticastAddress = multicastAddr;
 	this.mMulticastPort = multicastPort;
+	this.mMulticastTTL = 2;
 
 	this.connectorThread = new ConnectorThread(this);
 	mSenderQueue = new SenderQueue( this );
@@ -261,7 +262,7 @@ class MulticastConnector {
      *
      */
     private class ConnectorThread extends Thread { 
-	private final Logger logger = LoggerFactory.getLogger( ConnectorThread.class );
+	private final Logger logger = LoggerFactory.getLogger( "net.mcast.connector" );
 
 	private final String DEFAULT_MCAST_ADDRESS = "228.10.10.90";
 	private final int DEFAULT_PORT = 9982;
@@ -508,7 +509,11 @@ class MulticastConnector {
 		    buf.order(endian);
 
 		    buf.clear(); // prepare buffer for writing
-		    buf.putInt( GATEWAY_MESSAGE_MAGIC );
+		    buf.put( (byte)GATEWAY_MESSAGE_MAGICB[3] );
+		    buf.put( (byte)GATEWAY_MESSAGE_MAGICB[2] );
+		    buf.put( (byte)GATEWAY_MESSAGE_MAGICB[0] );
+		    buf.put( (byte)0xfe ); // VERSION_1_FULL 
+
 		    buf.putInt(payloadSize);
 		    buf.put( (byte)msg.getMessagePriority() );
 		    buf.put( (byte)0);
@@ -535,7 +540,7 @@ class MulticastConnector {
 					    buf.remaining(),
 					    mChannel.mMulticastGroup,
 					    mChannel.mMulticastPort );
-		    mSocket.setTimeToLive( mChannel.mMulticastTTL.get() );
+		    mSocket.setTimeToLive( mChannel.mMulticastTTL );
 		    mSocket.send( packet );
 		    logger.info( "Wrote to MulticastSocket" );
 
@@ -544,6 +549,7 @@ class MulticastConnector {
 		    // 	mChannel.ackToHandler( msg.handler, ChannelDisposal.SENT );
 		}  catch ( Exception ex ) {
 		    logger.warn("sender threw exception {} \n {}", ex.getMessage(), ex.getStackTrace() );
+		    ex.printStackTrace();
 		    break;
 		}
 	    }
@@ -734,7 +740,7 @@ class MulticastConnector {
         private MulticastConnector mDestination;
 	private MulticastSocket mSocket;
         private final Logger logger
-	    = LoggerFactory.getLogger( "net.tcp.receiver" );
+	    = LoggerFactory.getLogger( "net.mcast.receiver" );
     }
 
 

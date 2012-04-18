@@ -26,6 +26,8 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
 import java.util.Enumeration;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.Comparator;
@@ -56,7 +58,7 @@ import edu.vu.isis.ammo.core.pb.AmmoMessages;
  *
  */
 class ReliableMulticastConnector {
-    private static final Logger logger = LoggerFactory.getLogger(ReliableMulticastConnector.class);
+    private static final Logger logger = LoggerFactory.getLogger("net.rmcast");
 
     private static final int BURP_TIME = 5 * 1000; // 5 seconds expressed in milliseconds
     
@@ -254,7 +256,7 @@ class ReliableMulticastConnector {
      *
      */
     private class ConnectorThread extends Thread implements ChannelListener { // jgroups listener interface
-	private final Logger logger = LoggerFactory.getLogger( ConnectorThread.class );
+	private final Logger logger = LoggerFactory.getLogger( "net.rmcast.connector" );
 
 	private final String DEFAULT_HOST = "127.0.0.1";
 	private final int DEFAULT_PORT = 12475;
@@ -378,7 +380,7 @@ class ReliableMulticastConnector {
             	File configFile = new File( "jgroups/udp.xml" );
             	parent.mJGroupChannel = new JChannel( configFile );
 		parent.mJGroupChannel.addChannelListener( this );
-            	parent.mJGroupChannel.setName( parent.getLocalIpAddress() );
+            	parent.mJGroupChannel.setName( getLocalIpAddress() );
             	//parent.mJGroupChannel.setOpt( Channel.AUTO_RECONNECT, Boolean.TRUE ); // deprecated
             }
             catch ( Exception e )
@@ -518,7 +520,12 @@ class ReliableMulticastConnector {
 		    buf.order(endian);
 
 		    buf.clear(); // prepare buffer for writing
-		    buf.putInt( GATEWAY_MESSAGE_MAGIC );
+
+		    buf.put( (byte)GATEWAY_MESSAGE_MAGICB[3] );
+		    buf.put( (byte)GATEWAY_MESSAGE_MAGICB[2] );
+		    buf.put( (byte)GATEWAY_MESSAGE_MAGICB[0] );
+		    buf.put( (byte)0xfe ); // VERSION_1_FULL 
+
 		    buf.putInt(payloadSize);
 		    buf.put( (byte)msg.getMessagePriority() );
 		    buf.put( (byte)0);
@@ -570,7 +577,7 @@ class ReliableMulticastConnector {
         private ReliableMulticastConnector mChannel;
         private SenderQueue mQueue;
         private JChannel mJChannel;
-        private final Logger logger = LoggerFactory.getLogger( "net.tcp.sender" );
+        private final Logger logger = LoggerFactory.getLogger( "net.rmcast.sender" );
     }
 
 
@@ -589,7 +596,12 @@ class ReliableMulticastConnector {
         @Override
         public void receive( org.jgroups.Message msg )
         {
-            logger.info( "Thread <{}>: ChannelReceiver::receive()", Thread.currentThread().getId() );
+            logger.info( "Thread <{}>: ChannelReceiver::receive() size {}, src {} ", new Object[] {Thread.currentThread().getId(), msg.getLength(), msg.getSrc() } );
+	    List<String> addresses = getLocalIpAddresses();
+	    if ( addresses.contains(  msg.getSrc().toString() ) )
+		return;		// loopback message - discard it
+
+
 
 	    ByteBuffer buf = ByteBuffer.wrap( msg.getBuffer() );
 	    buf.order( endian );
@@ -674,6 +686,7 @@ class ReliableMulticastConnector {
 		return ret;
 	    } catch(BufferUnderflowException ex) {
 		logger.error("extractHeader: {}", ex.getMessage());
+		ex.printStackTrace();
 		bbuf.reset();
 	    }
 	    return null;
@@ -722,7 +735,7 @@ class ReliableMulticastConnector {
         private ConnectorThread mParent;
         private ReliableMulticastConnector mDestination;
         private final Logger logger
-	    = LoggerFactory.getLogger( "net.tcp.receiver" );
+	    = LoggerFactory.getLogger( "net.rmcast.receiver" );
     }
 
 
@@ -734,21 +747,51 @@ class ReliableMulticastConnector {
      *
      * @return
      */
-    public String getLocalIpAddress() {
-        logger.trace("Thread <{}>::getLocalIpAddress", Thread.currentThread().getId());
-        try {
-            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+    public List<String> getLocalIpAddresses()
+    {
+        List<String> addresses = new ArrayList<String>();
+        try
+        {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();)
+            {
                 NetworkInterface intf = en.nextElement();
-                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
+                {
                     InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (!inetAddress.isLoopbackAddress()) {
-                        return inetAddress.getHostAddress().toString();
-                    }
+                    addresses.add( inetAddress.getHostAddress().toString() );
                 }
             }
-        } catch (SocketException ex) {
-            logger.error( ex.toString());
         }
+        catch (SocketException ex)
+        {
+            logger.error("getLocalIpAddresses: {}", ex.toString());
+        }
+
+        return addresses;
+    }
+    public String getLocalIpAddress()
+    {
+        try
+        {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();)
+            {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
+                {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    logger.info( "address: {}", inetAddress );
+		    if (!inetAddress.isLoopbackAddress()) {
+			return inetAddress.getHostAddress().toString();
+		    }
+		    
+                }
+            }
+        }
+        catch (SocketException ex)
+        {
+            logger.error("getLocalIpAddresses: {}", ex.toString());
+        }
+
         return null;
     }
 
