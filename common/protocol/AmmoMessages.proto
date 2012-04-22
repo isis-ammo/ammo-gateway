@@ -43,6 +43,7 @@ message DataMessage {
 
 message TerseMessage {
   optional int32 mime_type = 1;	/* protobuf does not have byte, but small encoding is compact regardless of type */
+  optional string user_id = 3;
   optional bytes data = 2;
 }
 
