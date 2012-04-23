@@ -106,6 +106,9 @@ rm -rf %{buildroot}
 /usr/lib/libgeotrans-mgrs.so.AMMO_VERSION_STRING
 /usr/lib/libjson.so
 /usr/lib/libjson.so.AMMO_VERSION_STRING
+/usr/share/java/gatewaypluginapi.jar
+/usr/share/java/mcastplugin.jar
+/usr/share/java/rmcastplugin.jar
 /var/log/ammo-gateway
 /var/db/ammo-gateway
 /var/run/ammo-gateway
