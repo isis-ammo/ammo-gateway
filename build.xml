@@ -104,7 +104,7 @@
         </ant>
     </target>
     
-    <target name="build-windows" if="isWindows" depends="configure">
+    <target name="build-windows" if="isWindows" depends="configure, -java-plugin-connector">
         <echo message="Building ${project}..."/>
         <exec executable="msbuild" dir="." searchpath="true" failonerror="true">
 		<arg value="/p:Configuration=Release" />
