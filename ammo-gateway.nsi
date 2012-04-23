@@ -223,6 +223,10 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
   File MCastPlugin\mcastplugin.bat
   File MCastPlugin\dist\lib\mcastplugin.jar
 
+  SetShellVarContext all
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\win32\MCastPluginConfig.json
+
 ${MementoSectionEnd}
 
 ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
@@ -247,6 +251,10 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
   File RMCastPlugin\libs\slf4j-simple-1.6.4.jar
   SetOutPath $INSTDIR\bin\jgroups
   File RMCastPlugin\jgroups\udp.xml
+
+  SetShellVarContext all
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\win32\RMCastPluginConfig.json
 
 ${MementoSectionEnd}
 
