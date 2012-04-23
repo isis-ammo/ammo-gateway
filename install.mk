@@ -27,6 +27,7 @@ install: all
 	mkdir -p $(DESTDIR)/etc/init.d
 	mkdir -p $(DESTDIR)/etc/ammo-gateway
 	mkdir -p $(DESTDIR)/etc/ammo-gateway/keys
+	mkdir -p $(DESTDIR)/usr/share/java
 	mkdir -p $(DESTDIR)/var/log/ammo-gateway
 	mkdir -p $(DESTDIR)/var/db/ammo-gateway
 	mkdir -p $(DESTDIR)/var/run/ammo-gateway
@@ -63,6 +64,10 @@ install: all
 	ln -s $(INSTALL_DIR_BASE)/lib/libgeotrans-mgrs.so.$(VERSION) $(INSTALL_DIR)/lib/libgeotrans-mgrs.so
 	install -m 644 build/lib/libjson.so.$(VERSION) $(INSTALL_DIR)/lib
 	ln -s $(INSTALL_DIR_BASE)/lib/libjson.so.$(VERSION) $(INSTALL_DIR)/lib/libjson.so
+	echo "Installing jars ..."
+	install -m 644 JavaGatewayConnector/dist/lib/gatewaypluginapi.jar $(DESTDIR)/usr/share/java
+	install -m 644 MCastPlugin/dist/lib/mcastplugin.jar $(DESTDIR)/usr/share/java
+	install -m 644 RMCastPlugin/dist/lib/rmcastplugin.jar $(DESTDIR)/usr/share/java
 	echo "Installing scripts ..."
 	install -m 755 debian/init.d $(DESTDIR)/etc/init.d/ammo-gateway
 	install -m 755 dist/template/bin/launch_ammo_gateway_headless.sh $(INSTALL_DIR)/bin
