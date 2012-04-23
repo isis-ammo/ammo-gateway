@@ -192,7 +192,7 @@ ${MementoSection} "Data Store Gateway Plugin (required)" SecDatPlug
 
 ${MementoSectionEnd}
 
-${MementoSection} "Java Gateway Connector (required)" SecDatPlug
+${MementoSection} "Java Gateway Connector (required)" SecJavaConn
 
   SetDetailsPrint textonly
   DetailPrint "Installing Java Connector ..."
@@ -208,7 +208,7 @@ ${MementoSection} "Java Gateway Connector (required)" SecDatPlug
 
 ${MementoSectionEnd}
 
-${MementoSection} "MCast Gateway Plugin (required)" SecDatPlug
+${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
 
   SetDetailsPrint textonly
   DetailPrint "MCast Java Plugin ..."
@@ -224,7 +224,7 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecDatPlug
 
 ${MementoSectionEnd}
 
-${MementoSection} "RMCast Gateway Plugin (required)" SecDatPlug
+${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
 
   SetDetailsPrint textonly
   DetailPrint "RMCast Java Plugin ..."
@@ -389,6 +389,9 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAndPlug} "The Android Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecLdapPlug} "The LDAP Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecDatPlug} "The Data Store Plugin Service for AMMO Gateway"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecJavaConn} "The Java Connector for AMMO Gateway"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecMCastPlug} "The MCast Plugin Service for AMMO Gateway"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecRMCastPlug} "The RMCast Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecVcredist} "The VC redist dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAce} "The ACE networking dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecSqlite} "The SQLite database dependency"
@@ -428,6 +431,15 @@ Section Uninstall
 
   ; Data Store Gateway Plugin
   Delete $INSTDIR\bin\DataStoreGatewayPlugin.exe
+
+  ; Java Gateway Connector
+  Delete $INSTDIR\bin\gatewaypluginapi.jar
+
+  ; MCast Plugin
+  Delete $INSTDIR\bin\mcastplugin.jar
+
+  ; RMCast Plugin
+  Delete $INSTDIR\bin\rmcastplugin.jar
 
   ; ACE
   Delete $INSTDIR\bin\ACE.dll
