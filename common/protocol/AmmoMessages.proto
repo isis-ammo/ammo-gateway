@@ -89,8 +89,8 @@ message TerseMessage {
 *
 * status : indicates the disposition of the message as it crosses the threshold
 *     SUCCESS    the threshold was crossed without incident 
-*     FAIL            the threshold was reached, but the message failed and will be canceled 
-*     UNKNOWN the request is of an indeterminate disposition
+*     FAIL       the threshold was reached, but the message failed and will be canceled 
+*     RECEIVED   the request is of an indeterminate disposition but it was received
 *     REJECTED   the threshold rejected the request
 *
 */
@@ -104,7 +104,7 @@ message PushAcknowledgement {
   optional AcknowledgementThresholds threshold = 5;
   
   enum PushStatus {
-    UNKNOWN   = 0;
+    RECEIVED  = 0;
     SUCCESS   = 1;
     FAIL      = 2;
     REJECTED  = 3;
@@ -141,7 +141,8 @@ message SubscribeMessage {
   required string mime_type = 1;
   optional string query = 2;
   optional MessageScope scope = 3 [default = GLOBAL];
-  optional string origin_device = 4;
+  optional string origin_device = 4 [default = ""];
+  optional string origin_user = 5 [default = ""];
 }
 
 /**
