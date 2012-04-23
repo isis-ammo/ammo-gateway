@@ -220,6 +220,7 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
+  File MCastPlugin\mcastplugin.bat
   File MCastPlugin\dist\lib\mcastplugin.jar
 
 ${MementoSectionEnd}
@@ -236,7 +237,15 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
+  File RMCastPlugin\rmcastplugin.bat
   File RMCastPlugin\dist\lib\rmcastplugin.jar
+  File RMCastPlugin\jgroups\udp.xml
+  File RMCastPlugin\libs\jgroups.jar
+  ; jars from here down are also prereqs for mcastplugin
+  File RMCastPlugin\libs\json-20090211.jar
+  File RMCastPlugin\libs\protobuf-java-2.3.0.jar
+  File RMCastPlugin\libs\slf4j-api-1.6.4.jar
+  File RMCastPlugin\libs\slf4j-simple-1.6.4.jar
 
 ${MementoSectionEnd}
 
