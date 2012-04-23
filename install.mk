@@ -87,4 +87,6 @@ install: all
 	install -m 644 build/etc/LoggingConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/DataStorePluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/PassPluginConfig.json $(DESTDIR)/etc/ammo-gateway
+	install -m 644 build/etc/MCastPluginConfig.json $(DESTDIR)/etc/ammo-gateway
+	install -m 644 build/etc/RMCastPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 
