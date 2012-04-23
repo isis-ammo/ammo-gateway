@@ -240,7 +240,7 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
   File RMCastPlugin\rmcastplugin.bat
   File RMCastPlugin\dist\lib\rmcastplugin.jar
   File RMCastPlugin\jgroups\udp.xml
-  File RMCastPlugin\libs\jgroups.jar
+  File RMCastPlugin\libs\jgroups-gw.jar
   ; jars from here down are also prereqs for mcastplugin
   File RMCastPlugin\libs\json-20090211.jar
   File RMCastPlugin\libs\protobuf-java-2.3.0.jar
