@@ -109,6 +109,10 @@
         <exec executable="msbuild" dir="." searchpath="true" failonerror="true">
 		<arg value="/p:Configuration=Release" />
         </exec>
+        <ant antfile="build.xml" dir="${rmcastplugin.dir}" target="dist">
+        </ant>
+        <ant antfile="build.xml" dir="${mcastplugin.dir}" target="dist">
+        </ant>
     </target>
 
     <target name="build" depends="configure, build-unix, build-windows, -java-plugin-connector"
