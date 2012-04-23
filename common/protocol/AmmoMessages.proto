@@ -48,8 +48,8 @@ message AcknowledgementThresholds {
 *         to send this message to in a multiple-gateway configuration).
 * mime_type : the subcription key (topic)
 * encoding : an application specified encoding for the data element
-* origin_device : used for routing acknowledgements back to the
-*                 originating device. 
+* origin_device : used for routing acknowledgements back to the originating device. 
+*            This may be the plugin-id or the handheld-device-id 
 * data : the payload, application specific
 * thresholds : when any are crossed an acknowlegement is sent
 */
@@ -78,7 +78,12 @@ message TerseMessage {
 * uid : this must match the uid of the corresponding DataMessage
 * destination_device : this must match the origin_device of the
 *                      corresponding DataMessage
+*
 * acknowledging_device : this device id of the acknowledging device or plugin. 
+*
+*    The devices may be either plugin or handheld
+*
+* *_user : the associated user id
 *
 * threshold : the threshold that was crossed.
 *
@@ -93,6 +98,9 @@ message PushAcknowledgement {
   required string uid = 1;
   optional string destination_device = 2;
   optional string acknowledging_device = 3;
+  optional string destination_user = 6;
+  optional string acknowledging_user = 7;
+
   optional AcknowledgementThresholds threshold = 5;
   
   enum PushStatus {
