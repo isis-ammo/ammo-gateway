@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "ace/Select_Reactor.h"
 #include "ace/Reactor.h"
 #include "ace/OS_NS_unistd.h" 
@@ -15,6 +17,11 @@
 #include "UserSwitch.inl"
 #include "LogConfig.inl"
 
+#ifdef WIN32
+#include "WinSvc.inl"
+#endif
+
+using namespace std;
 using namespace ammo::gateway;
 
 //Handle SIGINT so the program can exit cleanly (otherwise, we just terminate
@@ -33,9 +40,79 @@ public:
   }
 };
 
-int main (int /* argc */, char ** /* argv */)
+
+class App
 {
-  
+public:
+  static App* instance();
+  static void destroy();
+private:
+  static App* _instance;
+
+private:
+  App();
+  ~App();
+
+public:
+  void init(int argc, char* argv[]);
+  void run();
+  void stop();
+
+private:
+  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
+  //to the WFMO reactor, which has radically different semantics and
+  //violates assumptions we made in our code
+  ACE_Select_Reactor selectReactor;
+  ACE_Reactor newReactor;
+  auto_ptr<ACE_Reactor> delete_instance;
+
+  ACE_Sig_Action no_sigpipe;
+  ACE_Sig_Action original_action;
+
+  SigintHandler* handleExit;
+
+  DataStoreReceiver* receiver;
+  GatewayConnector* gatewayConnector;
+};
+
+App* App::_instance = NULL;
+
+App* App::instance()
+{
+  if (!_instance) {
+    _instance = new App();
+  }
+
+  return _instance;
+}
+
+void App::destroy()
+{
+  delete _instance;
+  _instance = NULL;
+}
+
+App::App() : newReactor(&selectReactor),
+             delete_instance(ACE_Reactor::instance(&newReactor)),
+			 no_sigpipe((ACE_SignalHandler) SIG_IGN),  // Set signal handler for SIGPIPE (so we don't crash if a device disconnects during write)
+			 handleExit(NULL),
+			 receiver(NULL),
+			 gatewayConnector(NULL)
+{
+}
+
+App::~App()
+{
+  //if (this->receiver) {
+  //  delete this->receiver;
+  //}
+  //if (this->gatewayConnector) {
+  //  delete this->gatewayConnector;
+  //}
+}
+
+void App::init(int argc, char* argv[])
+{
   dropPrivileges();
   setupLogging("DataStoreGatewayPlugin");
   LOG_FATAL("=========");
@@ -46,80 +123,112 @@ int main (int /* argc */, char ** /* argv */)
             << " at "
             << __TIME__
             << ")");
+
+  // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
+  // during write)
+  no_sigpipe.register_action(SIGPIPE, &original_action);
   
-  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
-  //to the WFMO reactor, which has radically different semantics and
-  //violates assumptions we made in our code
-  ACE_Select_Reactor selectReactor;
-  ACE_Reactor newReactor(&selectReactor);
-  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(&newReactor));
-  
-  SigintHandler * handleExit = new SigintHandler();
+  handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
   ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
-  
+
   LOG_DEBUG ("Creating location store receiver...");
   
-  DataStoreReceiver *receiver = new DataStoreReceiver ();
-
-  GatewayConnector *gatewayConnector = new GatewayConnector (receiver);
+  receiver = new DataStoreReceiver ();
+  gatewayConnector = new GatewayConnector (receiver);
 
   DataStoreConfigManager *config =
 	  DataStoreConfigManager::getInstance (receiver, gatewayConnector);
 	  
-	// Nothing further is done with 'config' since everything happens
-	// in the constructor. This macro avoids the 'unused' warning.  
-	ACE_UNUSED_ARG (config);
+  // Nothing further is done with 'config' since everything happens
+  // in the constructor. This macro avoids the 'unused' warning.  
+  ACE_UNUSED_ARG (config);
 
   // Make sure that the receiver and connector have been created and
   // passed to the config manager before calling this method.
-	if (!receiver->init ())
-	  {
-	    // Error msg already output, just exit w/o starting reactor.
-	    return -1;
-	  }
-	  
-//====================================
-/*
-  std::string mime_t ("ammo/edu.vu.isis.ammo.private_contacts");
-  std::string orig_user ("kyle.anderson");
-  std::string uri ("kokomo");
-  std::string data ("{\"first_name\":\"Jimmy\",\"middle_initial\":\"I\",\"last_name\":\"Bork\",\"rank\":\"sgt\",\"call_sign\":\"\",\"branch\":\"\",\"unit\":\"\",\"email\":\"\",\"phone\":\"\"}");
-  
-  ammo::gateway::PushData pd;
-  pd.mimeType = mime_t;
-  pd.originUsername = orig_user;
-  pd.uri = uri;
-  pd.data = data;
+  if (!receiver->init ()) {
+    // Error msg already output, just exit w/o starting reactor.
+    return;
+  }
+}
 
-  receiver->onPushDataReceived (0, pd);
-
-
-  std::string requestUid ("requestUid");
-  std::string pluginId ("pluginId");
-  std::string query ("kyle.anderson,kokomo,Jimmy,,,,,,,,");
-  std::string projection ("");
-  
-  ammo::gateway::PullRequest pr;
-  pr.requestUid = requestUid;
-  pr.pluginId = pluginId;
-  pr.mimeType = mime_t;
-  pr.query = query;
-  pr.projection = projection;
-  pr.maxResults = 0;
-  pr.startFromCount = 0;
-  pr.liveQuery = false;
-  
-  receiver->onPullRequestReceived (0, pr);
-
-  delete receiver;
-//===================================
-*/
-  // Get the process-wide ACE_Reactor (the one the acceptor should
-  // have registered with)
+void App::run()
+{
   ACE_Reactor *reactor = ACE_Reactor::instance ();
   LOG_DEBUG ("Starting event loop...");
   reactor->run_reactor_event_loop ();
+}
+
+void App::stop()
+{
+  ACE_Reactor::instance()->end_reactor_event_loop();
+}
+
+#ifdef WIN32
+
+void SvcInit(DWORD argc, LPTSTR* argv)
+{
+  App::instance()->init(argc, argv);
+}
+
+void SvcRun()
+{
+  App::instance()->run();
+}
+
+void SvcStop()
+{
+  App::instance()->stop();
+}
+
+int main(int argc, char* argv[])
+{
+  const std::string svcName = "DataStoreGatewayPlugin";
+
+  // Service installation command line option
+  if (argc == 2) {
+    if (lstrcmpi(argv[1], TEXT("install")) == 0) {
+      try
+      {
+        WinSvc::install(svcName);
+		return 0;
+      }
+      catch (WinSvcException e)
+	  {
+        cerr << e.what();
+		return 1;
+	  }
+	}
+  }
+
+  // Normal service operation
+  WinSvc::callbacks_t callbacks(SvcInit, SvcRun, SvcStop);
+
+  App::instance();
+  try
+  {
+    WinSvc::instance(svcName, callbacks);
+    WinSvc::instance()->run();
+  }
+  catch (WinSvcException e)
+  {
+    LOG_FATAL(e.what());
+	WinSvc::instance()->SvcReportEvent((char*) (e.what()));
+  }
+  catch (...) {
+    WinSvc::instance()->SvcReportEvent("unknown exception");
+  }
+
+  App::destroy();
 
   return 0;
 }
+#else
+int main(int argc, char** argv)
+{
+  App::instance()->init(argc, argv);
+  App::instance()->run();
+  App::instance()->destroy();
+  return 0;
+}
+#endif
