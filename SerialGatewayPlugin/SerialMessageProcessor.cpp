@@ -26,7 +26,7 @@ deviceIdAuthenticated(false)
 {
   //need to initialize GatewayConnector in the main thread; the constructor always
   //happens in the main thread
-  gatewayConnector = new GatewayConnector(this);
+  gatewayConnector = new GatewayConnector(this, "SerialGatewayPlugin", "");
 }
 
 SerialMessageProcessor::~SerialMessageProcessor() {

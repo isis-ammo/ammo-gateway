@@ -101,7 +101,7 @@ main (int /* argc */, char ** /* argv */)
   
   LOG_DEBUG ("Creating gateway connector...");
   
-  GatewayConnector *gatewayConnector = new GatewayConnector (receiver);
+  GatewayConnector *gatewayConnector = new GatewayConnector (receiver, "PassGatewayPlugin", "");
 
   // This must be the first call to getInstance(), so the receiver
   // and connector can be initialized when the singleton is created.

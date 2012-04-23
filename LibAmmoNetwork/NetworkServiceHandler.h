@@ -146,9 +146,9 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   int result = this->peer().get_remote_addr(remoteAddress);
   if(result == 0) {
     remoteAddressAsString = remoteAddress.get_host_addr();
-    LOG_INFO((long) this << " Got connection from " << remoteAddressAsString);
+    LOG_INFO(this->eventHandler << " Got connection from " << remoteAddressAsString);
   } else {
-    LOG_WARN((long) this << " Got new connection, but couldn't determine remote address.");
+    LOG_WARN(this->eventHandler << " Got new connection, but couldn't determine remote address.");
   }
   
   this->peer().enable(ACE_NONBLOCK);
@@ -169,17 +169,17 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
 
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::handle_input(ACE_HANDLE fd) {
-  LOG_TRACE((long) this << " In handle_input");
+  LOG_TRACE(this->eventHandler << " In handle_input");
   int count = 0;
   
   if(state == READING_HEADER) {
     count = this->peer().recv(((char *) &messageHeader) + position, sizeof(messageHeader) - position);
-    LOG_TRACE((long) this << " HEADER read " << count << " bytes");
+    LOG_TRACE(this->eventHandler << " HEADER read " << count << " bytes");
   } else if(state == READING_DATA) {
     count = this->peer().recv(collectedData + position, messageHeader.size - position);
-    LOG_TRACE((long) this << " DATA Read " << count << " bytes");
+    LOG_TRACE(this->eventHandler << " DATA Read " << count << " bytes");
   } else {
-    LOG_ERROR((long) this << " Invalid state!");
+    LOG_ERROR(this->eventHandler << " Invalid state!");
     return -1;
   }
   
@@ -188,17 +188,17 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   if(count > 0) {
     if(state == READING_HEADER) {
       position += count;
-      LOG_TRACE((long) this << "   HEADER read " << position << "/" << sizeof(messageHeader) << " bytes so far");
+      LOG_TRACE(this->eventHandler << "   HEADER read " << position << "/" << sizeof(messageHeader) << " bytes so far");
       if(position == sizeof(messageHeader)) {
         if(messageHeader.magicNumber == MagicNumber) {
           unsigned int calculatedChecksum = ACE::crc32(&messageHeader, sizeof(messageHeader) - sizeof(messageHeader.headerChecksum));
           if(calculatedChecksum != messageHeader.headerChecksum) {
-            LOG_ERROR((long) this << " Invalid header checksum");
+            LOG_ERROR(this->eventHandler << " Invalid header checksum");
             sendErrorPacket(INVALID_HEADER_CHECKSUM);
             return -1;
           }
         } else {
-          LOG_ERROR((long) this << " Invalid magic number: " << std::hex << messageHeader.magicNumber << std::dec);
+          LOG_ERROR(this->eventHandler << " Invalid magic number: " << std::hex << messageHeader.magicNumber << std::dec);
           sendErrorPacket(INVALID_MAGIC_NUMBER);
           return -1;
         }
@@ -206,7 +206,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
         try {
           collectedData = new char[messageHeader.size];
         } catch (std::bad_alloc) {
-          LOG_ERROR((long) this << " Couldn't allocate memory for message of size " << messageHeader.size);
+          LOG_ERROR(this->eventHandler << " Couldn't allocate memory for message of size " << messageHeader.size);
           sendErrorPacket(MESSAGE_TOO_LARGE);
           return -1;
         }
@@ -217,7 +217,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
     } else if(state == READING_DATA) {
       //LOG_TRACE((long) this << " Got some data...");
       position += count;
-      LOG_TRACE((long) this << "    DATA read " << position << "/" << messageHeader.size << " bytes so far");
+      LOG_TRACE(this->eventHandler << "    DATA read " << position << "/" << messageHeader.size << " bytes so far");
       if(position == messageHeader.size) {
         //LOG_TRACE("Got all the data... processing");
         processData(collectedData, messageHeader.size, messageHeader.checksum, messageHeader.priority);
@@ -233,13 +233,13 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
       }
     }
   } else if(count == 0) {
-    LOG_INFO((long) this << " Connection closed.");
+    LOG_INFO(this->eventHandler << " Connection closed.");
     return -1;
   } else if(count == -1 && ACE_OS::last_error () != EWOULDBLOCK) {
-    LOG_ERROR((long) this << " Socket error occurred. (" << ACE_OS::last_error() << ")");
+    LOG_ERROR(this->eventHandler << " Socket error occurred. (" << ACE_OS::last_error() << ")");
     return -1;
   }
-  LOG_TRACE((long) this << " Leaving handle_input()");
+  LOG_TRACE(this->eventHandler << " Leaving handle_input()");
   return 0;
 }
 
@@ -251,9 +251,9 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
     if(dataToSend == NULL) {
       ProtobufMessageWrapper *msg = getNextMessageToSend();
       if(msg != NULL) {
-        LOG_TRACE((long) this << " Getting a new message to send");
+        LOG_TRACE(this->eventHandler << " Getting a new message to send");
         if(!msg->IsInitialized()) {
-          LOG_WARN((long) this << " Protocol Buffers message is missing a required element.");
+          LOG_WARN(this->eventHandler << " Protocol Buffers message is missing a required element.");
         }
         unsigned int messageSize = msg->ByteSize();
         sendBufferSize = messageSize + sizeof(MessageHeader);
@@ -291,7 +291,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
     if(count >= 0) {
       sendPosition += count;
     }
-    LOG_TRACE((long) this << " Sent " << count << " bytes (current position " << sendPosition << "/" << sendBufferSize);
+    LOG_TRACE(this->eventHandler << " Sent " << count << " bytes (current position " << sendPosition << "/" << sendBufferSize);
     
     if(sendPosition >= (sendBufferSize)) {
       delete[] dataToSend;
@@ -302,10 +302,10 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   } while(count != -1);
   
   if(count == -1 && ACE_OS::last_error () == EWOULDBLOCK) {
-    LOG_TRACE((long) this << " Received EWOULDBLOCK");
+    LOG_TRACE(this->eventHandler << " Received EWOULDBLOCK");
     this->reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
   } else {
-    LOG_ERROR((long) this << " Socket error occurred. (" << ACE_OS::last_error() << ")");
+    LOG_ERROR(this->eventHandler << " Socket error occurred. (" << ACE_OS::last_error() << ")");
     return -1;
   }
   
@@ -317,8 +317,8 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if(calculatedChecksum != messageChecksum) {
-    LOG_ERROR((long) this << " Mismatched checksum " << std::hex << calculatedChecksum << " : " << messageChecksum);
-    LOG_ERROR((long) this << " size " << std::dec << messageSize ); // << " payload: " < );
+    LOG_ERROR(this->eventHandler << " Mismatched checksum " << std::hex << calculatedChecksum << " : " << messageChecksum);
+    LOG_ERROR(this->eventHandler << " size " << std::dec << messageSize ); // << " payload: " < );
     //TODO: Call event handler's onError method
     return -1;
   }
@@ -327,8 +327,8 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   ProtobufMessageWrapper *msg = new ProtobufMessageWrapper();
   bool result = msg->ParseFromArray(data, messageSize);
   if(result == false) {
-    LOG_ERROR((long) this << " MessageWrapper could not be deserialized.");
-    LOG_ERROR((long) this << " Client must have sent something that isn't a protocol buffer (or the wrong type).");
+    LOG_ERROR(this->eventHandler << " MessageWrapper could not be deserialized.");
+    LOG_ERROR(this->eventHandler << " Client must have sent something that isn't a protocol buffer (or the wrong type).");
     delete msg;
     //TODO: Call event handler's onError method
     return -1;
@@ -350,7 +350,7 @@ void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Even
   sentMessageCount++;
   if(!connectionClosing) {
     sendQueue.push(queuedMsg);
-    LOG_TRACE((long) this << " Queued a message to send.  " << sendQueue.size() << " messages in queue.");
+    LOG_TRACE(this->eventHandler << " Queued a message to send.  " << sendQueue.size() << " messages in queue.");
   }
   sendQueueMutex.release();
   if(!connectionClosing) {
@@ -360,14 +360,14 @@ void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Even
 
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::sendErrorPacket(char errorCode) {
-  LOG_WARN((long) this << " Sending error packet to connected device");
+  LOG_WARN(this->eventHandler << " Sending error packet to connected device");
   if(dataToSend != NULL) {
-    LOG_TRACE((long) this << " sendErrorPacket called; a message send is in progress, so we need to finish it.");
+    LOG_TRACE(this->eventHandler << " sendErrorPacket called; a message send is in progress, so we need to finish it.");
     int count = this->peer().send_n(dataToSend + sendPosition, sendBufferSize - sendPosition);
     if(count >= 0) {
       sendPosition += count;
     }
-    LOG_TRACE((long) this << " Sent remaining " << count << " bytes of current message (current postition " << sendPosition << "/" << sendBufferSize << ")");
+    LOG_TRACE(this->eventHandler << " Sent remaining " << count << " bytes of current message (current postition " << sendPosition << "/" << sendBufferSize << ")");
     
     if(sendPosition >= (sendBufferSize)) {
       delete[] dataToSend;
@@ -375,7 +375,7 @@ void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Even
       sendBufferSize = 0;
       sendPosition = 0;
     } else {
-      LOG_ERROR((long) this << " Couldn't flush send buffer before sending error packet.");
+      LOG_ERROR(this->eventHandler << " Couldn't flush send buffer before sending error packet.");
     }
   }
   
@@ -390,7 +390,7 @@ void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Even
   headerToSend.headerChecksum = ACE::crc32(&headerToSend, sizeof(headerToSend) - sizeof(headerToSend.headerChecksum));
   int count = this->peer().send_n(&headerToSend, sizeof(headerToSend));
   if(count != sizeof(headerToSend)) {
-    LOG_WARN((long) this << " Unable to send full error packet.");
+    LOG_WARN(this->eventHandler << " Unable to send full error packet.");
   }
 }
 
@@ -405,14 +405,14 @@ ProtobufMessageWrapper *ammo::gateway::internal::NetworkServiceHandler<ProtobufM
   
   int size = sendQueue.size();
   sendQueueMutex.release();
-  LOG_TRACE((long) this << " Dequeued a message to send.  " << size << " messages remain in queue.");
+  LOG_TRACE(this->eventHandler << " Dequeued a message to send.  " << size << " messages remain in queue.");
   
   return msg;
 }
 
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::~NetworkServiceHandler() {
-  LOG_TRACE((long) this << " In ~NetworkServiceHandler");
+  LOG_TRACE(this->eventHandler << " In ~NetworkServiceHandler");
   delete eventHandler;
 }
 

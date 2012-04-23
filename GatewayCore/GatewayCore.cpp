@@ -16,7 +16,7 @@ using namespace std;
 GatewayCore* GatewayCore::sharedInstance = NULL;
 
 GatewayCore::GatewayCore() : connectionManager(NULL), parentHandler(NULL), crossGatewayAcceptor(NULL) {
-  
+  localGatewayId = GatewayConfigurationManager::getInstance()->getCrossGatewayId();
 } 
 
 GatewayCore* GatewayCore::getInstance() {
@@ -25,6 +25,33 @@ GatewayCore* GatewayCore::getInstance() {
   }
   
   return sharedInstance;
+}
+
+bool GatewayCore::registerPlugin(std::string pluginId, std::string instanceId, GatewayEventHandler *handler) {
+  LOG_INFO("Plugin " << pluginId << ":" << instanceId << " (" << handler << ") connected");
+  pluginInstances[instanceId].handler = handler;
+  pluginInstances[instanceId].pluginName = pluginId;
+  
+  //send plugin notification to connected plugins
+  for(PluginInstanceMap::iterator it = pluginInstances.begin(); it != pluginInstances.end(); it++) {
+    if(it->second.handler != handler) {
+      it->second.handler->sendPluginConnectedNotification(pluginId, instanceId, false, "");
+    }
+  }
+  
+  //send plugin notification to connected gateways (except the one that connected)
+  for(CrossGatewayHandlerMap::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+    it->second->sendPluginConnectedNotification(pluginId, instanceId, true, localGatewayId);
+  }
+  
+  return true;
+}
+
+bool GatewayCore::unregisterPlugin(std::string pluginId, std::string instanceId, GatewayEventHandler *handler) {
+  LOG_INFO("Plugin " << pluginId << ":" << instanceId << " (" << handler << ") disconnected");
+  pluginInstances.erase(instanceId);
+  
+  return true;
 }
 
 bool GatewayCore::registerDataInterest(std::string mime_type, MessageScope messageScope, GatewayEventHandler *handler) {
@@ -213,6 +240,35 @@ bool GatewayCore::pullResponse(std::string requestUid, std::string pluginId, std
   return false;
 }
 
+bool GatewayCore::pointToPointMessage(GatewayEventHandler *sender, std::string uid, std::string destinationGateway, std::string destinationPluginName, std::string destinationInstanceId, std::string sourcePluginName, std::string sourceInstanceId, std::string mimeType, std::string encoding, std::string data, char priority) {
+  LOG_DEBUG("Sending point to point message to gateway: " << destinationGateway);
+  LOG_DEBUG("                               pluginName: " << destinationPluginName);
+  LOG_DEBUG("                               instanceId: " << destinationInstanceId);
+  if(destinationGateway == "" || destinationGateway == localGatewayId) {
+    PluginInstanceMap::iterator pluginIt = pluginInstances.find(destinationInstanceId);
+    if(pluginIt != pluginInstances.end()) {
+      pluginIt->second.handler->sendPointToPointMessage(uid, destinationGateway, destinationPluginName, destinationInstanceId, localGatewayId, sourcePluginName, sourceInstanceId, mimeType, encoding, data, priority);
+      return true;
+    } else {
+      LOG_WARN("Attempted to send to a local plugin that isn't connected.");
+    }
+  } else {
+    GatewayRouteMap::iterator gatewayRouteIt = gatewayRoutes.find(destinationGateway);
+    if(gatewayRouteIt != gatewayRoutes.end()) {
+      CrossGatewayHandlerMap::iterator gatewayIt = crossGatewayHandlers.find(gatewayRouteIt->second); //look up gateway that the destination is reachable via
+      if(gatewayIt != crossGatewayHandlers.end()) {
+        gatewayIt->second->sendPointToPointMessage(uid, destinationGateway, destinationPluginName, destinationInstanceId, localGatewayId, sourcePluginName, sourceInstanceId, mimeType, encoding, data, priority);
+        return true;
+      } else {
+        LOG_WARN("Attempted to route through a gateway that isn't connected.");
+      }
+    } else {
+      LOG_WARN("Attempting to send message to a gateway that isn't connected.");
+    }
+  }
+  return false;
+}
+
 bool GatewayCore::unregisterPullResponsePluginId(std::string pluginId, GatewayEventHandler *handler) {
   map<string, GatewayEventHandler *>::iterator it = plugins.find(pluginId);
   if ( it != plugins.end() ) {
@@ -252,9 +308,10 @@ void GatewayCore::setParentHandler(CrossGatewayEventHandler *handler) {
   this->parentHandler = handler;
 }
   
-bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGatewayEventHandler *handler) {
+bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGatewayEventHandler *handler, std::vector<std::pair<std::string, std::string> > connectedPlugins) {
   LOG_DEBUG("Registering cross-gateway handler " << handlerId);
   crossGatewayHandlers[handlerId] = handler;
+  gatewayRoutes[handlerId] = handlerId;
   //send existing subscriptions
   //local subscriptions (subscribe to everything that has global scope)
   for(PushHandlerMap::iterator it = pushHandlers.begin(); it != pushHandlers.end(); it++) {
@@ -276,6 +333,18 @@ bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGat
     }
   }
   
+  //send plugin list to connected plugins
+  for(PluginInstanceMap::iterator it = pluginInstances.begin(); it != pluginInstances.end(); it++) {
+    it->second.handler->sendRemoteGatewayConnectedNotification(handlerId, connectedPlugins);
+  }
+  
+  //send plugin list to connected gateways (except the one that connected)
+  for(CrossGatewayHandlerMap::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+    if(it->second != handler) {
+      it->second->sendRemoteGatewayConnectedNotification(handlerId, connectedPlugins);
+    }
+  }
+  
   return true;
 }
 
@@ -283,6 +352,8 @@ bool GatewayCore::unregisterCrossGatewayConnection(std::string handlerId) {
   LOG_DEBUG("Unregistering cross-gateway handler " << handlerId);
   CrossGatewayEventHandler *handler = crossGatewayHandlers[handlerId];
   crossGatewayHandlers.erase(handlerId);
+  gatewayRoutes.erase(handlerId);
+  //TODO:  remove all routes to gateways reachable from this one from the map
   
   if(handler == parentHandler) {
     parentHandler = NULL;
@@ -290,7 +361,57 @@ bool GatewayCore::unregisterCrossGatewayConnection(std::string handlerId) {
     connectionManager->activate();
   }
   
+  //send disconnected notification to connected gateways (except the one that connected)
+  for(CrossGatewayHandlerMap::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+    if(it->first != handlerId) {
+      it->second->sendRemoteGatewayDisconnectedNotification(handlerId);
+    }
+  }
+  
   return false;
+}
+
+bool GatewayCore::pluginConnectedCrossGateway(std::string gatewayId, std::string localHandlerId, std::string pluginName, std::string instanceId) {
+  LOG_DEBUG("Cross-gateway plugin connected: " << gatewayId << ", " << pluginName << ":" << instanceId);
+  //send plugin notification to connected plugins
+  for(PluginInstanceMap::iterator it = pluginInstances.begin(); it != pluginInstances.end(); it++) {
+      it->second.handler->sendPluginConnectedNotification(pluginName, instanceId, true, gatewayId);
+  }
+  
+  //send plugin notification to connected gateways (except the one that connected)
+  for(CrossGatewayHandlerMap::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+    if(it->first != localHandlerId) {
+      it->second->sendPluginConnectedNotification(pluginName, instanceId, true, gatewayId);
+    }
+  }
+  return true;
+}
+  
+bool GatewayCore::gatewayConnectedCrossGateway(std::string gatewayId, std::string localHandlerId, std::vector<std::pair<std::string, std::string> > connectedPlugins) {
+  gatewayRoutes[gatewayId] = localHandlerId;
+  //send plugin list to connected plugins
+  for(PluginInstanceMap::iterator it = pluginInstances.begin(); it != pluginInstances.end(); it++) {
+    it->second.handler->sendRemoteGatewayConnectedNotification(gatewayId, connectedPlugins);
+  }
+  
+  //send plugin list to connected gateways (except the one that connected)
+  for(CrossGatewayHandlerMap::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+    if(it->first != localHandlerId) {
+      it->second->sendRemoteGatewayConnectedNotification(gatewayId, connectedPlugins);
+    }
+  }
+  return true;
+}
+bool GatewayCore::gatewayDisconnectedCrossGateway(std::string gatewayId, std::string localHandlerId) {
+  gatewayRoutes.erase(gatewayId);
+  
+  //send disconnected notification to connected gateways (except the one that connected)
+  for(CrossGatewayHandlerMap::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
+    if(it->first != localHandlerId) {
+      it->second->sendRemoteGatewayDisconnectedNotification(localHandlerId);
+    }
+  }
+  return true;
 }
 
 bool GatewayCore::subscribeCrossGateway(std::string mimeType, std::string originHandlerId) {
@@ -523,6 +644,35 @@ bool GatewayCore::pullResponseCrossGateway(std::string requestUid, std::string p
   return false;
 }
 
+bool GatewayCore::pointToPointMessageCrossGateway(std::string originHandlerId, std::string uid, std::string destinationGateway, std::string destinationPluginName, std::string destinationInstanceId, std::string sourceGateway, std::string sourcePluginName, std::string sourceInstanceId, std::string mimeType, std::string encoding, std::string data, char priority) {
+  LOG_DEBUG("Sending point to point message to gateway: " << destinationGateway);
+  LOG_DEBUG("                               pluginName: " << destinationPluginName);
+  LOG_DEBUG("                               instanceId: " << destinationInstanceId);
+  if(destinationGateway == "" || destinationGateway == localGatewayId) {
+    PluginInstanceMap::iterator pluginIt = pluginInstances.find(destinationInstanceId);
+    if(pluginIt != pluginInstances.end()) {
+      pluginIt->second.handler->sendPointToPointMessage(uid, destinationGateway, destinationPluginName, destinationInstanceId, sourceGateway, sourcePluginName, sourceInstanceId, mimeType, encoding, data, priority);
+      return true;
+    } else {
+      LOG_WARN("Attempted to send to a local plugin that isn't connected.");
+    }
+  } else {
+    GatewayRouteMap::iterator gatewayRouteIt = gatewayRoutes.find(destinationGateway);
+    if(gatewayRouteIt != gatewayRoutes.end()) {
+      CrossGatewayHandlerMap::iterator gatewayIt = crossGatewayHandlers.find(gatewayRouteIt->second); //look up gateway that the destination is reachable via
+      if(gatewayIt != crossGatewayHandlers.end()) {
+        gatewayIt->second->sendPointToPointMessage(uid, destinationGateway, destinationPluginName, destinationInstanceId, localGatewayId, sourcePluginName, sourceInstanceId, mimeType, encoding, data, priority);
+        return true;
+      } else {
+        LOG_WARN("Attempted to route through a gateway that isn't connected.");
+      }
+    } else {
+      LOG_WARN("Attempting to send message to a gateway that isn't connected.");
+    }
+  }
+  return false;
+}
+
 bool GatewayCore::unregisterPullResponsePluginIdCrossGateway(std::string pluginId, std::string handler) {
   PullRequestReturnIdMap::iterator it = cgPullRequestReturnIds.find(pluginId);
   if ( it != cgPullRequestReturnIds.end() ) {
@@ -542,6 +692,14 @@ std::set<GatewayEventHandler *> GatewayCore::getPushHandlersForType(std::string 
     }
   }
   return matchingHandlers;
+}
+
+std::vector<std::pair<std::string, std::string> > GatewayCore::getLocalPlugins() {
+  std::vector<std::pair<std::string, std::string> > localPlugins;
+  for(PluginInstanceMap::iterator it = pluginInstances.begin(); it != pluginInstances.end(); ++it) {
+    localPlugins.push_back(make_pair(it->second.pluginName, it->first));
+  }
+  return localPlugins;
 }
 
 void GatewayCore::terminate() {

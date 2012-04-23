@@ -9,6 +9,17 @@ message AssociateDevice {
 message AssociateCrossGateway {
   required string gateway_id = 1;
   required string key = 2;
+  
+  message PluginInstanceId {
+    required string plugin_name = 1;
+    required string instance_id = 2;
+  }
+  repeated PluginInstanceId connected_plugins = 3;
+}
+
+message AssociatePlugin {
+  required string plugin_id = 1;
+  required string instance_id = 2;
 }
 
 message AssociateResult {
@@ -16,8 +27,13 @@ message AssociateResult {
     FAILED = 0;
     SUCCESS = 1;
   }
+  enum AssociateType {
+    DEVICE = 0;
+    PLUGIN = 1;
+  }
   required Status result = 1;
   optional string message = 2;
+  optional AssociateType type = 3 [default = DEVICE];
 }
 
 enum MessageScope {
@@ -109,6 +125,19 @@ message PullResponse {
   required bytes data = 5;
 }
 
+message PointToPointMessage {
+  required string uid = 1;
+  optional string destination_gateway = 2 [default = ""];
+  required string destination_plugin_name = 3;
+  required string destination_instance_id = 4;
+  optional string source_gateway = 5 [default = ""];
+  optional string source_plugin_name = 6;
+  optional string source_instance_id = 7;
+  required string mime_type = 8;
+  required string encoding = 9;
+  required bytes data = 10;
+}
+
 message RegisterPullInterest {
   required string mime_type = 1;
   optional MessageScope scope = 2 [default = LOCAL];
@@ -129,6 +158,27 @@ message UnregisterDataInterest {
   optional MessageScope scope = 5 [default = GLOBAL];
 }
 
+message RemoteGatewayConnectedNotification {
+  required string gateway_id = 1;
+  
+  message PluginInstanceId {
+    required string plugin_name = 1;
+    required string instance_id = 2;
+  }
+  repeated PluginInstanceId connected_plugins = 2;
+}
+
+message RemoteGatewayDisconnectedNotification {
+  required string gateway_id = 1;
+}
+
+message PluginConnectedNotification {
+  required string plugin_name = 1;
+  required string instance_id = 2;
+  required bool remote_plugin = 3 [default = false];
+  optional string gateway_id = 4 [default = ""];
+}
+
 message GatewayWrapper {
   enum MessageType {
     ASSOCIATE_DEVICE = 0;
@@ -141,7 +191,12 @@ message GatewayWrapper {
     REGISTER_PULL_INTEREST = 7;
     UNREGISTER_PULL_INTEREST = 8;
     ASSOCIATE_CROSS_GATEWAY = 9;
-    PUSH_ACKNOWLEDGEMENT = 10;
+    PUSH_ACKNOWLEDGEMENT = 15;
+    ASSOCIATE_PLUGIN = 10;
+    POINT_TO_POINT_MESSAGE = 11;
+    REMOTE_GATEWAY_CONNECTED_NOTIFICATION = 12;
+    REMOTE_GATEWAY_DISCONNECTED_NOTIFICATION = 13;
+    PLUGIN_CONNECTED_NOTIFICATION = 14;
   }
   
   required MessageType type = 1;
@@ -158,5 +213,10 @@ message GatewayWrapper {
   optional RegisterPullInterest register_pull_interest = 9;
   optional UnregisterPullInterest unregister_pull_interest = 10;
   optional AssociateCrossGateway associate_cross_gateway = 11;
-  optional PushAcknowledgement push_acknowledgement = 13;
+  optional PushAcknowledgement push_acknowledgement = 18;
+  optional AssociatePlugin associate_plugin = 13;
+  optional PointToPointMessage point_to_point_message = 14;
+  optional RemoteGatewayConnectedNotification remote_gateway_connected_notification = 15;
+  optional RemoteGatewayDisconnectedNotification remote_gateway_disconnected_notification = 16;
+  optional PluginConnectedNotification plugin_connected_notification = 17;
 }
