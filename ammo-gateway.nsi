@@ -204,7 +204,7 @@ ${MementoSection} "Java Gateway Connector (required)" SecJavaConn
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
-  File JavaGatewayConnector/dist/lib/gatewaypluginapi.jar
+  File JavaGatewayConnector\dist\lib\gatewaypluginapi.jar
 
 ${MementoSectionEnd}
 
@@ -220,7 +220,7 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
-  File MCastPlugin/dist/lib/mcastplugin.jar
+  File MCastPlugin\dist\lib\mcastplugin.jar
 
 ${MementoSectionEnd}
 
@@ -236,7 +236,7 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
-  File RMCastPlugin/dist/lib/rmcastplugin.jar
+  File RMCastPlugin\dist\lib\rmcastplugin.jar
 
 ${MementoSectionEnd}
 
