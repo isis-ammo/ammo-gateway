@@ -192,6 +192,54 @@ ${MementoSection} "Data Store Gateway Plugin (required)" SecDatPlug
 
 ${MementoSectionEnd}
 
+${MementoSection} "Java Gateway Connector (required)" SecDatPlug
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing Java Connector ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+  ;SetOutPath $INSTDIR
+  ;RMDir /r $SMPROGRAMS\ammo-gateway
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File JavaGatewayConnector/dist/lib/gatewaypluginapi.jar
+
+${MementoSectionEnd}
+
+${MementoSection} "MCast Gateway Plugin (required)" SecDatPlug
+
+  SetDetailsPrint textonly
+  DetailPrint "MCast Java Plugin ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+  ;SetOutPath $INSTDIR
+  ;RMDir /r $SMPROGRAMS\ammo-gateway
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File MCastPlugin/dist/lib/mcastplugin.jar
+
+${MementoSectionEnd}
+
+${MementoSection} "RMCast Gateway Plugin (required)" SecDatPlug
+
+  SetDetailsPrint textonly
+  DetailPrint "RMCast Java Plugin ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+  ;SetOutPath $INSTDIR
+  ;RMDir /r $SMPROGRAMS\ammo-gateway
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File RMCastPlugin/dist/lib/rmcastplugin.jar
+
+${MementoSectionEnd}
+
 ${MementoSection} "VC Redist (required)" SecVcredist
 
   SetDetailsPrint textonly
