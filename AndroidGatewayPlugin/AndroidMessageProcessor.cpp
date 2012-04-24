@@ -110,13 +110,25 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       pushData.originUsername = dataMessage.user_id();
       pushData.priority = msg.message_priority();
       gatewayConnector->pushData(pushData);
-      ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
-      ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
-      ack->set_uid(dataMessage.uid());
-      ackMsg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
-      LOG_DEBUG(commsHandler << " Sending push acknowledgment to connected device...");
-      ackMsg->set_message_priority(pushData.priority);
-      commsHandler->sendMessage(ackMsg);
+      
+      //Send acknowledgement back to device if that field of the acknowledgement
+      //thresholds object is set
+      if(msg.data_message().thresholds().android_plugin_received()) {
+        ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
+        ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
+        ack->set_uid(dataMessage.uid());
+        ack->set_destination_device(dataMessage.origin_device());
+        ack->set_destination_user(dataMessage.user_id());
+        ammo::protocol::AcknowledgementThresholds *thresholds = ack->mutable_threshold();
+        thresholds->set_device_delivered(false);
+        thresholds->set_plugin_delivered(false);
+        thresholds->set_android_plugin_received(true);
+        ack->set_status(ammo::protocol::PushAcknowledgement_PushStatus_RECEIVED);
+        ackMsg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
+        LOG_DEBUG(commsHandler << " Sending push acknowledgment to connected device...");
+        ackMsg->set_message_priority(pushData.priority);
+        commsHandler->sendMessage(ackMsg);
+      }
       
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
