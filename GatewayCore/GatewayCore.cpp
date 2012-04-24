@@ -124,7 +124,7 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, MessageScope sco
   return foundSubscription;
 }
 
-bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope, char priority) {
+bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originDevice, MessageScope messageScope, bool ackDeviceDelivered, bool ackPluginDelivered, char priority) {
   LOG_DEBUG("  Pushing data with uri: " << uri);
   LOG_DEBUG("                    type: " << mimeType);
   LOG_DEBUG("                    scope: " << messageScope);
@@ -134,7 +134,7 @@ bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uri, std::st
   
   for(it = handlers.begin(); it != handlers.end(); ++it) {
     if((*it) != sender) { //don't send pushed data to plugin that originated it, if it's subscribed to the same topic
-      (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, messageScope, priority);
+      (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, originDevice, messageScope, ackDeviceDelivered, ackPluginDelivered, priority);
     }
   }
   
@@ -437,7 +437,7 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, std::s
     for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
       if((*it).second.scope == SCOPE_GLOBAL) {
         LOG_TRACE("Sending push data");
-        (*it).second.handler->sendPushedData(uri, mimeType, encoding, data, originUser, SCOPE_GLOBAL, priority);
+        (*it).second.handler->sendPushedData(uri, mimeType, encoding, data, originUser, "", SCOPE_GLOBAL, false, false, priority);
       }
     }
   }

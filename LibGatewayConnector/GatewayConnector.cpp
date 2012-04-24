@@ -75,12 +75,18 @@ bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData
   pushMsg->set_mime_type(pushData.mimeType);
   pushMsg->set_encoding(pushData.encoding);
   pushMsg->set_data(pushData.data);
+  pushMsg->set_origin_user(pushData.originUsername);
+  pushMsg->set_origin_device(pushData.originDevice);
   
   if(pushData.scope == SCOPE_LOCAL) {
     pushMsg->set_scope(ammo::gateway::protocol::LOCAL);
   } else {
     pushMsg->set_scope(ammo::gateway::protocol::GLOBAL);
   }
+  
+  ammo::gateway::protocol::AcknowledgementThresholds *thresholds = pushMsg->mutable_thresholds();
+  thresholds->set_device_delivered(pushData.ackThresholds.deviceDelivered);
+  thresholds->set_plugin_delivered(pushData.ackThresholds.pluginDelivered);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   msg->set_message_priority(pushData.priority);
@@ -288,7 +294,10 @@ void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::pr
   pushData.encoding = msg.encoding();
   pushData.data.assign(msg.data().begin(), msg.data().end());
   pushData.originUsername = msg.origin_user();
+  pushData.originDevice = msg.origin_device();
   pushData.priority = messagePriority;
+  pushData.ackThresholds.deviceDelivered = msg.thresholds().device_delivered();
+  pushData.ackThresholds.pluginDelivered = msg.thresholds().plugin_delivered();
   
   for(map<string, DataPushReceiverListener *>::iterator it = receiverListeners.begin(); it != receiverListeners.end(); it++) {
     if(pushData.mimeType.find(it->first) == 0) {
@@ -348,8 +357,10 @@ ammo::gateway::PushData::PushData() :
   encoding("json"),
   data(),
   originUsername(""),
+  originDevice(""),
   scope(ammo::gateway::SCOPE_GLOBAL),
-  priority(ammo::gateway::PRIORITY_NORMAL)
+  priority(ammo::gateway::PRIORITY_NORMAL),
+  ackThresholds()
 {
   
 }
