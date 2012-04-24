@@ -56,7 +56,7 @@ public:
   bool registerPullInterest(std::string mime_type, MessageScope scope, GatewayEventHandler *handler);
   bool unregisterPullInterest(std::string mime_type, MessageScope scope, GatewayEventHandler *handler);
   
-  bool pushData(GatewayEventHandler *sender, std::string uid, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, MessageScope messageScope, char priority);
+  bool pushData(GatewayEventHandler *sender, std::string uid, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originDevice, MessageScope messageScope, bool ackDeviceDelivered, bool ackPluginDelivered, char priority);
   
   bool pullRequest(GatewayEventHandler *sender, std::string requestUid, std::string pluginId, std::string mimeType, std::string query, std::string projection,
                    unsigned int maxResults, unsigned int startFromCount, bool liveQuery, MessageScope scope, char priority);

@@ -108,7 +108,10 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       pushData.scope = scope;
       pushData.encoding = dataMessage.encoding();
       pushData.originUsername = dataMessage.user_id();
+      pushData.originDevice = dataMessage.origin_device();
       pushData.priority = msg.message_priority();
+      pushData.ackThresholds.deviceDelivered = dataMessage.thresholds().device_delivered();
+      pushData.ackThresholds.pluginDelivered = dataMessage.thresholds().plugin_delivered();
       gatewayConnector->pushData(pushData);
       
       //Send acknowledgement back to device if that field of the acknowledgement

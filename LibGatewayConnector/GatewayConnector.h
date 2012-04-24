@@ -55,6 +55,16 @@ namespace ammo {
       std::string instanceId;
     };
     
+    struct LibGatewayConnector_Export AcknowledgementThresholds {
+    public:
+      AcknowledgementThresholds() : deviceDelivered(false), pluginDelivered(false) {
+        //do nothing
+      };
+      
+      bool deviceDelivered;
+      bool pluginDelivered;
+    };
+    
     /**
      * A data object.
      */
@@ -75,12 +85,14 @@ namespace ammo {
                                         ///  nulls).
       std::string originUsername;       ///< The username of the user who generated this data.  May be
                                         ///  overwritten by the gateway in some cases.  Optional.
+      std::string originDevice;
       ammo::gateway::MessageScope scope;///< The scope of this object (determines how many gateways to send
                                         ///  this object to in a multiple gateway configuration).  Optional,
                                         ///  will default to SCOPE_GLOBAL.
       char priority;                    ///< The priority of this object.  Objects with a higher priority
                                         ///  will be pushed to the device before objects with a lower priority,
                                         ///  if messages are queued.
+      ammo::gateway::AcknowledgementThresholds ackThresholds;
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PushData &pushData) {
         os << "UID: " << pushData.uid << " type: " << pushData.mimeType;
