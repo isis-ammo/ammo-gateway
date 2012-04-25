@@ -158,7 +158,7 @@ sendObjectsMessageData::encodeJson (void)
               << "\"origin_user\": \"" << i->origin_user_ << "\","
               << "\"tv_sec\": " << i->tv_sec_ << ","
               << "\"tv_usec\": " << i->tv_usec_ << ","
-              << "\"data\": \"" << i->data_ << "\","
+              << "\"data\": " << i->data_ << ","
               << "\"checksum\": \"" << i->checksum_ << "\""
               << "}";
     }
@@ -195,7 +195,11 @@ sendObjectsMessageData::decodeJson (const std::string &data)
       row.origin_user_ = root["DataStoreObjects"][i]["origin_user"].asString ();
       row.tv_sec_ = root["DataStoreObjects"][i]["tv_sec"].asInt ();
       row.tv_usec_ = root["DataStoreObjects"][i]["tv_usec"].asInt ();
-      row.data_ = root["DataStoreObjects"][i]["data"].asString ();
+      
+      // This Json value is of type Object, but we want to store it as a
+      // string without worrying about parsing according to mimeType.
+      row.data_ = root["DataStoreObjects"][i]["data"].toStyledString ();
+      
       row.checksum_ = root["DataStoreObjects"][i]["checksum"].asString ();
       
       objects_.push_back (row);

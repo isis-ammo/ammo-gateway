@@ -59,10 +59,10 @@ DataStoreConfigManager::DataStoreConfigManager (
                   "ReportMimeType",
                   "LocationsMimeType",
                   "PrivateContactsMimeType",
-                  "RequestChecksums",
-                  "SendChecksums",
-                  "RequestObjects",
-                  "SendObjects"
+                  "ReqCsumMimeType",
+                  "SendCsumMimeType",
+                  "ReqObjsMimeType",
+                  "SendObjsMimeType"
                 };
                 
               const unsigned long CONTRACT_ARRAY_SIZE = 6;

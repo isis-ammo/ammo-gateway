@@ -103,7 +103,7 @@ DataStoreDispatcher::dispatchPointToPointMessage (
   GatewayConnector *sender,
   const PointToPointMessage &msg)
 {
-  //LOG_DEBUG ("point-to-point message type: " << msg.mimeType);
+//  LOG_DEBUG ("point-to-point message type: " << msg.mimeType);
   
   if (msg.mimeType == cfg_mgr_->getReqCsumsMimeType ())
     {
@@ -116,23 +116,24 @@ DataStoreDispatcher::dispatchPointToPointMessage (
   
       requestChecksumsMessageData decoder;
       decoder.decodeJson (msg.data);
-      ACE_Time_Value tv (ACE_OS::gettimeofday ());
       
-      // Value in decoder is expected to be a negative offset.
+      if (!decoder.tv_sec_ < 0)
+        {
+	        LOG_ERROR ("Checksum request error: time offset must be negative");
+	        return;
+        }
+        
+      ACE_Time_Value tv (ACE_OS::gettimeofday ());
       tv.sec (tv.sec () + decoder.tv_sec_);
       
       this->fetch_recent_checksums (db, tv);
       
       sendChecksumsMessageData encoder;
       encoder.checksums_ = checksums_;
-      
       reply.data = encoder.encodeJson ();
       reply.encoding = "json";
-      
-      if (sender != 0)
-        {
-          sender->pointToPointMessage (reply);
-        }
+
+      sender->pointToPointMessage (reply);
     }
   else if (msg.mimeType == cfg_mgr_->getSendCsumsMimeType ())
     {
@@ -145,17 +146,16 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       
       sendChecksumsMessageData decoder;
       decoder.decodeJson (msg.data);
+      
+      // Stores missing checksums in member checksums_.
       this->collect_missing_checksums (db, decoder.checksums_);
       
       requestObjectsMessageData encoder;
-      encoder.checksums_ = decoder.checksums_;
+      encoder.checksums_ = checksums_;
       reply.data = encoder.encodeJson ();
       reply.encoding = "json";
       
-      if (sender != 0)
-        {
-          sender->pointToPointMessage (reply);
-        }
+      sender->pointToPointMessage (reply);
     }
   else if (msg.mimeType == cfg_mgr_->getReqObjsMimeType ())
     {
@@ -166,17 +166,14 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       reply.mimeType =
         DataStoreConfigManager::getInstance ()->getSendObjsMimeType ();
         
-      sendChecksumsMessageData decoder;
+      requestObjectsMessageData decoder;
       decoder.decodeJson (msg.data);
       sendObjectsMessageData encoder;
       this->match_requested_checksums (db, encoder, decoder.checksums_);
       reply.data = encoder.encodeJson ();
       reply.encoding = "json";
       
-      if (sender != 0)
-        {
-          sender->pointToPointMessage (reply);
-        }
+      sender->pointToPointMessage (reply);
     }
   else if (msg.mimeType == cfg_mgr_->getSendObjsMimeType ())
     {
@@ -200,9 +197,13 @@ DataStoreDispatcher::dispatchPointToPointMessage (
           OriginalPushHandler handler (db, pd, &tv, i->checksum_);
           bool good_data_store = handler.handlePush ();
           
-          if (!good_data_store)
+          if (good_data_store)
             {
-              LOG_ERROR ("Data store failed on received object");
+              LOG_TRACE ("Data store succeeded on object from reconnect");
+            }
+          else
+            {
+              LOG_ERROR ("Data store failed on object from reconnect");
             }
         }
     }
@@ -273,8 +274,7 @@ DataStoreDispatcher::fetch_recent_checksums (sqlite3 *db,
 
   while (sqlite3_step (stmt) == SQLITE_ROW)
     {
-      std::string tmp ((char *) sqlite3_column_blob (stmt, 0),
-                       DataStoreUtils::CS_SIZE);
+      std::string tmp ((const char *) sqlite3_column_text (stmt, 0));
       checksums_.push_back (tmp);
     }
     
@@ -294,10 +294,17 @@ DataStoreDispatcher::match_requested_checksums (
     
   for (unsigned long i = 0; i < checksums.size (); ++i)
     {
+    //==============
+    printf ("appending checksum to query string\n");
+    //==========================
       query_str.append (i == 0 ? "?" : ",?");
     }
     
   query_str.append (")");
+  
+  //=================
+  printf ("query string: %s\n", query_str.c_str ());
+  //====================
     
   sqlite3_stmt *stmt = 0;
   
@@ -321,11 +328,10 @@ DataStoreDispatcher::match_requested_checksums (
        i != checksums.end ();
        ++i)
     {
-      bool good_bind = DataStoreUtils::bind_blob (db,
+      bool good_bind = DataStoreUtils::bind_text (db,
                                                   stmt,
                                                   slot,
-                                                  i->c_str (),
-                                                  i->length (),
+                                                  *i,
                                                   false);
                                                   
       if (!good_bind)
@@ -355,10 +361,15 @@ DataStoreDispatcher::match_requested_checksums (
       row.tv_usec_ = sqlite3_column_int (stmt, 4);
       
 	    size_t len = sqlite3_column_bytes (stmt, 5);
-      row.data_ = ((char *) sqlite3_column_blob (stmt, 5), len);
-      
+	    //===========
+	    printf ("extracted data len = %d\n", len);
+	    //=======================
+      row.data_ = (char *) sqlite3_column_blob (stmt, 5);
+	    //===========
+	    printf ("extracted data = %s\n", row.data_.c_str ());
+	    //=======================
       row.checksum_ =
-        ((char *) sqlite3_column_blob (stmt, DataStoreUtils::CS_SIZE), len);
+        reinterpret_cast<const char *> (sqlite3_column_text (stmt, 6));
         
       holder.objects_.push_back (row);
     }
@@ -391,10 +402,10 @@ DataStoreDispatcher::collect_missing_checksums (
        i != checksums.end ();
        ++i)
     {
-      status = sqlite3_bind_blob (stmt,
+      status = sqlite3_bind_text (stmt,
                                   1,
                                   i->c_str (),
-                                  DataStoreUtils::CS_SIZE,
+                                  i->length (),
                                   SQLITE_STATIC);
 
       if (status != SQLITE_OK)

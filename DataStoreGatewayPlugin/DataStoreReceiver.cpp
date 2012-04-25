@@ -81,7 +81,11 @@ DataStoreReceiver::onPluginConnected (
   request.data = request_data.encodeJson ();
   request.encoding = "json";
   
-  sender->pointToPointMessage (request);
+  printf ("mimeType = %s\n", request.mimeType.c_str ());
+  printf ("data = %s\n", request.data.c_str ());
+  
+//  sender->pointToPointMessage (request);
+  this->onPointToPointMessageReceived (0, request);
 }
 
 void
@@ -148,7 +152,7 @@ DataStoreReceiver::init (void)
 	  "tv_sec INTEGER NOT NULL,"
 	  "tv_usec INTEGER,"
 	  "data BLOB,"
-	  "checksum BLOB)";
+	  "checksum TEXT)";
 	
   char *db_err = 0;
 	

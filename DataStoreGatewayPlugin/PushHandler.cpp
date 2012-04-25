@@ -57,13 +57,20 @@ PushHandler::new_checksum (ACE_Time_Value &tv)
 void
 PushHandler::create_checksum (const std::string &ibuf)
 {
-  unsigned char buf[DataStoreUtils::CS_SIZE + 1];
+  unsigned char buf[DataStoreUtils::CS_SIZE];
   
   (void) SHA1 (reinterpret_cast<const unsigned char *> (ibuf.c_str ()),
                ibuf.length (),
                buf);
+           
+  char strbuf[DataStoreUtils::CS_SIZE * 2];
+  char *bufptr = strbuf;
+  
+  for (unsigned long i = 0; i < DataStoreUtils::CS_SIZE; ++i, bufptr += 2)
+    {
+      sprintf (bufptr, "%02x", buf[i]);
+    }
                
-  buf[DataStoreUtils::CS_SIZE] = '\0';
-  checksum_ = reinterpret_cast<char *> (buf);
+  checksum_ = strbuf;
 }
 

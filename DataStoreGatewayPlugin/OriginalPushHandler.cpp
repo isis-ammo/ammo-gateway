@@ -60,7 +60,7 @@ OriginalPushHandler::handlePush (void)
     && DataStoreUtils::bind_int (db_, stmt_, index, tv.sec ())
     && DataStoreUtils::bind_int (db_, stmt_, index, tv.usec ())
     && DataStoreUtils::bind_blob (db_, stmt_, index, pd_.data.data (), pd_.data.length (), true)
-    && DataStoreUtils::bind_blob (db_, stmt_, index, checksum_.c_str (), DataStoreUtils::CS_SIZE, true);
+    && DataStoreUtils::bind_text (db_, stmt_, index, checksum_.c_str (), true);
 
   if (good_binds)
     {	

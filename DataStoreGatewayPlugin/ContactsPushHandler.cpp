@@ -40,7 +40,7 @@ ContactsPushHandler::handlePush (void)
 	  "phone TEXT,"
 	  "photo BLOB,"
 	  "insignia BLOB,"
-	  "checksum BLOB)";
+	  "checksum TEXT)";
 	  
 	bool good_table_open =
 	  DataStoreUtils::createTable (db_,
@@ -97,7 +97,7 @@ ContactsPushHandler::handlePush (void)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["unit"].asString (), true)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["email"].asString (), true)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["phone"].asString (), true)
-    && DataStoreUtils::bind_blob (db_, stmt_, final, checksum_.c_str (), DataStoreUtils::CS_SIZE, true);
+    && DataStoreUtils::bind_text (db_, stmt_, final, checksum_.c_str (), true);
     
 	if (good_binds)
 	  {
