@@ -26,6 +26,18 @@ enum MessageScope {
 }
 
 /**
+* device_delivered : delivered by the plugin to a device (android device)
+* plugin_delivered : delivered by the gateway to a plugin
+* android_plugin_received : delivered to the android plugin by the android device
+*/
+message AcknowledgementThresholds {
+  optional bool device_delivered = 1 [default = false];
+  optional bool plugin_delivered = 2 [default = false];
+  optional bool android_plugin_received = 3 [default = true];
+}
+
+
+/**
 * When data is to be sent to the Gateway for distribution.
 * 
 * uri : is a unique identifier of the primary source of the data.
@@ -39,6 +51,8 @@ message DataMessage {
   optional bytes data = 2;
   optional MessageScope scope = 4 [default = GLOBAL];
   optional string user_id = 6;
+  optional string origin_device = 7;
+  optional AcknowledgementThresholds thresholds = 8;
 }
 
 message TerseMessage {
@@ -53,6 +67,21 @@ message TerseMessage {
 */
 message PushAcknowledgement {
   required string uri = 1;
+  optional string destination_device = 2;
+  optional string acknowledging_device = 3;
+  optional string destination_user = 6;
+  optional string acknowledging_user = 7;
+
+  optional AcknowledgementThresholds threshold = 5;
+  
+  enum PushStatus {
+    RECEIVED  = 0;
+    SUCCESS   = 1;
+    FAIL      = 2;
+    REJECTED  = 3;
+  }
+   
+  optional PushStatus status = 4;
 }
 
 /**
@@ -80,6 +109,8 @@ message SubscribeMessage {
   required string mime_type = 1;
   optional string query = 2;
   optional MessageScope scope = 3 [default = GLOBAL];
+  optional string origin_device = 4 [default = ""];
+  optional string origin_user = 5 [default = ""];
 }
 
 /**
