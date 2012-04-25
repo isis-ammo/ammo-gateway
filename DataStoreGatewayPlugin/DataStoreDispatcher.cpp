@@ -117,16 +117,22 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       requestChecksumsMessageData decoder;
       decoder.decodeJson (msg.data);
       
-      if (!decoder.tv_sec_ < 0)
+      if (decoder.tv_sec_ > 0)
         {
-	        LOG_ERROR ("Checksum request error: time offset must be negative");
+	        LOG_ERROR ("Checksum request error: "
+	                   << "time offset must be non-positive");
 	        return;
         }
         
       ACE_Time_Value tv (ACE_OS::gettimeofday ());
       tv.sec (tv.sec () + decoder.tv_sec_);
       
-      this->fetch_recent_checksums (db, tv);
+      if (!this->fetch_recent_checksums (db, tv))
+        {
+	        LOG_ERROR ("Checksum request error: "
+	                   << "fetching recent checksums from db failed");
+	        return;
+        }
       
       sendChecksumsMessageData encoder;
       encoder.checksums_ = checksums_;
@@ -146,10 +152,15 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       
       sendChecksumsMessageData decoder;
       decoder.decodeJson (msg.data);
-      
+
       // Stores missing checksums in member checksums_.
-      this->collect_missing_checksums (db, decoder.checksums_);
-      
+      if (!this->collect_missing_checksums (db, decoder.checksums_))
+        {
+	        LOG_ERROR ("Checksum send error: "
+	                   << "fetching missing checksums from db failed");
+	        return;
+        }
+        
       requestObjectsMessageData encoder;
       encoder.checksums_ = checksums_;
       reply.data = encoder.encodeJson ();
@@ -169,7 +180,14 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       requestObjectsMessageData decoder;
       decoder.decodeJson (msg.data);
       sendObjectsMessageData encoder;
-      this->match_requested_checksums (db, encoder, decoder.checksums_);
+      
+      if (!this->match_requested_checksums (db, encoder, decoder.checksums_))
+        {
+	        LOG_ERROR ("Object request error: "
+	                   << "fetching objects from db failed");
+	        return;
+        }
+      
       reply.data = encoder.encodeJson ();
       reply.encoding = "json";
       
@@ -194,7 +212,12 @@ DataStoreDispatcher::dispatchPointToPointMessage (
           pd.priority = msg.priority;
           
           ACE_Time_Value tv (i->tv_sec_, i->tv_usec_);
+          
+          // Use the alternate constructor to set the handler's
+          // ACE_Time_Value and checksum members, so it will
+          // store them instead of generating new values.
           OriginalPushHandler handler (db, pd, &tv, i->checksum_);
+          
           bool good_data_store = handler.handlePush ();
           
           if (good_data_store)
@@ -219,9 +242,9 @@ bool
 DataStoreDispatcher::fetch_recent_checksums (sqlite3 *db,
                                              const ACE_Time_Value &tv)
 {
+  // TODO - the private contacts tables.
   checksums_.clear ();
   
-  // TODO - the private contacts tables.
   const char * query_str =
     "SELECT checksum FROM data_table WHERE "
     "tv_sec>? OR tv_sec=? AND tv_usec>=?";
@@ -274,7 +297,8 @@ DataStoreDispatcher::fetch_recent_checksums (sqlite3 *db,
 
   while (sqlite3_step (stmt) == SQLITE_ROW)
     {
-      std::string tmp ((const char *) sqlite3_column_text (stmt, 0));
+      std::string tmp (
+        reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0)));
       checksums_.push_back (tmp);
     }
     
@@ -294,20 +318,12 @@ DataStoreDispatcher::match_requested_checksums (
     
   for (unsigned long i = 0; i < checksums.size (); ++i)
     {
-    //==============
-    printf ("appending checksum to query string\n");
-    //==========================
       query_str.append (i == 0 ? "?" : ",?");
     }
     
   query_str.append (")");
   
-  //=================
-  printf ("query string: %s\n", query_str.c_str ());
-  //====================
-    
   sqlite3_stmt *stmt = 0;
-  
   int status = sqlite3_prepare (db,
                                 query_str.c_str (),
                                 query_str.length (),
@@ -360,14 +376,9 @@ DataStoreDispatcher::match_requested_checksums (
       
       row.tv_usec_ = sqlite3_column_int (stmt, 4);
       
-	    size_t len = sqlite3_column_bytes (stmt, 5);
-	    //===========
-	    printf ("extracted data len = %d\n", len);
-	    //=======================
-      row.data_ = (char *) sqlite3_column_blob (stmt, 5);
-	    //===========
-	    printf ("extracted data = %s\n", row.data_.c_str ());
-	    //=======================
+      row.data_ =
+        reinterpret_cast<const char *> (sqlite3_column_blob (stmt, 5));
+      
       row.checksum_ =
         reinterpret_cast<const char *> (sqlite3_column_text (stmt, 6));
         
@@ -383,10 +394,15 @@ DataStoreDispatcher::collect_missing_checksums (
   sqlite3 *db,
   const std::vector<std::string> &checksums)
 {
+  // TODO - private contacts tables.
   checksums_.clear ();
   sqlite3_stmt *stmt = 0;
+ 
+  // Doesn't matter what column(s) we select, we're interested
+  // only in cases where SELECT returns nothing - let it
+  // return as little as possible when something is found.
   const char *qry =
-    "SELECT * FROM data_table WHERE checksum = ?";
+    "SELECT checksum FROM data_table WHERE checksum = ?";
   
   int status = sqlite3_prepare (db, qry, -1, &stmt, 0);
 
@@ -420,22 +436,16 @@ DataStoreDispatcher::collect_missing_checksums (
       
       if (status == SQLITE_DONE)
         {
-          // Above return code means checksum not found in db.
+          // Above return code means checksum not found in db,
+          // so we add it to the 'missing' list.
           checksums_.push_back (*i);
         }
         
       sqlite3_reset (stmt);
     }
-    
+
   sqlite3_finalize (stmt);  
   return true;
-}
-
-void
-update_db (sqlite3 *db,
-           const sendObjectsMessageData &data)
-
-{
 }
 
 const char *

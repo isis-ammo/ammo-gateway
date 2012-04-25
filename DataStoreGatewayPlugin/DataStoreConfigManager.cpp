@@ -59,8 +59,8 @@ DataStoreConfigManager::DataStoreConfigManager (
                   "ReportMimeType",
                   "LocationsMimeType",
                   "PrivateContactsMimeType",
-                  "ReqCsumMimeType",
-                  "SendCsumMimeType",
+                  "ReqCsumsMimeType",
+                  "SendCsumsMimeType",
                   "ReqObjsMimeType",
                   "SendObjsMimeType"
                 };

@@ -81,11 +81,7 @@ DataStoreReceiver::onPluginConnected (
   request.data = request_data.encodeJson ();
   request.encoding = "json";
   
-  printf ("mimeType = %s\n", request.mimeType.c_str ());
-  printf ("data = %s\n", request.data.c_str ());
-  
-//  sender->pointToPointMessage (request);
-  this->onPointToPointMessageReceived (0, request);
+  sender->pointToPointMessage (request);
 }
 
 void

@@ -129,6 +129,9 @@ sendChecksumsMessageData::decodeProtobuf (
 
 //==============================================================
 
+// Structure of mime types corresponding to this class and the
+// base class are the same, using different key names to make
+// it more self-evident.
 requestObjectsMessageData::requestObjectsMessageData (void)
   : sendChecksumsMessageData ("MissingChecksums")
 {
@@ -189,20 +192,31 @@ sendObjectsMessageData::decodeJson (const std::string &data)
        ++i)
     {
       dbRow row;
+      size_t slot = objects_.size ();
+      objects_.push_back (row);
       
-      row.uri_ = root["DataStoreObjects"][i]["uri"].asString ();
-      row.mime_type_ = root["DataStoreObjects"][i]["mime_type"].asString ();
-      row.origin_user_ = root["DataStoreObjects"][i]["origin_user"].asString ();
-      row.tv_sec_ = root["DataStoreObjects"][i]["tv_sec"].asInt ();
-      row.tv_usec_ = root["DataStoreObjects"][i]["tv_usec"].asInt ();
+      objects_[slot].uri_ =
+        root["DataStoreObjects"][i]["uri"].asString ();
+        
+      objects_[slot].mime_type_ =
+        root["DataStoreObjects"][i]["mime_type"].asString ();
+        
+      objects_[slot].origin_user_ =
+        root["DataStoreObjects"][i]["origin_user"].asString ();
+        
+      objects_[slot].tv_sec_ =
+        root["DataStoreObjects"][i]["tv_sec"].asInt ();
+        
+      objects_[slot].tv_usec_ =
+        root["DataStoreObjects"][i]["tv_usec"].asInt ();
       
       // This Json value is of type Object, but we want to store it as a
-      // string without worrying about parsing according to mimeType.
-      row.data_ = root["DataStoreObjects"][i]["data"].toStyledString ();
+      // string without worrying about its internals.
+      objects_[slot].data_ =
+        root["DataStoreObjects"][i]["data"].toStyledString ();
       
-      row.checksum_ = root["DataStoreObjects"][i]["checksum"].asString ();
-      
-      objects_.push_back (row);
+      objects_[slot].checksum_ =
+        root["DataStoreObjects"][i]["checksum"].asString ();
     }
     
   return true;
