@@ -51,11 +51,11 @@ ContactsQueryStatementBuilder::build (void)
       return false;
     }
 
-  int status = sqlite3_prepare (db_,
-                                query_str_.c_str (),
-                                query_str_.length (),
-                                &stmt_,
-                                0);
+  int status = sqlite3_prepare_v2 (db_,
+                                   query_str_.c_str (),
+                                   query_str_.length (),
+                                   &stmt_,
+                                   0);
 
   if (status != SQLITE_OK)
     {

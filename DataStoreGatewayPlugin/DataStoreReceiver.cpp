@@ -81,7 +81,8 @@ DataStoreReceiver::onPluginConnected (
   request.data = request_data.encodeJson ();
   request.encoding = "json";
   
-  sender->pointToPointMessage (request);
+//  sender->pointToPointMessage (request);
+  this->onPointToPointMessageReceived (0, request);
 }
 
 void
@@ -148,7 +149,7 @@ DataStoreReceiver::init (void)
 	  "tv_sec INTEGER NOT NULL,"
 	  "tv_usec INTEGER,"
 	  "data BLOB,"
-	  "checksum TEXT)";
+	  "checksum CHAR(40) PRIMARY KEY)";
 	
   char *db_err = 0;
 	
@@ -157,6 +158,33 @@ DataStoreReceiver::init (void)
   if (db_err != 0)
 	  {
 	    LOG_ERROR ("Data Store Service data table - " << db_err);
+			return false;
+	  }
+	  
+	const char *contacts_tbl_str =
+	  "CREATE TABLE IF NOT EXISTS contacts_table ("
+	  "uri TEXT,"
+	  "origin_user TEXT,"
+	  "tv_sec INTEGER NOT NULL,"
+	  "tv_usec INTEGER,"
+	  "first_name TEXT,"
+	  "middle_initial TEXT,"
+	  "last_name TEXT,"
+	  "rank TEXT,"
+	  "call_sign TEXT,"
+	  "branch TEXT,"
+	  "unit TEXT,"
+	  "email TEXT,"
+	  "phone TEXT,"
+	  "photo BLOB,"
+	  "insignia BLOB,"
+	  "checksum CHAR(40) PRIMARY KEY)";
+
+  sqlite3_exec (db_, contacts_tbl_str, 0, 0, &db_err);
+	
+  if (db_err != 0)
+	  {
+	    LOG_ERROR ("Data Store Service contacts table - " << db_err);
 			return false;
 	  }
 	  

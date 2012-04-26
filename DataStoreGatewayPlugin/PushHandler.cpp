@@ -16,13 +16,13 @@ PushHandler::PushHandler (sqlite3 *db,
   : db_ (db),
     stmt_ (0),
     pd_ (pd),
-    tv_ (0)
+    tv_ (ACE_Time_Value::zero)
 {
 }
 
 PushHandler::PushHandler (sqlite3 *db,
                           const ammo::gateway::PushData &pd,
-                          const ACE_Time_Value *tv,
+                          const ACE_Time_Value &tv,
                           const std::string &checksum)
   : db_ (db),
     stmt_ (0),
@@ -39,30 +39,28 @@ PushHandler::~PushHandler (void)
 }
 
 void
-PushHandler::new_checksum (void)
+PushHandler::create_checksum (void)
 {
-  std::string ibuf (pd_.data.data ());
-  ibuf.append (pd_.originUsername);
-  this->create_checksum (ibuf);
-}
-
-void
-PushHandler::new_checksum (ACE_Time_Value &tv)
-{
+  // This means a checksum and timestamp were passed to
+  // the constructor, copied from the remote
+  // datastore object we are getting via gateway sync.
+  if (!checksum_.empty ())
+    {
+      return;
+    }
+    
+  tv_ = ACE_OS::gettimeofday ();
+    
   std::ostringstream o (pd_.data.data ());
-  o << tv.sec () << tv.usec () << std::ends;
-  this->create_checksum (o.str ());
-}
-
-void
-PushHandler::create_checksum (const std::string &ibuf)
-{
+  o << tv_.sec () << tv_.usec () << std::ends;
+  
   unsigned char buf[DataStoreUtils::CS_SIZE];
   
-  (void) SHA1 (reinterpret_cast<const unsigned char *> (ibuf.c_str ()),
-               ibuf.length (),
+  (void) SHA1 (reinterpret_cast<const unsigned char *> (o.str ().c_str ()),
+               o.str ().length (),
                buf);
-           
+        
+  // 2 characters to represent each byte in hex.         
   char strbuf[DataStoreUtils::CS_SIZE * 2];
   char *bufptr = strbuf;
   

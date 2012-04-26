@@ -127,7 +127,7 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       ACE_Time_Value tv (ACE_OS::gettimeofday ());
       tv.sec (tv.sec () + decoder.tv_sec_);
       
-      if (!this->fetch_recent_checksums (db, tv))
+      if (!this->collect_recent_checksums (db, tv))
         {
 	        LOG_ERROR ("Checksum request error: "
 	                   << "fetching recent checksums from db failed");
@@ -139,7 +139,8 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       reply.data = encoder.encodeJson ();
       reply.encoding = "json";
 
-      sender->pointToPointMessage (reply);
+//      sender->pointToPointMessage (reply);
+      this->dispatchPointToPointMessage (db, 0 , reply);
     }
   else if (msg.mimeType == cfg_mgr_->getSendCsumsMimeType ())
     {
@@ -152,7 +153,10 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       
       sendChecksumsMessageData decoder;
       decoder.decodeJson (msg.data);
-
+      //=================
+      decoder.checksums_.push_back ("one_missing");
+      decoder.checksums_.push_back ("another_missing");
+      //==========================
       // Stores missing checksums in member checksums_.
       if (!this->collect_missing_checksums (db, decoder.checksums_))
         {
@@ -161,12 +165,21 @@ DataStoreDispatcher::dispatchPointToPointMessage (
 	        return;
         }
         
+        //==============
+      for (std::vector<std::string>::const_iterator i = checksums_.begin ();
+           i != checksums_.end ();
+           ++i)
+        {
+          printf ("missing checksum: %s\n", i->c_str ());
+        }
+        //=====================
+      
       requestObjectsMessageData encoder;
       encoder.checksums_ = checksums_;
       reply.data = encoder.encodeJson ();
       reply.encoding = "json";
       
-      sender->pointToPointMessage (reply);
+//      sender->pointToPointMessage (reply);
     }
   else if (msg.mimeType == cfg_mgr_->getReqObjsMimeType ())
     {
@@ -216,7 +229,7 @@ DataStoreDispatcher::dispatchPointToPointMessage (
           // Use the alternate constructor to set the handler's
           // ACE_Time_Value and checksum members, so it will
           // store them instead of generating new values.
-          OriginalPushHandler handler (db, pd, &tv, i->checksum_);
+          OriginalPushHandler handler (db, pd, tv, i->checksum_);
           
           bool good_data_store = handler.handlePush ();
           
@@ -239,23 +252,20 @@ DataStoreDispatcher::set_cfg_mgr (DataStoreConfigManager *cfg_mgr)
 }
 
 bool
-DataStoreDispatcher::fetch_recent_checksums (sqlite3 *db,
-                                             const ACE_Time_Value &tv)
+DataStoreDispatcher::collect_recent_checksums (sqlite3 *db,
+                                               const ACE_Time_Value &tv)
 {
-  // TODO - the private contacts tables.
   checksums_.clear ();
-  
-  const char * query_str =
-    "SELECT checksum FROM data_table WHERE "
-    "tv_sec>? OR tv_sec=? AND tv_usec>=?";
+  std::string qry ("SELECT checksum FROM data_table WHERE tv_sec>? OR tv_sec=? AND tv_usec>=?"
+                   "UNION SELECT checksum from contacts_table WHERE tv_sec>? OR tv_sec=? AND tv_usec>=?");
 
   sqlite3_stmt *stmt = 0;
   
-  int status = sqlite3_prepare (db,
-                                query_str,
-                                ACE_OS::strlen (query_str),
-                                &stmt,
-                                0);
+  int status = sqlite3_prepare_v2 (db,
+                                   qry.c_str (),
+                                   qry.length (),
+                                   &stmt,
+                                   0);
 
   if (status != SQLITE_OK)
     {
@@ -265,36 +275,22 @@ DataStoreDispatcher::fetch_recent_checksums (sqlite3 *db,
       return false;
     }
 
-  status = sqlite3_bind_int (stmt, 1, tv.sec ());
+  unsigned int slot = 1U;
   
-  if (status != SQLITE_OK)
-    {
-      LOG_ERROR ("Bind of integer at index 1 failed: "
-                 << sqlite3_errmsg (db));
-
-      return false;
-    }
-
-  status = sqlite3_bind_int (stmt, 2, tv.sec ());
+  bool good_binds =
+    DataStoreUtils::bind_int (db, stmt, slot, tv.sec ())
+    && DataStoreUtils::bind_int (db, stmt, slot, tv.sec ())
+    && DataStoreUtils::bind_int (db, stmt, slot, tv.usec ())
+    && DataStoreUtils::bind_int (db, stmt, slot, tv.sec ())
+    && DataStoreUtils::bind_int (db, stmt, slot, tv.sec ())
+    && DataStoreUtils::bind_int (db, stmt, slot, tv.usec ());
   
-  if (status != SQLITE_OK)
+  if (!good_binds)
     {
-      LOG_ERROR ("Bind of integer at index 2 failed: "
-                 << sqlite3_errmsg (db));
-
+      // Error msg already output in bind_int().
       return false;
     }
-
-  status = sqlite3_bind_int (stmt, 3, tv.usec ());
-
-  if (status != SQLITE_OK)
-    {
-      LOG_ERROR ("Bind of integer at index 3 failed: "
-                 << sqlite3_errmsg (db));
-
-      return false;
-    }
-
+    
   while (sqlite3_step (stmt) == SQLITE_ROW)
     {
       std::string tmp (
@@ -324,11 +320,11 @@ DataStoreDispatcher::match_requested_checksums (
   query_str.append (")");
   
   sqlite3_stmt *stmt = 0;
-  int status = sqlite3_prepare (db,
-                                query_str.c_str (),
-                                query_str.length (),
-                                &stmt,
-                                0);
+  int status = sqlite3_prepare_v2 (db,
+                                   query_str.c_str (),
+                                   query_str.length (),
+                                   &stmt,
+                                   0);
 
   if (status != SQLITE_OK)
     {
@@ -352,7 +348,7 @@ DataStoreDispatcher::match_requested_checksums (
                                                   
       if (!good_bind)
         {
-          // Other useful info already output by bind_blob().
+          // Other useful info already output by bind_text().
           LOG_ERROR (" - in match_requested_checksums()");
 		
           return false;
@@ -394,17 +390,16 @@ DataStoreDispatcher::collect_missing_checksums (
   sqlite3 *db,
   const std::vector<std::string> &checksums)
 {
-  // TODO - private contacts tables.
   checksums_.clear ();
   sqlite3_stmt *stmt = 0;
- 
-  // Doesn't matter what column(s) we select, we're interested
-  // only in cases where SELECT returns nothing - let it
-  // return as little as possible when something is found.
-  const char *qry =
-    "SELECT checksum FROM data_table WHERE checksum = ?";
   
-  int status = sqlite3_prepare (db, qry, -1, &stmt, 0);
+  // 'NULL' because we are interested only in the case where
+  // no rows are returned, so there will be nothing to display.
+  const char *qry =
+    "SELECT NULL FROM data_table WHERE checksum = ? UNION "
+    "SELECT NULL FROM contacts_table WHERE checksum = ?";
+  
+  int status = sqlite3_prepare_v2 (db, qry, -1, &stmt, 0);
 
   if (status != SQLITE_OK)
     {
@@ -418,20 +413,18 @@ DataStoreDispatcher::collect_missing_checksums (
        i != checksums.end ();
        ++i)
     {
-      status = sqlite3_bind_text (stmt,
-                                  1,
-                                  i->c_str (),
-                                  i->length (),
-                                  SQLITE_STATIC);
+      unsigned int n = 1U;
+      
+      bool good_binds =
+        DataStoreUtils::bind_text (db, stmt, n, *i, false)
+        && DataStoreUtils::bind_text (db, stmt, n, *i, false);
 
-      if (status != SQLITE_OK)
+      if (!good_binds)
         {
-          LOG_ERROR ("Bind to checksums-missing query failed: "
-                     << sqlite3_errmsg (db));
-
+          // Error diagnostic is already output.
           return false;
         }
-    
+        
       status = sqlite3_step (stmt);
       
       if (status == SQLITE_DONE)
