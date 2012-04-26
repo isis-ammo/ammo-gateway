@@ -17,4 +17,11 @@ enum MessagePriority {
   PRIORITY_BACKGROUND = -32
 };
 
+enum PushStatus {
+  PUSH_RECEIVED  = 0,
+  PUSH_SUCCESS   = 1,
+  PUSH_FAIL      = 2,
+  PUSH_REJECTED  = 3
+};
+
 #endif //ENUMERATIONS_H

@@ -165,6 +165,14 @@ bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uid, std::st
     }
   }
   
+  //for messages that need acknowledgements, we store the return handler in the 
+  //same map as for pull requests (since that ID should be the same as the
+  //origin_device parameter)
+  if(ackDeviceDelivered || ackPluginDelivered) {
+    //update plugin ID to the originating service handler that called this method
+    plugins[originDevice] = sender;
+  }
+  
   if(messageScope == SCOPE_GLOBAL) {
     //now propagate the subscription to all the other gateway nodes
     {
@@ -178,6 +186,18 @@ bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uid, std::st
         crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uid, mimeType, encoding, data, originUser, priority);
       }
     }
+  }
+  return true;
+}
+
+bool GatewayCore::pushAcknowledgement(GatewayEventHandler *sender, std::string uid, std::string destinationDevice, std::string acknowledgingDevice, std::string destinationUser, std::string acknowledgingUser, bool deviceDelivered, bool pluginDelivered, PushStatus status) {
+  map<string, GatewayEventHandler *>::iterator it = plugins.find(destinationDevice);
+  if ( it != plugins.end() ) {
+    //check for something here?
+    (*it).second->sendPushAcknowledgement(uid, destinationDevice, acknowledgingDevice, destinationUser, acknowledgingUser, deviceDelivered, pluginDelivered, status);
+    return true;
+  } else {
+    LOG_ERROR("Couldn't find return handler for " << destinationDevice);
   }
   return true;
 }
