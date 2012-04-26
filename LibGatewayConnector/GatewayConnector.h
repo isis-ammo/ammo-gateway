@@ -84,6 +84,21 @@ namespace ammo {
       }
     };
     
+    class LibGatewayConnector_Export PushAcknowledgement {
+    public:
+      PushAcknowledgement();
+      std::string uid;
+      std::string destinationDevice;
+      std::string acknowledgingDevice;
+      std::string destinationUser;
+      std::string acknowledgingUser;
+      
+      bool deviceDelivered;
+      bool pluginDelivered;
+      
+      ammo::gateway::PushStatus status;
+    };
+    
     /**
      * A request for data from a plugin.
      */
@@ -234,6 +249,8 @@ namespace ammo {
        * @return true if the operation succeeded; false if the operation failed.
        */
       bool pushData(ammo::gateway::PushData &pushData);
+      
+      bool pushAcknowledgment(ammo::gateway::PushAcknowledgement &ack);
     
       /**
        * Requests data from a gateway plugin or device (which claims it can handle a
@@ -346,6 +363,7 @@ namespace ammo {
       void onDisconnectReceived();
       void onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg);
       void onPushDataReceived(const ammo::gateway::protocol::PushData &msg, char messagePriority);
+      void onPushAcknowledgementReceived(const ammo::gateway::protocol::PushAcknowledgement &msg);
       void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg, char messagePriority);
       void onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg, char messagePriority);
       
@@ -394,6 +412,8 @@ namespace ammo {
       *               failed.
       */
       virtual void onAuthenticationResponse(GatewayConnector *sender, bool result);
+
+      virtual void onPushAcknowledgementReceived(GatewayConnector *sender, const ammo::gateway::PushAcknowledgement &ack);
     };
     
     /**
