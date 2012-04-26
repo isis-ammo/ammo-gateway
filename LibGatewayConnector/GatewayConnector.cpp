@@ -113,6 +113,51 @@ bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData
   }
 }
 
+bool ammo::gateway::GatewayConnector::pushAcknowledgment(ammo::gateway::PushAcknowledgement &ack) {
+  ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
+  ammo::gateway::protocol::PushAcknowledgement *ackMsg = msg->mutable_push_acknowledgement();
+  ackMsg->set_uid(ack.uid);
+  ackMsg->set_destination_device(ack.destinationDevice);
+  ackMsg->set_acknowledging_device(ack.acknowledgingDevice);
+  ackMsg->set_destination_user(ack.destinationUser);
+  ackMsg->set_acknowledging_user(ack.acknowledgingUser);
+  
+  ammo::gateway::protocol::AcknowledgementThresholds *thresholds = ackMsg->mutable_threshold();
+  thresholds->set_device_delivered(ack.deviceDelivered);
+  thresholds->set_plugin_delivered(ack.pluginDelivered);
+  
+  ammo::gateway::protocol::PushAcknowledgement_PushStatus status = ammo::gateway::protocol::PushAcknowledgement_PushStatus_RECEIVED;
+  
+  switch(ack.status) {
+    case PUSH_RECEIVED:
+      status = ammo::gateway::protocol::PushAcknowledgement_PushStatus_RECEIVED;
+      break;
+    case PUSH_SUCCESS:
+      status = ammo::gateway::protocol::PushAcknowledgement_PushStatus_SUCCESS;
+      break;
+    case PUSH_FAIL:
+      status = ammo::gateway::protocol::PushAcknowledgement_PushStatus_FAIL;
+      break;
+    case PUSH_REJECTED:
+      status = ammo::gateway::protocol::PushAcknowledgement_PushStatus_REJECTED;
+      break;
+  }
+  
+  ackMsg->set_status(status);
+  
+  msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
+  msg->set_message_priority(ammo::gateway::PRIORITY_CTRL); //TODO: is this the right priority for an acknowledgment?
+  
+  LOG_DEBUG("Sending Push Acknowledgment to gateway core");
+  if(connected) {
+    handler->sendMessage(msg);
+    return true;
+  } else {
+    LOG_ERROR("Not connected to gateway; can't send data");
+    return false;
+  }
+}
+
 bool ammo::gateway::GatewayConnector::pullRequest(PullRequest &request) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PullRequest *pullMsg = msg->mutable_pull_request();
@@ -349,6 +394,37 @@ void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::pr
   }
 }
 
+void ammo::gateway::GatewayConnector::onPushAcknowledgementReceived(const ammo::gateway::protocol::PushAcknowledgement &msg) {
+  ammo::gateway::PushAcknowledgement pushAck;
+  
+  pushAck.uid = msg.uid();
+  pushAck.destinationDevice = msg.destination_device();
+  pushAck.acknowledgingDevice = msg.acknowledging_device();
+  pushAck.destinationUser = msg.destination_user();
+  pushAck.deviceDelivered = msg.threshold().device_delivered();
+  pushAck.pluginDelivered = msg.threshold().plugin_delivered();
+  
+  switch(msg.status()) {
+    case ammo::gateway::protocol::PushAcknowledgement_PushStatus_RECEIVED:
+      pushAck.status = ammo::gateway::PUSH_RECEIVED;
+      break;
+    case ammo::gateway::protocol::PushAcknowledgement_PushStatus_SUCCESS:
+      pushAck.status = ammo::gateway::PUSH_SUCCESS;
+      break;
+    case ammo::gateway::protocol::PushAcknowledgement_PushStatus_FAIL:
+      pushAck.status = ammo::gateway::PUSH_FAIL;
+      break;
+    case ammo::gateway::protocol::PushAcknowledgement_PushStatus_REJECTED:
+      pushAck.status = ammo::gateway::PUSH_REJECTED;
+      break;
+  }
+  
+  if(delegate != NULL) {
+    delegate->onPushAcknowledgementReceived(this, pushAck);
+  }
+  
+}
+
 void ammo::gateway::GatewayConnector::onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg, char messagePriority) {
   string mimeType = msg.mime_type();
   map<std::string, PullRequestReceiverListener *>::iterator it = pullRequestListeners.find(mimeType);
@@ -475,6 +551,10 @@ void ammo::gateway::GatewayConnectorDelegate::onPointToPointMessageReceived(Gate
   //Do nothing by default
 }
 
+void ammo::gateway::GatewayConnectorDelegate::onPushAcknowledgementReceived(GatewayConnector *sender, const ammo::gateway::PushAcknowledgement &ack) {
+  //Do nothing by default
+}
+
 //Constructors for PushMessage, PullRequest, PullResponse--  set up sane defaults
 ammo::gateway::PushData::PushData() :
   uid(""),
@@ -501,6 +581,19 @@ ammo::gateway::PullRequest::PullRequest() :
   liveQuery(false),
   scope(ammo::gateway::SCOPE_LOCAL),
   priority(ammo::gateway::PRIORITY_NORMAL)
+{
+  
+}
+
+ammo::gateway::PushAcknowledgement::PushAcknowledgement() :
+  uid(""),
+  destinationDevice(""),
+  acknowledgingDevice(""),
+  destinationUser(""),
+  acknowledgingUser(""),
+  deviceDelivered(false),
+  pluginDelivered(false),
+  status(ammo::gateway::PUSH_RECEIVED)
 {
   
 }

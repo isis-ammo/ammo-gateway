@@ -92,9 +92,13 @@ message PushAcknowledgement {
   required string uid = 1;
   optional string destination_device = 2;
   optional string acknowledging_device = 3;
+  optional string destination_user = 6;
+  optional string acknowledging_user = 7;
+  
+  optional AcknowledgementThresholds threshold = 5;
   
   enum PushStatus {
-    UNKNOWN   = 0;
+    RECEIVED   = 0;
     SUCCESS   = 1;
     FAIL      = 2;
     REJECTED  = 3;
