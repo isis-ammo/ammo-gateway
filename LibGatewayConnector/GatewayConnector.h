@@ -311,7 +311,7 @@ namespace ammo {
        */
       bool pushData(ammo::gateway::PushData &pushData);
       
-      bool pushAcknowledgment(ammo::gateway::PushAcknowledgement &ack);
+      bool pushAcknowledgement(ammo::gateway::PushAcknowledgement &ack);
     
       /**
        * Requests data from a gateway plugin or device (which claims it can handle a

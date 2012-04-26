@@ -113,7 +113,7 @@ bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData
   }
 }
 
-bool ammo::gateway::GatewayConnector::pushAcknowledgment(ammo::gateway::PushAcknowledgement &ack) {
+bool ammo::gateway::GatewayConnector::pushAcknowledgement(ammo::gateway::PushAcknowledgement &ack) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushAcknowledgement *ackMsg = msg->mutable_push_acknowledgement();
   ackMsg->set_uid(ack.uid);
