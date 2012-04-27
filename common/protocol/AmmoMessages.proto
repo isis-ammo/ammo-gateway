@@ -40,6 +40,7 @@ message AcknowledgementThresholds {
   optional bool android_plugin_received = 3 [default = true];
 }
 
+
 /**
 * When data is to be sent to the Gateway for distribution.
 * 
@@ -62,7 +63,6 @@ message DataMessage {
   optional bytes data = 2;
   optional MessageScope scope = 4 [default = GLOBAL];  
   optional AcknowledgementThresholds thresholds = 8;
-
 }
 
 message TerseMessage {
