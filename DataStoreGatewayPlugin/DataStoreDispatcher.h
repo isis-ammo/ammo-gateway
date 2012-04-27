@@ -53,6 +53,20 @@ private:
   match_requested_checksums (sqlite3 *db,
                              sendObjectsMessageData &holder,
                              const std::vector<std::string> &checksums);
+                             
+  bool
+  prepare_match_statement (sqlite3 *db,
+                           sqlite3_stmt *&stmt,
+                           const char *tbl_name,
+                           const std::vector<std::string> &checksums);
+                           
+  void
+  extract_original_row (sqlite3_stmt *stmt,
+                        sendObjectsMessageData &holder);
+  
+  void
+  extract_contacts_row (sqlite3_stmt *stmt,
+                        sendObjectsMessageData &holder);
   
   // Identify which checksums from a list are not in the local db.
   bool

@@ -6,6 +6,7 @@
 #include "log.h"
 
 #include "GatewaySyncSerialization.h"
+#include "DataStoreConfigManager.h"
 
 std::string
 requestChecksumsMessageData::encodeJson (void)
@@ -131,7 +132,7 @@ sendChecksumsMessageData::decodeProtobuf (
 
 // Structure of mime types corresponding to this class and the
 // base class are the same, using different key names to make
-// it more self-evident.
+// each use case more self-evident.
 requestObjectsMessageData::requestObjectsMessageData (void)
   : sendChecksumsMessageData ("MissingChecksums")
 {

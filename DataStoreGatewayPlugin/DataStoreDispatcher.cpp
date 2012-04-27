@@ -1,4 +1,5 @@
 
+#include <sstream>
 #include <sqlite3.h>
 
 #include <ace/UUID.h>
@@ -210,6 +211,8 @@ DataStoreDispatcher::dispatchPointToPointMessage (
     {
       sendObjectsMessageData decoder;
       decoder.decodeJson (msg.data);
+      DataStoreConfigManager *cfg_mgr =
+        DataStoreConfigManager::getInstance ();
       
       for (std::vector<sendObjectsMessageData::dbRow>::const_iterator i =
              decoder.objects_.begin ();
@@ -228,18 +231,35 @@ DataStoreDispatcher::dispatchPointToPointMessage (
           
           // Use the alternate constructor to set the handler's
           // ACE_Time_Value and checksum members, so it will
-          // store them instead of generating new values.
-          OriginalPushHandler handler (db, pd, tv, i->checksum_);
+          // store the received values instead of generating new values.
           
-          bool good_data_store = handler.handlePush ();
-          
-          if (good_data_store)
+          if (pd.mimeType == cfg_mgr->getPrivateContactsMimeType ())
             {
-              LOG_TRACE ("Data store succeeded on object from reconnect");
+              ContactsPushHandler handler (db, pd, tv, i->checksum_);
+              
+              if (handler.handlePush ())
+                {
+                  LOG_TRACE ("Data store succeeded on private "
+                             << "contacts object from reconnect");
+                }
+              else
+                {
+                  LOG_ERROR ("Data store failed on private "
+                             << "contacts object from reconnect");
+                }
             }
           else
             {
-              LOG_ERROR ("Data store failed on object from reconnect");
+              OriginalPushHandler handler (db, pd, tv, i->checksum_);
+              
+              if (handler.handlePush ())
+                {
+                  LOG_TRACE ("Data store succeeded on object from reconnect");
+                }
+              else
+                {
+                  LOG_ERROR ("Data store failed on object from reconnect");
+                }
             }
         }
     }
@@ -256,8 +276,10 @@ DataStoreDispatcher::collect_recent_checksums (sqlite3 *db,
                                                const ACE_Time_Value &tv)
 {
   checksums_.clear ();
-  std::string qry ("SELECT checksum FROM data_table WHERE tv_sec>? OR tv_sec=? AND tv_usec>=?"
-                   "UNION SELECT checksum from contacts_table WHERE tv_sec>? OR tv_sec=? AND tv_usec>=?");
+  std::string qry ("SELECT checksum FROM data_table WHERE "
+                   "tv_sec>? OR tv_sec=? AND tv_usec>=?"
+                   "UNION SELECT checksum from contacts_table "
+                   "WHERE tv_sec>? OR tv_sec=? AND tv_usec>=?");
 
   sqlite3_stmt *stmt = 0;
   
@@ -308,9 +330,43 @@ DataStoreDispatcher::match_requested_checksums (
   sendObjectsMessageData &holder,
   const std::vector<std::string> &checksums)
 {
-  // TODO - private contacts tables.
-  std::string query_str (
-    "SELECT * from data_table WHERE checksum IN (");
+  sqlite3_stmt *stmt = 0;
+  
+  if (!this->prepare_match_statement (db, stmt, "data_table", checksums))
+    {
+      LOG_ERROR ("Preparation of data_table query failed: "
+                 << sqlite3_errmsg (db));
+
+      return false;
+    }
+
+  this->extract_original_row (stmt, holder);
+  
+  stmt = 0;
+  
+  if (!this->prepare_match_statement (db, stmt, "contacts_table", checksums))
+    {
+      LOG_ERROR ("Preparation of contacts_table query failed: "
+                 << sqlite3_errmsg (db));
+
+      return false;
+    }
+    
+  this->extract_contacts_row (stmt, holder);
+
+  return true;
+}
+
+bool
+DataStoreDispatcher::prepare_match_statement (
+  sqlite3 *db,
+  sqlite3_stmt *&stmt,
+  const char *tbl_name,
+  const std::vector<std::string> &checksums)
+{
+  std::string query_str ("SELECT * from ");
+  query_str += tbl_name;
+  query_str += " WHERE checksum IN (";
     
   for (unsigned long i = 0; i < checksums.size (); ++i)
     {
@@ -319,7 +375,6 @@ DataStoreDispatcher::match_requested_checksums (
     
   query_str.append (")");
   
-  sqlite3_stmt *stmt = 0;
   int status = sqlite3_prepare_v2 (db,
                                    query_str.c_str (),
                                    query_str.length (),
@@ -354,35 +409,87 @@ DataStoreDispatcher::match_requested_checksums (
           return false;
         }
     }
+    
+  return true;
+}
 
+void
+DataStoreDispatcher::extract_original_row (
+  sqlite3_stmt *stmt,
+  sendObjectsMessageData &holder)
+{
   while (sqlite3_step (stmt) == SQLITE_ROW)
     {
       sendObjectsMessageData::dbRow row;
+      unsigned int slot = holder.objects_.size ();
+      holder.objects_.push_back (row);
       
-      row.uri_ =
+      holder.objects_[slot].uri_ =
         reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0));
         
-      row.mime_type_ =
+      holder.objects_[slot].mime_type_ =
         reinterpret_cast<const char *> (sqlite3_column_text (stmt, 1));
         
-      row.origin_user_ =
+      holder.objects_[slot].origin_user_ =
         reinterpret_cast<const char *> (sqlite3_column_text (stmt, 2));
         
-      row.tv_sec_ = sqlite3_column_int (stmt, 3);
+      holder.objects_[slot].tv_sec_ = sqlite3_column_int (stmt, 3);
       
-      row.tv_usec_ = sqlite3_column_int (stmt, 4);
+      holder.objects_[slot].tv_usec_ = sqlite3_column_int (stmt, 4);
       
-      row.data_ =
+      holder.objects_[slot].data_ =
         reinterpret_cast<const char *> (sqlite3_column_blob (stmt, 5));
       
-      row.checksum_ =
+      holder.objects_[slot].checksum_ =
         reinterpret_cast<const char *> (sqlite3_column_text (stmt, 6));
-        
-      holder.objects_.push_back (row);
     }
     
   sqlite3_finalize (stmt);
-  return true;
+}
+
+void
+DataStoreDispatcher::extract_contacts_row (
+  sqlite3_stmt *stmt,
+  sendObjectsMessageData &holder)
+{
+  while (sqlite3_step (stmt) == SQLITE_ROW)
+    {
+      sendObjectsMessageData::dbRow row;
+      unsigned int slot = holder.objects_.size ();
+      holder.objects_.push_back (row);
+      
+      holder.objects_[slot].uri_ =
+        reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0));
+        
+      holder.objects_[slot].mime_type_ =
+        DataStoreConfigManager::getInstance ()->getPrivateContactsMimeType ();
+        
+      holder.objects_[slot].origin_user_ =
+        reinterpret_cast<const char *> (sqlite3_column_text (stmt, 1));
+        
+      holder.objects_[slot].tv_sec_ = sqlite3_column_int (stmt, 2);
+      
+      holder.objects_[slot].tv_usec_ = sqlite3_column_int (stmt, 3);
+      
+      std::ostringstream o ("{");
+      o << "\"first_name\": \"" << sqlite3_column_text (stmt, 4) << "\", "
+        << "\"middle_initial\": \"" << sqlite3_column_text (stmt, 5) << "\", "
+        << "\"last_name\": \"" << sqlite3_column_text (stmt, 6) << "\", "
+        << "\"rank\": \"" << sqlite3_column_text (stmt, 7) << "\", "
+        << "\"call_sign\": \"" << sqlite3_column_text (stmt, 8) << "\", "
+        << "\"branch\": \"" << sqlite3_column_text (stmt, 9) << "\", "
+        << "\"unit\": \"" << sqlite3_column_text (stmt, 10) << "\", "
+        << "\"email\": \"" << sqlite3_column_text (stmt, 11) << "\", "
+        << "\"phone\": \"" << sqlite3_column_text (stmt, 12) << "\""
+        << "}" << std::ends;
+      
+      holder.objects_[slot].data_ = o.str ();
+      
+      holder.objects_[slot].checksum_ =
+        reinterpret_cast<const char *> (sqlite3_column_text (stmt, 15));
+    }
+    
+  sqlite3_finalize (stmt);
 }
 
 bool
