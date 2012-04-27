@@ -84,7 +84,7 @@ sendChecksumsMessageData::encodeJson (void)
       sstream << "\"" << *i << "\"";
     }
       
-  sstream << "]}";
+  sstream << "]}" << std::ends;
   
   std::string retval (sstream.str ());
   return retval;
@@ -167,7 +167,7 @@ sendObjectsMessageData::encodeJson (void)
               << "}";
     }
       
-  sstream << "]}";
+  sstream << "]}" << std::ends;
   
   std::string retval (sstream.str ());
   return retval;

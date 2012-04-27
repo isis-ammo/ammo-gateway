@@ -140,8 +140,7 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       reply.data = encoder.encodeJson ();
       reply.encoding = "json";
 
-//      sender->pointToPointMessage (reply);
-      this->dispatchPointToPointMessage (db, 0 , reply);
+      sender->pointToPointMessage (reply);
     }
   else if (msg.mimeType == cfg_mgr_->getSendCsumsMimeType ())
     {
@@ -154,10 +153,7 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       
       sendChecksumsMessageData decoder;
       decoder.decodeJson (msg.data);
-      //=================
-      decoder.checksums_.push_back ("one_missing");
-      decoder.checksums_.push_back ("another_missing");
-      //==========================
+
       // Stores missing checksums in member checksums_.
       if (!this->collect_missing_checksums (db, decoder.checksums_))
         {
@@ -166,21 +162,13 @@ DataStoreDispatcher::dispatchPointToPointMessage (
 	        return;
         }
         
-        //==============
-      for (std::vector<std::string>::const_iterator i = checksums_.begin ();
-           i != checksums_.end ();
-           ++i)
-        {
-          printf ("missing checksum: %s\n", i->c_str ());
-        }
-        //=====================
-      
       requestObjectsMessageData encoder;
       encoder.checksums_ = checksums_;
+
       reply.data = encoder.encodeJson ();
       reply.encoding = "json";
       
-//      sender->pointToPointMessage (reply);
+      sender->pointToPointMessage (reply);
     }
   else if (msg.mimeType == cfg_mgr_->getReqObjsMimeType ())
     {
@@ -213,7 +201,7 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       decoder.decodeJson (msg.data);
       DataStoreConfigManager *cfg_mgr =
         DataStoreConfigManager::getInstance ();
-      
+        
       for (std::vector<sendObjectsMessageData::dbRow>::const_iterator i =
              decoder.objects_.begin ();
            i != decoder.objects_.end ();
@@ -471,8 +459,9 @@ DataStoreDispatcher::extract_contacts_row (
       
       holder.objects_[slot].tv_usec_ = sqlite3_column_int (stmt, 3);
       
-      std::ostringstream o ("{");
-      o << "\"first_name\": \"" << sqlite3_column_text (stmt, 4) << "\", "
+      std::ostringstream o;
+      o << "{"
+        << "\"first_name\": \"" << sqlite3_column_text (stmt, 4) << "\", "
         << "\"middle_initial\": \"" << sqlite3_column_text (stmt, 5) << "\", "
         << "\"last_name\": \"" << sqlite3_column_text (stmt, 6) << "\", "
         << "\"rank\": \"" << sqlite3_column_text (stmt, 7) << "\", "
@@ -481,7 +470,7 @@ DataStoreDispatcher::extract_contacts_row (
         << "\"unit\": \"" << sqlite3_column_text (stmt, 10) << "\", "
         << "\"email\": \"" << sqlite3_column_text (stmt, 11) << "\", "
         << "\"phone\": \"" << sqlite3_column_text (stmt, 12) << "\""
-        << "}" << std::ends;
+        << "}";
       
       holder.objects_[slot].data_ = o.str ();
       

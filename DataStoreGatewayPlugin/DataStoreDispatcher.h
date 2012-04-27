@@ -3,8 +3,9 @@
 
 #include "GatewaySyncSerialization.h"
 
-class QueryHandler;
 struct sqlite3;
+struct sqlite3_stmt;
+class QueryHandler;
 class DataStoreConfigManager;
 
 namespace ammo
