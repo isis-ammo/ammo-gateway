@@ -34,6 +34,9 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
     parent->onPushDataReceived(msg->push_data(), msg->message_priority());
+  } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_ACKNOWLEDGEMENT) {
+    LOG_DEBUG("Received Push Acknowledgement...");
+    parent->onPushAcknowledgementReceived(msg->push_acknowledgement());
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG("Received Pull Request...");
     parent->onPullRequestReceived(msg->pull_request(), msg->message_priority());

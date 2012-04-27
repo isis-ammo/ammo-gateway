@@ -300,6 +300,12 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
   dataMsg->set_mime_type(pushData.mimeType);
   dataMsg->set_encoding(pushData.encoding);
   dataMsg->set_data(dataString);
+  dataMsg->set_origin_device(pushData.originDevice);
+  dataMsg->set_user_id(pushData.originUsername);
+  
+  dataMsg->mutable_thresholds()->set_device_delivered(pushData.ackThresholds.deviceDelivered);
+  dataMsg->mutable_thresholds()->set_plugin_delivered(pushData.ackThresholds.pluginDelivered);
+  dataMsg->mutable_thresholds()->set_android_plugin_received(false);
   
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
   msg->set_message_priority(pushData.priority);
