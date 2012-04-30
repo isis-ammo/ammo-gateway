@@ -119,7 +119,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       if(msg.data_message().thresholds().android_plugin_received()) {
         ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
         ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
-        ack->set_uid(dataMessage.uid());
+        ack->set_uri(dataMessage.uri());
         ack->set_destination_device(dataMessage.origin_device());
         ack->set_destination_user(dataMessage.user_id());
         ammo::protocol::AcknowledgementThresholds *thresholds = ack->mutable_threshold();
@@ -139,7 +139,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     ammo::gateway::PushAcknowledgement pushAck;
     ammo::protocol::PushAcknowledgement ackMsg = msg.push_acknowledgement();
     
-    pushAck.uid = ackMsg.uid();
+    pushAck.uid = ackMsg.uri();
     pushAck.destinationDevice = ackMsg.destination_device();
     pushAck.acknowledgingDevice = ackMsg.acknowledging_device();
     pushAck.destinationUser = ackMsg.destination_user();
@@ -253,7 +253,7 @@ void AndroidMessageProcessor::onPushAcknowledgementReceived(GatewayConnector *se
   
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
   ammo::protocol::PushAcknowledgement *ackMsg = msg->mutable_push_acknowledgement();
-  ackMsg->set_uid(ack.uid);
+  ackMsg->set_uri(ack.uid);
   ackMsg->set_destination_device(ack.destinationDevice);
   ackMsg->set_acknowledging_device(ack.acknowledgingDevice);
   ackMsg->set_destination_user(ack.destinationUser);

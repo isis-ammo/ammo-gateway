@@ -25,12 +25,22 @@ enum MessageScope {
   LOCAL = 1;
 }
 
+/**
+* device_delivered : delivered by the plugin to a device (android device)
+* plugin_delivered : delivered by the gateway to a plugin
+*/
+message AcknowledgementThresholds {
+  optional bool device_delivered = 1 [default = false];
+  optional bool plugin_delivered = 2 [default = false];
+}
+
 message PushData {
   required string uri = 1;
   optional string mime_type = 2;
   optional string encoding = 6 [default = "json"];
   optional bytes data = 3;
   optional string origin_user = 4;
+  optional string origin_device = 7;
   optional MessageScope scope = 5 [default = GLOBAL];
   optional AcknowledgementThresholds thresholds = 8;
 }
@@ -120,6 +130,7 @@ message GatewayWrapper {
     REGISTER_PULL_INTEREST = 7;
     UNREGISTER_PULL_INTEREST = 8;
     ASSOCIATE_CROSS_GATEWAY = 9;
+    PUSH_ACKNOWLEDGEMENT = 15;
   }
   
   required MessageType type = 1;
@@ -136,4 +147,5 @@ message GatewayWrapper {
   optional RegisterPullInterest register_pull_interest = 9;
   optional UnregisterPullInterest unregister_pull_interest = 10;
   optional AssociateCrossGateway associate_cross_gateway = 11;
+  optional PushAcknowledgement push_acknowledgement = 18;
 }
