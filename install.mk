@@ -68,11 +68,18 @@ install: all
 	install -m 644 JavaGatewayConnector/dist/lib/gatewaypluginapi.jar $(DESTDIR)/usr/share/java
 	install -m 644 MCastPlugin/dist/lib/mcastplugin.jar $(DESTDIR)/usr/share/java
 	install -m 644 RMCastPlugin/dist/lib/rmcastplugin.jar $(DESTDIR)/usr/share/java
+	install -m 644 RMCastPlugin/libs/jgroups-gw.jar $(DESTDIR)/usr/share/java
+	install -m 644 RMCastPlugin/libs/json-20090211.jar $(DESTDIR)/usr/share/java
+	install -m 644 RMCastPlugin/libs/protobuf-java-2.3.0.jar $(DESTDIR)/usr/share/java
+	install -m 644 RMCastPlugin/libs/slf4j-api-1.6.4.jar $(DESTDIR)/usr/share/java
+	install -m 644 RMCastPlugin/libs/slf4j-simple-1.6.4.jar $(DESTDIR)/usr/share/java
 	echo "Installing scripts ..."
 	install -m 755 debian/init.d $(DESTDIR)/etc/init.d/ammo-gateway
 	install -m 755 dist/template/bin/launch_ammo_gateway_headless.sh $(INSTALL_DIR)/bin
 	install -m 755 dist/template/bin/launch_ammo_gateway.sh $(INSTALL_DIR)/bin
 	install -m 755 dist/template/bin/kill_all_gateway.sh $(INSTALL_DIR)/bin
+	install -m 755 MCastPlugin/mcastplugin.sh $(INSTALL_DIR)/bin
+	install -m 755 RMCastPlugin/rmcastplugin.sh $(INSTALL_DIR)/bin
 	echo "Installing config files ..."
 	install -m 644 build/etc/AtsPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/GatewayConfig.json $(DESTDIR)/etc/ammo-gateway
@@ -80,4 +87,6 @@ install: all
 	install -m 644 build/etc/LoggingConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/DataStorePluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/PassPluginConfig.json $(DESTDIR)/etc/ammo-gateway
+	install -m 644 build/etc/MCastPluginConfig.json $(DESTDIR)/etc/ammo-gateway
+	install -m 644 build/etc/RMCastPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 

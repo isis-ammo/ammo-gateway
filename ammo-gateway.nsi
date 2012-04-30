@@ -239,13 +239,14 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
   SetOverwrite on
   File RMCastPlugin\rmcastplugin.bat
   File RMCastPlugin\dist\lib\rmcastplugin.jar
-  File RMCastPlugin\jgroups\udp.xml
-  File RMCastPlugin\libs\jgroups.jar
+  File RMCastPlugin\libs\jgroups-gw.jar
   ; jars from here down are also prereqs for mcastplugin
   File RMCastPlugin\libs\json-20090211.jar
   File RMCastPlugin\libs\protobuf-java-2.3.0.jar
   File RMCastPlugin\libs\slf4j-api-1.6.4.jar
   File RMCastPlugin\libs\slf4j-simple-1.6.4.jar
+  SetOutPath $INSTDIR\bin\jgroups
+  File RMCastPlugin\jgroups\udp.xml
 
 ${MementoSectionEnd}
 
@@ -445,10 +446,17 @@ Section Uninstall
   Delete $INSTDIR\bin\gatewaypluginapi.jar
 
   ; MCast Plugin
+  Delete $INSTDIR\bin\mcastplugin.bat
   Delete $INSTDIR\bin\mcastplugin.jar
 
   ; RMCast Plugin
+  Delete $INSTDIR\bin\rmcastplugin.bat
   Delete $INSTDIR\bin\rmcastplugin.jar
+  Delete $INSTDIR\bin\jgroups-gw.jar
+  Delete $INSTDIR\bin\json-20090211.jar
+  Delete $INSTDIR\bin\protobuf-java-2.3.0.jar
+  Delete $INSTDIR\bin\slf4j-api-1.6.4.jar
+  Delete $INSTDIR\bin\slf4j-simple-1.6.4.jar
 
   ; ACE
   Delete $INSTDIR\bin\ACE.dll
