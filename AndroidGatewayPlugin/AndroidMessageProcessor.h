@@ -23,6 +23,7 @@ public:
   virtual void onConnect(ammo::gateway::GatewayConnector *sender);
   virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
   virtual void onAuthenticationResponse(ammo::gateway::GatewayConnector *sender, bool result);
+  virtual void onPushAcknowledgementReceived(ammo::gateway::GatewayConnector *sender, const ammo::gateway::PushAcknowledgement &ack);
   
   //DataPushReceiverListener methods
   virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PushData &pushData);

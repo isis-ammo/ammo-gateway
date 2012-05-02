@@ -184,6 +184,9 @@ class AndroidConnector(threading.Thread):
           print "Authentication failed."
           raise AuthenticationFailure("Auth failed: " + msg.authentication_result.message)
     
+    if msg.type == AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE:
+      if msg.data_message.thresholds.device_delivered == True:
+        self.pushAcknowledgement(msg.data_message.uri, msg.data_message.origin_device, msg.data_message.user_id, self._deviceId, self._userId)
     time = datetime.now()
     if self._messageCallback != None:
       self._messageCallback(self, msg)
@@ -225,20 +228,49 @@ class AndroidConnector(threading.Thread):
     '''
     return not self._messageQueue.empty()
     
-  def push(self, uid, mimeType, data, scope = MessageScope.GLOBAL, priority = MessagePriority.NORMAL):
+  def push(self, uri, mimeType, data, scope = MessageScope.GLOBAL, priority = MessagePriority.NORMAL):
     '''
-    Sends a push message with the specified UID and MIME type to the gateway.
+    Sends a push message with the specified URI and MIME type to the gateway.
     '''
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.message_priority = priority
-    m.data_message.uid = uid
+    m.data_message.uri = uri
     m.data_message.mime_type = mimeType
     m.data_message.data = data
+    m.data_message.origin_device = self._deviceId
+    m.data_message.user_id = self._userId
+    m.data_message.thresholds.device_delivered = ackDeviceDelivered
+    m.data_message.thresholds.plugin_delivered = ackPluginDelivered
+    m.data_message.thresholds.android_plugin_received = ackAndroidPluginReceived
     if scope == MessageScope.GLOBAL:
       m.data_message.scope = AmmoMessages_pb2.GLOBAL
     else:
       m.data_message.scope = AmmoMessages_pb2.LOCAL
+    reactor.callFromThread(self._protocol.sendMessageWrapper, m)
+    
+  def pushAcknowledgement(self, uid, destinationDevice, destinationUser, acknowledgingDevice, acknowledgingUser):
+    '''
+    Sends a push acknowledgement back to the specified device.  The
+    destinationDevice parameter should match the origin_device parameter from
+    the push message which was received.
+    
+    Scripts shouldn't normally need to call this directly; AndroidConnector
+    will automatically generate an acknowledgement if the message indicates
+    that an acknowledgement is required.
+    '''
+    m = AmmoMessages_pb2.MessageWrapper()
+    m.type = AmmoMessages_pb2.MessageWrapper.PUSH_ACKNOWLEDGEMENT
+    m.message_priority = MessagePriority.CTRL
+    m.push_acknowledgement.uri = uid
+    m.push_acknowledgement.destination_device = destinationDevice
+    m.push_acknowledgement.acknowledging_device = acknowledgingDevice
+    m.push_acknowledgement.destination_user = destinationUser
+    m.push_acknowledgement.acknowledging_user = acknowledgingUser
+    m.push_acknowledgement.threshold.device_delivered = True
+    m.push_acknowledgement.threshold.plugin_delivered = False
+    m.push_acknowledgement.threshold.android_plugin_received = False
+    m.push_acknowledgement.status = AmmoMessages_pb2.PushAcknowledgement.SUCCESS
     reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
   def subscribe(self, mimeType, scope = MessageScope.GLOBAL):
