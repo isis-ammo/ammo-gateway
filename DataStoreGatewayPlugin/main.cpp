@@ -83,13 +83,13 @@ int main (int /* argc */, char ** /* argv */)
 /*
   std::string mime_t ("ammo/edu.vu.isis.ammo.private_contacts");
   std::string orig_user ("kyle.anderson");
-  std::string uri ("kokomo");
+  std::string uid ("kokomo");
   std::string data ("{\"first_name\":\"Jimmy\",\"middle_initial\":\"I\",\"last_name\":\"Bork\",\"rank\":\"sgt\",\"call_sign\":\"\",\"branch\":\"\",\"unit\":\"\",\"email\":\"\",\"phone\":\"\"}");
   
   ammo::gateway::PushData pd;
   pd.mimeType = mime_t;
   pd.originUsername = orig_user;
-  pd.uri = uri;
+  pd.uid = uid;
   pd.data = data;
 
   receiver->onPushDataReceived (0, pd);

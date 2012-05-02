@@ -186,7 +186,7 @@ class AndroidConnector(threading.Thread):
     
     if msg.type == AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE:
       if msg.data_message.thresholds.device_delivered == True:
-        self.pushAcknowledgement(msg.data_message.uri, msg.data_message.origin_device, msg.data_message.user_id, self._deviceId, self._userId)
+        self.pushAcknowledgement(msg.data_message.uid, msg.data_message.origin_device, msg.data_message.user_id, self._deviceId, self._userId)
     time = datetime.now()
     if self._messageCallback != None:
       self._messageCallback(self, msg)
@@ -228,14 +228,14 @@ class AndroidConnector(threading.Thread):
     '''
     return not self._messageQueue.empty()
     
-  def push(self, uri, mimeType, data, scope = MessageScope.GLOBAL, priority = MessagePriority.NORMAL):
+  def push(self, uid, mimeType, data, scope = MessageScope.GLOBAL, priority = MessagePriority.NORMAL):
     '''
     Sends a push message with the specified URI and MIME type to the gateway.
     '''
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
     m.message_priority = priority
-    m.data_message.uri = uri
+    m.data_message.uid = uid
     m.data_message.mime_type = mimeType
     m.data_message.data = data
     m.data_message.origin_device = self._deviceId
@@ -262,7 +262,7 @@ class AndroidConnector(threading.Thread):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.PUSH_ACKNOWLEDGEMENT
     m.message_priority = MessagePriority.CTRL
-    m.push_acknowledgement.uri = uid
+    m.push_acknowledgement.uid = uid
     m.push_acknowledgement.destination_device = destinationDevice
     m.push_acknowledgement.acknowledging_device = acknowledgingDevice
     m.push_acknowledgement.destination_user = destinationUser

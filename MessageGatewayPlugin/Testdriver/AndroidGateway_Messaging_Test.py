@@ -77,7 +77,7 @@ if __name__ == "__main__":
   if(sys.argv[3] == "send_message"):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
-    m.data_message.uri = "content:edu.vanderbilt.isis.ammo.SmsTest"
+    m.data_message.uid = "content:edu.vanderbilt.isis.ammo.SmsTest"
     m.data_message.mime_type = "ammo/edu.vu.isis.ammo.sms.message_foo"
     m.data_message.data = '''
 {"from":"neemask","threadId":"1","to":"foo","body":"wuz up"}

@@ -13,14 +13,14 @@ public:
   void parse (const std::string &params);
 
   // Member accessors.
-  const std::string &uri (void) const;
+  const std::string &uid (void) const;
   const std::string &user (void) const;
   const std::string &time_begin (void) const;
   const std::string &time_end (void) const;
   const std::string &directed_user (void) const;
 
 private:
-  std::string uri_;
+  std::string uid_;
   std::string user_;
   std::string time_begin_;
   std::string time_end_;
