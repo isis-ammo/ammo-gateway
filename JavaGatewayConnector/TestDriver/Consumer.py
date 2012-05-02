@@ -25,8 +25,9 @@ latencies = []
 
 if __name__ == "__main__":
   print "Java API Tester"
+  print jar_dir
 
-  sys.path.append(jar_dir+"/dist/lib/gatewaypluginapi.jar")
+  sys.path.append(jar_dir+"/dist/lib/gatewaypluginapi-1.3.9.jar")
   sys.path.append(jar_dir+"/libs/json-20090211.jar")
   sys.path.append(jar_dir+"/libs/slf4j-api-1.6.4.jar")
   sys.path.append(jar_dir+"/libs/slf4j-simple-1.6.4.jar")
@@ -48,6 +49,7 @@ if __name__ == "__main__":
       receivedTime = time.time()
       print receivedTime
       print data.uri
+      print data.originUserName
       print data.mimeType
 
   class GatewayConnectorD(GatewayConnectorDelegate):
@@ -58,7 +60,7 @@ if __name__ == "__main__":
       print "GatewayConnectorDelegate.onConnect"
       print "Subscribing."
       receiver  = DataPushReceiver( )
-      sender.registerDataInterest("ammo/edu.vu.isis.ammo.dash.event", receiver, None);
+      sender.registerDataInterest("ammo/transapps.chat.message_groupAll", receiver, None);
 
     def onDisconnect(self, sender):
       print "GatewayConnectorDelegate.onDisonnect"

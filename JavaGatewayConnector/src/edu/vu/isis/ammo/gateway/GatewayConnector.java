@@ -3,6 +3,10 @@ package edu.vu.isis.ammo.gateway;
 import ammo.gateway.protocol.GatewayPrivateMessages;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
 import com.google.protobuf.ByteString;
 
 import org.slf4j.Logger;
@@ -393,6 +397,18 @@ public class GatewayConnector {
 
 	connector = new NetworkConnector(this, config.getGatewayAddress(), config.getGatewayPort());
     }
+
+    private List<DataPushReceiverListener> getListenersForType(String mimeType) {
+	List<DataPushReceiverListener> match = new ArrayList<DataPushReceiverListener>();
+	Iterator it = receiverListeners.entrySet().iterator();
+	while( it.hasNext() ) {
+	    Map.Entry pair = (Map.Entry)it.next();
+	    if ( mimeType.startsWith( (String)pair.getKey() ) ) {
+		match.add( (DataPushReceiverListener)pair.getValue() );
+	    }
+	}
+	return match;
+    }
     
     protected void onAssociateResultReceived(final GatewayPrivateMessages.AssociateResult msg) {
 	if (delegate != null) {
@@ -402,9 +418,9 @@ public class GatewayConnector {
 
     protected void onPushDataReceived(final GatewayPrivateMessages.PushData msg) {
 	String mimeType = msg.getMimeType();
-	DataPushReceiverListener listener = receiverListeners.get( mimeType );
-	logger.info("onPushDataReceived: mime {}, listener {}", mimeType, listener);
-	if (listener != null) {
+	List<DataPushReceiverListener> listeners = getListenersForType( mimeType );
+	for( DataPushReceiverListener listener : listeners ) {
+	    logger.info("onPushDataReceived: mime {}, listener {}", mimeType, listener);
 	    PushData pushData = new PushData();
 	    pushData.uri = msg.getUri();
 	    pushData.mimeType = mimeType;

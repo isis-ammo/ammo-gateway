@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * class PluginServiceHandler
@@ -43,6 +44,12 @@ class PluginServiceHandler implements
     public PluginServiceHandler()
     {
 	subscriptions = new HashMap<String,Integer>();
+	// populate the subscriptions map with mimetypes read from config file
+	PluginConfigurationManager pConfig = PluginConfigurationManager.getInstance();
+	List<String> mimeTypes = pConfig.getMimeTypes();
+	for( String mimeType : mimeTypes ) {
+	    subscriptions.put(mimeType, 1);
+	}
     }
 
     public void setGatewayConnector(GatewayConnector gatewayConnector)
@@ -68,12 +75,13 @@ class PluginServiceHandler implements
 	    pushData.uri =  dataMessage.getUri();
 	    pushData.mimeType = dataMessage.getMimeType();
 	    pushData.encoding = dataMessage.getEncoding();
+	    pushData.originUserName = dataMessage.getUserId();
 	    pushData.data = dataMessage.getData().toByteArray();
 	    pushData.scope = (AmmoMessages.MessageScope.GLOBAL == dataMessage.getScope()) ?
 		MessageScope.SCOPE_GLOBAL :
 		MessageScope.SCOPE_LOCAL;
 	    mGatewayConnector.pushData(pushData);
-	} else 	if (message.getType() == AmmoMessages.MessageWrapper.MessageType.SUBSCRIBE_MESSAGE) {
+	} else 	if (false) { // TBD SKN (message.getType() == AmmoMessages.MessageWrapper.MessageType.SUBSCRIBE_MESSAGE) {
 	    // subscribe message check the sub map to see if we are not already subscribed to this type
 	    AmmoMessages.SubscribeMessage subscribeMessage = message.getSubscribeMessage();
 	    
@@ -92,7 +100,7 @@ class PluginServiceHandler implements
 		subscriptions.put(mimeType, 1);
 		mGatewayConnector.registerDataInterest( mimeType, this, scope); // create a subscription with Gateway
 	    }
-	} else 	if (message.getType() == AmmoMessages.MessageWrapper.MessageType.UNSUBSCRIBE_MESSAGE) {
+	} else 	if (false) { // (message.getType() == AmmoMessages.MessageWrapper.MessageType.UNSUBSCRIBE_MESSAGE) {
 	    // subscribe message check the sub map to see if we are not already subscribed to this type
 	    AmmoMessages.UnsubscribeMessage unsubscribeMessage = message.getUnsubscribeMessage();
 	    
@@ -129,7 +137,7 @@ class PluginServiceHandler implements
 	Iterator ki = subscriptions.keySet().iterator();
 	while( ki.hasNext() ) {
 	    String mimeType = (String)ki.next();
-	    mGatewayConnector.registerDataInterest( mimeType, this, MessageScope.SCOPE_GLOBAL ); // TBD - handle the scope properly
+	    sender.registerDataInterest( mimeType, this, MessageScope.SCOPE_GLOBAL ); // TBD - handle the scope properly
 	}
 	
     }
@@ -155,9 +163,11 @@ class PluginServiceHandler implements
 	pushMsg.setUri( pushData.uri );
 	pushMsg.setMimeType( pushData.mimeType );
 	pushMsg.setEncoding( pushData.encoding );
+	pushMsg.setUserId( pushData.originUserName );
 	pushMsg.setData( ByteString.copyFrom(pushData.data) );
 	pushMsg.setScope( pushData.scope == MessageScope.SCOPE_GLOBAL ? AmmoMessages.MessageScope.GLOBAL : AmmoMessages.MessageScope.LOCAL );
 
+	msg.setType( AmmoMessages.MessageWrapper.MessageType.DATA_MESSAGE );
 	msg.setDataMessage( pushMsg.build() );
 	// send to mcastConnector
 	mMcastConnector.sendMessage( msg.build() );

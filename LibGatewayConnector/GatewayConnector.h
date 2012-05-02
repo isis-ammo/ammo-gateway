@@ -39,6 +39,16 @@ namespace ammo {
       class PullResponse;
     };
     
+    struct LibGatewayConnector_Export AcknowledgementThresholds {
+    public:
+      AcknowledgementThresholds() : deviceDelivered(false), pluginDelivered(false) {
+        //do nothing
+      };
+      
+      bool deviceDelivered;
+      bool pluginDelivered;
+    };
+    
     /**
     * Identifies an instance of a plugin, by plugin name and instance ID.
     */
@@ -75,17 +85,34 @@ namespace ammo {
                                         ///  nulls).
       std::string originUsername;       ///< The username of the user who generated this data.  May be
                                         ///  overwritten by the gateway in some cases.  Optional.
+      std::string originDevice;
       ammo::gateway::MessageScope scope;///< The scope of this object (determines how many gateways to send
                                         ///  this object to in a multiple gateway configuration).  Optional,
                                         ///  will default to SCOPE_GLOBAL.
       char priority;                    ///< The priority of this object.  Objects with a higher priority
                                         ///  will be pushed to the device before objects with a lower priority,
                                         ///  if messages are queued.
+      ammo::gateway::AcknowledgementThresholds ackThresholds;
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PushData &pushData) {
         os << "URI: " << pushData.uri << " type: " << pushData.mimeType;
         return os;
       }
+    };
+    
+    class LibGatewayConnector_Export PushAcknowledgement {
+    public:
+      PushAcknowledgement();
+      std::string uid;
+      std::string destinationDevice;
+      std::string acknowledgingDevice;
+      std::string destinationUser;
+      std::string acknowledgingUser;
+      
+      bool deviceDelivered;
+      bool pluginDelivered;
+      
+      ammo::gateway::PushStatus status;
     };
     
     /**
@@ -283,6 +310,8 @@ namespace ammo {
        * @return true if the operation succeeded; false if the operation failed.
        */
       bool pushData(ammo::gateway::PushData &pushData);
+      
+      bool pushAcknowledgement(ammo::gateway::PushAcknowledgement &ack);
     
       /**
        * Requests data from a gateway plugin or device (which claims it can handle a
@@ -397,6 +426,7 @@ namespace ammo {
       void onDisconnectReceived();
       void onAssociateResultReceived(const ammo::gateway::protocol::AssociateResult &msg);
       void onPushDataReceived(const ammo::gateway::protocol::PushData &msg, char messagePriority);
+      void onPushAcknowledgementReceived(const ammo::gateway::protocol::PushAcknowledgement &msg);
       void onPullRequestReceived(const ammo::gateway::protocol::PullRequest &msg, char messagePriority);
       void onPullResponseReceived(const ammo::gateway::protocol::PullResponse &msg, char messagePriority);
       void onPointToPointMessageReceived(const ammo::gateway::protocol::PointToPointMessage &msg, char messagePriority);
@@ -485,6 +515,8 @@ namespace ammo {
                                      const std::string &gatewayId);
       
       virtual void onPointToPointMessageReceived(GatewayConnector *sender, const ammo::gateway::PointToPointMessage &message);
+
+      virtual void onPushAcknowledgementReceived(GatewayConnector *sender, const ammo::gateway::PushAcknowledgement &ack);
     };
     
     /**

@@ -41,13 +41,56 @@ enum MessageScope {
   LOCAL = 1;
 }
 
+/**
+* device_delivered : delivered by the plugin to a device (android device)
+* plugin_delivered : delivered by the gateway to a plugin
+*/
+message AcknowledgementThresholds {
+  optional bool device_delivered = 1 [default = false];
+  optional bool plugin_delivered = 2 [default = false];
+}
+
 message PushData {
   required string uri = 1;
   optional string mime_type = 2;
   optional string encoding = 6 [default = "json"];
   optional bytes data = 3;
   optional string origin_user = 4;
+  optional string origin_device = 7;
   optional MessageScope scope = 5 [default = GLOBAL];
+  optional AcknowledgementThresholds thresholds = 8;
+}
+
+/**
+* Sent when a DataMessage is received, if requested.
+*
+* uid : this must match the uid of the corresponding DataMessage
+* destination_device : this must match the origin_device of the
+*                      corresponding DataMessage
+* acknowledging_device : this device id of the acknowledging device or plugin. 
+* status : indicates the disposition of the message as it crosses the threshold
+*     SUCCESS    the threshold was crossed without incident 
+*     FAIL       the threshold was reached, but the message failed and will be canceled 
+*     UNKNOWN    the request is of an indeterminate disposition
+*     REJECTED   the threshold rejected the request
+*/
+message PushAcknowledgement {
+  required string uid = 1;
+  optional string destination_device = 2;
+  optional string acknowledging_device = 3;
+  optional string destination_user = 6;
+  optional string acknowledging_user = 7;
+  
+  optional AcknowledgementThresholds threshold = 5;
+  
+  enum PushStatus {
+    RECEIVED   = 0;
+    SUCCESS   = 1;
+    FAIL      = 2;
+    REJECTED  = 3;
+  }
+   
+  optional PushStatus status = 4;
 }
 
 message PullRequest {
@@ -142,6 +185,7 @@ message GatewayWrapper {
     REMOTE_GATEWAY_CONNECTED_NOTIFICATION = 12;
     REMOTE_GATEWAY_DISCONNECTED_NOTIFICATION = 13;
     PLUGIN_CONNECTED_NOTIFICATION = 14;
+    PUSH_ACKNOWLEDGEMENT = 15;
   }
   
   required MessageType type = 1;
@@ -163,4 +207,5 @@ message GatewayWrapper {
   optional RemoteGatewayConnectedNotification remote_gateway_connected_notification = 15;
   optional RemoteGatewayDisconnectedNotification remote_gateway_disconnected_notification = 16;
   optional PluginConnectedNotification plugin_connected_notification = 17;
+  optional PushAcknowledgement push_acknowledgement = 18;
 }
