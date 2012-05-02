@@ -24,7 +24,7 @@ import java.util.HashMap;
  **/ 
 
 
-class RMCastPlugin 
+public class RMCastPlugin 
 {
     static ReliableMulticastConnector mRmcastConnector = null;
     static GatewayConnector mGatewayConnector = null;
