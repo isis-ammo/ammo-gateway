@@ -8,7 +8,7 @@ EventProjectionParser::EventProjectionParser (void)
 void
 EventProjectionParser::parse (const std::string &params)
 {
-  tokenize (uuid_, params);
+  tokenize (uuri_, params);
   tokenize (mediaCount_min_, params);
   tokenize (mediaCount_max_, params);
   tokenize (displayName_, params);

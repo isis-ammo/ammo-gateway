@@ -13,7 +13,7 @@ public:
   void parse (const std::string &params);
 
   std::string contact_owner_;
-  std::string uid_;
+  std::string uri_;
   std::string first_name_;
   std::string middle_initial_;
   std::string last_name_;

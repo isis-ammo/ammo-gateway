@@ -25,7 +25,7 @@ ContactsPushHandler::handlePush (void)
 	std::string contacts_tbl_str ("CREATE TABLE IF NOT EXISTS ");
 	contacts_tbl_str += tbl_name;
   contacts_tbl_str += " ("
-    "uid TEXT,"
+    "uri TEXT,"
 	  "first_name TEXT,"
 	  "middle_initial TEXT,"
 	  "last_name TEXT,"

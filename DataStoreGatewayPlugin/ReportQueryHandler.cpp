@@ -19,7 +19,7 @@ ReportQueryHandler::matchedProjection (const Json::Value &root,
   parser.parse (projection);
   
   return
-    match_string (parser.contentGuid_, root["contentGuid"].asString ())
+    match_string (parser.contentGuri_, root["contentGuri"].asString ())
     && match_int (parser.reportTime_min_, root["reportTime"].asInt (), true)
     && match_int (parser.reportTime_max_, root["reportTime"].asInt (),false)
     && match_string (parser.reportingUnit_, root["reportingUnit"].asString ())

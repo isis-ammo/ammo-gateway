@@ -12,7 +12,7 @@ public:
 
   void parse (const std::string &params);
 
-  std::string uuid_;
+  std::string uuri_;
   std::string mediaCount_min_;
   std::string mediaCount_max_;
   std::string displayName_;

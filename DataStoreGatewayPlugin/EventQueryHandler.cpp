@@ -19,7 +19,7 @@ EventQueryHandler::matchedProjection (const Json::Value &root,
   parser.parse (projection);
   
   return
-    match_string (parser.uuid_, root["uuid"].asString ())
+    match_string (parser.uuri_, root["uuri"].asString ())
     && match_int (parser.mediaCount_min_, root["mediaCount"].asInt (), true)
     && match_int (parser.mediaCount_max_, root["mediaCount"].asInt (), false)
     && match_string (parser.displayName_, root["displayName"].asString ())

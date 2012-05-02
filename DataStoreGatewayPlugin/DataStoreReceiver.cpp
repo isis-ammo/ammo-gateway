@@ -87,7 +87,7 @@ DataStoreReceiver::init (void)
   
   const char *data_tbl_str =
 	  "CREATE TABLE IF NOT EXISTS data_table ("
-	  "uid TEXT,"
+	  "uri TEXT,"
 	  "mime_type TEXT,"
 	  "origin_user TEXT,"
 	  "tv_sec INTEGER NOT NULL,"

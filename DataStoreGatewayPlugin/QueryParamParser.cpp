@@ -7,7 +7,7 @@ OriginalQueryParamParser::OriginalQueryParamParser (void)
 void
 OriginalQueryParamParser::parse (const std::string &params)
 {
-  tokenize (uid_, params);
+  tokenize (uri_, params);
   tokenize (user_, params);
   tokenize (time_begin_, params);
   tokenize (time_end_, params);
@@ -15,9 +15,9 @@ OriginalQueryParamParser::parse (const std::string &params)
 }
 
 const std::string &
-OriginalQueryParamParser::uid (void) const
+OriginalQueryParamParser::uri (void) const
 {
-  return uid_;
+  return uri_;
 }
 
 const std::string &

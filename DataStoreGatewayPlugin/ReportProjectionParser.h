@@ -12,7 +12,7 @@ public:
 
   void parse (const std::string &params);
 
-  std::string contentGuid_;
+  std::string contentGuri_;
   std::string reportTime_min_;
   std::string reportTime_max_;
   std::string reportingUnit_;

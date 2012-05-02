@@ -34,7 +34,7 @@ OriginalQueryStatementBuilder::build (void)
 //  LOG_TRACE ("Querying for " << mime_type_);
       
   bool good_adds =
-    this->addFilter (parser_.uid_, "uid", false)
+    this->addFilter (parser_.uri_, "uri", false)
     && this->addFilter (mime_type_, "mime_type", false)
     && this->addFilter (parser_.user_, "origin_user", false)
     && this->addFilter (parser_.time_begin_, "tv_sec>=?", true)
@@ -66,7 +66,7 @@ bool
 OriginalQueryStatementBuilder::bind (void)
 {
   return
-    this->bindText (parser_.uid_)
+    this->bindText (parser_.uri_)
     && this->bindText (mime_type_)
     && this->bindText (parser_.user_)
     && this->bindInteger (parser_.time_begin_)

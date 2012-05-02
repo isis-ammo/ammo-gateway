@@ -8,7 +8,7 @@ ReportProjectionParser::ReportProjectionParser (void)
 void
 ReportProjectionParser::parse (const std::string &params)
 {
-  tokenize (contentGuid_, params);
+  tokenize (contentGuri_, params);
   tokenize (reportTime_min_, params);
   tokenize (reportTime_max_, params);
   tokenize (reportingUnit_, params);

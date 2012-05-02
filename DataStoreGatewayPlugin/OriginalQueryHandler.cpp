@@ -77,16 +77,16 @@ OriginalQueryHandler::handleQuery (void)
 	    // they're 0-based. SQLite retrieves text as const unsigned
 	    // char*, reinterpret_cast<> is the only way to convert it
 	    // to const char* for std::string assignment.
-	    std::string uid (
+	    std::string uri (
 		    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0)));
 		
       LOG_DEBUG ("Sending response to " << pr_.pluginId);
       LOG_DEBUG ("  type: " << pr_.mimeType);
-      LOG_DEBUG ("   uid: " << uid);
+      LOG_DEBUG ("   uri: " << uri);
       
       ammo::gateway::PullResponse response =
         ammo::gateway::PullResponse::createFromPullRequest (pr_);
-      response.uid = uid;
+      response.uid = uri;
       response.data = data;
 		
       bool good_response =

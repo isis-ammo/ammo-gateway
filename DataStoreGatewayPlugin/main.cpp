@@ -83,25 +83,25 @@ int main (int /* argc */, char ** /* argv */)
 /*
   std::string mime_t ("ammo/edu.vu.isis.ammo.private_contacts");
   std::string orig_user ("kyle.anderson");
-  std::string uid ("kokomo");
+  std::string uri ("kokomo");
   std::string data ("{\"first_name\":\"Jimmy\",\"middle_initial\":\"I\",\"last_name\":\"Bork\",\"rank\":\"sgt\",\"call_sign\":\"\",\"branch\":\"\",\"unit\":\"\",\"email\":\"\",\"phone\":\"\"}");
   
   ammo::gateway::PushData pd;
   pd.mimeType = mime_t;
   pd.originUsername = orig_user;
-  pd.uid = uid;
+  pd.uri = uri;
   pd.data = data;
 
   receiver->onPushDataReceived (0, pd);
 
 
-  std::string requestUid ("requestUid");
+  std::string requestUri ("requestUri");
   std::string pluginId ("pluginId");
   std::string query ("kyle.anderson,kokomo,Jimmy,,,,,,,,");
   std::string projection ("");
   
   ammo::gateway::PullRequest pr;
-  pr.requestUid = requestUid;
+  pr.requestUri = requestUri;
   pr.pluginId = pluginId;
   pr.mimeType = mime_t;
   pr.query = query;
