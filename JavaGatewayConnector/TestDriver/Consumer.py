@@ -48,7 +48,7 @@ if __name__ == "__main__":
       print "DataPushReceiverListener.onPushDataReceived"
       receivedTime = time.time()
       print receivedTime
-      print data.uri
+      print data.uid
       print data.originUserName
       print data.mimeType
 

@@ -12,7 +12,7 @@ public:
 
   void parse (const std::string &params);
 
-  std::string uri_;
+  std::string uid_;
   std::string user_;
   std::string time_begin_;
   std::string time_end_;

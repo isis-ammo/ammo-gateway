@@ -33,7 +33,7 @@ ContactsQueryStatementBuilder::build (void)
 //  LOG_TRACE ("Querying for " << mime_type_);
       
   bool good_adds =
-    this->addFilter (parser_.uri_, "uri", false)
+    this->addFilter (parser_.uid_, "uid", false)
     && this->addFilter (parser_.first_name_, "first_name", false)
     && this->addFilter (parser_.middle_initial_, "middle_initial", false)
     && this->addFilter (parser_.last_name_, "last_name", false)
@@ -72,7 +72,7 @@ bool
 ContactsQueryStatementBuilder::bind (void)
 {
   return
-    this->bindText (parser_.uri_)
+    this->bindText (parser_.uid_)
     && this->bindText (parser_.first_name_)
     && this->bindText (parser_.middle_initial_)
     && this->bindText (parser_.last_name_)

@@ -67,7 +67,7 @@ if __name__ == "__main__":
   if(sys.argv[3] == "initial"):
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE
-    m.data_message.uri = "content:edu.vanderbilt.isis.ammo.BlueForceTest"
+    m.data_message.uid = "content:edu.vanderbilt.isis.ammo.BlueForceTest"
     m.data_message.mime_type = "ammo/edu.vu.isis.ammo.battlespace.gcm"
     m.data_message.data = '''
 {"uuid":"bumper id","title":"title","description":"description","gcm_type":"UNIT",
