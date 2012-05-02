@@ -24,7 +24,7 @@ import java.util.HashMap;
  **/ 
 
 
-class McastPlugin 
+public class MCastPlugin 
 {
     static MulticastConnector mMcastConnector = null;
     static GatewayConnector mGatewayConnector = null;
