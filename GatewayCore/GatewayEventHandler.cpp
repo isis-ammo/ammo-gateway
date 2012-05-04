@@ -104,7 +104,14 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
           status = PUSH_REJECTED;
           break;
       }
-      GatewayCore::getInstance()->pushAcknowledgement(this, ack.uid(), ack.destination_device(), ack.acknowledging_device(), ack.destination_user(), ack.acknowledging_user(), ack.threshold().device_delivered(), ack.threshold().plugin_delivered(), status);
+      
+      //populate acknowledgingDevice with plugin ID if blank
+      string acknowledgingDevice = ack.acknowledging_device();
+      if(acknowledgingDevice == "") {
+        acknowledgingDevice = formattedPluginId;
+      }
+      
+      GatewayCore::getInstance()->pushAcknowledgement(this, ack.uid(), ack.destination_device(), acknowledgingDevice, ack.destination_user(), ack.acknowledging_user(), ack.threshold().device_delivered(), ack.threshold().plugin_delivered(), status);
       
       break;
     } 
@@ -178,6 +185,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       LOG_DEBUG("Received Associate Plugin...");
       this->pluginName = msg->associate_plugin().plugin_id();
       this->instanceId = msg->associate_plugin().instance_id();
+      this->formattedPluginId = this->pluginName + ":" + this->instanceId;
       
       GatewayCore::getInstance()->registerPlugin(this->pluginName, this->instanceId, this);
       //TODO:  Gateway Core should validate this plugin ID and reject connection

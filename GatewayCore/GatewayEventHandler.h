@@ -42,6 +42,7 @@ private:
   
   std::string pluginName;
   std::string instanceId;
+  std::string formattedPluginId;
   
   std::vector<std::string> registeredHandlers;
   std::vector<std::string> registeredPullRequestHandlers;

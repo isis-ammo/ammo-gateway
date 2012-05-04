@@ -105,7 +105,7 @@ namespace ammo {
       PushAcknowledgement();
       std::string uid;
       std::string destinationDevice;
-      std::string acknowledgingDevice;
+      std::string acknowledgingDevice; //if left blank, will be filled in by GatewayCore with correct ID
       std::string destinationUser;
       std::string acknowledgingUser;
       
@@ -269,6 +269,23 @@ namespace ammo {
       * Destroys a GatewayConnector.
       */
       ~GatewayConnector();
+      
+      /**
+      * Enables or disables automatic push acknowledgements when push messages
+      * are received.
+      * 
+      * The automatic acknowledgement will be sent after the plugin's PushHandler
+      * method has been called and will contain default values:  the plugin's ID
+      * in the acknowledgingDevice field, an empty acknowledgingUser field, and
+      * a status of PUSH_RECEIVED.  If a plugin needs to customize these
+      * values, it should disable automatic acknowledgements and send them
+      * manually by calling GatewayConnector::pushAcknowledgement.
+      * 
+      * @param enabled true if automatic push acknowledgements are to be enabled;
+      *                false if automatic push acknowlegements are to be
+      *                disabled.
+      */
+      void enableAutomaticPushAcknowledgements(bool enabled);
       
       //General connection negotiation and bookkeeping
       /**
@@ -448,6 +465,8 @@ namespace ammo {
       ammo::gateway::internal::GatewayEventHandler *handler;
       
       bool connected;
+      
+      bool automaticPushAcknowledgementsEnabled;
       
       friend class ammo::gateway::internal::GatewayEventHandler;
     };

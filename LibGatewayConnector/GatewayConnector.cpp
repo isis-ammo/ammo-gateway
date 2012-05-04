@@ -13,7 +13,7 @@
 
 using namespace std;
 
-ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate, std::string pluginName, std::string instanceId) : delegate(delegate), pluginName(pluginName), instanceId(instanceId), handler(NULL), connected(false) {
+ammo::gateway::GatewayConnector::GatewayConnector(GatewayConnectorDelegate *delegate, std::string pluginName, std::string instanceId) : delegate(delegate), pluginName(pluginName), instanceId(instanceId), handler(NULL), connected(false), automaticPushAcknowledgementsEnabled(false) {
   init(delegate, ammo::gateway::internal::GatewayConfigurationManager::getInstance());
 }
 
@@ -58,6 +58,10 @@ ammo::gateway::GatewayConnector::~GatewayConnector() {
     connector->close();
   }
   delete connector;
+}
+
+void ammo::gateway::GatewayConnector::enableAutomaticPushAcknowledgements(bool enabled) {
+  automaticPushAcknowledgementsEnabled = enabled;
 }
   
 bool ammo::gateway::GatewayConnector::associateDevice(string device, string user, string key) {
@@ -391,6 +395,18 @@ void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::pr
     if(pushData.mimeType.find(it->first) == 0) {
       it->second->onPushDataReceived(this, pushData);
     }
+  }
+  
+  if(automaticPushAcknowledgementsEnabled) {
+    ammo::gateway::PushAcknowledgement pushAck;
+    pushAck.uid = msg.uri();
+    pushAck.destinationDevice = msg.origin_device();
+    pushAck.destinationUser = msg.origin_user();
+    pushAck.acknowledgingDevice = "";
+    pushAck.acknowledgingUser = "";
+    pushAck.deviceDelivered = false;
+    pushAck.pluginDelivered = true;
+    pushAck.status = PUSH_RECEIVED;
   }
 }
 
