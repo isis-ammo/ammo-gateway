@@ -4,3 +4,5 @@ Makefile*
 DataStoreGatewayPlugin
 DataStoreGatewayPluginGatewayPlugin.exe
 Debug\
+*.pb.h
+*.pb.cc
