@@ -27,6 +27,7 @@ install: all
 	mkdir -p $(DESTDIR)/etc/init.d
 	mkdir -p $(DESTDIR)/etc/ammo-gateway
 	mkdir -p $(DESTDIR)/etc/ammo-gateway/keys
+	mkdir -p $(DESTDIR)/etc/ammo-gateway/jgroups
 	mkdir -p $(DESTDIR)/usr/share/java
 	mkdir -p $(DESTDIR)/var/log/ammo-gateway
 	mkdir -p $(DESTDIR)/var/db/ammo-gateway
@@ -89,4 +90,5 @@ install: all
 	install -m 644 build/etc/PassPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/MCastPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/RMCastPluginConfig.json $(DESTDIR)/etc/ammo-gateway
+	install -m 755 RMCastPlugin/jgroups/udp.xml $(DESTDIR)/etc/ammo-gateway/jgroups
 
