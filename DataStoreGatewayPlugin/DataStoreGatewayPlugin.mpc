@@ -3,7 +3,15 @@ project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin
   
   includes += $(GATEWAY_ROOT)/LibJSON
 
-  libs += sqlite3 crypto
+  libs += sqlite3
+  
+  specific(prop:microsoft) {
+    libs += libeay32 ssleay32
+  }
+  
+  specific(prop:make) {
+    libs += crypto
+  }
   
   // Paths to SQLite lib for 32- and 64-bit machines.
   specific(prop:make) {
