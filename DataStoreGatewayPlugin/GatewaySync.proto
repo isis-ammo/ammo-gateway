@@ -1,0 +1,6 @@
+
+package ammo.gateway.serialization;
+
+message RequestChecksumsMessage {
+  required int32 tv_sec = 1;
+}

@@ -9,6 +9,11 @@ public:
   ContactsPushHandler (sqlite3 *db,
                        const ammo::gateway::PushData &pd);
   
+  ContactsPushHandler (sqlite3 *db,
+                       const ammo::gateway::PushData &pd,
+                       const ACE_Time_Value &tv,
+                       const std::string &checksum);
+  
   bool handlePush (void);
 };
 

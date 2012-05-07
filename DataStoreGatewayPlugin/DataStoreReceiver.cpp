@@ -1,9 +1,5 @@
 #include <sqlite3.h>
 
-#include "ace/Connector.h"
-#include "ace/SOCK_Connector.h"
-
-#include "ace/OS_NS_sys_stat.h"
 #include <ace/OS_NS_sys_stat.h>
 #include <ace/OS_NS_unistd.h>
 
@@ -12,11 +8,14 @@
 #include "DataStoreReceiver.h"
 #include "DataStoreDispatcher.h"
 #include "DataStoreConfigManager.h"
+#include "DataStoreUtils.h"
+#include "GatewaySyncSerialization.h"
 
 using namespace ammo::gateway;
 
 DataStoreReceiver::DataStoreReceiver (void)
-  : db_ (0)
+  : db_ (0),
+    pluginName_ ("DataStorePlugin")
 {
 }
 
@@ -35,6 +34,63 @@ DataStoreReceiver::onConnect (GatewayConnector * /* sender */)
 void
 DataStoreReceiver::onDisconnect (GatewayConnector * /* sender */)
 {
+}
+
+void
+DataStoreReceiver::onRemoteGatewayConnected (
+  GatewayConnector *sender,
+  const std::string &gatewayId,
+  const PluginList &connectedPlugins)
+{
+  for (PluginList::const_iterator i = connectedPlugins.begin ();
+       i != connectedPlugins.end ();
+       ++i)
+    {
+      this->onPluginConnected (sender, *i, true, gatewayId);
+    }
+}
+
+void
+DataStoreReceiver::onPluginConnected (
+  GatewayConnector *sender,
+  const PluginInstanceId &pluginId,
+  const bool remotePlugin,
+  const std::string &gatewayId)
+{
+  // Interested only in connected DataStorePlugins.
+  if (pluginId.pluginName != pluginName_)
+    {
+      return;
+    }
+    
+  PointToPointMessage request;
+  
+  // Leave blank if the plugin is local.
+  request.destinationGateway = (remotePlugin ? gatewayId : "");
+  
+  request.destinationPluginId = pluginId;
+  
+  request.mimeType =
+    DataStoreConfigManager::getInstance ()->getReqCsumsMimeType ();
+    
+  requestChecksumsMessageData request_data;
+  request_data.tv_sec_ =
+    DataStoreConfigManager::getInstance ()->getSyncReachBackSecs ();
+    
+  // Supporting only the default encoding for now.
+  request.data = request_data.encodeJson ();
+  request.encoding = "json";
+  
+//  sender->pointToPointMessage (request);
+  this->onPointToPointMessageReceived (0, request);
+}
+
+void
+DataStoreReceiver::onPointToPointMessageReceived (
+  GatewayConnector *sender,
+  const PointToPointMessage &message)
+{
+  dispatcher_.dispatchPointToPointMessage (db_, sender, message);
 }
 
 void
@@ -92,7 +148,8 @@ DataStoreReceiver::init (void)
 	  "origin_user TEXT,"
 	  "tv_sec INTEGER NOT NULL,"
 	  "tv_usec INTEGER,"
-	  "data BLOB)";
+	  "data BLOB,"
+	  "checksum CHAR(40) PRIMARY KEY)";
 	
   char *db_err = 0;
 	
@@ -101,6 +158,33 @@ DataStoreReceiver::init (void)
   if (db_err != 0)
 	  {
 	    LOG_ERROR ("Data Store Service data table - " << db_err);
+			return false;
+	  }
+	  
+	const char *contacts_tbl_str =
+	  "CREATE TABLE IF NOT EXISTS contacts_table ("
+	  "uri TEXT,"
+	  "origin_user TEXT,"
+	  "tv_sec INTEGER NOT NULL,"
+	  "tv_usec INTEGER,"
+	  "first_name TEXT,"
+	  "middle_initial TEXT,"
+	  "last_name TEXT,"
+	  "rank TEXT,"
+	  "call_sign TEXT,"
+	  "branch TEXT,"
+	  "unit TEXT,"
+	  "email TEXT,"
+	  "phone TEXT,"
+	  "photo BLOB,"
+	  "insignia BLOB,"
+	  "checksum CHAR(40) PRIMARY KEY)";
+
+  sqlite3_exec (db_, contacts_tbl_str, 0, 0, &db_err);
+	
+  if (db_err != 0)
+	  {
+	    LOG_ERROR ("Data Store Service contacts table - " << db_err);
 			return false;
 	  }
 	  
@@ -183,5 +267,4 @@ DataStoreReceiver::check_path (void)
     
   return true;
 }
-
 

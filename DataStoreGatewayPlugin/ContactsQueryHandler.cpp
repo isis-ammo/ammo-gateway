@@ -102,42 +102,46 @@ ContactsQueryHandler::encode_row (sqlite3_stmt *stmt,
   // interprets it as bool - reinterpret_cast<> is the only way to
   // convert it to const char* for recognition as text.
   
+  static const Json::StaticString ou ("origin_user");
+  value[ou] =
+    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 1));
+  
   static const Json::StaticString fn ("first_name");
   value[fn] =
-    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 1));
+    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 4));
   
   static const Json::StaticString mi ("middle_initial");
   value[mi] =
-    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 2));
+    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 5));
   
   static const Json::StaticString ln ("last_name");
   value[ln] =
-    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 3));
+    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 6));
   
   static const Json::StaticString rk ("rank");
   value[rk] =
-    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 4));
+    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 7));
   
   static const Json::StaticString cs ("call_sign");
   value[cs] =
-    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 5));
+    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 8));
   
   static const Json::StaticString br ("branch");
   value[br] =
-    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 6));
+    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 9));
   
   static const Json::StaticString un ("unit");
   value[un] =
-    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 7));
+    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 10));
   
   static const Json::StaticString em ("email");
   value[em] =
-    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 8));
+    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 11));
   
   static const Json::StaticString ph ("phone");
   value[ph] =
-    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 9));
-  
+    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 12));
+    
   Json::FastWriter writer;
   output = writer.write (value);
 }

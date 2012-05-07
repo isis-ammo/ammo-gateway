@@ -104,14 +104,14 @@ QueryStatementBuilder::bindInteger (const std::string &token)
 {
   if (!token.empty ())
     {
-	  long val = ACE_OS::atol (token.c_str ());
+	    long val = ACE_OS::atol (token.c_str ());
 		
-	  if (val < 0)
-	    {
-		  // A negative time value indicates that it is to be
-		  // used as an offset from the current time.
-		  val += static_cast<long> (ACE_OS::gettimeofday ().sec ());
-		}
+	    if (val < 0)
+	      {
+		    // A negative time value indicates that it is to be
+		    // used as an offset from the current time.
+		    val += static_cast<long> (ACE_OS::gettimeofday ().sec ());
+		    }
 		
       int status = sqlite3_bind_int (stmt_, bind_index_++, val);
 

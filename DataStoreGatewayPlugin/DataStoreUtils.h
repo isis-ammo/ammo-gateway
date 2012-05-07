@@ -16,6 +16,10 @@ struct sqlite3_stmt;
 // located in a single base class.
 struct DataStoreUtils
 {
+  // Size of sha1 checksum, defined here so it can be
+  // changed easily if some other checksum creator is needed.
+  static const unsigned long CS_SIZE = 20U;
+  
   static bool parseJson (const std::string &input,
                          Json::Value& root);
 

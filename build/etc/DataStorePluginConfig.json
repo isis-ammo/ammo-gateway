@@ -1,17 +1,46 @@
 {
-/*  "MimeTypes": [ "text/plain",
-		  "ammo/vnd.edu.vu.isis.ammo.dash.event",
-      "ammo/vnd.edu.vu.isis.ammo.dash.media",
-      "ammo/vnd.edu.vu.isis.ammo.sms.message",
-      "ammo/vnd.edu.vu.isis.ammo.report.report_base",
-      "ammo/vnd.com.aterrasys.nevada.locations",
-      "ammo/vnd.edu.vu.isis.ammo.private_contacts" ], */
   "EventMimeType": "ammo/edu.vu.isis.ammo.dash.event",
   "MediaMimeType": "ammo/edu.vu.isis.ammo.dash.media",
   "SMSMimeType": "ammo/edu.vu.isis.ammo.sms.message",
   "ReportMimeType": "ammo/edu.vu.isis.ammo.report.report_base",
   "PrivateContactsMimeType": "ammo/edu.vu.isis.ammo.private_contacts",
   "LocationsMimeType": "ammo/vnd.com.aterrasys.nevada.locations",
-  "DatabasePath": "/var/db/ammo-gateway"
+  "DatabasePath": "/var/db/ammo-gateway",
+  "SyncReachBackSecs": -100000, // a little more than a day
+  "ReqCsumsMimeType": "ammo_gateway_sync_request_checksums",
+  "SendCsumsMimeType": "ammo_gateway_sync_send_checksums",
+  "ReqObjsMimeType": "ammo_gateway_sync_request_objects",
+  "SendObjsMimeType": "ammo_gateway_sync_send_objects"
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)
+
+// ammo_gateway_sync_request_checksums
+// {
+//   "tv_sec" : <non-positive integer> // value of SyncReachBackSecs above
+// }
+
+// ammo_gateway_sync_send_checksums
+// {
+//   "RecentChecksums" : ["<checksum>", ...]
+// }
+
+// ammo_gateway_sync_request_objects
+// {
+//   "MissingChecksums" : ["<checksum>", ...]
+// }
+
+// ammo_gateway_sync_send_objects
+// {
+//   "DataStoreObjects" : [
+//       {
+//         "uri" : "<string>",
+//         "mime_type" : "<string>",
+//         "origin_user" : "<string>",
+//         "tv_sec" : <integer>,
+//         "tv_usec" : <integer>,
+//         "data" : {<encoded data}, // must conform to one of the mime 
+//                                      types we've registered interest in
+//         "checksum" : "<checksum>"
+//       }, ...
+//    ]
+// }

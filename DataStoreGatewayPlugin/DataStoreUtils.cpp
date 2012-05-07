@@ -188,18 +188,32 @@ DataStoreUtils::bind_blob (sqlite3 *db,
                            int size,
                            bool is_insert)
 {
-  // Insert statement values are copied right away, so
-  // they don't have to hang around, but query statement values
-  // take a longer path, and the original value goes out of
-  // scope, so we need to specify SQLITE_STATIC in that case.
-  // Not that we're likely to query on a binary blob value,
-  // but just in case....
-  int status =
-	  sqlite3_bind_blob (stmt,
-					             slot++,
-					             val,
-					             size,
-					             (is_insert ? SQLITE_TRANSIENT : SQLITE_STATIC));
+  int status = 0;
+  
+  if (val == 0 || size ==  0)
+    {
+      // We don't yet know if all instances of binary fields
+      // in the various mime types can be encoded as strings,
+      // which is required for JSON. So we can skip them for
+      // now with minimum disruption by setting one or both
+      // of the args above to 0 and storing an empty column.
+      status = sqlite3_bind_zeroblob (stmt, slot++, 0);
+    }
+  else
+    {
+      // Insert statement values are copied right away, so
+      // they don't have to hang around, but query statement values
+      // take a longer path, and the original value goes out of
+      // scope, so we need to specify SQLITE_STATIC in that case.
+      // Not that we're likely to query on a BLOB value,
+      // but just in case....
+      status =
+	      sqlite3_bind_blob (stmt,
+					                 slot++,
+					                 val,
+					                 size,
+					                 (is_insert ? SQLITE_TRANSIENT : SQLITE_STATIC));
+	  }
 	
   if (status != SQLITE_OK)
     {
