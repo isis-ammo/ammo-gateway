@@ -251,14 +251,15 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
   File RMCastPlugin\libs\protobuf-java-2.3.0.jar
   File RMCastPlugin\libs\slf4j-api-1.6.4.jar
   File RMCastPlugin\libs\slf4j-simple-1.6.4.jar
-  SetOutPath $INSTDIR\bin\jgroups
-  File RMCastPlugin\jgroups\udp.xml
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\RMCastPluginConfig.json
 
   SetShellVarContext all
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\RMCastPluginConfig.json
+
+  SetOutPath $APPDATA\ammo-gateway\jgroups
+  File RMCastPlugin\jgroups\udp.xml
 
 ${MementoSectionEnd}
 

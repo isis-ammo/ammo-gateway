@@ -34,9 +34,9 @@ if defined GATEWAY_ROOT (
 
 echo Running MCastPlugin from system directory ...
 
-set PLUGIN_BASE=%PROGRAMFILES%\ammo-gateway\bin
-if defined PROGRAMFILES(X86) (
-  set PLUGIN_BASE=%PROGRAMFILES(X86)%\ammo-gateway\bin
+set PLUGIN_BASE=%PROGRAMFILES(X86)%\ammo-gateway\bin
+if not defined programfiles(x86) (
+  set PLUGIN_BASE=%PROGRAMFILES%\ammo-gateway\bin
 )
 
 pushd "%PLUGIN_BASE%"
