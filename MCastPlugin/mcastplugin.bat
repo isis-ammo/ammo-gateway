@@ -20,7 +20,7 @@ echo Java found
 if defined GATEWAY_ROOT (
   echo Found GATEWAY_ROOT ... running MCastPlugin from there ...
 
-  pushd "%GATEWAY_ROOT%\Gateway\MCastPlugin"
+  pushd "%GATEWAY_ROOT%\MCastPlugin"
 
   %JAVA_CMD% -cp ^
       libs\gatewaypluginapi.jar;libs\slf4j-api-1.6.4.jar;libs\slf4j-simple-1.6.4.jar;libs\json-20090211.jar;libs\protobuf-java-2.3.0.jar;dist\lib\mcastplugin.jar ^
