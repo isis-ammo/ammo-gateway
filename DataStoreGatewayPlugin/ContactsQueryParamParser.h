@@ -12,8 +12,10 @@ public:
 
   void parse (const std::string &params);
 
-  std::string contact_owner_;
   std::string uri_;
+  std::string contact_owner_;
+  std::string time_begin_;
+  std::string time_end_;
   std::string first_name_;
   std::string middle_initial_;
   std::string last_name_;

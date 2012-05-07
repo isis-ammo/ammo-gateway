@@ -102,6 +102,10 @@ ContactsQueryHandler::encode_row (sqlite3_stmt *stmt,
   // interprets it as bool - reinterpret_cast<> is the only way to
   // convert it to const char* for recognition as text.
   
+  static const Json::StaticString ur ("uri");
+  value[ur] =
+    reinterpret_cast<const char *> (sqlite3_column_text (stmt, 0));
+  
   static const Json::StaticString ou ("origin_user");
   value[ou] =
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 1));

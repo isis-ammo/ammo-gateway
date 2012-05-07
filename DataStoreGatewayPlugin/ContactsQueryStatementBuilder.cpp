@@ -13,7 +13,7 @@
 ContactsQueryStatementBuilder::ContactsQueryStatementBuilder (
       const std::string &params,
       sqlite3 *db)
-  : QueryStatementBuilder (params, db, "SELECT * FROM ")
+  : QueryStatementBuilder (params, db, "SELECT * FROM contacts_table")
 {
 }
 
@@ -22,18 +22,15 @@ ContactsQueryStatementBuilder::build (void)
 {
   parser_.parse (params_);
   
-  std::string tbl_name (parser_.contact_owner_);
-  
-  // SQL table names can't contain [.:/]
-  DataStoreUtils::legalize_tbl_name (tbl_name);
-  
-  query_str_ += tbl_name;
   query_str_ += " WHERE ";
 
 //  LOG_TRACE ("Querying for " << mime_type_);
       
   bool good_adds =
     this->addFilter (parser_.uri_, "uri", false)
+    && this->addFilter (parser_.contact_owner_, "origin_user", false)
+    && this->addFilter (parser_.time_begin_, "tv_sec>=?", true)
+    && this->addFilter (parser_.time_end_, "tv_sec<=?", true)
     && this->addFilter (parser_.first_name_, "first_name", false)
     && this->addFilter (parser_.middle_initial_, "middle_initial", false)
     && this->addFilter (parser_.last_name_, "last_name", false)
@@ -73,6 +70,9 @@ ContactsQueryStatementBuilder::bind (void)
 {
   return
     this->bindText (parser_.uri_)
+    && this->bindText (parser_.contact_owner_)
+    && this->bindInteger (parser_.time_begin_)
+    && this->bindInteger (parser_.time_end_)
     && this->bindText (parser_.first_name_)
     && this->bindText (parser_.middle_initial_)
     && this->bindText (parser_.last_name_)
