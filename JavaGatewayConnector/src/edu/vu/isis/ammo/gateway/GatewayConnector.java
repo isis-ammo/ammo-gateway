@@ -127,6 +127,13 @@ public class GatewayConnector {
 			  GatewayPrivateMessages.MessageScope.LOCAL :
 			  GatewayPrivateMessages.MessageScope.GLOBAL );
 
+	GatewayPrivateMessages.AcknowledgementThresholds.Builder ackThresholds =
+	    GatewayPrivateMessages.AcknowledgementThresholds.newBuilder();
+	ackThresholds.setDeviceDelivered(pushData.ackThresholds.deviceDelivered);
+	ackThresholds.setPluginDelivered(pushData.ackThresholds.pluginDelivered);
+
+	pushMsg.setThresholds(ackThresholds.build());
+
 	msg.setPushData(pushMsg.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.PUSH_DATA);
 	if (connector.isConnected()) {
@@ -134,6 +141,61 @@ public class GatewayConnector {
 	    return true;
 	} else {
 	    logger.error("pushData: data sent while not connected to gateway, dropped ...");
+	    return false;
+	}
+    }
+    
+      /**
+       * Pushes an acknowledgement for a received push message
+       * 
+       * 
+       * @param pushAckData The push acknowledgement data to be pushed via the gateway
+       * 
+       * @return true if the operation succeeded; false if the operation failed.
+       */
+    public boolean pushAcknowledgement(PushAcknowledgement pushAckData) {
+	GatewayPrivateMessages.GatewayWrapper.Builder msg =
+	    GatewayPrivateMessages.GatewayWrapper.newBuilder();
+	GatewayPrivateMessages.PushAcknowledgement.Builder pushAck =
+	    GatewayPrivateMessages.PushAcknowledgement.newBuilder();
+	pushAck.setUid(pushAckData.uid);
+	pushAck.setDestinationDevice(pushAckData.destinationDevice);
+	pushAck.setAcknowledgingDevice(pushAckData.acknowledgingDevice);
+	pushAck.setDestinationUser(pushAckData.destinationUser);
+	pushAck.setAcknowledgingUser(pushAckData.acknowledgingUser);
+
+	GatewayPrivateMessages.AcknowledgementThresholds.Builder ackThresholds =
+	    GatewayPrivateMessages.AcknowledgementThresholds.newBuilder();
+	ackThresholds.setDeviceDelivered(pushAckData.deviceDelivered);
+	ackThresholds.setPluginDelivered(pushAckData.pluginDelivered);
+
+	pushAck.setThreshold(ackThresholds.build());
+
+	GatewayPrivateMessages.PushAcknowledgement.PushStatus status =
+	    GatewayPrivateMessages.PushAcknowledgement.PushStatus.RECEIVED;
+	switch(pushAckData.status) {
+	case PUSH_RECEIVED:
+	    status = GatewayPrivateMessages.PushAcknowledgement.PushStatus.RECEIVED;
+	    break;
+	case PUSH_SUCCESS:
+	    status = GatewayPrivateMessages.PushAcknowledgement.PushStatus.SUCCESS;
+	    break;
+	case PUSH_FAIL:
+	    status = GatewayPrivateMessages.PushAcknowledgement.PushStatus.FAIL;
+	    break;
+	case PUSH_REJECTED:
+	    status = GatewayPrivateMessages.PushAcknowledgement.PushStatus.REJECTED;
+	    break;
+	}
+	pushAck.setStatus(status);
+	
+	msg.setPushAcknowledgement(pushAck.build());
+	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.PUSH_ACKNOWLEDGEMENT);
+	if (connector.isConnected()) {
+	    connector.sendMessage(msg.build());
+	    return true;
+	} else {
+	    logger.error("pushAck: ack sent while not connected to gateway, dropped ...");
 	    return false;
 	}
     }
@@ -427,10 +489,45 @@ public class GatewayConnector {
 	    pushData.encoding = msg.getEncoding();
 	    pushData.originUserName = msg.getOriginUser();
 	    pushData.data = msg.getData().toByteArray();
-
+	    pushData.ackThresholds.deviceDelivered = msg.getThresholds().getDeviceDelivered();
+	    pushData.ackThresholds.pluginDelivered = msg.getThresholds().getPluginDelivered();
 	    listener.onPushDataReceived(this, pushData);
+	    // TODO: Auto-generate Acks here ...
 	}
     }
+
+    protected void onPushAcknowledgementReceived(final GatewayPrivateMessages.PushAcknowledgement msg) {
+	PushAcknowledgement pushAck = new PushAcknowledgement();
+	pushAck.uid = msg.getUid();
+	pushAck.destinationDevice = msg.getDestinationDevice();
+	pushAck.acknowledgingDevice = msg.getAcknowledgingDevice();
+	pushAck.destinationUser = msg.getDestinationUser();
+	pushAck.deviceDelivered = msg.getThreshold().getDeviceDelivered();
+	pushAck.pluginDelivered = msg.getThreshold().getPluginDelivered();
+	
+	switch(msg.getStatus()) {
+	case RECEIVED:
+	    pushAck.status = PushStatus.PUSH_RECEIVED;
+	    break;
+
+	case SUCCESS:
+	    pushAck.status = PushStatus.PUSH_SUCCESS;
+	    break;
+
+	case FAIL:
+	    pushAck.status = PushStatus.PUSH_FAIL;
+	    break;
+
+	case REJECTED:
+	    pushAck.status = PushStatus.PUSH_REJECTED;
+	    break;
+	}
+
+	if (delegate != null) {
+	    delegate.onPushAcknowledgementReceived(this, pushAck);
+	}
+    }
+
 
     protected void onPullRequestReceived(final GatewayPrivateMessages.PullRequest msg) {
 	String mimeType = msg.getMimeType();

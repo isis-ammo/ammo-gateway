@@ -54,6 +54,13 @@ public class PushData {
      * will default to SCOPE_GLOBAL.
      */
     public MessageScope scope;
+
+    /**
+     * The desired level of acknowledgement threshold - 
+     *  - deviceDelivered : the pushed data was delivered to a device
+     *  - pluginDelivered : the pushed data was delivered to a plugin
+     */
+    public AcknowledgementThresholds ackThresholds;
     
     @Override public String toString() {
         return new String("Push URI: " + uri + " type: " + mimeType);

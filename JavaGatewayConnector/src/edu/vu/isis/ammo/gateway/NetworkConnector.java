@@ -161,6 +161,9 @@ class NetworkConnector {
 	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PUSH_DATA) {
 	    logger.debug("Received Push Data ...");
 	    mGatewayConnector.onPushDataReceived(message.getPushData() );
+	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PUSH_ACKNOWLEDGEMENT) {
+	    logger.debug("Received Push Acknowledgement ...");
+	    mGatewayConnector.onPushAcknowledgementReceived(message.getPushAcknowledgement() );
 	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PULL_REQUEST) {
 	    logger.debug("Received Pull Request ...");
 	    mGatewayConnector.onPullRequestReceived(message.getPullRequest() );
