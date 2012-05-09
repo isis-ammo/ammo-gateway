@@ -8,12 +8,12 @@ public class PushData {
     * Creates a new data object with default parameters.
     */
     public PushData() {
-        uri = null;
-        mimeType = null;
-        encoding = new String("json");
-        data = null;
-        originUserName = null;
-        originDevice = null;
+        uri = "";
+        mimeType = "";
+        encoding = "json";
+        data = "";
+        originUserName = "";
+        originDevice = "";
         scope = MessageScope.SCOPE_GLOBAL;
 
 	priority = 0;

@@ -7,12 +7,12 @@ public class PullResponse {
     * Creates a new pull response with default parameters.
     */
     public PullResponse() {
-        requestUid = null;
-        pluginId = null;
-        mimeType = null;
-        uri = null;
-        encoding = new String("json");
-        data = null;
+        requestUid = "";
+        pluginId = "";
+        mimeType = "";
+        uri = "";
+        encoding = "json";
+        data = "";
 	priority = 0;
     }
 

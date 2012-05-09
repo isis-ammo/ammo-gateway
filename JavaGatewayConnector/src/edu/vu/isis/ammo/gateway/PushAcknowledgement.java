@@ -8,11 +8,11 @@ public class PushAcknowledgement {
     * Creates a new data object with default parameters.
     */
     public PushAcknowledgement() {
-        uid = null;
-        destinationDevice = null;
-	acknowledgingDevice = null;
-	destinationUser = null;
-        acknowledgingUser = null;
+        uid = "";
+        destinationDevice = "";
+	acknowledgingDevice = "";
+	destinationUser = "";
+        acknowledgingUser = "";
 	deviceDelivered = false;
 	pluginDelivered = false;
 	status = PushStatus.PUSH_RECEIVED;

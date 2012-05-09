@@ -7,14 +7,14 @@ public class PullRequest {
     * Creates a new pull request with default parameters.
     */
     public PullRequest() {
-      requestUid = null;
-      pluginId = null;
-      mimeType = null;
-      query = null;
-      projection = null;
+      requestUid = "";
+      pluginId = "";
+      mimeType = "";
+      query = "";
+      projection = "";
       maxResults = 0;
       startFromCount = 0;
-      liveQuery = false;
+      liveQuery = "";
       scope = MessageScope.SCOPE_LOCAL;
       priority = 0;
     }
