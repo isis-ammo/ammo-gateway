@@ -87,7 +87,7 @@ public class GatewayConnector {
 
 	msg.setAssociateDevice(associateMsg.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.ASSOCIATE_DEVICE);
-
+	msg.setMessagePriority( (int) MessagePriority.PRIORITY_AUTH.getValue());
 	if (connector.isConnected()) {
 	    connector.sendMessage(msg.build());
 	    return true;
@@ -122,6 +122,7 @@ public class GatewayConnector {
 	pushMsg.setMimeType(pushData.mimeType);
 	pushMsg.setEncoding(pushData.encoding);
 	pushMsg.setOriginUser(pushData.originUserName);
+	pushMsg.setOriginDevice(pushData.originDevice);
 	pushMsg.setData( ByteString.copyFrom(pushData.data) );
 	pushMsg.setScope( (pushData.scope == MessageScope.SCOPE_LOCAL) ?
 			  GatewayPrivateMessages.MessageScope.LOCAL :
@@ -136,6 +137,7 @@ public class GatewayConnector {
 
 	msg.setPushData(pushMsg.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.PUSH_DATA);
+	msg.setMessagePriority((int)pushData.priority);
 	if (connector.isConnected()) {
 	    connector.sendMessage(msg.build());
 	    return true;
@@ -191,6 +193,7 @@ public class GatewayConnector {
 	
 	msg.setPushAcknowledgement(pushAck.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.PUSH_ACKNOWLEDGEMENT);
+	msg.setMessagePriority((int)MessagePriority.PRIORITY_CTRL.getValue());
 	if (connector.isConnected()) {
 	    connector.sendMessage(msg.build());
 	    return true;
@@ -230,6 +233,7 @@ public class GatewayConnector {
 
 	msg.setPullRequest(pullMsg.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.PULL_REQUEST);
+	msg.setMessagePriority((int)request.priority);
 	if (connector.isConnected()) {
 	    connector.sendMessage(msg.build());
 	    return true;
@@ -265,7 +269,8 @@ public class GatewayConnector {
 
 	msg.setPullResponse(pullResp.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.PULL_RESPONSE);
-
+	msg.setMessagePriority((int)response.priority);
+	
 	if (connector.isConnected()) {
 	    connector.sendMessage(msg.build() );
 	    return true;
@@ -306,6 +311,7 @@ public class GatewayConnector {
 
 	msg.setRegisterDataInterest(di.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.REGISTER_DATA_INTEREST);
+	msg.setMessagePriority((int)MessagePriority.PRIORITY_CTRL.getValue());
 
 	receiverListeners.put(mime_type, listener);
 
@@ -341,6 +347,7 @@ public class GatewayConnector {
 
 	msg.setUnregisterDataInterest(di.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.UNREGISTER_DATA_INTEREST);
+	msg.setMessagePriority((int)MessagePriority.PRIORITY_CTRL.getValue());
 
 	receiverListeners.remove(mime_type);
 
@@ -375,6 +382,7 @@ public class GatewayConnector {
 
 	msg.setRegisterPullInterest(di.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.REGISTER_PULL_INTEREST);
+	msg.setMessagePriority((int)MessagePriority.PRIORITY_CTRL.getValue());
 
 	pullRequestListeners.put(mime_type, listener);
 
@@ -408,6 +416,7 @@ public class GatewayConnector {
 
 	msg.setUnregisterPullInterest(di.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.UNREGISTER_PULL_INTEREST);
+	msg.setMessagePriority((int)MessagePriority.PRIORITY_CTRL.getValue());
 
 	pullRequestListeners.remove(mime_type);
 
@@ -478,7 +487,7 @@ public class GatewayConnector {
 	}
     }
 
-    protected void onPushDataReceived(final GatewayPrivateMessages.PushData msg) {
+    protected void onPushDataReceived(final GatewayPrivateMessages.PushData msg, final int messagePriority) {
 	String mimeType = msg.getMimeType();
 	List<DataPushReceiverListener> listeners = getListenersForType( mimeType );
 	for( DataPushReceiverListener listener : listeners ) {
@@ -488,7 +497,10 @@ public class GatewayConnector {
 	    pushData.mimeType = mimeType;
 	    pushData.encoding = msg.getEncoding();
 	    pushData.originUserName = msg.getOriginUser();
+	    pushData.originDevice = msg.getOriginDevice();
 	    pushData.data = msg.getData().toByteArray();
+	    pushData.priority = messagePriority;
+	    pushData.ackThresholds = new AcknowledgementThresholds();
 	    pushData.ackThresholds.deviceDelivered = msg.getThresholds().getDeviceDelivered();
 	    pushData.ackThresholds.pluginDelivered = msg.getThresholds().getPluginDelivered();
 	    listener.onPushDataReceived(this, pushData);
@@ -529,7 +541,7 @@ public class GatewayConnector {
     }
 
 
-    protected void onPullRequestReceived(final GatewayPrivateMessages.PullRequest msg) {
+    protected void onPullRequestReceived(final GatewayPrivateMessages.PullRequest msg, final int messagePriority) {
 	String mimeType = msg.getMimeType();
 	PullRequestReceiverListener listener = pullRequestListeners.get( mimeType );
 	logger.info("onPullRequestReceived: mime {}, listener {}", mimeType, listener);
@@ -542,11 +554,12 @@ public class GatewayConnector {
 	    req.projection = msg.getProjection();
 	    req.startFromCount = msg.getStartFromCount();
 	    req.liveQuery = msg.getLiveQuery();
+	    req.priority = messagePriority;
 	    listener.onPullRequestReceived(this, req);
 	}
     }
 
-    protected void onPullResponseReceived(final GatewayPrivateMessages.PullResponse msg) {
+    protected void onPullResponseReceived(final GatewayPrivateMessages.PullResponse msg, final int messagePriority) {
 	String mimeType = msg.getMimeType();
 	PullResponseReceiverListener listener = pullResponseListeners.get( mimeType );
 	logger.info("onPullResponseReceived: mime {}, listener {}", mimeType, listener);
@@ -558,6 +571,7 @@ public class GatewayConnector {
 	    resp.uri = msg.getUri();
 	    resp.encoding = msg.getEncoding();
 	    resp.data = msg.getData().toByteArray();
+	    resp.priority = messagePriority;
 	    listener.onPullResponseReceived(this, resp);
 	}
     }

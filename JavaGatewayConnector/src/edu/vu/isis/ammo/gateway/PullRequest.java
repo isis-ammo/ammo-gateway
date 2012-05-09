@@ -16,6 +16,7 @@ public class PullRequest {
       startFromCount = 0;
       liveQuery = false;
       scope = MessageScope.SCOPE_LOCAL;
+      priority = 0;
     }
 
     /**
@@ -73,6 +74,7 @@ public class PullRequest {
      */
     public MessageScope scope;
 
+    public int priority;
     
     @Override public String toString() {
         return new String("Pull: " + requestUid + " from: " + pluginId + " for type " + mimeType + " query: " + query);

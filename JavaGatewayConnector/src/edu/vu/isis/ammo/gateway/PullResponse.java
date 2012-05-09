@@ -13,6 +13,7 @@ public class PullResponse {
         uri = null;
         encoding = new String("json");
         data = null;
+	priority = 0;
     }
 
     /**
@@ -49,6 +50,9 @@ public class PullResponse {
      * The data to be sent to the requestor.
      */
     public byte[] data;
+
+
+    public int priority;
 
     /**
      * Convenience method which creates a PullResponse, prepopulating elements

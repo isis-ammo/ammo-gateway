@@ -18,21 +18,21 @@ public class PushAcknowledgement {
 	status = PushStatus.PUSH_RECEIVED;
     }
 
-    String uid;
+    public String uid;
 
-    String destinationDevice;
+    public String destinationDevice;
 
-    String acknowledgingDevice;
+    public String acknowledgingDevice;
 
-    String destinationUser;
+    public String destinationUser;
 
-    String acknowledgingUser;
+    public String acknowledgingUser;
 
-    boolean deviceDelivered;
+    public boolean deviceDelivered;
 
-    boolean pluginDelivered;
+    public boolean pluginDelivered;
 
-    PushStatus status;
+    public PushStatus status;
 
     
     @Override public String toString() {
