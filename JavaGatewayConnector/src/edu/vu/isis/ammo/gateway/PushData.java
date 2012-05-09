@@ -11,7 +11,7 @@ public class PushData {
         uri = "";
         mimeType = "";
         encoding = "json";
-        data = "";
+        data = null;
         originUserName = "";
         originDevice = "";
         scope = MessageScope.SCOPE_GLOBAL;

@@ -12,7 +12,7 @@ public class PullResponse {
         mimeType = "";
         uri = "";
         encoding = "json";
-        data = "";
+        data = null;
 	priority = 0;
     }
 

@@ -14,7 +14,7 @@ public class PullRequest {
       projection = "";
       maxResults = 0;
       startFromCount = 0;
-      liveQuery = "";
+      liveQuery = false;
       scope = MessageScope.SCOPE_LOCAL;
       priority = 0;
     }
