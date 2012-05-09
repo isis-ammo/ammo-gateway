@@ -29,5 +29,14 @@ public interface GatewayConnectorDelegate {
       *               failed.
       */
     public void onAuthenticationResponse(GatewayConnector sender, boolean result);
+
+
+    /**
+      * Delegate method called after a push message acknowledgement is received
+      * 
+      * @param sender The GatewayConnector which received the authentication result.
+      * @param ack    The acknowledgement message
+      */
+    public void onPushAcknowledgementReceived(GatewayConnector sender, PushAcknowledgement ack);
 }
 

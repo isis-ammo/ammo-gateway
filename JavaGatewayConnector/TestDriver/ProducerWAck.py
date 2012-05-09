@@ -13,6 +13,7 @@ if repo_dir is None:
          print "not proper directory " + jar_dir
          sys.exit
    jar_dir = os.path.join(head,"JavaGatewayConnector")
+   print jar_dir
 else:
    jar_dir = repo_dir+"/Gateway/JavaGatewayConnector"
 
@@ -25,64 +26,6 @@ latencies = []
 
 if __name__ == "__main__":
   print "Java API Tester"
-  print jar_dir
-
-  sys.path.append(jar_dir+"/dist/lib/gatewaypluginapi-1.3.9.jar")
-  sys.path.append(jar_dir+"/libs/json-20090211.jar")
-  sys.path.append(jar_dir+"/libs/slf4j-api-1.6.4.jar")
-  sys.path.append(jar_dir+"/libs/slf4j-simple-1.6.4.jar")
-  sys.path.append(jar_dir+"/libs/protobuf.jar")
-
-  from edu.vu.isis.ammo.gateway import GatewayConnector
-  from edu.vu.isis.ammo.gateway import GatewayConnectorDelegate
-  
-  from edu.vu.isis.ammo.gateway import DataPushReceiverListener
-  from edu.vu.isis.ammo.gateway import PushData
-  from edu.vu.isis.ammo.gateway import PushAcknowledgement
-  from org.json import JSONException
-
-  class DataPushReceiver(DataPushReceiverListener):
-    def __init__(self):
-      print "DataPushReceiverListener.<constructor>"
-
-    def onPushDataReceived(self, sender, data):
-      print "DataPushReceiverListener.onPushDataReceived"
-      receivedTime = time.time()
-      print receivedTime
-      print data.uid
-      print data.originUserName
-      print data.mimeType
-# generate an ack
-      ack = PushAcknowledgement()
-      ack.uid  = data.uri
-      ack.destinationDevice = data.originDevice
-      ack.destinationUser = data.originUserName
-      ack.acknowledgingUser = "consumerUser"
-      ack.acknowledgingDevice = "consumerDevice"
-      ack.pluginDelivered = True
-      ret = connector.pushAcknowledgement(ack)
-      print "Sending Ack"
-      print ret
-
-
-  class GatewayConnectorD(GatewayConnectorDelegate):
-    def __init__(self):
-      print "GatewayConnectorDelegate.<constructor>"
-
-    def onConnect(self, sender):
-      print "GatewayConnectorDelegate.onConnect"
-      print "Subscribing."
-      receiver  = DataPushReceiver( )
-      sender.registerDataInterest("ammo/transapps.chat.message_groupAll", receiver, None);
-
-    def onDisconnect(self, sender):
-      print "GatewayConnectorDelegate.onDisonnect"
-
-    def onAuthenticationResponse(self, sender, result):
-      print "GatewayConnectorDelegate.onAuthenticationResponse"
-
-      
-
   
   # parser = optparse.OptionParser()
   # parser.add_option("-g", "--gateway", dest="gateway",
@@ -96,13 +39,82 @@ if __name__ == "__main__":
   #                   default="global")
   
   # (options, args) = parser.parse_args()
-  
+  sys.path.append(jar_dir+"/dist/lib/gatewaypluginapi-1.3.9.jar")
+  sys.path.append(jar_dir+"/libs/json-20090211.jar")
+  sys.path.append(jar_dir+"/libs/slf4j-api-1.6.4.jar")
+  sys.path.append(jar_dir+"/libs/slf4j-simple-1.6.4.jar")
+  sys.path.append(jar_dir+"/libs/protobuf.jar")
+
+  from edu.vu.isis.ammo.gateway import GatewayConnector
+  from edu.vu.isis.ammo.gateway import GatewayConnectorDelegate
+
+  from edu.vu.isis.ammo.gateway import PushData
+  from edu.vu.isis.ammo.gateway import PushAcknowledgement
+  from edu.vu.isis.ammo.gateway import AcknowledgementThresholds
+
+  from org.json import JSONException
+
+  isConnected = int(0)
+
+  class GatewayConnectorD(GatewayConnectorDelegate):
+    def __init__(self):
+      print "GatewayConnectorDelegate.<constructor>"
+
+    def onConnect(self, sender):
+      global isConnected
+      print "GatewayConnectorDelegate.onConnect"
+      isConnected = int(1)
+
+    def onDisconnect(self, sender):
+      global isConnected
+      print "GatewayConnectorDelegate.onDisonnect"
+      isConnected = int(0)
+
+    def onAuthenticationResponse(self, sender, result):
+      print "GatewayConnectorDelegate.onAuthenticationResponse"
+
+    def onPushAcknowledgementReceived(self, sender, ack):
+      print "GatewayConnectorDelegate.onPushAcknowledgemetnReceived"
+      receivedTime = time.time()
+      print receivedTime
+      print ack.uid
+      print ack.acknowledgingDevice 
+      print ack.acknowledgingUser 
+
+
   delegate  = GatewayConnectorD( )
   connector = GatewayConnector( delegate )
+
+
+  data = PushData( )
+  data.uri = "java api test"
+  # data.mimeType = "ammo/edu.vu.isis.ammo.dash.event"
+  data.mimeType = "ammo/transapps.chat.message_groupAll"
+  # data.mimeType = "ammo/com.aterrasys.nevada.locations"
+  data.originUserName = "testDriver"
+  data.originDevice = "testDevice"
+  data.data = "My BIG FAT JSON String"
+  data.ackThresholds = AcknowledgementThresholds()
+  data.ackThresholds.deviceDelivered = True
+  data.ackThresholds.pluginDelivered = True
+
+
   
   try:
+    time.sleep(3)
+    counter = 0
+
     while True:
-      time.sleep(5)
+      if isConnected == 1:
+         print "Pushing Data."
+         ret = connector.pushData(data)
+         print ret
+         #time.sleep(0.01)
+         time.sleep(1)
+      else:
+         time.sleep(5)
+
+#      counter += 1
       
   except KeyboardInterrupt:
     print "Got ^C...  Closing"

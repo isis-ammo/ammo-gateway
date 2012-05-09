@@ -160,13 +160,16 @@ class NetworkConnector {
 	    mGatewayConnector.onAssociateResultReceived(message.getAssociateResult() );
 	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PUSH_DATA) {
 	    logger.debug("Received Push Data ...");
-	    mGatewayConnector.onPushDataReceived(message.getPushData() );
-	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PULL_REQUEST) {
+	    mGatewayConnector.onPushDataReceived(message.getPushData(), message.getMessagePriority() );
+	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PUSH_ACKNOWLEDGEMENT) {
+	    logger.debug("Received Push Acknowledgement ...");
+	    mGatewayConnector.onPushAcknowledgementReceived(message.getPushAcknowledgement() );
+	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PULL_REQUEST ) {
 	    logger.debug("Received Pull Request ...");
-	    mGatewayConnector.onPullRequestReceived(message.getPullRequest() );
-	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PULL_RESPONSE) {
+	    mGatewayConnector.onPullRequestReceived(message.getPullRequest(), message.getMessagePriority() );
+	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PULL_RESPONSE ) {
 	    logger.debug("Received Pull Response ...");
-	    mGatewayConnector.onPullResponseReceived(message.getPullResponse() );
+	    mGatewayConnector.onPullResponseReceived(message.getPullResponse(), message.getMessagePriority() );
 	}
 
 	return true;
