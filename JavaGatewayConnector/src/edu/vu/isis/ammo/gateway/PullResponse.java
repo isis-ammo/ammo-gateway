@@ -7,11 +7,11 @@ public class PullResponse {
     * Creates a new pull response with default parameters.
     */
     public PullResponse() {
-        requestUid = null;
-        pluginId = null;
-        mimeType = null;
-        uid = null;
-        encoding = new String("json");
+        requestUid = "";
+        pluginId = "";
+        mimeType = "";
+        uri = "";
+        encoding = "json";
         data = null;
 	priority = 0;
     }
@@ -36,9 +36,9 @@ public class PullResponse {
     public String mimeType;
     
     /**
-     * The UID of the data in this response.
+     * The URI of the data in this response.
      */
-    public String uid;
+    public String uri;
     
     /**
      * The encoding of the data in this response (optional; defaults

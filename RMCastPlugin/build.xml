@@ -21,6 +21,16 @@
     <condition property="isUnix">
       <os family="unix" />
     </condition>
+    
+  <condition property="protobuf-unix-source" value="/usr/share/java/protobuf-java.jar">
+    <available file="protobuf-java.jar" filepath="/usr/share/java/" />
+  </condition>
+  
+  <condition property="protobuf-unix-source" value="/usr/share/java/protobuf.jar">
+    <not>
+      <available file="protobuf-java.jar" filepath="/usr/share/java/" />
+    </not>
+  </condition>
 
   <target name="init" depends="-pre-build">
     <!-- Create the time stamp -->
@@ -36,7 +46,7 @@
         <mkdir dir="libs"/>
         <symlink taskname="add-protobuf-lib" action="single" overwrite="true" 
               link="${basedir}/libs/protobuf.jar" 
-              resource="/usr/share/java/protobuf.jar"/>
+              resource="${protobuf-unix-source}"/>
         <symlink taskname="add-gatewayapi-lib" action="single" overwrite="true" 
               link="${basedir}/libs/gatewaypluginapi.jar" 
               resource="${basedir}/../JavaGatewayConnector/dist/lib/gatewaypluginapi-1.3.9.jar"/>

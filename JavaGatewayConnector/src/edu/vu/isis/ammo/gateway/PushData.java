@@ -8,19 +8,19 @@ public class PushData {
     * Creates a new data object with default parameters.
     */
     public PushData() {
-        uid = null;
-        mimeType = null;
-        encoding = new String("json");
+        uid = "";
+        mimeType = "";
+        encoding = "json";
         data = null;
-        originUserName = null;
-        originDevice = null;
+        originUserName = "";
+        originDevice = "";
         scope = MessageScope.SCOPE_GLOBAL;
 
 	priority = 0;
     }
 
     /**
-     * The UID of this piece of data.  This UID should be a universally
+     * The UID of this piece of data.  This URI should be a universally
      * unique identifier for the object being pushed (no two pieces of
      * data should have the same UID).
      */
