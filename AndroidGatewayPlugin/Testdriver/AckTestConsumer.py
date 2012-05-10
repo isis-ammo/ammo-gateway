@@ -54,7 +54,7 @@ if __name__ == "__main__":
     connector.waitForAuthentication()
     
     print "Subscribing."
-    connector.subscribe("ammo/edu.vu.isis.ammo.test.TestData", scope)
+    connector.subscribe("ammo/transapps.chat.message_groupAll", scope)
     sequenceNumber = 0
     
     while True:

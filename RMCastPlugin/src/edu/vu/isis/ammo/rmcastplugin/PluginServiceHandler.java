@@ -151,6 +151,10 @@ class PluginServiceHandler implements
 	public void onAuthenticationResponse(GatewayConnector sender, boolean result) {
     }
 
+    @Override
+    public void onPushAcknowledgementReceived(GatewayConnector sender, PushAcknowledgement ack) {
+      
+    }
 
     @Override
 	public void onPushDataReceived(GatewayConnector sender, PushData pushData)
