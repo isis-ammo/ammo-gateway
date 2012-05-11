@@ -136,6 +136,7 @@ bool ammo::gateway::GatewayConnector::pushAcknowledgement(ammo::gateway::PushAck
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
   msg->set_message_priority(ammo::gateway::PRIORITY_CTRL); //TODO: is this the right priority for an acknowledgment?
   
+  LOG_DEBUG("Sending Push Acknowledgement message to gateway core");
   if(connected) {
     handler->sendMessage(msg);
     return true;
