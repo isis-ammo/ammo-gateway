@@ -3,6 +3,7 @@
 
 #include "json/value.h"
 #include "json/reader.h"
+#include "json/writer.h"
 #include "log.h"
 
 #include "GatewaySyncSerialization.h"
@@ -143,33 +144,33 @@ requestObjectsMessageData::requestObjectsMessageData (void)
 std::string
 sendObjectsMessageData::encodeJson (void)
 {
-  std::ostringstream sstream;
-  sstream << "{"
-          << "\"DataStoreObjects\": [";
+  //Use libjson for serialization because it handles strings containing
+  //quotes and other special characters (i.e. in data) correctly          
+  Json::Value root;
+  Json::Value objectsArray = Json::Value(Json::arrayValue);
           
   for (std::vector<dbRow>::const_iterator i = objects_.begin ();
        i != objects_.end ();
        ++i)
-    {
-      if (i != objects_.begin ())
-        {
-          sstream << ",";
-        }
-        
-      sstream << "{"
-              << "\"uri\": \"" << i->uri_ << "\","
-              << "\"mime_type\": \"" << i->mime_type_ << "\","
-              << "\"origin_user\": \"" << i->origin_user_ << "\","
-              << "\"tv_sec\": " << i->tv_sec_ << ","
-              << "\"tv_usec\": " << i->tv_usec_ << ","
-              << "\"data\": " << i->data_ << ","
-              << "\"checksum\": \"" << i->checksum_ << "\""
-              << "}";
-    }
+    {              
+      Json::Value object;
+      object["uri"] = i->uri_;
+      object["mime_type"] = i->mime_type_;
+      object["origin_user"] = i->origin_user_;
+      object["tv_sec"] = (Json::UInt) i->tv_sec_;
+      object["tv_usec"] = (Json::UInt) i->tv_usec_;
+      object["data"] = i->data_;
+      object["checksum"] = i->checksum_;
       
-  sstream << "]}" << std::ends;
+      objectsArray.append(object);
+              
+    }
+    
+  root["DataStoreObjects"] = objectsArray;
   
-  std::string retval (sstream.str ());
+  Json::FastWriter writer;
+  
+  std::string retval (writer.write(root));
   return retval;
 }
 
@@ -211,10 +212,8 @@ sendObjectsMessageData::decodeJson (const std::string &data)
       objects_[slot].tv_usec_ =
         root["DataStoreObjects"][i]["tv_usec"].asInt ();
       
-      // This Json value is of type Object, but we want to store it as a
-      // string without worrying about its internals.
       objects_[slot].data_ =
-        root["DataStoreObjects"][i]["data"].toStyledString ();
+        root["DataStoreObjects"][i]["data"].asString ();
       
       objects_[slot].checksum_ =
         root["DataStoreObjects"][i]["checksum"].asString ();
