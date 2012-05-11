@@ -73,6 +73,9 @@
         <copy taskname="add-protobuf-lib" overwrite="true" 
               tofile="${basedir}/libs/protobuf.jar" 
               file="${basedir}/libs/protobuf-java-2.3.0.jar"/>
+        <copy taskname="add-gatewayapi-lib" overwrite="true" 
+              tofile="${basedir}/libs/gatewaypluginapi.jar" 
+              file="${basedir}/../JavaGatewayConnector/dist/lib/gatewaypluginapi-1.3.9.jar"/>
 
         <fail message="Files are missing.">
            <condition>
