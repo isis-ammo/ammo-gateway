@@ -4,8 +4,8 @@
   "SMSMimeType": "ammo/edu.vu.isis.ammo.sms.message",
   "ReportMimeType": "ammo/edu.vu.isis.ammo.report.report_base",
   "PrivateContactsMimeType": "ammo/edu.vu.isis.ammo.private_contacts",
-  "LocationsMimeType": "ammo/vnd.com.aterrasys.nevada.locations",
-  "DatabasePath": "/var/db/ammo-gateway",
+  "LocationsMimeType": "ammo/com.aterrasys.nevada.locations",
+  "DatabasePath": ".",
   "SyncReachBackSecs": -100000, // a little more than a day
   "ReqCsumsMimeType": "ammo_gateway_sync_request_checksums",
   "SendCsumsMimeType": "ammo_gateway_sync_send_checksums",

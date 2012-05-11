@@ -188,7 +188,8 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       LOG_DEBUG("Received Point to Point Message...");
       ammo::gateway::protocol::PointToPointMessage ptp = msg->point_to_point_message();
       
-      GatewayCore::getInstance()->pointToPointMessage(this, ptp.uid(), ptp.destination_gateway(), ptp.destination_plugin_name(), ptp.destination_instance_id(), ptp.source_plugin_name(), ptp.source_instance_id(), ptp.mime_type(), ptp.encoding(), ptp.data(), msg->message_priority());
+      GatewayCore::getInstance()->pointToPointMessage(this, ptp.uid(), ptp.destination_gateway(), ptp.destination_plugin_name(), ptp.destination_instance_id(), this->pluginName, this->instanceId, ptp.mime_type(), ptp.encoding(), ptp.data(), msg->message_priority());
+      break;
     }
     default: {
       LOG_ERROR("Received unsupported message:" << msg->DebugString());

@@ -75,8 +75,7 @@ private:
                              const std::vector<std::string> &checksums);
                              
   // Generate a uid for point-to-point messages.
-  const char *
-  gen_uuid (void);
+  std::string gen_uuid (void);
                      
 private:
   // Store an instance of the config manager for convenience.

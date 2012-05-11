@@ -15,7 +15,7 @@ using namespace ammo::gateway;
 
 DataStoreReceiver::DataStoreReceiver (void)
   : db_ (0),
-    pluginName_ ("DataStorePlugin")
+    pluginName_ ("DataStoreGatewayPlugin")
 {
 }
 
@@ -57,9 +57,12 @@ DataStoreReceiver::onPluginConnected (
   const bool remotePlugin,
   const std::string &gatewayId)
 {
+  LOG_TRACE("DataStoreReceiver::onPluginConnected");
+  LOG_TRACE("  " << pluginId.pluginName << ":" << pluginId.instanceId);
   // Interested only in connected DataStorePlugins.
   if (pluginId.pluginName != pluginName_)
     {
+      LOG_DEBUG("Not a data store plugin; ignoring");
       return;
     }
     
@@ -81,8 +84,10 @@ DataStoreReceiver::onPluginConnected (
   request.data = request_data.encodeJson ();
   request.encoding = "json";
   
-//  sender->pointToPointMessage (request);
-  this->onPointToPointMessageReceived (0, request);
+  LOG_TRACE("Sending checksum request message:");
+  LOG_TRACE("  " << request.data);
+  sender->pointToPointMessage (request);
+  //this->onPointToPointMessageReceived (0, request);
 }
 
 void
@@ -90,6 +95,12 @@ DataStoreReceiver::onPointToPointMessageReceived (
   GatewayConnector *sender,
   const PointToPointMessage &message)
 {
+  LOG_TRACE("DataStoreReceiver::onPointToPointMessageReceived");
+  LOG_TRACE("  UID: " << message.uid);
+  LOG_TRACE("  Dest Plugin: " << message.destinationPluginId.pluginName << ":" << message.destinationPluginId.instanceId << "@" << message.destinationGateway);
+  LOG_TRACE("  Src Plugin: " << message.sourcePluginId.pluginName << ":" << message.sourcePluginId.instanceId << "@" << message.sourceGateway);
+  LOG_TRACE("  Type: " << message.mimeType);
+  LOG_TRACE("  Data: " << message.data);
   dispatcher_.dispatchPointToPointMessage (db_, sender, message);
 }
 

@@ -105,9 +105,10 @@ DataStoreDispatcher::dispatchPointToPointMessage (
   const PointToPointMessage &msg)
 {
 //  LOG_DEBUG ("point-to-point message type: " << msg.mimeType);
-  
+  LOG_TRACE("DataStoreDispatcher::dispatchPointToPointMessage");
   if (msg.mimeType == cfg_mgr_->getReqCsumsMimeType ())
     {
+      LOG_TRACE("Got request for checksums...");
       PointToPointMessage reply;
       reply.destinationGateway = msg.sourceGateway;
       reply.destinationPluginId = msg.sourcePluginId;
@@ -139,11 +140,14 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       encoder.checksums_ = checksums_;
       reply.data = encoder.encodeJson ();
       reply.encoding = "json";
-
+      
+      LOG_TRACE("Sending checksums...");
+      LOG_TRACE("  " << reply.data);
       sender->pointToPointMessage (reply);
     }
   else if (msg.mimeType == cfg_mgr_->getSendCsumsMimeType ())
     {
+      LOG_TRACE("Got checksums...");
       PointToPointMessage reply;
       reply.destinationGateway = msg.sourceGateway;
       reply.destinationPluginId = msg.sourcePluginId;
@@ -168,10 +172,13 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       reply.data = encoder.encodeJson ();
       reply.encoding = "json";
       
+      LOG_TRACE("Requesting objects...");
+      LOG_TRACE("  " << reply.data);
       sender->pointToPointMessage (reply);
     }
   else if (msg.mimeType == cfg_mgr_->getReqObjsMimeType ())
     {
+      LOG_TRACE("Got request for objects...");
       PointToPointMessage reply;
       reply.destinationGateway = msg.sourceGateway;
       reply.destinationPluginId = msg.sourcePluginId;
@@ -193,10 +200,13 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       reply.data = encoder.encodeJson ();
       reply.encoding = "json";
       
+      LOG_TRACE("Sending objects...");
+      LOG_TRACE("  " << reply.data);
       sender->pointToPointMessage (reply);
     }
   else if (msg.mimeType == cfg_mgr_->getSendObjsMimeType ())
     {
+      LOG_TRACE("Got objects");
       sendObjectsMessageData decoder;
       decoder.decodeJson (msg.data);
       DataStoreConfigManager *cfg_mgr =
@@ -214,6 +224,9 @@ DataStoreDispatcher::dispatchPointToPointMessage (
           pd.data = i->data_;
           pd.encoding = msg.encoding;
           pd.priority = msg.priority;
+          
+          LOG_TRACE("Storing object " << pd.uri);
+          LOG_TRACE("  " << pd.data);
           
           ACE_Time_Value tv (i->tv_sec_, i->tv_usec_);
           
@@ -537,12 +550,12 @@ DataStoreDispatcher::collect_missing_checksums (
   return true;
 }
 
-const char *
+std::string
 DataStoreDispatcher::gen_uuid (void)
 {
   ACE_Utils::UUID uuid;
   ACE_Utils::UUID_GENERATOR::instance ()->generate_UUID (uuid);
   new_uuid_ = uuid.to_string ();
-  return new_uuid_->c_str ();
+  return std::string(new_uuid_->c_str()); //uuid.to_string returns a pointer, which won't be valid any more after uuid goes out of scope, so we must copy
 }
 
