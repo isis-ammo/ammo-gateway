@@ -102,7 +102,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       }
       
       PushData pushData;
-      pushData.uid = dataMessage.uid();
+      pushData.uid = dataMessage.uri();
       pushData.mimeType = dataMessage.mime_type();
       pushData.data = dataMessage.data();
       pushData.scope = scope;
@@ -118,7 +118,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       if(msg.data_message().thresholds().android_plugin_received()) {
       ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
       ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
-        ack->set_uid(dataMessage.uid());
+        ack->set_uri(dataMessage.uri());
         ack->set_destination_device(dataMessage.origin_device());
         ack->set_destination_user(dataMessage.user_id());
         ammo::protocol::AcknowledgementThresholds *thresholds = ack->mutable_threshold();
@@ -138,7 +138,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     ammo::gateway::PushAcknowledgement pushAck;
     ammo::protocol::PushAcknowledgement ackMsg = msg.push_acknowledgement();
     
-    pushAck.uid = ackMsg.uid();
+    pushAck.uid = ackMsg.uri();
     pushAck.destinationDevice = ackMsg.destination_device();
     pushAck.acknowledgingDevice = ackMsg.acknowledging_device();
     pushAck.acknowledgingUser = ackMsg.acknowledging_user();
@@ -251,7 +251,7 @@ void AndroidMessageProcessor::onPushAcknowledgementReceived(GatewayConnector *se
   
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
   ammo::protocol::PushAcknowledgement *ackMsg = msg->mutable_push_acknowledgement();
-  ackMsg->set_uid(ack.uid);
+  ackMsg->set_uri(ack.uid);
   ackMsg->set_destination_device(ack.destinationDevice);
   ackMsg->set_acknowledging_device(ack.acknowledgingDevice);
   ackMsg->set_destination_user(ack.destinationUser);
@@ -294,7 +294,7 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
   std::string dataString(pushData.data.begin(), pushData.data.end());
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
   ammo::protocol::DataMessage *dataMsg = msg->mutable_data_message();
-  dataMsg->set_uid(pushData.uid);
+  dataMsg->set_uri(pushData.uid);
   dataMsg->set_mime_type(pushData.mimeType);
   dataMsg->set_encoding(pushData.encoding);
   dataMsg->set_data(dataString);
@@ -323,7 +323,7 @@ void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, a
   pullMsg->set_request_uid(response.requestUid);
   pullMsg->set_plugin_id(response.pluginId);
   pullMsg->set_mime_type(response.mimeType);
-  pullMsg->set_uid(response.uid);
+  pullMsg->set_uri(response.uid);
   pullMsg->set_encoding(response.encoding);
   pullMsg->set_data(dataString);
   

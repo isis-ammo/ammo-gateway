@@ -263,7 +263,7 @@ public class GatewayConnector {
 	pullResp.setRequestUid(response.requestUid);
 	pullResp.setPluginId(response.pluginId);
 	pullResp.setMimeType(response.mimeType);
-	pullResp.setUid(response.uid);
+	pullResp.setUid(response.uri);
 	pullResp.setEncoding(response.encoding);
 	pullResp.setData( ByteString.copyFrom(response.data) );
 
@@ -568,7 +568,7 @@ public class GatewayConnector {
 	    resp.requestUid = msg.getRequestUid();
 	    resp.pluginId = msg.getPluginId();
 	    resp.mimeType = msg.getMimeType();
-	    resp.uid = msg.getUid();
+	    resp.uri = msg.getUid();
 	    resp.encoding = msg.getEncoding();
 	    resp.data = msg.getData().toByteArray();
 	    resp.priority = messagePriority;

@@ -109,7 +109,7 @@ void SerialMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg)
       }
       
       PushData pushData;
-      pushData.uid = dataMessage.uid();
+      pushData.uid = dataMessage.uri();
       pushData.mimeType = dataMessage.mime_type();
       pushData.data = dataMessage.data();
       pushData.scope = scope;
@@ -117,7 +117,7 @@ void SerialMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg)
       gatewayConnector->pushData(pushData);
       ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
       ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
-      ack->set_uid(dataMessage.uid());
+      ack->set_uri(dataMessage.uri());
       ackMsg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
       LOG_DEBUG(commsHandler << " Sending push acknowledgment to connected device...");
       ackMsg->set_message_priority(DEFAULT_PRIORITY);
@@ -229,7 +229,7 @@ void SerialMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo::
   std::string dataString(pushData.data.begin(), pushData.data.end());
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
   ammo::protocol::DataMessage *dataMsg = msg->mutable_data_message();
-  dataMsg->set_uid(pushData.uid);
+  dataMsg->set_uri(pushData.uid);
   dataMsg->set_mime_type(pushData.mimeType);
   dataMsg->set_encoding(pushData.encoding);
   dataMsg->set_data(dataString);
@@ -252,7 +252,7 @@ void SerialMessageProcessor::onPullResponseReceived(GatewayConnector *sender, am
   pullMsg->set_request_uid(response.requestUid);
   pullMsg->set_plugin_id(response.pluginId);
   pullMsg->set_mime_type(response.mimeType);
-  pullMsg->set_uid(response.uid);
+  pullMsg->set_uri(response.uid);
   pullMsg->set_encoding(response.encoding);
   pullMsg->set_data(dataString);
   
