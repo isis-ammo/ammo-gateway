@@ -8,7 +8,7 @@ public class PushData {
     * Creates a new data object with default parameters.
     */
     public PushData() {
-        uid = "";
+        uri = "";
         mimeType = "";
         encoding = "json";
         data = null;
@@ -24,7 +24,7 @@ public class PushData {
      * unique identifier for the object being pushed (no two pieces of
      * data should have the same UID).
      */
-    public String uid;
+    public String uri;
     
     /**
      * The MIME type of this piece of data.  This MIME type is used to
@@ -78,6 +78,6 @@ public class PushData {
     public AcknowledgementThresholds ackThresholds;
     
     @Override public String toString() {
-        return new String("Push UID: " + uid + " type: " + mimeType);
+        return new String("Push UID: " + uri + " type: " + mimeType);
     }
 }

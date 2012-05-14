@@ -118,7 +118,7 @@ public class GatewayConnector {
 	    GatewayPrivateMessages.GatewayWrapper.newBuilder();
 	GatewayPrivateMessages.PushData.Builder pushMsg =
 	    GatewayPrivateMessages.PushData.newBuilder();
-	pushMsg.setUid(pushData.uid);
+	pushMsg.setUri(pushData.uri);
 	pushMsg.setMimeType(pushData.mimeType);
 	pushMsg.setEncoding(pushData.encoding);
 	pushMsg.setOriginUser(pushData.originUserName);
@@ -160,7 +160,7 @@ public class GatewayConnector {
 	    GatewayPrivateMessages.GatewayWrapper.newBuilder();
 	GatewayPrivateMessages.PushAcknowledgement.Builder pushAck =
 	    GatewayPrivateMessages.PushAcknowledgement.newBuilder();
-	pushAck.setUid(pushAckData.uid);
+	pushAck.setUri(pushAckData.uri);
 	pushAck.setDestinationDevice(pushAckData.destinationDevice);
 	pushAck.setAcknowledgingDevice(pushAckData.acknowledgingDevice);
 	pushAck.setDestinationUser(pushAckData.destinationUser);
@@ -493,7 +493,7 @@ public class GatewayConnector {
 	for( DataPushReceiverListener listener : listeners ) {
 	    logger.info("onPushDataReceived: mime {}, listener {}", mimeType, listener);
 	    PushData pushData = new PushData();
-	    pushData.uid = msg.getUid();
+	    pushData.uri = msg.getUri();
 	    pushData.mimeType = mimeType;
 	    pushData.encoding = msg.getEncoding();
 	    pushData.originUserName = msg.getOriginUser();
@@ -510,7 +510,7 @@ public class GatewayConnector {
 
     protected void onPushAcknowledgementReceived(final GatewayPrivateMessages.PushAcknowledgement msg) {
 	PushAcknowledgement pushAck = new PushAcknowledgement();
-	pushAck.uid = msg.getUid();
+	pushAck.uri = msg.getUri();
 	pushAck.destinationDevice = msg.getDestinationDevice();
 	pushAck.acknowledgingDevice = msg.getAcknowledgingDevice();
 	pushAck.destinationUser = msg.getDestinationUser();

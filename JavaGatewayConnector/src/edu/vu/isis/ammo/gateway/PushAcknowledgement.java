@@ -8,7 +8,7 @@ public class PushAcknowledgement {
     * Creates a new data object with default parameters.
     */
     public PushAcknowledgement() {
-        uid = "";
+        uri = "";
         destinationDevice = "";
 	acknowledgingDevice = "";
 	destinationUser = "";
@@ -18,7 +18,7 @@ public class PushAcknowledgement {
 	status = PushStatus.PUSH_RECEIVED;
     }
 
-    public String uid;
+    public String uri;
 
     public String destinationDevice;
 
@@ -36,6 +36,6 @@ public class PushAcknowledgement {
 
     
     @Override public String toString() {
-        return new String("Push Acknowledment: " + uid );
+        return new String("Push Acknowledment: " + uri );
     }
 }
