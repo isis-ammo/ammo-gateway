@@ -26,9 +26,11 @@ Android Middleware Server
 %setup -q
 
 %build
+ant configure
 mwc.pl --type make Gateway.mwc
 cat install.mk >> GNUmakefile
 make PROTOBUF_ROOT=/usr GATEWAY_ROOT=`pwd`
+ant build
 
 %install
 make DESTDIR=%{buildroot} PROTOBUF_ROOT=/usr GATEWAY_ROOT=`pwd` install
@@ -74,6 +76,7 @@ rm -rf %{buildroot}
 /etc/ammo-gateway/DataStorePluginConfig.json
 /etc/ammo-gateway/PassPluginConfig.json
 /etc/ammo-gateway/keys
+/etc/ammo-gateway/jgroups/udp.xml
 /usr/bin/AndroidGatewayPlugin
 /usr/bin/AtsGatewayPlugin
 /usr/bin/GatewayCore
@@ -87,6 +90,8 @@ rm -rf %{buildroot}
 /usr/bin/kill_all_gateway.sh
 /usr/bin/launch_ammo_gateway.sh
 /usr/bin/launch_ammo_gateway_headless.sh
+/usr/bin/mcastplugin.sh
+/usr/bin/rmcastplugin.sh
 /usr/include/ammo-gateway/GatewayConnector.h
 /usr/include/ammo-gateway/Enumerations.h
 /usr/include/ammo-gateway/LibGatewayConnector_Export.h
@@ -106,6 +111,9 @@ rm -rf %{buildroot}
 /usr/lib/libgeotrans-mgrs.so.AMMO_VERSION_STRING
 /usr/lib/libjson.so
 /usr/lib/libjson.so.AMMO_VERSION_STRING
+/usr/share/java/gatewaypluginapi.jar
+/usr/share/java/mcastplugin.jar
+/usr/share/java/rmcastplugin.jar
 /var/log/ammo-gateway
 /var/db/ammo-gateway
 /var/run/ammo-gateway
