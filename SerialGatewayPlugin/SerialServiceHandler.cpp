@@ -2,9 +2,15 @@
 #include "SerialMessageProcessor.h"
 #include "protocol/AmmoMessages.pb.h"
 
-#include <termios.h>
+#ifdef WIN32
+  #include <windows.h>
+  #include <time.h>
+#else
+  #include <termios.h>
+  #include <unistd.h>
+#endif
+
 #include <errno.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -32,6 +38,20 @@ receiveQueueMutex()
 int SerialServiceHandler::open(void *ptr)
 {
   
+  // Open the serial port.
+#ifdef WIN32
+  this->hComm = CreateFile( (const char*) ptr,
+                           GENERIC_READ | GENERIC_WRITE,
+                           0,
+						   0,
+						   OPEN_EXISTING,
+						   0,
+						   0);
+  if (this->hComm == INVALID_HANDLE_VALUE) {
+    printf( "open %s error code: %d\n\n", (const char*) ptr, GetLastError() );
+    exit( -1 );
+  }
+#else
   // Open the port
   gFD = ::open( (const char *)ptr, O_RDWR | O_NOCTTY );// | O_NONBLOCK );
   if ( gFD == -1 )
@@ -39,7 +59,44 @@ int SerialServiceHandler::open(void *ptr)
     printf( "open %s: error: %s\n\n", (const char *)ptr, strerror(errno)  );
     exit( -1 );
   }
+#endif
   
+  // Configure the serial port.
+#ifdef WIN32
+  DCB dcb;
+
+  FillMemory(&dcb, sizeof(dcb), 0);
+  dcb.DCBlength = sizeof(dcb);
+  dcb.BaudRate = 9600;
+  dcb.fBinary = TRUE;
+  dcb.fParity = FALSE;
+  dcb.fOutxCtsFlow = TRUE;
+  dcb.fOutxDsrFlow = FALSE;
+  dcb.fDtrControl = DTR_CONTROL_DISABLE;
+  dcb.fDsrSensitivity = FALSE;
+  dcb.fTXContinueOnXoff = FALSE;
+  dcb.fOutX = FALSE;
+  dcb.fInX = FALSE;
+  dcb.fErrorChar = FALSE;
+  dcb.fNull = FALSE;
+  dcb.fRtsControl = RTS_CONTROL_ENABLE;
+  dcb.fAbortOnError = FALSE;
+  dcb.wReserved = 0;
+  dcb.XonLim = 0;
+  dcb.XoffLim = 0;
+  dcb.Parity = NOPARITY;
+  dcb.StopBits = 1;
+  dcb.XonChar = 0;
+  dcb.XoffChar = 0;
+  dcb.ErrorChar = 0;
+  dcb.EofChar = -1;
+  dcb.EvtChar = 0;
+
+  if (!SetCommState(this->hComm, &dcb)) {
+    CloseHandle(this->hComm);
+    return 0;
+  }
+#else
   // Get the attributes for the port
   // struct termios config;
   // int result = tcgetattr( gFD, &config );
@@ -178,7 +235,9 @@ int SerialServiceHandler::open(void *ptr)
   
   // tcflush( gFD, TCIFLUSH );
   // tcsetattr( gFD, TCSANOW, &config );
+#endif
   
+  // Configure internal service handler state.
   
   state = READING_HEADER;
   collectedData = NULL;
@@ -203,6 +262,31 @@ int SerialServiceHandler::open(void *ptr)
   
   return 0;
 }
+
+#ifdef WIN32
+#define DELTA_EPOCH_IN_MICROSECONDS 11644473600000000ULL
+int gettimeofday(struct timeval* tv, struct timezone* tz)
+{
+  FILETIME ft;
+  unsigned __int64 tmpres = 0;
+  static int tzflag;
+
+  if (NULL != tv) {
+    GetSystemTimeAsFileTime(&ft);
+
+	tmpres |= ft.dwHighDateTime;
+	tmpres <<= 32;
+	tmpres |= ft.dwLowDateTime;
+
+	tmpres -= DELTA_EPOCH_IN_MICROSECONDS;
+	tmpres /= 10;
+	tv->tv_sec = (long) (tmpres / 1000000UL);
+	tv->tv_usec = (long) (tmpres % 1000000UL);
+  }
+
+  return 0;
+}
+#endif
 
 void SerialServiceHandler::receiveData() {
   
@@ -297,7 +381,13 @@ unsigned char SerialServiceHandler::read_a_char()
   while ( true )
   {
     // printf( "about to read()..." );
+#ifdef WIN32
+    DWORD count = 0;
+	ReadFile(this->hComm, &temp, 1, &count, FALSE);
+#else
     ssize_t count = read( gFD, &temp, 1 );
+#endif
+
     if ( count == -1 )
     {
       perror( "read" );
