@@ -102,7 +102,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       }
       
       PushData pushData;
-      pushData.uid = dataMessage.uri();
+      pushData.uri = dataMessage.uri();
       pushData.mimeType = dataMessage.mime_type();
       pushData.data = dataMessage.data();
       pushData.scope = scope;
@@ -138,7 +138,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     ammo::gateway::PushAcknowledgement pushAck;
     ammo::protocol::PushAcknowledgement ackMsg = msg.push_acknowledgement();
     
-    pushAck.uid = ackMsg.uri();
+    pushAck.uri = ackMsg.uri();
     pushAck.destinationDevice = ackMsg.destination_device();
     pushAck.acknowledgingDevice = ackMsg.acknowledging_device();
     pushAck.acknowledgingUser = ackMsg.acknowledging_user();
@@ -247,11 +247,11 @@ void AndroidMessageProcessor::onDisconnect(GatewayConnector *sender) {
 
 void AndroidMessageProcessor::onPushAcknowledgementReceived(GatewayConnector *sender, const ammo::gateway::PushAcknowledgement &ack) {
   LOG_DEBUG((long) commsHandler << " Sending push acknowledgement to device...");
-  LOG_DEBUG((long) commsHandler << "   uid: " << ack.uid);
+  LOG_DEBUG((long) commsHandler << "   uri: " << ack.uri);
   
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
   ammo::protocol::PushAcknowledgement *ackMsg = msg->mutable_push_acknowledgement();
-  ackMsg->set_uri(ack.uid);
+  ackMsg->set_uri(ack.uri);
   ackMsg->set_destination_device(ack.destinationDevice);
   ackMsg->set_acknowledging_device(ack.acknowledgingDevice);
   ackMsg->set_destination_user(ack.destinationUser);
@@ -294,7 +294,7 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
   std::string dataString(pushData.data.begin(), pushData.data.end());
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
   ammo::protocol::DataMessage *dataMsg = msg->mutable_data_message();
-  dataMsg->set_uri(pushData.uid);
+  dataMsg->set_uri(pushData.uri);
   dataMsg->set_mime_type(pushData.mimeType);
   dataMsg->set_encoding(pushData.encoding);
   dataMsg->set_data(dataString);

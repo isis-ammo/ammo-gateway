@@ -55,7 +55,7 @@ void AtsHandler::onPushDataReceived(GatewayConnector *sender,
 {
    CURLcode res; 
    LOG_INFO( "Got push data.");
-   LOG_INFO( "  UID: " << pushData.uid);
+   LOG_INFO( "  URI: " << pushData.uri);
    LOG_INFO( "  Data type: " << pushData.mimeType);
    LOG_INFO( "  Data: " << pushData.data.substr(0, 128));
    LOG_INFO( "  Origin User Name: " << pushData.originUsername);
@@ -93,7 +93,7 @@ void AtsHandler::onPushDataReceived(GatewayConnector *sender,
    if (pushData.mimeType == RTC_CREATE_CHANNEL_NS) {
       std::string data = channelCreate(curl, pushData.mimeType, pushData.data);
       ammo::gateway::PushData pd;
-      pd.uid = pushData.uid;
+      pd.uri = pushData.uri;
       pd.mimeType = pushData.mimeType;
       pd.data = pushData.data;
       sender->pushData(pd);

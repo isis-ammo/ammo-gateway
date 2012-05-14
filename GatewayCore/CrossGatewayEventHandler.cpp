@@ -71,7 +71,7 @@ int CrossGatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::Gatewa
     }
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
-    GatewayCore::getInstance()->pushCrossGateway(msg->push_data().uid(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), msg->push_data().origin_user(), gatewayId, msg->message_priority());
+    GatewayCore::getInstance()->pushCrossGateway(msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), msg->push_data().origin_user(), gatewayId, msg->message_priority());
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG("Received Pull Request...");
     bool result = GatewayCore::getInstance()->pullRequestCrossGateway(msg->pull_request().request_uid(), msg->pull_request().plugin_id(), msg->pull_request().mime_type(), msg->pull_request().query(),
@@ -143,10 +143,10 @@ bool CrossGatewayEventHandler::sendUnsubscribeMessage(std::string mime_type) {
   return true;
 }
 
-bool CrossGatewayEventHandler::sendPushedData(std::string uid, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, char priority) {
+bool CrossGatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, char priority) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
-  pushMsg->set_uid(uid);
+  pushMsg->set_uri(uri);
   pushMsg->set_mime_type(mimeType);
   pushMsg->set_data(data);
   pushMsg->set_encoding(encoding);

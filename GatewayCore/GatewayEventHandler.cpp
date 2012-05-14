@@ -78,7 +78,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       } else {
         scope = SCOPE_LOCAL;
       }
-      bool result = GatewayCore::getInstance()->pushData(this, msg->push_data().uid(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), msg->push_data().origin_user() /*this->username*/, msg->push_data().origin_device(), scope, msg->push_data().thresholds().device_delivered(), msg->push_data().thresholds().plugin_delivered(), msg->message_priority());
+      bool result = GatewayCore::getInstance()->pushData(this, msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), msg->push_data().origin_user() /*this->username*/, msg->push_data().origin_device(), scope, msg->push_data().thresholds().device_delivered(), msg->push_data().thresholds().plugin_delivered(), msg->message_priority());
       if(result == true  && (msg->push_data().thresholds().device_delivered() || msg->push_data().thresholds().plugin_delivered())) {
         registeredPullResponsePluginIds.insert(msg->push_data().origin_device());
       }
@@ -104,7 +104,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
           status = PUSH_REJECTED;
           break;
       }
-      GatewayCore::getInstance()->pushAcknowledgement(this, ack.uid(), ack.destination_device(), ack.acknowledging_device(), ack.destination_user(), ack.acknowledging_user(), ack.threshold().device_delivered(), ack.threshold().plugin_delivered(), status);
+      GatewayCore::getInstance()->pushAcknowledgement(this, ack.uri(), ack.destination_device(), ack.acknowledging_device(), ack.destination_user(), ack.acknowledging_user(), ack.threshold().device_delivered(), ack.threshold().plugin_delivered(), status);
       break;
     } 
     case ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST: {
@@ -189,10 +189,10 @@ int GatewayEventHandler::onError(const char errorCode) {
   return 0;
 }
 
-bool GatewayEventHandler::sendPushedData(std::string uid, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originDevice, MessageScope scope, bool ackDeviceDelivered, bool ackPluginDelivered, char priority) {
+bool GatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originDevice, MessageScope scope, bool ackDeviceDelivered, bool ackPluginDelivered, char priority) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
-  pushMsg->set_uid(uid);
+  pushMsg->set_uri(uri);
   pushMsg->set_mime_type(mimeType);
   pushMsg->set_encoding(encoding);
   pushMsg->set_data(data);
@@ -235,10 +235,10 @@ bool GatewayEventHandler::sendPullRequest(std::string requestUid, std::string pl
   return true;
 }
 
-bool GatewayEventHandler::sendPushAcknowledgement(std::string uid, std::string destinationDevice, std::string acknowledgingDevice, std::string destinationUser, std::string acknowledgingUser, bool deviceDelivered, bool pluginDelivered, PushStatus status) {
+bool GatewayEventHandler::sendPushAcknowledgement(std::string uri, std::string destinationDevice, std::string acknowledgingDevice, std::string destinationUser, std::string acknowledgingUser, bool deviceDelivered, bool pluginDelivered, PushStatus status) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushAcknowledgement *ackMsg = msg->mutable_push_acknowledgement();
-  ackMsg->set_uid(uid);
+  ackMsg->set_uri(uri);
   ackMsg->set_destination_device(destinationDevice);
   ackMsg->set_acknowledging_device(acknowledgingDevice);
   ackMsg->set_destination_user(destinationUser);

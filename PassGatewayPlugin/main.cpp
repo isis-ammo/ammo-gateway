@@ -39,7 +39,7 @@ void testPublish (void)
   json << "}";
   
   PushData pd;
-  pd.uid = "my_uid";
+  pd.uri = "my_uid";
   pd.mimeType = "ammo/com.aterrasys.nevada.locations";
   pd.data = json.str ();
 

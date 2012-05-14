@@ -109,7 +109,7 @@ void SerialMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg)
       }
       
       PushData pushData;
-      pushData.uid = dataMessage.uri();
+      pushData.uri = dataMessage.uri();
       pushData.mimeType = dataMessage.mime_type();
       pushData.data = dataMessage.data();
       pushData.scope = scope;
@@ -137,12 +137,12 @@ void SerialMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg)
       case 2:			// PLI
 	pushData.mimeType = "ammo/com.aterrasys.nevada.locations";
 	pushData.data = parseTerseData(2, dataMessage.data().c_str() );
-	pushData.uid = "serial-pli";
+	pushData.uri = "serial-pli";
 	break;
       case 3:			// Dash
 	pushData.mimeType = "ammo/edu.vu.isis.ammo.dash.event";
 	pushData.data = parseTerseData(3, dataMessage.data().c_str() );
-	pushData.uid = "serial-dash-event";
+	pushData.uri = "serial-dash-event";
 	break;
       }
 
@@ -229,7 +229,7 @@ void SerialMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo::
   std::string dataString(pushData.data.begin(), pushData.data.end());
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
   ammo::protocol::DataMessage *dataMsg = msg->mutable_data_message();
-  dataMsg->set_uri(pushData.uid);
+  dataMsg->set_uri(pushData.uri);
   dataMsg->set_mime_type(pushData.mimeType);
   dataMsg->set_encoding(pushData.encoding);
   dataMsg->set_data(dataString);

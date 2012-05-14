@@ -76,7 +76,7 @@ ContactsPushHandler::handlePush (void)
   unsigned int index = 1;
     
   bool good_binds =
-    DataStoreUtils::bind_text (db_, stmt_, index, pd_.uid, true)
+    DataStoreUtils::bind_text (db_, stmt_, index, pd_.uri, true)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["first_name"].asString (), true)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["middle_initial"].asString (), true)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["last_name"].asString (), true)

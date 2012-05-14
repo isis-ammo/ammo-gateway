@@ -55,7 +55,7 @@ namespace ammo {
     class LibGatewayConnector_Export PushData {
     public:
       PushData();
-      std::string uid;                  ///< The UID of this piece of data.  This UID should be a universally
+      std::string uri;                  ///< The UID of this piece of data.  This UID should be a universally
                                         ///  unique identifier for the object being pushed (no two pieces of
                                         ///  data should have the same UID).
       std::string mimeType;             ///< The MIME type of this piece of data.  This MIME type is used to
@@ -79,7 +79,7 @@ namespace ammo {
       ammo::gateway::AcknowledgementThresholds ackThresholds;
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PushData &pushData) {
-        os << "UID: " << pushData.uid << " type: " << pushData.mimeType;
+        os << "URI: " << pushData.uri << " type: " << pushData.mimeType;
         return os;
       }
     };
@@ -87,7 +87,7 @@ namespace ammo {
     class LibGatewayConnector_Export PushAcknowledgement {
     public:
       PushAcknowledgement();
-      std::string uid;
+      std::string uri;
       std::string destinationDevice;
       std::string acknowledgingDevice;
       std::string destinationUser;

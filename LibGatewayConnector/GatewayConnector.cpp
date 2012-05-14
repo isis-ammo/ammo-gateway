@@ -71,7 +71,7 @@ bool ammo::gateway::GatewayConnector::associateDevice(string device, string user
 bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
-  pushMsg->set_uid(pushData.uid);
+  pushMsg->set_uri(pushData.uri);
   pushMsg->set_mime_type(pushData.mimeType);
   pushMsg->set_encoding(pushData.encoding);
   pushMsg->set_data(pushData.data);
@@ -104,7 +104,7 @@ bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData
 bool ammo::gateway::GatewayConnector::pushAcknowledgement(ammo::gateway::PushAcknowledgement &ack) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushAcknowledgement *ackMsg = msg->mutable_push_acknowledgement();
-  ackMsg->set_uid(ack.uid);
+  ackMsg->set_uri(ack.uri);
   ackMsg->set_destination_device(ack.destinationDevice);
   ackMsg->set_acknowledging_device(ack.acknowledgingDevice);
   ackMsg->set_destination_user(ack.destinationUser);
@@ -334,7 +334,7 @@ void ammo::gateway::GatewayConnector::onAssociateResultReceived(const ammo::gate
 void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::protocol::PushData &msg, char messagePriority) {
   ammo::gateway::PushData pushData;
   
-  pushData.uid = msg.uid();
+  pushData.uri = msg.uri();
   pushData.mimeType = msg.mime_type();
   pushData.encoding = msg.encoding();
   pushData.data.assign(msg.data().begin(), msg.data().end());
@@ -354,7 +354,7 @@ void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::pr
 void ammo::gateway::GatewayConnector::onPushAcknowledgementReceived(const ammo::gateway::protocol::PushAcknowledgement &msg) {
   ammo::gateway::PushAcknowledgement pushAck;
   
-  pushAck.uid = msg.uid();
+  pushAck.uri = msg.uri();
   pushAck.destinationDevice = msg.destination_device();
   pushAck.acknowledgingDevice = msg.acknowledging_device();
   pushAck.acknowledgingUser = msg.acknowledging_user();
@@ -433,7 +433,7 @@ void ammo::gateway::GatewayConnectorDelegate::onPushAcknowledgementReceived(Gate
 
 //Constructors for PushMessage, PullRequest, PullResponse--  set up sane defaults
 ammo::gateway::PushData::PushData() :
-  uid(""),
+  uri(""),
   mimeType(""),
   encoding("json"),
   data(),
@@ -462,7 +462,7 @@ ammo::gateway::PullRequest::PullRequest() :
 }
 
 ammo::gateway::PushAcknowledgement::PushAcknowledgement() :
-  uid(""),
+  uri(""),
   destinationDevice(""),
   acknowledgingDevice(""),
   destinationUser(""),

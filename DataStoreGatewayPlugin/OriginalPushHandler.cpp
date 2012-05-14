@@ -38,7 +38,7 @@ OriginalPushHandler::handlePush (void)
   unsigned int index = 1;
   
   bool good_binds =
-    DataStoreUtils::bind_text (db_, stmt_, index, pd_.uid, true)
+    DataStoreUtils::bind_text (db_, stmt_, index, pd_.uri, true)
     && DataStoreUtils::bind_text (db_, stmt_, index, pd_.mimeType, true)
     && DataStoreUtils::bind_text (db_, stmt_, index, pd_.originUsername, true)
     && DataStoreUtils::bind_int (db_, stmt_, index, tv.sec ())

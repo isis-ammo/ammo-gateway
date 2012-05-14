@@ -16,7 +16,7 @@ void SamplePushReceiver::onDisconnect(GatewayConnector *sender) {
 
 void SamplePushReceiver::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData) {
   cout << "Got data." << endl;
-  cout << "  UID: " << pushData.uid << endl;
+  cout << "  UID: " << pushData.uri << endl;
   cout << "  Mime type: " << pushData.mimeType << endl;
   cout << "  Data: " << string(pushData.data.begin(), pushData.data.end()) << endl;
   cout << "  Origin Username: " << pushData.originUsername << endl;

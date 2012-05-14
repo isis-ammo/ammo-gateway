@@ -47,7 +47,7 @@ message AcknowledgementThresholds {
 * thresholds : when any are crossed an acknowlegement is sent
 */
 message PushData {
-  required string uid = 1;
+  required string uri = 1;
   optional string mime_type = 2;
   optional string encoding = 6 [default = "json"];
   optional bytes data = 3;
@@ -71,7 +71,7 @@ message PushData {
 *     REJECTED   the threshold rejected the request
 */
 message PushAcknowledgement {
-  required string uid = 1;
+  required string uri = 1;
   optional string destination_device = 2;
   optional string acknowledging_device = 3;
   optional string destination_user = 6;
