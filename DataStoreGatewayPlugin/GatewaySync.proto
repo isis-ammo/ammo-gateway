@@ -1,6 +1,22 @@
-
 package ammo.gateway.serialization;
 
 message RequestChecksumsMessage {
   required int32 tv_sec = 1;
+}
+
+message SendChecksumsMessage {
+  repeated string checksums = 1;
+}
+
+message SendObjectsMessage {
+  message DbRow {
+    required string uri = 1;
+    required string mime_type = 2;
+    required string origin_user = 3;
+    required int32 tv_sec = 4;
+    required int32 tv_usec = 5;
+    required bytes data = 6;
+    required string checksum = 7;
+  }
+  repeated DbRow objects = 1;
 }

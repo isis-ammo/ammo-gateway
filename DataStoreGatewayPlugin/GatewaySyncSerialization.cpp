@@ -41,16 +41,30 @@ requestChecksumsMessageData::decodeJson (const std::string &data)
   return true;
 }
 
-RequestChecksumsMessage *
+std::string
 requestChecksumsMessageData::encodeProtobuf (void)
 {
-  return 0;
+  RequestChecksumsMessage msg;
+  msg.set_tv_sec(tv_sec_);
+  
+  std::string serializedProtobuf = msg.SerializeAsString();
+  return serializedProtobuf;
 }
 
 bool
 requestChecksumsMessageData::decodeProtobuf (
-  const RequestChecksumsMessage *msg)
+  const std::string &msg)
 {
+  RequestChecksumsMessage parsedMsg;
+  bool result = parsedMsg.ParseFromString(msg);
+  
+  if(!result) {
+    LOG_ERROR("Protobuf parsing error in requestChecksumsMessageData");
+    return false;
+  }
+  
+  tv_sec_ = parsedMsg.tv_sec();
+  
   return true;
 }
 
@@ -116,16 +130,38 @@ sendChecksumsMessageData::decodeJson (const std::string &data)
   return true;
 }
 
-SendChecksumsMessage *
+std::string
 sendChecksumsMessageData::encodeProtobuf (void)
 {
-  return 0;
+  SendChecksumsMessage msg;
+          
+  for (std::vector<std::string>::const_iterator i = checksums_.begin ();
+       i != checksums_.end ();
+       ++i)
+    {
+      msg.add_checksums(*i);
+    }
+      
+  std::string serializedProtobuf = msg.SerializeAsString();
+  return serializedProtobuf;
 }
 
 bool
 sendChecksumsMessageData::decodeProtobuf (
-  const SendChecksumsMessage *msg)
+  const std::string &msg)
 {
+  SendChecksumsMessage parsedMsg;
+  bool result = parsedMsg.ParseFromString(msg);
+  
+  if(!result) {
+    LOG_ERROR("Protobuf parsing error in sendChecksumsMessageData");
+    return false;
+  }
+  
+  for(google::protobuf::RepeatedPtrField<const std::string>::iterator it = parsedMsg.checksums().begin(); it != parsedMsg.checksums().end(); ++it) {
+    checksums_.push_back(*it);
+  }
+  
   return true;
 }
 
@@ -222,16 +258,56 @@ sendObjectsMessageData::decodeJson (const std::string &data)
   return true;
 }
 
-SendObjectsMessage *
+std::string 
 sendObjectsMessageData::encodeProtobuf (void)
 {
-  return 0;
+  SendObjectsMessage msg;
+          
+  for (std::vector<dbRow>::const_iterator i = objects_.begin ();
+       i != objects_.end ();
+       ++i)
+    {              
+      SendObjectsMessage::DbRow *object = msg.add_objects();
+      object->set_uri(i->uri_);
+      object->set_mime_type(i->mime_type_);
+      object->set_origin_user(i->origin_user_);
+      object->set_tv_sec(i->tv_sec_);
+      object->set_tv_usec(i->tv_usec_);
+      object->set_data(i->data_);
+      object->set_checksum(i->checksum_);
+              
+    }
+    
+  std::string serializedProtobuf = msg.SerializeAsString();
+  return serializedProtobuf;
 }
 
 bool
 sendObjectsMessageData::decodeProtobuf (
-  const SendObjectsMessage *msg)
+  const std::string &msg)
 {
+  SendObjectsMessage parsedMsg;
+  bool result = parsedMsg.ParseFromString(msg);
+  
+  if(!result) {
+    LOG_ERROR("Protobuf parsing error in sendObjectsMessageData");
+    return false;
+  }
+  
+  for(google::protobuf::RepeatedPtrField<const SendObjectsMessage::DbRow>::iterator it = parsedMsg.objects().begin(); it != parsedMsg.objects().end(); ++it) {
+    dbRow row;
+    
+    row.uri_ = it->uri();
+    row.mime_type_ = it->mime_type();
+    row.origin_user_ = it->origin_user();
+    row.tv_sec_ = it->tv_sec();
+    row.tv_usec_ = it->tv_usec();
+    row.data_ = it->data();
+    row.checksum_ = it->checksum();
+    
+    objects_.push_back(row);
+  }
+  
   return true;
 }
 

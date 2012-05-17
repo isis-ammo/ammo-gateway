@@ -29,8 +29,8 @@ public:
   std::string encodeJson (void);
   bool decodeJson (const std::string &data);
   
-  RequestChecksumsMessage *encodeProtobuf (void);
-  bool decodeProtobuf (const RequestChecksumsMessage *msg);
+  std::string encodeProtobuf (void);
+  bool decodeProtobuf (const std::string &msg);
 };
 
 class sendChecksumsMessageData
@@ -44,8 +44,8 @@ public:
   std::string encodeJson (void);
   bool decodeJson (const std::string &data);
   
-  SendChecksumsMessage *encodeProtobuf (void);
-  bool decodeProtobuf (const SendChecksumsMessage *msg);
+  std::string encodeProtobuf (void);
+  bool decodeProtobuf (const std::string &msg);
 
 protected:
   std::string jsonKey_;
@@ -76,8 +76,8 @@ public:
   std::string encodeJson (void);
   bool decodeJson (const std::string &data);
   
-  SendObjectsMessage *encodeProtobuf (void);
-  bool decodeProtobuf (const SendObjectsMessage *msg);
+  std::string encodeProtobuf (void);
+  bool decodeProtobuf (const std::string &msg);
 };
 
 #endif // GATEWAY_SYNC_SERIALIZATION_H
