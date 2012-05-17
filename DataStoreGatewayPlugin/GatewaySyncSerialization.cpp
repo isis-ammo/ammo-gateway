@@ -63,6 +63,8 @@ requestChecksumsMessageData::decodeProtobuf (
     return false;
   }
   
+  LOG_TRACE("  RequestChecksumsMessage: " << parsedMsg.DebugString());
+  
   tv_sec_ = parsedMsg.tv_sec();
   
   return true;
@@ -157,6 +159,8 @@ sendChecksumsMessageData::decodeProtobuf (
     LOG_ERROR("Protobuf parsing error in sendChecksumsMessageData");
     return false;
   }
+  
+  LOG_TRACE("  SendChecksumsMessage: " << parsedMsg.DebugString());
   
   for(google::protobuf::RepeatedPtrField<const std::string>::iterator it = parsedMsg.checksums().begin(); it != parsedMsg.checksums().end(); ++it) {
     checksums_.push_back(*it);
@@ -293,6 +297,8 @@ sendObjectsMessageData::decodeProtobuf (
     LOG_ERROR("Protobuf parsing error in sendObjectsMessageData");
     return false;
   }
+  
+  LOG_TRACE("  SendObjectsMessage: " << parsedMsg.DebugString());
   
   for(google::protobuf::RepeatedPtrField<const SendObjectsMessage::DbRow>::iterator it = parsedMsg.objects().begin(); it != parsedMsg.objects().end(); ++it) {
     dbRow row;

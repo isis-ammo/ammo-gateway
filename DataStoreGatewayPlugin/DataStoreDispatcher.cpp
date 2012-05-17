@@ -106,6 +106,12 @@ DataStoreDispatcher::dispatchPointToPointMessage (
 {
 //  LOG_DEBUG ("point-to-point message type: " << msg.mimeType);
   LOG_TRACE("DataStoreDispatcher::dispatchPointToPointMessage");
+  
+  bool encodeJson = false; //encode protobuf unless JSON is specified in request
+  if(msg.encoding == "json") {
+    encodeJson = true;
+  }
+  
   if (msg.mimeType == cfg_mgr_->getReqCsumsMimeType ())
     {
       LOG_TRACE("Got request for checksums...");
@@ -117,7 +123,11 @@ DataStoreDispatcher::dispatchPointToPointMessage (
         DataStoreConfigManager::getInstance ()->getSendCsumsMimeType ();
   
       requestChecksumsMessageData decoder;
-      decoder.decodeJson (msg.data);
+      if(encodeJson) {
+        decoder.decodeJson (msg.data);
+      } else {
+        decoder.decodeProtobuf(msg.data);
+      }
       
       if (decoder.tv_sec_ > 0)
         {
@@ -138,11 +148,16 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       
       sendChecksumsMessageData encoder;
       encoder.checksums_ = checksums_;
-      reply.data = encoder.encodeJson ();
-      reply.encoding = "json";
+      if(encodeJson) {
+        reply.data = encoder.encodeJson ();
+        reply.encoding = "json";
+      } else {
+        reply.data = encoder.encodeProtobuf();
+        reply.encoding = "protobuf";
+      }
       
       LOG_TRACE("Sending checksums...");
-      LOG_TRACE("  " << reply.data);
+      //LOG_TRACE("  " << reply.data);
       sender->pointToPointMessage (reply);
     }
   else if (msg.mimeType == cfg_mgr_->getSendCsumsMimeType ())
@@ -156,7 +171,11 @@ DataStoreDispatcher::dispatchPointToPointMessage (
         DataStoreConfigManager::getInstance ()->getReqObjsMimeType ();
       
       sendChecksumsMessageData decoder;
-      decoder.decodeJson (msg.data);
+      if(encodeJson) {
+        decoder.decodeJson (msg.data);
+      } else {
+        decoder.decodeProtobuf(msg.data);
+      }
 
       // Stores missing checksums in member checksums_.
       if (!this->collect_missing_checksums (db, decoder.checksums_))
@@ -169,11 +188,16 @@ DataStoreDispatcher::dispatchPointToPointMessage (
       requestObjectsMessageData encoder;
       encoder.checksums_ = checksums_;
 
-      reply.data = encoder.encodeJson ();
-      reply.encoding = "json";
+      if(encodeJson) {
+        reply.data = encoder.encodeJson ();
+        reply.encoding = "json";
+      } else {
+        reply.data = encoder.encodeProtobuf();
+        reply.encoding = "protobuf";
+      }
       
       LOG_TRACE("Requesting objects...");
-      LOG_TRACE("  " << reply.data);
+      //LOG_TRACE("  " << reply.data);
       sender->pointToPointMessage (reply);
     }
   else if (msg.mimeType == cfg_mgr_->getReqObjsMimeType ())
@@ -187,7 +211,14 @@ DataStoreDispatcher::dispatchPointToPointMessage (
         DataStoreConfigManager::getInstance ()->getSendObjsMimeType ();
         
       requestObjectsMessageData decoder;
-      decoder.decodeJson (msg.data);
+      
+      if(encodeJson) {
+        decoder.decodeJson (msg.data);
+      } else {
+        decoder.decodeProtobuf(msg.data);
+      }
+      
+      
       sendObjectsMessageData encoder;
       
       if (!this->match_requested_checksums (db, encoder, decoder.checksums_))
@@ -197,18 +228,28 @@ DataStoreDispatcher::dispatchPointToPointMessage (
 	        return;
         }
       
-      reply.data = encoder.encodeJson ();
-      reply.encoding = "json";
+      if(encodeJson) {
+        reply.data = encoder.encodeJson ();
+        reply.encoding = "json";
+      } else {
+        reply.data = encoder.encodeProtobuf();
+        reply.encoding = "protobuf";
+      }
       
       LOG_TRACE("Sending objects...");
-      LOG_TRACE("  " << reply.data);
+      //LOG_TRACE("  " << reply.data);
       sender->pointToPointMessage (reply);
     }
   else if (msg.mimeType == cfg_mgr_->getSendObjsMimeType ())
     {
       LOG_TRACE("Got objects");
       sendObjectsMessageData decoder;
-      decoder.decodeJson (msg.data);
+      
+      if(encodeJson) {
+        decoder.decodeJson (msg.data);
+      } else {
+        decoder.decodeProtobuf(msg.data);
+      }
       DataStoreConfigManager *cfg_mgr =
         DataStoreConfigManager::getInstance ();
         

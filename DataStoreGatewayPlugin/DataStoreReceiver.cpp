@@ -80,9 +80,10 @@ DataStoreReceiver::onPluginConnected (
   request_data.tv_sec_ =
     DataStoreConfigManager::getInstance ()->getSyncReachBackSecs ();
     
-  // Supporting only the default encoding for now.
-  request.data = request_data.encodeJson ();
-  request.encoding = "json";
+  // Default encoding is protobuf; JSON is supported for incoming requests but
+  // we don't default to it
+  request.data = request_data.encodeProtobuf ();
+  request.encoding = "protobuf";
   
   LOG_TRACE("Sending checksum request message:");
   LOG_TRACE("  " << request.data);
@@ -100,7 +101,7 @@ DataStoreReceiver::onPointToPointMessageReceived (
   LOG_TRACE("  Dest Plugin: " << message.destinationPluginId.pluginName << ":" << message.destinationPluginId.instanceId << "@" << message.destinationGateway);
   LOG_TRACE("  Src Plugin: " << message.sourcePluginId.pluginName << ":" << message.sourcePluginId.instanceId << "@" << message.sourceGateway);
   LOG_TRACE("  Type: " << message.mimeType);
-  LOG_TRACE("  Data: " << message.data);
+  //LOG_TRACE("  Data: " << message.data);
   dispatcher_.dispatchPointToPointMessage (db_, sender, message);
 }
 
