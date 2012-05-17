@@ -1,9 +1,10 @@
+#include <ace/OS_NS_unistd.h>
+
 #include "CrossGatewayConnectionManager.h"
 #include "CrossGatewayEventHandler.h"
 #include "GatewayCore.h"
 #include "GatewayConfigurationManager.h"
 #include "log.h"
-
 
 using namespace ammo::gateway::internal;
 

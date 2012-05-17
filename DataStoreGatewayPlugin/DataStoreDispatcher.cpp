@@ -438,8 +438,11 @@ DataStoreDispatcher::extract_original_row (
       
       holder.objects_[slot].tv_usec_ = sqlite3_column_int (stmt, 4);
       
-      holder.objects_[slot].data_ =
-        reinterpret_cast<const char *> (sqlite3_column_blob (stmt, 5));
+      // STL strings can contain null bytes if they are constructed
+      // as below, hence the extra step for the binary DB column.
+	    size_t len = sqlite3_column_bytes (stmt, 5);
+      std::string data ((char *) sqlite3_column_blob (stmt, 5), len);
+      holder.objects_[slot].data_ = data;
       
       holder.objects_[slot].checksum_ =
         reinterpret_cast<const char *> (sqlite3_column_text (stmt, 6));
