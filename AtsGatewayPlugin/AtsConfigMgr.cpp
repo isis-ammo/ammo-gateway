@@ -8,6 +8,7 @@
 #include "AtsConfigMgr.h"
 
 #include <ace/OS_NS_sys_stat.h>
+#include <ace/OS_NS_stdlib.h>
 
 using namespace std;
 
