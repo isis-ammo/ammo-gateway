@@ -162,6 +162,11 @@
        <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
        -->
     </javadoc>
+    <jar jarfile="${basedir}/gatewaypluginapi-javadoc.jar">
+       <fileset dir="docs" defaultexcludes="yes">
+          <include name="api/**"/>
+       </fileset>
+    </jar>
   </target>
 
   <target name="clean"
