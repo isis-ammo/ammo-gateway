@@ -681,7 +681,7 @@ bool GatewayCore::pointToPointMessageCrossGateway(std::string originHandlerId, s
     if(gatewayRouteIt != gatewayRoutes.end()) {
       CrossGatewayHandlerMap::iterator gatewayIt = crossGatewayHandlers.find(gatewayRouteIt->second); //look up gateway that the destination is reachable via
       if(gatewayIt != crossGatewayHandlers.end()) {
-        gatewayIt->second->sendPointToPointMessage(uid, destinationGateway, destinationPluginName, destinationInstanceId, localGatewayId, sourcePluginName, sourceInstanceId, mimeType, encoding, data, priority);
+        gatewayIt->second->sendPointToPointMessage(uid, destinationGateway, destinationPluginName, destinationInstanceId, sourceGateway, sourcePluginName, sourceInstanceId, mimeType, encoding, data, priority);
         return true;
       } else {
         LOG_WARN("Attempted to route through a gateway that isn't connected.");
