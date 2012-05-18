@@ -668,6 +668,21 @@ bool GatewayCore::pointToPointMessageCrossGateway(std::string originHandlerId, s
   LOG_DEBUG("Sending point to point message to gateway: " << destinationGateway);
   LOG_DEBUG("                               pluginName: " << destinationPluginName);
   LOG_DEBUG("                               instanceId: " << destinationInstanceId);
+  
+  //if we don't already have a return route for the source gateway, register it
+  GatewayRouteMap::iterator returnRouteIt = gatewayRoutes.find(sourceGateway);
+  
+  if(returnRouteIt == gatewayRoutes.end()) {
+    gatewayRoutes[sourceGateway] = originHandlerId;
+  } else {
+    if(returnRouteIt->second != originHandlerId) {
+      LOG_WARN("Origin of incoming message from gateway " << sourceGateway << " doesn't");
+      LOG_WARN("match existing return route " << gatewayRoutes[sourceGateway] << ".  Route");
+      LOG_WARN("will be updated to " << originHandlerId);
+      gatewayRoutes[sourceGateway] = originHandlerId;
+    }
+  }
+  
   if(destinationGateway == "" || destinationGateway == localGatewayId) {
     PluginInstanceMap::iterator pluginIt = pluginInstances.find(destinationInstanceId);
     if(pluginIt != pluginInstances.end()) {
