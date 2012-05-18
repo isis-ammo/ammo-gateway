@@ -86,6 +86,30 @@
 				<executions>
 
                                               
+         <execution>
+           <id>generate-sources</id>
+           <phase>generate-sources</phase>
+           <configuration>
+             <tasks>
+               <mkdir dir="./gen/ammo/gateway/protocol/"/>
+               <exec executable="echo">
+                 <arg value="protoc"/>
+                 <arg value="--java_out=./gen/ammo/gateway/protocol/"/>
+                 <arg value="--proto_path=${basedir}/../common/protocol"/>
+                 <arg value="${basedir}/../common/protocol/AmmoMessages.proto"/>
+               </exec>
+               <exec executable="protoc">
+                 <arg value="--java_out=./gen/ammo/gateway/protocol/"/>
+                 <arg value="--proto_path=${basedir}/../common/protocol"/>
+                 <arg value="${basedir}/../common/protocol/AmmoMessages.proto"/>
+               </exec>
+             </tasks>
+             <sourceRoot>target/generated-sources</sourceRoot>
+           </configuration>
+           <goals>
+             <goal>run</goal>
+           </goals>
+         </execution>
 
 					<execution>
 						<phase>deploy</phase>
@@ -165,18 +189,6 @@
             </dependency>
         </dependencies>
       </plugin-->
-	       <!--plugin>
-                    <groupId>com.jayway.maven.plugins.android.generation2</groupId>
-                    <artifactId>android-maven-plugin</artifactId>
-                    <version>3.1.1</version>
-                    <extensions>true</extensions>
-                    <configuration-->
-                        <!--<sdk>
-                            <platform>10</platform>
-                        </sdk>-->
-                        <!--undeployBeforeDeploy>true</undeployBeforeDeploy>
-                    </configuration>
-                </plugin-->
 
        <!--plugin>
          <groupId>org.apache.maven.plugins</groupId>
@@ -231,23 +243,13 @@
             <dependency>
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
-                <version>2.3.0</version>
+                <version>2.4.1</version>
             </dependency>
             <dependency>
                 <groupId>org.json</groupId>
                 <artifactId>json</artifactId>
                 <version>20090211</version>
             </dependency>
-            <!--dependency>
-                <groupId>com.google.android</groupId>
-                <artifactId>android-test</artifactId>
-                <version>2.3.3</version>
-            </dependency>
-            <dependency>
-                <groupId>transapps</groupId>
-                <artifactId>tasettings-api</artifactId>
-	        <version>1.0.9</version>
-            </dependency-->
   </dependencies>
 </project>
 
