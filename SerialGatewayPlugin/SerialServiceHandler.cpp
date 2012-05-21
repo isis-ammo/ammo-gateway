@@ -31,7 +31,9 @@ messageProcessor(NULL),
 sendQueueMutex(), 
 receiveQueueMutex()
 {
-  
+#ifdef WIN32
+  this->hComm = NULL;
+#endif
 }
 
 
@@ -48,7 +50,8 @@ int SerialServiceHandler::open(void *ptr)
 						   0,
 						   0);
   if (this->hComm == INVALID_HANDLE_VALUE) {
-    printf( "open %s error code: %d\n\n", (const char*) ptr, GetLastError() );
+    int err = GetLastError();
+    printf( "open %s error code: %d\n\n", (const char*) ptr, err );
     exit( -1 );
   }
 #else
@@ -67,34 +70,16 @@ int SerialServiceHandler::open(void *ptr)
 
   FillMemory(&dcb, sizeof(dcb), 0);
   dcb.DCBlength = sizeof(dcb);
-  dcb.BaudRate = 9600;
-  dcb.fBinary = TRUE;
-  dcb.fParity = FALSE;
-  dcb.fOutxCtsFlow = TRUE;
-  dcb.fOutxDsrFlow = FALSE;
-  dcb.fDtrControl = DTR_CONTROL_DISABLE;
-  dcb.fDsrSensitivity = FALSE;
-  dcb.fTXContinueOnXoff = FALSE;
-  dcb.fOutX = FALSE;
-  dcb.fInX = FALSE;
-  dcb.fErrorChar = FALSE;
-  dcb.fNull = FALSE;
-  dcb.fRtsControl = RTS_CONTROL_ENABLE;
-  dcb.fAbortOnError = FALSE;
-  dcb.wReserved = 0;
-  dcb.XonLim = 0;
-  dcb.XoffLim = 0;
-  dcb.Parity = NOPARITY;
-  dcb.StopBits = 1;
-  dcb.XonChar = 0;
-  dcb.XoffChar = 0;
-  dcb.ErrorChar = 0;
-  dcb.EofChar = -1;
-  dcb.EvtChar = 0;
+
+  if (!BuildCommDCB("9600,n,8,1", &dcb)) {   
+    printf("could not build dcb: error %d\n", GetLastError());
+    exit(-1);
+  }
 
   if (!SetCommState(this->hComm, &dcb)) {
+    printf("could not set comm state: error %d\n", GetLastError());
     CloseHandle(this->hComm);
-    return 0;
+    exit(-1);
   }
 #else
   // Get the attributes for the port
@@ -383,7 +368,15 @@ unsigned char SerialServiceHandler::read_a_char()
     // printf( "about to read()..." );
 #ifdef WIN32
     DWORD count = 0;
-	ReadFile(this->hComm, &temp, 1, &count, FALSE);
+    
+	while (count == 0) {
+      if (!ReadFile(this->hComm, &temp, 1, &count, NULL)) {
+        int err = GetLastError();
+        printf("ReadFile failed with error code: %d", err);
+	    exit(-1);
+      }
+	  Sleep(1);
+	}
 #else
     ssize_t count = read( gFD, &temp, 1 );
 #endif
