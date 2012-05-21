@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project 
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                        http://maven.apache.org/xsd/maven-4.0.0.xsd" 
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+
+  <properties>
+     <gatewaypluginapi.version>1.5.9-SNAPSHOT</gatewaypluginapi.version>
+     <vandylib.repo.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/Vanderbilt/</vandylib.repo.url>
+     <vandylib.snapshot.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/vanderbilt-snapshot/</vandylib.snapshot.url>
+     <vandylib.eucleo.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/eucleo/</vandylib.eucleo.url>
+     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <groupId>edu.vu.isis.ammo</groupId>
+  <artifactId>gatewaypluginapi</artifactId>
+  <version>${gatewaypluginapi.version}</version>
+
+<!--parent>
+  <groupId>edu.vu.isis</groupId>
+  <artifactId>ammo-parent</artifactId>
+  <version>1.5.8-SNAPSHOT</version>
+</parent-->
+
+
+  <name>Ammo Gateway Plugin API</name>
+
+  <distributionManagement>
+     <repository>
+        <id>nexus-snapshot</id>
+        <url>${vandylib.snapshot.url}</url>
+     </repository>
+     <!--<snapshotRepository>
+         <id>nexus-snapshot</id>
+         <url>${vandylib.snapshot.url}</url>
+     </snapshotRepository>-->
+  </distributionManagement>
+
+	<repositories>
+            <repository>
+               <id>nexus-vanderbilt</id>
+               <url>${vandylib.repo.url}</url>
+            </repository>
+            <repository>
+                <id>nexus-eucleo</id>
+                <url>${vandylib.eucleo.url}</url>
+            </repository>
+            <repository>
+                <id>nexus-snapshot</id>
+                <url>${vandylib.snapshot.url}</url>
+            </repository>
+	</repositories>
+
+
+  <build>
+    <directory>target</directory>
+    <sourceDirectory>src</sourceDirectory>
+    
+
+    <plugins>
+
+       <plugin>
+         <groupId>org.codehaus.mojo</groupId>
+         <artifactId>build-helper-maven-plugin</artifactId>
+          <executions>
+             <execution>
+                  <id>add-source</id>
+                  <phase>generate-sources</phase>
+                  <goals>
+                     <goal>add-source</goal>
+                         </goals>
+                  <configuration>
+                      <sources>
+                           <source>${basedir}/gen/ammo/gateway/protocol</source>
+                      </sources>
+                  </configuration>
+             </execution>
+          </executions>
+       </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+
+                                              
+         <execution>
+           <id>generate-sources</id>
+           <phase>generate-sources</phase>
+           <configuration>
+             <tasks>
+               <mkdir dir="./gen/ammo/gateway/protocol/"/>
+               <exec executable="echo">
+                 <arg value="protoc"/>
+                 <arg value="--java_out=./gen/ammo/gateway/protocol/"/>
+                 <arg value="--proto_path=${basedir}/../common/protocol"/>
+                 <arg value="${basedir}/../common/protocol/AmmoMessages.proto"/>
+               </exec>
+               <exec executable="protoc">
+                 <arg value="--java_out=./gen/ammo/gateway/protocol/"/>
+                 <arg value="--proto_path=${basedir}/../common/protocol"/>
+                 <arg value="${basedir}/../common/protocol/AmmoMessages.proto"/>
+               </exec>
+             </tasks>
+             <sourceRoot>target/generated-sources</sourceRoot>
+           </configuration>
+           <goals>
+             <goal>run</goal>
+           </goals>
+         </execution>
+
+					<execution>
+						<phase>deploy</phase>
+						<configuration>
+							<target>
+								<ant antfile="build.xml" inheritAll="true" inheritRefs="true">
+									<target name="document"/>
+								</ant>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>ant-contrib</groupId>
+						<artifactId>ant-contrib</artifactId>
+						<version>1.0b3</version>
+						<exclusions>
+							<exclusion>
+								<groupId>ant</groupId>
+								<artifactId>ant</artifactId>
+							</exclusion>
+						</exclusions>
+					</dependency>
+       		    		        <dependency>
+       		                          <groupId>org.slf4j</groupId>
+       		                          <artifactId>slf4j-api</artifactId>
+       		                          <version>1.6.4</version>
+      		                        </dependency>
+            	                	<dependency>
+  		                          <groupId>com.google.protobuf</groupId>
+          		                  <artifactId>protobuf-java</artifactId>
+          		                  <version>2.3.0</version>
+           		                </dependency>
+            		                <dependency>
+                		          <groupId>org.json</groupId>
+                		          <artifactId>json</artifactId>
+                		          <version>20090211</version>
+           		                </dependency>
+			       </dependencies>
+			</plugin>
+
+
+
+      <!--plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.8.1</version>
+        <executions>
+           <execution>
+              <phase>deploy</phase>
+           </execution>
+        </executions>
+        <configuration>
+          <outputDirectory>target/site</outputDirectory>
+          <IncludeDependencySources>true</IncludeDependencySources>
+        </configuration>
+        <dependencies>
+            <dependency>
+               <groupId>org.slf4j</groupId>
+               <artifactId>slf4j-api</artifactId>
+               <version>1.6.4</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>2.3.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>20090211</version>
+            </dependency>
+        </dependencies>
+      </plugin-->
+
+       <!--plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-compiler-plugin</artifactId>
+         <version>2.3.2</version>
+         <configuration>
+            <source>1.5</source>
+            <target>1.5</target>
+         </configuration>
+       </plugin-->
+
+       <plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-deploy-plugin</artifactId>
+         <version>2.7</version>
+           <executions>
+              <execution>
+                  <phase>deploy</phase>
+                  <goals>
+                      <goal>deploy-file</goal>
+                  </goals>
+                  <configuration>
+                      <file>gatewaypluginapi-javadoc.jar</file>
+                      <repositoryId>nexus-snapshot</repositoryId>
+                      <url>${vandylib.snapshot.url}</url>
+                      <generatePom>false</generatePom>
+                      <groupId>edu.vu.isis.ammo</groupId>
+                      <artifactId>gatewaypluginapi</artifactId>
+                      <version>${gatewaypluginapi.version}</version>
+                      <packaging>jar</packaging>
+                      <classifier>javadoc</classifier>
+                  </configuration>
+               </execution>
+            </executions>
+       </plugin>
+
+     </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+               <groupId>org.slf4j</groupId>
+               <artifactId>slf4j-api</artifactId>
+               <version>1.6.4</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.8.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>2.4.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>20090211</version>
+            </dependency>
+  </dependencies>
+</project>
+
