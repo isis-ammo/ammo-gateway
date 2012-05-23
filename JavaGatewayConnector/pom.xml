@@ -103,6 +103,11 @@
                  <arg value="--proto_path=${basedir}/../common/protocol"/>
                  <arg value="${basedir}/../common/protocol/AmmoMessages.proto"/>
                </exec>
+	       <exec executable="protoc">
+                 <arg value="--java_out=./gen/ammo/gateway/protocol/"/>
+                 <arg value="--proto_path=${basedir}/../common/protocol"/>
+                 <arg value="${basedir}/../common/protocol/GatewayPrivateMessages.proto"/>
+               </exec>
              </tasks>
              <sourceRoot>target/generated-sources</sourceRoot>
            </configuration>
@@ -243,7 +248,7 @@
             <dependency>
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
-                <version>2.4.1</version>
+                <version>2.3.0</version>
             </dependency>
             <dependency>
                 <groupId>org.json</groupId>
