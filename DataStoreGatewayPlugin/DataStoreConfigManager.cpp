@@ -57,10 +57,11 @@ DataStoreConfigManager::DataStoreConfigManager (
                   "SMSMimeType",
                   "ReportMimeType",
                   "LocationsMimeType",
-                  "PrivateContactsMimeType"
+                  "PrivateContactsMimeType",
+                  "ChatMimeType"
                 };
                 
-              const unsigned long ARRAY_SIZE = 6;
+              const unsigned long ARRAY_SIZE = 7;
                 
               void (DataStoreConfigManager::*store_ops[ARRAY_SIZE]) (const string &) =
                 {
@@ -69,7 +70,8 @@ DataStoreConfigManager::DataStoreConfigManager (
                   &DataStoreConfigManager::setSMSMimeType,
                   &DataStoreConfigManager::setReportMimeType,
                   &DataStoreConfigManager::setLocationsMimeType,
-                  &DataStoreConfigManager::setPrivateContactsMimeType
+                  &DataStoreConfigManager::setPrivateContactsMimeType,
+                  &DataStoreConfigManager::setChatMimeType
                 };
                 
               for (unsigned long i = 0; i < ARRAY_SIZE; ++i)
@@ -213,6 +215,18 @@ void
 DataStoreConfigManager::setPrivateContactsMimeType (const std::string &val)
 {
   private_contacts_mime_type_ = val;
+}
+
+const std::string &
+DataStoreConfigManager::getChatMimeType (void) const
+{
+  return chat_mime_type_;
+}
+
+void
+DataStoreConfigManager::setChatMimeType (const std::string &val)
+{
+  chat_mime_type_ = val;
 }
 
 #ifndef WIN32

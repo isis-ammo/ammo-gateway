@@ -10,6 +10,7 @@
 #include "ReportQueryHandler.h"
 #include "SMSQueryHandler.h"
 #include "ContactsQueryHandler.h"
+#include "ChatQueryHandler.h"
 
 #include "OriginalPushHandler.h"
 #include "ContactsPushHandler.h"
@@ -63,6 +64,11 @@ DataStoreDispatcher::dispatchPullRequest (sqlite3 *db,
   if (pr.mimeType.find (cfg_mgr_->getSMSMimeType ()) == 0)
     {
       SMSQueryHandler handler (db, sender, pr);
+      handler.handleQuery ();
+    }
+  else if (pr.mimeType == cfg_mgr_->getChatMimeType ())
+    {
+      ChatQueryHandler handler (db, sender, pr);
       handler.handleQuery ();
     }
   else if (pr.mimeType == cfg_mgr_->getReportMimeType ())

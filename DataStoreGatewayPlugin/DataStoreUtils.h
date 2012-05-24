@@ -2,7 +2,6 @@
 #define DATA_STORE_UTILS_H
 
 #include <string>
-#include <ace/Reactor.h>
 
 namespace Json
 {

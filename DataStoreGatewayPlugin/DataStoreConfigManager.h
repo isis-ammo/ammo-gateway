@@ -40,6 +40,8 @@ public:
 	const std::string &getPrivateContactsMimeType (void) const;
 	void setPrivateContactsMimeType (const std::string &val);
 	
+	const std::string &getChatMimeType (void) const;
+	void setChatMimeType (const std::string &val);
 	
 private:
   DataStoreConfigManager (
@@ -62,6 +64,7 @@ private:
   std::string report_mime_type_;
   std::string locations_mime_type_;
   std::string private_contacts_mime_type_;
+  std::string chat_mime_type_;
 };
 
 #endif // DATASTORE_CONFIG_MANAGER_H

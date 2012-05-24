@@ -3,10 +3,6 @@ project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin
   
   includes += $(GATEWAY_ROOT)/LibJSON
 
-// Added for MacOS, which comes with SQLite already installed.
-// This directory is apparently not in the default system lib path.
-//  libpaths += /usr/lib
-
   libs += sqlite3
   
   // Paths to SQLite lib for 32- and 64-bit machines.
@@ -18,6 +14,8 @@ project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin
   exename = DataStoreGatewayPlugin
 
   Source_Files {
+    ChatQueryHandler.cpp
+    ChatProjectionParser.cpp
     ContactsPushHandler.cpp
     ContactsQueryHandler.cpp
     ContactsQueryParamParser.cpp
