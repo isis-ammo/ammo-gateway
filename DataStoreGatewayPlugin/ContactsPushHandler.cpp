@@ -74,6 +74,9 @@ ContactsPushHandler::handlePush (void)
     }
     
   unsigned int index = 1;
+  
+  std::string photo = root["photo"].asString ();
+  std::string insignia = root["insignia"].asString ();
     
   bool good_binds =
     DataStoreUtils::bind_text (db_, stmt_, index, pd_.uri, true)
@@ -85,7 +88,9 @@ ContactsPushHandler::handlePush (void)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["branch"].asString (), true)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["unit"].asString (), true)
     && DataStoreUtils::bind_text (db_, stmt_, index, root["email"].asString (), true)
-    && DataStoreUtils::bind_text (db_, stmt_, index, root["phone"].asString (), true);
+    && DataStoreUtils::bind_text (db_, stmt_, index, root["phone"].asString (), true)
+    && DataStoreUtils::bind_blob (db_, stmt_, index, photo.data (), photo.size (), true)
+    && DataStoreUtils::bind_blob (db_, stmt_, index, insignia.data (), insignia.size (), true);
     
 	if (good_binds)
 	  {
