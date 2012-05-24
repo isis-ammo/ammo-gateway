@@ -98,12 +98,16 @@
                  <arg value="--proto_path=${basedir}/../common/protocol"/>
                  <arg value="${basedir}/../common/protocol/AmmoMessages.proto"/>
                </exec>
-               <exec executable="protoc">
+               <exec executable="chmod">
+                 <arg value="555"/>
+                 <arg value="${env.HOME}/.m2/repository/com/google/protobuf/protoc-gateway/2.4.1/protoc-gateway-2.4.1.exe"/>
+               </exec>
+               <exec executable="${env.HOME}/.m2/repository/com/google/protobuf/protoc-gateway/2.4.1/protoc-gateway-2.4.1.exe">
                  <arg value="--java_out=./gen/ammo/gateway/protocol/"/>
                  <arg value="--proto_path=${basedir}/../common/protocol"/>
                  <arg value="${basedir}/../common/protocol/AmmoMessages.proto"/>
                </exec>
-               <exec executable="protoc">
+               <exec executable="${env.HOME}/.m2/repository/com/google/protobuf/protoc-gateway/2.4.1/protoc-gateway-2.4.1.exe">
                  <arg value="--java_out=./gen/ammo/gateway/protocol/"/>
                  <arg value="--proto_path=${basedir}/../common/protocol"/>
                  <arg value="${basedir}/../common/protocol/GatewayPrivateMessages.proto"/>
@@ -250,6 +254,12 @@
                 <artifactId>protobuf-java</artifactId>
                 <version>2.4.1</version>    <!--Your installed version of protoc (protobuf-compiler) MUST match this version. -->
                                             <!--You can change this version to match yours (maybe) but it's untested below 2.3.0. -->
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protoc-gateway</artifactId>
+                <version>2.4.1</version> <!--is really 2.4.1 - repo structure requires it be called 2.4 -->
+                <type>exe</type>         <!--hackery-->
             </dependency>
             <dependency>
                 <groupId>org.json</groupId>
