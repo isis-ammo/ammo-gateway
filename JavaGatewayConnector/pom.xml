@@ -7,11 +7,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <properties>
-<!-- TEMPLATE:BEGIN
-     <gatewaypluginapi.version>#VERSION#</gatewaypluginapi.version>
--->
      <gatewaypluginapi.version>1.5.5-SNAPSHOT</gatewaypluginapi.version>
-<!-- TEMPLATE:END -->
      <vandylib.repo.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/Vanderbilt/</vandylib.repo.url>
      <vandylib.snapshot.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/vanderbilt-snapshot/</vandylib.snapshot.url>
      <vandylib.eucleo.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/eucleo/</vandylib.eucleo.url>
