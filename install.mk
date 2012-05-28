@@ -39,6 +39,7 @@ install: all
 	install -m 755 build/bin/GatewayUsbTransfer $(INSTALL_DIR)/bin
 	install -m 755 build/bin/LdapGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/DataStoreGatewayPlugin $(INSTALL_DIR)/bin
+	install -m 755 build/bin/SerialGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/PassGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SamplePushReceiverGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SamplePushTestDriverPlugin $(INSTALL_DIR)/bin
