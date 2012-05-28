@@ -7,8 +7,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <properties>
+     <repo.addr>vanderbilt-snapshot/</repo.addr> <!-- This field should read "Vanderbilt/" for releases --> 
+                                        <!-- else it should read "vanderbilt-snapshot/" for snapshots-->
      <gatewaypluginapi.version>1.5.5-SNAPSHOT</gatewaypluginapi.version>
-     <vandylib.repo.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/Vanderbilt/</vandylib.repo.url>
+     <vandylib.release.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/Vanderbilt/</vandylib.release.url>
      <vandylib.snapshot.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/vanderbilt-snapshot/</vandylib.snapshot.url>
      <vandylib.eucleo.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/eucleo/</vandylib.eucleo.url>
      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,19 +31,19 @@
 
   <distributionManagement>
      <repository>
-        <id>nexus-snapshot</id>
-        <url>${vandylib.snapshot.url}</url>
+        <id>nexus-vanderbilt</id>
+        <url>${vandylib.release.url}</url>
      </repository>
-     <!--<snapshotRepository>
+     <snapshotRepository>
          <id>nexus-snapshot</id>
          <url>${vandylib.snapshot.url}</url>
-     </snapshotRepository>-->
+     </snapshotRepository>
   </distributionManagement>
 
 	<repositories>
             <repository>
                <id>nexus-vanderbilt</id>
-               <url>${vandylib.repo.url}</url>
+               <url>${vandylib.release.url}</url>
             </repository>
             <repository>
                 <id>nexus-eucleo</id>
@@ -215,8 +217,8 @@
                   </goals>
                   <configuration>
                       <file>gatewaypluginapi-javadoc.jar</file>
-                      <repositoryId>nexus-snapshot</repositoryId>
-                      <url>${vandylib.snapshot.url}</url>
+                      <repositoryId>nexus-vanderbilt</repositoryId>
+                      <url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/${repo.addr}</url>
                       <generatePom>false</generatePom>
                       <groupId>edu.vu.isis.ammo</groupId>
                       <artifactId>gatewaypluginapi</artifactId>
