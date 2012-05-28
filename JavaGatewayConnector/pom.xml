@@ -7,9 +7,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <properties>
+<!-- TEMPLATE2:BEGIN
+-->
      <repo.addr>vanderbilt-snapshot/</repo.addr> <!-- This field should read "Vanderbilt/" for releases --> 
-                                        <!-- else it should read "vanderbilt-snapshot/" for snapshots-->
-     <gatewaypluginapi.version>1.5.5-SNAPSHOT</gatewaypluginapi.version>
+                                                 <!-- else it should read "vanderbilt-snapshot/" for snapshots-->
+<!-- TEMPLATE2:END -->
      <vandylib.release.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/Vanderbilt/</vandylib.release.url>
      <vandylib.snapshot.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/vanderbilt-snapshot/</vandylib.snapshot.url>
      <vandylib.eucleo.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/eucleo/</vandylib.eucleo.url>
@@ -18,7 +20,11 @@
 
   <groupId>edu.vu.isis.ammo</groupId>
   <artifactId>gatewaypluginapi</artifactId>
-  <version>${gatewaypluginapi.version}</version> 
+<!-- TEMPLATE:BEGIN
+-->
+  <version>1.5.5-SNAPSHOT</version> 
+<!-- TEMPLATE:END -->
+
 
 <!--parent>
   <groupId>edu.vu.isis</groupId>
@@ -222,7 +228,7 @@
                       <generatePom>false</generatePom>
                       <groupId>edu.vu.isis.ammo</groupId>
                       <artifactId>gatewaypluginapi</artifactId>
-                      <version>${gatewaypluginapi.version}</version>
+                      <version>${project.version}</version>
                       <packaging>jar</packaging>
                       <classifier>javadoc</classifier>
                   </configuration>
