@@ -22,7 +22,7 @@
   <artifactId>gatewaypluginapi</artifactId>
 <!-- TEMPLATE:BEGIN
 -->
-  <version>1.5.5-SNAPSHOT</version> 
+  <version>0.11.11-SNAPSHOT</version> 
 <!-- TEMPLATE:END -->
 
 
@@ -46,7 +46,7 @@
      </snapshotRepository>
   </distributionManagement>
 
-	<repositories>
+  <repositories>
             <repository>
                <id>nexus-vanderbilt</id>
                <url>${vandylib.release.url}</url>
@@ -59,7 +59,7 @@
                 <id>nexus-snapshot</id>
                 <url>${vandylib.snapshot.url}</url>
             </repository>
-	</repositories>
+  </repositories>
 
 
   <build>
@@ -87,18 +87,23 @@
              </execution>
           </executions>
        </plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.6</version>
-				<executions>
+
+
+          <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
 
                                               
-         <execution>
+         <!--execution>
            <id>generate-sources</id>
            <phase>generate-sources</phase>
            <configuration>
              <tasks>
+               <exec executable="echo">
+                 <arg value="${os.arch}"/>
+               </exec>
                <mkdir dir="./gen/ammo/gateway/protocol/"/>
                <exec executable="chmod">
                  <arg value="555"/>
@@ -120,52 +125,52 @@
            <goals>
              <goal>run</goal>
            </goals>
-         </execution>
+         </execution-->
 
-					<execution>
-						<phase>deploy</phase>
-						<configuration>
-							<target>
-								<ant antfile="build.xml" inheritAll="true" inheritRefs="true">
-									<target name="document"/>
-								</ant>
-							</target>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
+          <execution>
+            <phase>deploy</phase>
+            <configuration>
+              <target>
+                <ant antfile="build.xml" inheritAll="true" inheritRefs="true">
+                  <target name="document"/>
+                </ant>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
 
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>ant-contrib</groupId>
-						<artifactId>ant-contrib</artifactId>
-						<version>1.0b3</version>
-						<exclusions>
-							<exclusion>
-								<groupId>ant</groupId>
-								<artifactId>ant</artifactId>
-							</exclusion>
-						</exclusions>
-					</dependency>
-       		    		        <dependency>
-       		                          <groupId>org.slf4j</groupId>
-       		                          <artifactId>slf4j-api</artifactId>
-       		                          <version>1.6.4</version>
-      		                        </dependency>
-            	                	<dependency>
-  		                          <groupId>com.google.protobuf</groupId>
-          		                  <artifactId>protobuf-java</artifactId>
-          		                  <version>2.3.0</version>
-           		                </dependency>
-            		                <dependency>
-                		          <groupId>org.json</groupId>
-                		          <artifactId>json</artifactId>
-                		          <version>20090211</version>
-           		                </dependency>
-			       </dependencies>
-			</plugin>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>ant-contrib</groupId>
+            <artifactId>ant-contrib</artifactId>
+            <version>1.0b3</version>
+            <exclusions>
+              <exclusion>
+                <groupId>ant</groupId>
+                <artifactId>ant</artifactId>
+              </exclusion>
+            </exclusions>
+          </dependency>
+                           <dependency>
+                                     <groupId>org.slf4j</groupId>
+                                     <artifactId>slf4j-api</artifactId>
+                                     <version>1.6.4</version>
+                                  </dependency>
+                                <dependency>
+                                <groupId>com.google.protobuf</groupId>
+                                <artifactId>protobuf-java</artifactId>
+                                <version>2.3.0</version>
+                               </dependency>
+                                <dependency>
+                              <groupId>org.json</groupId>
+                              <artifactId>json</artifactId>
+                              <version>20090211</version>
+                               </dependency>
+             </dependencies>
+      </plugin>
 
 
 
@@ -257,17 +262,193 @@
                 <version>2.4.1</version>    <!--Your installed version of protoc (protobuf-compiler) MUST match this version. -->
                                             <!--You can change this version to match yours (maybe) but it's untested below 2.3.0. -->
             </dependency>
-            <dependency>
+            <!--dependency>      See the profiles for this 
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protoc-gateway</artifactId>
                 <version>2.4.1</version>
                 <type>exe</type>       
-            </dependency>
+            </dependency-->
             <dependency>
                 <groupId>org.json</groupId>
                 <artifactId>json</artifactId>
                 <version>20090211</version>
             </dependency>
   </dependencies>
+
+
+<profiles>
+  <profile>
+    <activation>
+      <os>
+        <arch>x86</arch>
+      </os>
+    </activation>
+    <properties>
+      <protoc.path>x86</protoc.path>
+    </properties>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protoc-gateway-x86</artifactId>
+        <version>2.4.1</version>
+        <type>exe</type>       
+      </dependency>
+    </dependencies>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.6</version>
+        <executions>                                 
+          <execution>
+            <id>generate-sources</id>
+            <phase>generate-sources</phase>
+            <configuration>
+              <tasks>
+                <exec executable="echo">
+                  <arg value="${os.arch}"/>
+                </exec>
+                <mkdir dir="./gen/ammo/gateway/protocol/"/>
+                <exec executable="chmod">
+                  <arg value="555"/>
+                  <arg value="${com.google.protobuf:protoc-gateway-x86:exe}"/>
+                </exec>
+                <exec executable="${com.google.protobuf:protoc-gateway-x86:exe}">
+                  <arg value="--java_out=./gen/"/>
+                  <arg value="--proto_path=${basedir}/../common/protocol"/>
+                  <arg value="${basedir}/../common/protocol/AmmoMessages.proto"/>
+                </exec>
+                <exec executable="${com.google.protobuf:protoc-gateway-x86:exe}">
+                  <arg value="--java_out=./gen/"/>
+                  <arg value="--proto_path=${basedir}/../common/protocol"/>
+                  <arg value="${basedir}/../common/protocol/GatewayPrivateMessages.proto"/>
+                </exec>
+              </tasks>
+              <sourceRoot>target/generated-sources</sourceRoot>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>ant-contrib</groupId>
+          <artifactId>ant-contrib</artifactId>
+          <version>1.0b3</version>
+          <exclusions>
+            <exclusion>
+              <groupId>ant</groupId>
+              <artifactId>ant</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+          <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.4</version>
+          </dependency>
+           <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>2.4.1</version>
+          </dependency>
+          <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20090211</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+  </profile>
+
+  <profile>
+    <activation>
+      <os>
+        <arch>x64</arch>
+      </os>
+    </activation>
+    <properties>
+      <protoc.path>x64</protoc.path>
+    </properties>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protoc-gateway-x64</artifactId>
+        <version>2.4.1</version>
+        <type>exe</type>       
+      </dependency>
+    </dependencies>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.6</version>
+        <executions>                                 
+          <execution>
+            <id>generate-sources</id>
+            <phase>generate-sources</phase>
+            <configuration>
+              <tasks>
+                <exec executable="echo">
+                  <arg value="${os.arch}"/>
+                </exec>
+                <mkdir dir="./gen/ammo/gateway/protocol/"/>
+                <exec executable="chmod">
+                  <arg value="555"/>
+                  <arg value="${com.google.protobuf:protoc-gateway-x64:exe}"/>
+                </exec>
+                <exec executable="${com.google.protobuf:protoc-gateway-x64:exe}">
+                  <arg value="--java_out=./gen/"/>
+                  <arg value="--proto_path=${basedir}/../common/protocol"/>
+                  <arg value="${basedir}/../common/protocol/AmmoMessages.proto"/>
+                </exec>
+                <exec executable="${com.google.protobuf:protoc-gateway-x64:exe}">
+                  <arg value="--java_out=./gen/"/>
+                  <arg value="--proto_path=${basedir}/../common/protocol"/>
+                  <arg value="${basedir}/../common/protocol/GatewayPrivateMessages.proto"/>
+                </exec>
+              </tasks>
+              <sourceRoot>target/generated-sources</sourceRoot>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>ant-contrib</groupId>
+          <artifactId>ant-contrib</artifactId>
+          <version>1.0b3</version>
+          <exclusions>
+            <exclusion>
+              <groupId>ant</groupId>
+              <artifactId>ant</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+          <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.4</version>
+          </dependency>
+           <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>2.4.1</version>
+          </dependency>
+          <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20090211</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+  </profile>
+</profiles>
+
 </project>
 
