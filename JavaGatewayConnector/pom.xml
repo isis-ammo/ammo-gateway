@@ -22,7 +22,7 @@
   <artifactId>gatewaypluginapi</artifactId>
 <!-- TEMPLATE:BEGIN
 -->
-  <version>0.11.11-SNAPSHOT</version> 
+  <version>1.5.5-SNAPSHOT</version> 
 <!-- TEMPLATE:END -->
 
 
@@ -110,13 +110,13 @@
                  <arg value="${com.google.protobuf:protoc-gateway:exe}"/>
                </exec>
                <exec executable="${com.google.protobuf:protoc-gateway:exe}">
-                 <arg value="--java_out=./gen/"/>
-                 <arg value="--proto_path=${basedir}/../common/protocol"/>
+                 <arg value="-These Need to be double dashesjava_out=./gen/"/>
+                 <arg value="-These Need to be double dashesproto_path=${basedir}/../common/protocol"/>
                  <arg value="${basedir}/../common/protocol/AmmoMessages.proto"/>
                </exec>
                <exec executable="${com.google.protobuf:protoc-gateway:exe}">
-                 <arg value="--java_out=./gen/"/>
-                 <arg value="--proto_path=${basedir}/../common/protocol"/>
+                 <arg value="-These Need to be double dashesjava_out=./gen/"/>
+                 <arg value="-These Need to be double dashesproto_path=${basedir}/../common/protocol"/>
                  <arg value="${basedir}/../common/protocol/GatewayPrivateMessages.proto"/>
                </exec>
              </tasks>
