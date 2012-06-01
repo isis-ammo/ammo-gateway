@@ -59,8 +59,9 @@ DataStoreDispatcher::dispatchPullRequest (sqlite3 *db,
   // LOG_DEBUG ("pull request data type: " << pr.mimeType);
   
   // Incoming SMS and chat mime types have the destination
-  // user name appended to the base string, which we then
-  // pass to std::string::find instead of checking for equality.
+  // user name appended to the base string, so instead of
+  // checking for equality, we attempt to match the substring
+  // at position 0.
   if (pr.mimeType.find (cfg_mgr_->getSMSMimeType ()) == 0)
     {
       SMSQueryHandler handler (db, sender, pr);
