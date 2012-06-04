@@ -213,10 +213,6 @@ int main(int argc, char* argv[])
   catch (WinSvcException e)
   {
     LOG_FATAL(e.what());
-	WinSvc::instance()->SvcReportEvent((char*) (e.what()));
-  }
-  catch (...) {
-    WinSvc::instance()->SvcReportEvent("unknown exception");
   }
 
   App::destroy();
