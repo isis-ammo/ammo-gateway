@@ -16,7 +16,9 @@ public class PushData {
         originDevice = "";
         scope = MessageScope.SCOPE_GLOBAL;
 
-	priority = 0;
+	      priority = 0;
+	      
+	      ackThresholds = new AcknowledgementThresholds();
     }
 
     /**
