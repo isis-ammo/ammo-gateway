@@ -54,7 +54,7 @@ WinSvcException::WinSvcException(const std::string& msg,
 }
 
 /** Windows service callback for initialization of the service */
-typedef void (*WinSvcInitCB)(DWORD argc, LPTSTR* argv);
+typedef bool (*WinSvcInitCB)(DWORD argc, LPTSTR* argv);
 /** Windows service callback to perform the service's work */
 typedef void (*WinSvcRunCB)();
 /** Windows service callback to stop the service */
@@ -528,7 +528,10 @@ void WinSvc::SvcInit(DWORD argc, LPTSTR* argv)
   }
 
   // Perform initialization
-  this->_callbacks.init(argc, argv);
+  if (!this->_callbacks.init(argc, argv)) {
+    ReportSvcStatus( SERVICE_STOPPED, ERROR_APP_INIT_FAILURE, 0 );
+    return;
+  }
 
   // Report running status when initialization is complete.
   ReportSvcStatus( SERVICE_RUNNING, NO_ERROR, 0 );

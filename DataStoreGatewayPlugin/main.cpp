@@ -54,7 +54,7 @@ private:
   ~App();
 
 public:
-  void init(int argc, char* argv[]);
+  bool init(int argc, char* argv[]);
   void run();
   void stop();
 
@@ -111,7 +111,7 @@ App::~App()
   //}
 }
 
-void App::init(int argc, char* argv[])
+bool App::init(int argc, char* argv[])
 {
   dropPrivileges();
   setupLogging("DataStoreGatewayPlugin");
@@ -148,8 +148,10 @@ void App::init(int argc, char* argv[])
   // passed to the config manager before calling this method.
   if (!receiver->init ()) {
     // Error msg already output, just exit w/o starting reactor.
-    return;
+    return false;
   }
+
+  return true;
 }
 
 void App::run()
@@ -166,9 +168,9 @@ void App::stop()
 
 #ifdef WIN32
 
-void SvcInit(DWORD argc, LPTSTR* argv)
+bool SvcInit(DWORD argc, LPTSTR* argv)
 {
-  App::instance()->init(argc, argv);
+  return App::instance()->init(argc, argv);
 }
 
 void SvcRun()
@@ -222,7 +224,9 @@ int main(int argc, char* argv[])
 #else
 int main(int argc, char** argv)
 {
-  App::instance()->init(argc, argv);
+  if (!App::instance()->init(argc, argv)) {
+    return 1;
+  }
   App::instance()->run();
   App::instance()->destroy();
   return 0;

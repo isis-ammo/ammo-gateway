@@ -53,7 +53,7 @@ private:
   ~App();
 
 public:
-  void init(int argc, char* argv[]);
+  bool init(int argc, char* argv[]);
   void run();
   void stop();
 
@@ -110,7 +110,7 @@ App::~App()
   }
 }
 
-void App::init(int argc, char* argv[])
+bool App::init(int argc, char* argv[])
 {
   dropPrivileges();
   setupLogging("LdapGatewayPlugin");
@@ -137,6 +137,8 @@ void App::init(int argc, char* argv[])
   
   LOG_DEBUG("Registering interest in " << CONTACT_PULL_MIME_TYPE);
   gatewayConnector->registerPullInterest(CONTACT_PULL_MIME_TYPE, pushReceiver);
+
+  return true;
 }
 
 void App::run()
@@ -154,9 +156,9 @@ void App::stop()
 
 #ifdef WIN32
 
-void SvcInit(DWORD argc, LPTSTR* argv)
+bool SvcInit(DWORD argc, LPTSTR* argv)
 {
-  App::instance()->init(argc, argv);
+  return App::instance()->init(argc, argv);
 }
 
 void SvcRun()
@@ -210,7 +212,9 @@ int main(int argc, char* argv[])
 #else
 int main(int argc, char** argv)
 {
-  App::instance()->init(argc, argv);
+  if (!App::instance()->init(argc, argv)) {
+    return 1;
+  }
   App::instance()->run();
   App::instance()->destroy();
   return 0;
