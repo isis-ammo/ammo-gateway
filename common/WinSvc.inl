@@ -384,7 +384,18 @@ WinSvc::WinSvc(const std::string& svcName,
 			                                           _callbacks(callbacks),
                                                        ghSvcStopEvent(NULL)
 {
-  // empty
+  // Change directory to %PROGRAMDATA%\ammo-gateway
+  const int MAX_ENV_VAR_SIZE = 32767;
+  char* progdata = new char[MAX_ENV_VAR_SIZE];
+  GetEnvironmentVariable("PROGRAMDATA", progdata, MAX_ENV_VAR_SIZE);
+  std::string dir(progdata);
+  dir += "\\ammo-gateway";
+  if (!SetCurrentDirectory(dir.c_str())) {
+    std::string errormsg;
+    errormsg = "SetCurrentDirectory(" + dir + ")";
+    SvcReportEvent((char*) errormsg.c_str());
+  }
+  delete[] progdata;
 }
 
 /**
