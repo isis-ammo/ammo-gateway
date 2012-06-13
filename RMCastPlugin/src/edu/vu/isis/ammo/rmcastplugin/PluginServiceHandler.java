@@ -76,6 +76,7 @@ class PluginServiceHandler implements
 	    pushData.mimeType = dataMessage.getMimeType();
 	    pushData.encoding = dataMessage.getEncoding();
 	    pushData.originUserName = dataMessage.getUserId();
+	    pushData.originDevice = dataMessage.getOriginDevice();
 	    pushData.data = dataMessage.getData().toByteArray();
 	    pushData.scope = (AmmoMessages.MessageScope.GLOBAL == dataMessage.getScope()) ?
 		MessageScope.SCOPE_GLOBAL :
