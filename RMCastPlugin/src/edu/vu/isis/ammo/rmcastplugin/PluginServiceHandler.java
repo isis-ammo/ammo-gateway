@@ -175,9 +175,12 @@ class PluginServiceHandler implements
 		ackMsg.setDestinationUser(ack.destinationUser);
 		ackMsg.setAcknowledgingDevice(ack.acknowledgingDevice);
 		ackMsg.setAcknowledgingUser(ack.acknowledgingUser);
-		AmmoMessages.AcknowledgementThresholds.Builder thresholds = ackMsg.getThresholdBuilder();
+		
+		AmmoMessages.AcknowledgementThresholds.Builder thresholds = 
+			AmmoMessages.AcknowledgementThresholds.newBuilder();
 		thresholds.setDeviceDelivered(ack.deviceDelivered);
 		thresholds.setPluginDelivered(ack.pluginDelivered);
+		ackMsg.setThreshold(thresholds.build());
 		
 		AmmoMessages.MessageWrapper.Builder msg =
 			    AmmoMessages.MessageWrapper.newBuilder();
