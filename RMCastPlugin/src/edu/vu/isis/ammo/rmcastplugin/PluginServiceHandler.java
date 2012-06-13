@@ -10,16 +10,29 @@ purpose whatsoever, and to have or authorize others to do so.
 */
 package edu.vu.isis.ammo.rmcastplugin;
 
-import edu.vu.isis.ammo.gateway.*;
-import edu.vu.isis.ammo.core.pb.AmmoMessages;
-import com.google.protobuf.ByteString;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import com.google.protobuf.ByteString;
+
+import edu.vu.isis.ammo.core.pb.AmmoMessages;
+import edu.vu.isis.ammo.core.pb.AmmoMessages.AcknowledgementThresholds.Builder;
+import edu.vu.isis.ammo.core.pb.AmmoMessages.MessageWrapper.MessageType;
+import edu.vu.isis.ammo.gateway.AcknowledgementThresholds;
+import edu.vu.isis.ammo.gateway.DataPushReceiverListener;
+import edu.vu.isis.ammo.gateway.GatewayConnector;
+import edu.vu.isis.ammo.gateway.GatewayConnectorDelegate;
+import edu.vu.isis.ammo.gateway.MessageScope;
+import edu.vu.isis.ammo.gateway.PullRequest;
+import edu.vu.isis.ammo.gateway.PullRequestReceiverListener;
+import edu.vu.isis.ammo.gateway.PullResponse;
+import edu.vu.isis.ammo.gateway.PullResponseReceiverListener;
+import edu.vu.isis.ammo.gateway.PushAcknowledgement;
+import edu.vu.isis.ammo.gateway.PushData;
 
 /**
  * class PluginServiceHandler
@@ -77,6 +90,9 @@ class PluginServiceHandler implements
 	    pushData.encoding = dataMessage.getEncoding();
 	    pushData.originUserName = dataMessage.getUserId();
 	    pushData.originDevice = dataMessage.getOriginDevice();
+		pushData.ackThresholds = new AcknowledgementThresholds();
+		pushData.ackThresholds.deviceDelivered = dataMessage.getThresholds().getDeviceDelivered();
+		pushData.ackThresholds.pluginDelivered = dataMessage.getThresholds().getPluginDelivered();
 	    pushData.data = dataMessage.getData().toByteArray();
 	    pushData.scope = (AmmoMessages.MessageScope.GLOBAL == dataMessage.getScope()) ?
 		MessageScope.SCOPE_GLOBAL :
@@ -154,7 +170,23 @@ class PluginServiceHandler implements
 
     @Override
     public void onPushAcknowledgementReceived(GatewayConnector sender, PushAcknowledgement ack) {
-      
+		AmmoMessages.PushAcknowledgement.Builder ackMsg =
+			AmmoMessages.PushAcknowledgement.newBuilder();
+		ackMsg.setUri(ack.uid);
+		ackMsg.setDestinationDevice(ack.destinationDevice);
+		ackMsg.setDestinationUser(ack.destinationUser);
+		ackMsg.setAcknowledgingDevice(ack.acknowledgingDevice);
+		ackMsg.setAcknowledgingUser(ack.acknowledgingUser);
+		Builder thresholds = ackMsg.getThresholdBuilder();
+		thresholds.setDeviceDelivered(ack.deviceDelivered);
+		thresholds.setPluginDelivered(ack.pluginDelivered);
+		
+		AmmoMessages.MessageWrapper.Builder msg =
+			    AmmoMessages.MessageWrapper.newBuilder();
+		msg.setPushAcknowledgement(ackMsg.build());
+		msg.setType(MessageType.PUSH_ACKNOWLEDGEMENT);
+		
+		mRmcastConnector.sendMessage(msg.build());
     }
 
     @Override
