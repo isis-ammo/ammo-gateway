@@ -20,8 +20,6 @@ import org.slf4j.LoggerFactory;
 import com.google.protobuf.ByteString;
 
 import edu.vu.isis.ammo.core.pb.AmmoMessages;
-import edu.vu.isis.ammo.core.pb.AmmoMessages.AcknowledgementThresholds.Builder;
-import edu.vu.isis.ammo.core.pb.AmmoMessages.MessageWrapper.MessageType;
 import edu.vu.isis.ammo.gateway.AcknowledgementThresholds;
 import edu.vu.isis.ammo.gateway.DataPushReceiverListener;
 import edu.vu.isis.ammo.gateway.GatewayConnector;
@@ -177,14 +175,14 @@ class PluginServiceHandler implements
 		ackMsg.setDestinationUser(ack.destinationUser);
 		ackMsg.setAcknowledgingDevice(ack.acknowledgingDevice);
 		ackMsg.setAcknowledgingUser(ack.acknowledgingUser);
-		Builder thresholds = ackMsg.getThresholdBuilder();
+		AmmoMessages.AcknowledgementThresholds.Builder thresholds = ackMsg.getThresholdBuilder();
 		thresholds.setDeviceDelivered(ack.deviceDelivered);
 		thresholds.setPluginDelivered(ack.pluginDelivered);
 		
 		AmmoMessages.MessageWrapper.Builder msg =
 			    AmmoMessages.MessageWrapper.newBuilder();
 		msg.setPushAcknowledgement(ackMsg.build());
-		msg.setType(MessageType.PUSH_ACKNOWLEDGEMENT);
+		msg.setType(AmmoMessages.MessageWrapper.MessageType.PUSH_ACKNOWLEDGEMENT);
 		
 		mRmcastConnector.sendMessage(msg.build());
     }
