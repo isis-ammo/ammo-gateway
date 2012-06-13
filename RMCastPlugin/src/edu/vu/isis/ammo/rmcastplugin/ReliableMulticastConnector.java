@@ -10,43 +10,32 @@ purpose whatsoever, and to have or authorize others to do so.
 */
 package edu.vu.isis.ammo.rmcastplugin;
 
-import java.io.IOException;
 import java.io.File;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
-import java.net.Socket;
 import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.BufferUnderflowException;
-import java.nio.channels.AsynchronousCloseException;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SocketChannel;
-import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.CRC32;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.jgroups.Address;
 import org.jgroups.Channel;
 import org.jgroups.ChannelListener;
-import org.jgroups.ReceiverAdapter;
 import org.jgroups.JChannel;
 import org.jgroups.MembershipListener;
+import org.jgroups.ReceiverAdapter;
 import org.jgroups.View;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.vu.isis.ammo.core.pb.AmmoMessages;
 
