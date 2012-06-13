@@ -80,6 +80,7 @@ class PluginServiceHandler implements
 
     public void onAmmoMessageReceived( AmmoMessages.MessageWrapper message ) // from RMCastConnector
     {
+    	logger.info("received a message: {}", message.getType());
 	if (message.getType() == AmmoMessages.MessageWrapper.MessageType.DATA_MESSAGE) { // data message convert to push message
 	    PushData pushData = new PushData();
 	    AmmoMessages.DataMessage dataMessage = message.getDataMessage();
@@ -97,6 +98,24 @@ class PluginServiceHandler implements
 		MessageScope.SCOPE_LOCAL;
 	    mGatewayConnector.pushData(pushData);
 	    logger.info("received push message from: {} {}", pushData.originUserName, pushData);
+	} else if(message.getType() == AmmoMessages.MessageWrapper.MessageType.PUSH_ACKNOWLEDGEMENT) {
+		PushAcknowledgement out = new PushAcknowledgement();
+		AmmoMessages.PushAcknowledgement in = message.getPushAcknowledgement();
+		out.acknowledgingDevice = in.getAcknowledgingDevice();
+		out.acknowledgingUser = in.getAcknowledgingUser();
+		out.destinationDevice = in.getDestinationDevice();
+		out.destinationUser = in.getDestinationUser();
+		out.deviceDelivered = in.getThreshold().getDeviceDelivered();
+		out.pluginDelivered = in.getThreshold().getPluginDelivered();
+		switch (in.getStatus()) {
+		case FAIL: out.status = edu.vu.isis.ammo.gateway.PushStatus.PUSH_FAIL; break;
+		case RECEIVED: out.status = edu.vu.isis.ammo.gateway.PushStatus.PUSH_RECEIVED; break;
+		case REJECTED: out.status = edu.vu.isis.ammo.gateway.PushStatus.PUSH_RECEIVED; break;
+		case SUCCESS: out.status = edu.vu.isis.ammo.gateway.PushStatus.PUSH_SUCCESS; break;
+		}
+		out.uid = in.getUri();
+		mGatewayConnector.pushAcknowledgement(out);
+		logger.info("received push ack from: {} {}", out.acknowledgingUser, out);
 	} else 	if (false) { // TBD SKN message.getType() == AmmoMessages.MessageWrapper.MessageType.SUBSCRIBE_MESSAGE) {
 	    // subscribe message check the sub map to see if we are not already subscribed to this type
 	    AmmoMessages.SubscribeMessage subscribeMessage = message.getSubscribeMessage();
