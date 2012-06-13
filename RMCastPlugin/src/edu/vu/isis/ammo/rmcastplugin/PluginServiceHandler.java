@@ -222,7 +222,13 @@ class PluginServiceHandler implements
 	pushMsg.setMimeType( pushData.mimeType );
 	pushMsg.setEncoding( pushData.encoding );
 	pushMsg.setUserId( pushData.originUserName );
+	pushMsg.setOriginDevice( pushData.originDevice );
 	pushMsg.setData( ByteString.copyFrom(pushData.data) );
+	AmmoMessages.AcknowledgementThresholds.Builder thresholds = 
+			AmmoMessages.AcknowledgementThresholds.newBuilder();
+	thresholds.setDeviceDelivered(pushData.ackThresholds.deviceDelivered);
+	thresholds.setPluginDelivered(pushData.ackThresholds.pluginDelivered);
+	pushMsg.setThresholds(thresholds.build());
 	pushMsg.setScope( pushData.scope == MessageScope.SCOPE_GLOBAL ? AmmoMessages.MessageScope.GLOBAL : AmmoMessages.MessageScope.LOCAL );
 
 	msg.setType( AmmoMessages.MessageWrapper.MessageType.DATA_MESSAGE );
