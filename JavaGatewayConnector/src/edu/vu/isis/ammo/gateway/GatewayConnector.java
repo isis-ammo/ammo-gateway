@@ -514,6 +514,7 @@ public class GatewayConnector {
 	pushAck.destinationDevice = msg.getDestinationDevice();
 	pushAck.acknowledgingDevice = msg.getAcknowledgingDevice();
 	pushAck.destinationUser = msg.getDestinationUser();
+	pushAck.acknowledgingUser = msg.getAcknowledgingUser();
 	pushAck.deviceDelivered = msg.getThreshold().getDeviceDelivered();
 	pushAck.pluginDelivered = msg.getThreshold().getPluginDelivered();
 	
