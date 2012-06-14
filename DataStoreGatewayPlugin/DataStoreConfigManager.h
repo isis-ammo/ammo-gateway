@@ -43,6 +43,9 @@ public:
 	const std::string &getChatMimeType (void) const;
 	void setChatMimeType (const std::string &val);
 	
+	const std::string &getChatMediaMimeType (void) const;
+	void setChatMediaMimeType (const std::string &val);
+	
 private:
   DataStoreConfigManager (
 	  DataStoreReceiver *receiver,
@@ -65,6 +68,7 @@ private:
   std::string locations_mime_type_;
   std::string private_contacts_mime_type_;
   std::string chat_mime_type_;
+  std::string chat_media_mime_type_;
 };
 
 #endif // DATASTORE_CONFIG_MANAGER_H

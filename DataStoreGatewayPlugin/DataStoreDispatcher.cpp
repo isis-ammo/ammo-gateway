@@ -82,7 +82,8 @@ DataStoreDispatcher::dispatchPullRequest (sqlite3 *db,
       EventQueryHandler handler (db, sender, pr);
       handler.handleQuery ();
     }
-  else if (pr.mimeType == cfg_mgr_->getMediaMimeType ())
+  else if (pr.mimeType == cfg_mgr_->getMediaMimeType ()
+           || pr.mimeType == cfg_mgr_->getChatMediaMimeType ())
     {
       MediaQueryHandler handler (db, sender, pr);
       handler.handleQuery ();

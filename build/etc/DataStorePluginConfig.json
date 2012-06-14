@@ -6,6 +6,7 @@
   "PrivateContactsMimeType": "ammo/edu.vu.isis.ammo.private_contacts",
   "LocationsMimeType": "ammo/vnd.com.aterrasys.nevada.locations",
   "ChatMimeType": "ammo/transapps.chat.message",
+  "ChatMediaMimeType": "ammo/transapps.chat.media",
   "DatabasePath": "/var/db/ammo-gateway"
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)
