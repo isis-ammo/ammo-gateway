@@ -7,6 +7,9 @@
 #include "protocol/AmmoMessages.pb.h"
 #include <vector>
 #include <queue>
+#ifdef WIN32
+  #include <windows.h>
+#endif
 
 class SerialMessageProcessor;
 
@@ -26,7 +29,7 @@ struct MessageHeader {
 };
 
 //error values for MessageHeader
-const char NO_ERROR = 0;
+const char SS_NO_ERROR = 0;
 const char INVALID_MAGIC_NUMBER = 1;
 const char INVALID_HEADER_CHECKSUM = 2;
 const char INVALID_MESSAGE_CHECKSUM = 3;
@@ -70,7 +73,11 @@ public:
   ~SerialServiceHandler();
   
 protected:
+#ifdef WIN32
+  HANDLE hComm;
+#else
   int gFD;
+#endif
 
   unsigned char read_a_char();
 

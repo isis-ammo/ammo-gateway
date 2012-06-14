@@ -69,7 +69,8 @@ namespace ammo {
                                         ///  nulls).
       std::string originUsername;       ///< The username of the user who generated this data.  May be
                                         ///  overwritten by the gateway in some cases.  Optional.
-      std::string originDevice;
+      std::string originDevice;         ///< A unique identifier for this plugin.  Used for acknowledgement
+                                        ///  routing; must be unique or acknowledgements will be misrouted.
       ammo::gateway::MessageScope scope;///< The scope of this object (determines how many gateways to send
                                         ///  this object to in a multiple gateway configuration).  Optional,
                                         ///  will default to SCOPE_GLOBAL.
@@ -87,16 +88,20 @@ namespace ammo {
     class LibGatewayConnector_Export PushAcknowledgement {
     public:
       PushAcknowledgement();
-      std::string uid;
-      std::string destinationDevice;
-      std::string acknowledgingDevice;
-      std::string destinationUser;
-      std::string acknowledgingUser;
-      
-      bool deviceDelivered;
-      bool pluginDelivered;
-      
-      ammo::gateway::PushStatus status;
+      std::string uid;                  ///< The unique identifier of the message being acknowledged.  In the
+                                        ///  current version of the API, this field corresponds to the "uri"
+                                        ///  parameter in PushData.
+      std::string destinationDevice;    ///< The device to send the acknowledgement to.
+      std::string acknowledgingDevice;  ///< The device sending the acknowledgement.
+      std::string destinationUser;      ///< The username of the user to send the acknowledgement to.
+      std::string acknowledgingUser;    ///< The username of the user sending the acknowledgement.
+                                        
+      bool deviceDelivered;             ///< If true, indicates that this acknowledgement was sent in response
+                                        ///  to delivery to a device.
+      bool pluginDelivered;             ///< If true, indicates that this acknowledgement was sent in response
+                                        ///  to delivery to a device.
+                                        
+      ammo::gateway::PushStatus status; ///< The status of the message being acknowledged.
     };
     
     /**
