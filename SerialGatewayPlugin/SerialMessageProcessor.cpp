@@ -134,19 +134,25 @@ void SerialMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg)
 std::string originUser;
       switch( dataMessage.mime_type() ) {
       case 1:			// SMS - not implemented
-	return;
+          return;
       case 2:			// PLI
-	pushData.mimeType = "ammo/transapps.pli.locations";
-	pushData.data = parseTerseData(2, dataMessage.data().c_str(), originUser );
-	pushData.uri = "serial-pli";
+	      pushData.mimeType = "ammo/transapps.pli.locations";
+	      pushData.data = parseTerseData(2, dataMessage.data().c_str(), originUser );
+	      pushData.uri = "serial-pli";
         pushData.originUsername = originUser;
-	break;
+        break;
       case 3:			// Dash
-	pushData.mimeType = "ammo/edu.vu.isis.ammo.dash.event";
-	pushData.data = parseTerseData(3, dataMessage.data().c_str(), originUser );
-	pushData.uri = "serial-dash-event";
+        pushData.mimeType = "ammo/edu.vu.isis.ammo.dash.event";
+        pushData.data = parseTerseData(3, dataMessage.data().c_str(), originUser );
+        pushData.uri = "serial-dash-event";
         pushData.originUsername = originUser;
-	break;
+        break;
+      case 4:			// Dash
+        pushData.mimeType = "ammo/transapps.chat.message_groupAll";
+        pushData.data = parseTerseData(4, dataMessage.data().c_str(), originUser );
+        pushData.uri = "serial-chat";
+        pushData.originUsername = originUser;
+        break;
       }
 
       pushData.scope = scope;
@@ -342,6 +348,7 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
     */
     {
       std::string originator = extractString(terse, cursor);
+      originUser = originator;
       std::string text = extractString(terse, cursor);
       long long created = extractLongLong(terse, cursor);
       ACE_Utils::UUID *uuid = ACE_Utils::UUID_GENERATOR::instance ()->generate_UUID ();
