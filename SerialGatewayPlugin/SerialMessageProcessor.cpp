@@ -281,6 +281,21 @@ void SerialMessageProcessor::onAuthenticationResponse(GatewayConnector *sender, 
   commsHandler->sendMessage(newMsg, DEFAULT_PRIORITY);
 }
 
+std::string SerialMessageProcessor::extractString(const char *terse, int& cursor)
+{
+  uint16_t nlen = ntohs ( *(uint16_t *)&(terse[cursor]) ); cursor += 2;
+  std::ostringstream oname;
+  for (uint16_t i=0; i<nlen; i++) {
+    oname << terse[cursor]; cursor += 1;
+  }
+  return oname.str();
+}
+
+long long SerialMessageProcessor::extractLongLong(const char *terse, int& cursor)
+{
+  return ntohll( *(long long *)&terse[cursor] ); cursor += 8;
+}
+
 
 std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, std::string &originUser) {
   std::ostringstream jsonStr;
@@ -291,32 +306,24 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
     LID -- Java Long (8)
     UserId - Java Long (8)
     UnitId - Java Long (8)
-    Name - Text : Int (4), Unicode Char (2 per)
+    Name - Text : Int (2), UTF8 Char (1 byte per)
     Lat - Java Long (8)
     Lon - Java Long (8)
     Created - Java Long (8)
     Modified - Java Long (8)
     */
+    /* this will need to change - as MAP PLI definition is goig to change */
     {
       uint64_t lid  = ntohll( *(uint64_t *)&(terse[cursor]) ); cursor += 8;
       uint64_t uid  = ntohll( *(uint64_t *)&(terse[cursor]) ); cursor += 8;
       uint64_t unid = ntohll( *(uint64_t *)&(terse[cursor]) ); cursor += 8;
-      uint32_t nlen = ntohl ( *(uint32_t *)&(terse[cursor]) ); cursor += 4;
-      LOG_INFO((long) this << std::hex << "PLI: l(" << lid << ") u(" << uid << ") un(" << unid << ") nl(" << nlen  << ")");
-      
-      std::ostringstream oname;
-      for (uint32_t i=0; i<nlen; i++) {
-        uint16_t uchar = ntohs( *(uint16_t *)&terse[cursor] ); cursor += 2;
-        oname << static_cast<uint8_t>(uchar & 0xff);
-      }
-      long long lat      = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
-      long long lon      = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
-      long long created  = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
-      long long modified = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
+      LOG_INFO((long) this << std::hex << "PLI: l(" << lid << ") u(" << uid << ") un(" << unid << ")");
+      originUser = extractString(terse, cursor);
+      long long lat      = extractLongLong(terse, cursor);
+      long long lon      = extractLongLong(terse, cursor);
+      long long created  = extractLongLong(terse, cursor);
+      long long modified = extractLongLong(terse, cursor);
 
-      originUser = oname.str();
-      
-      
       // JSON
       // {\"lid\":\"0\",\"lon\":\"-74888318\",\"unitid\":\"1\",\"created\":\"1320329753964\",\"name\":\"ahammer\",\"userid\":\"731\",\"lat\":\"40187744\",\"modified\":\"0\"}
       jsonStr << "{\"lid\":\"" << lid << "\",\"userid\":\"" << uid << "\",\"unitid\":\"" << unid << "\",\"name\":\"" << oname.str()
@@ -327,6 +334,24 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
     break;
   case 3:			// Dash-Event
     break;
+  case 4:`			// Group-chat
+    /*
+      originator - Text : Int (2), UTF Char (1 byte per)
+      text - Text : Int (2), UTF Char (1 byte per)
+      created_date Java Long (8)
+    */
+    {
+      std::string originator = extractString(terse, cursor);
+      std::string text = extractString(terse, cursor);
+      long long created = extractLongLong(terse, cursor);
+      ACE_Utils::UUID *uuid = ACE_Utils::UUID_GENERATOR::instance ()->generate_UUID ();
+      std:: string uuid = uuid->to_string();
+      // JSON
+      // "{\"created_date\":\"1339572928976\",\"text\":\"Wwwww\",\"modified_date\":\"1339572928984\",\"status\":\"21\",\"receipts\":\"0\",\"group_id\":\"All\",\"media_count\":\"0\",\"longitude\":\"0\",\"uuid\":\"9bf10c58-9154-4be8-8f63-e6a79a5ecbc1\",\"latitude\":\"0\",\"originator\":\"mark\"}"
+      jsonStr << "{\"created_date\":\"" << created << "\",\"text\":\"" << text << "\",\"modified_date\":\"" << created << "\",\"status\":\"21\",\"receipts\":\"0\",\"group_id\":\"All\",\"media_count\":\"0\",\"longitude\":\"0\",\"uuid\":\"" << uuid << "\",\"latitude\":\"0\",\"originator\":\""<< originator << "\"}"
+    }
+					     
+    
   }
   LOG_INFO((long) this << jsonStr.str() );
   
