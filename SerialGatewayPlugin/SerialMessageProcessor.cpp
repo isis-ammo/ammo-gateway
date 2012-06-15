@@ -326,7 +326,7 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
 
       // JSON
       // {\"lid\":\"0\",\"lon\":\"-74888318\",\"unitid\":\"1\",\"created\":\"1320329753964\",\"name\":\"ahammer\",\"userid\":\"731\",\"lat\":\"40187744\",\"modified\":\"0\"}
-      jsonStr << "{\"lid\":\"" << lid << "\",\"userid\":\"" << uid << "\",\"unitid\":\"" << unid << "\",\"name\":\"" << oname.str()
+      jsonStr << "{\"lid\":\"" << lid << "\",\"userid\":\"" << uid << "\",\"unitid\":\"" << unid << "\",\"name\":\"" << originUser
         << "\",\"lat\":\"" << lat << "\",\"lon\":\"" << lon << "\",\"created\":\"" << created << "\",\"modified\":\"" << modified
         << "\"}";
     }
@@ -334,7 +334,7 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
     break;
   case 3:			// Dash-Event
     break;
-  case 4:`			// Group-chat
+  case 4:			// Group-chat
     /*
       originator - Text : Int (2), UTF Char (1 byte per)
       text - Text : Int (2), UTF Char (1 byte per)
@@ -345,10 +345,9 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
       std::string text = extractString(terse, cursor);
       long long created = extractLongLong(terse, cursor);
       ACE_Utils::UUID *uuid = ACE_Utils::UUID_GENERATOR::instance ()->generate_UUID ();
-      std:: string uuid = uuid->to_string();
       // JSON
       // "{\"created_date\":\"1339572928976\",\"text\":\"Wwwww\",\"modified_date\":\"1339572928984\",\"status\":\"21\",\"receipts\":\"0\",\"group_id\":\"All\",\"media_count\":\"0\",\"longitude\":\"0\",\"uuid\":\"9bf10c58-9154-4be8-8f63-e6a79a5ecbc1\",\"latitude\":\"0\",\"originator\":\"mark\"}"
-      jsonStr << "{\"created_date\":\"" << created << "\",\"text\":\"" << text << "\",\"modified_date\":\"" << created << "\",\"status\":\"21\",\"receipts\":\"0\",\"group_id\":\"All\",\"media_count\":\"0\",\"longitude\":\"0\",\"uuid\":\"" << uuid << "\",\"latitude\":\"0\",\"originator\":\""<< originator << "\"}"
+      jsonStr << "{\"created_date\":\"" << created << "\",\"text\":\"" << text << "\",\"modified_date\":\"" << created << "\",\"status\":\"21\",\"receipts\":\"0\",\"group_id\":\"All\",\"media_count\":\"0\",\"longitude\":\"0\",\"uuid\":\"" << uuid->to_string() << "\",\"latitude\":\"0\",\"originator\":\""<< originator << "\"}";
     }
 					     
     
