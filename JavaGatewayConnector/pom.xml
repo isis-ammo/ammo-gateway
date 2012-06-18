@@ -29,7 +29,7 @@
 <!--parent>
   <groupId>edu.vu.isis</groupId>
   <artifactId>ammo-parent</artifactId>
-  <version>1.5.7</version>
+  <version>1.5.5-SNAPSHOT</version>
 </parent-->
 
 
@@ -38,9 +38,9 @@
   <distributionManagement>
      <repository>
         <id>nexus-vanderbilt</id>
-        <url>${vandylib.repo.url}</url>
+        <url>${vandylib.release.url}</url>
      </repository>
-     <!--<snapshotRepository>
+     <snapshotRepository>
          <id>nexus-snapshot</id>
          <url>${vandylib.snapshot.url}</url>
      </snapshotRepository>
@@ -114,19 +114,9 @@
                  <arg value="-These Need to be double dashesproto_path=${basedir}/../common/protocol"/>
                  <arg value="${basedir}/../common/protocol/AmmoMessages.proto"/>
                </exec>
-<<<<<<< HEAD
-<<<<<<< HEAD
-	       <exec executable="protoc">
-=======
-               <exec executable="protoc">
->>>>>>> master
-                 <arg value="--java_out=./gen/ammo/gateway/protocol/"/>
-                 <arg value="--proto_path=${basedir}/../common/protocol"/>
-=======
                <exec executable="${com.google.protobuf:protoc-gateway:exe}">
                  <arg value="-These Need to be double dashesjava_out=./gen/"/>
                  <arg value="-These Need to be double dashesproto_path=${basedir}/../common/protocol"/>
->>>>>>> master
                  <arg value="${basedir}/../common/protocol/GatewayPrivateMessages.proto"/>
                </exec>
              </tasks>
@@ -239,11 +229,7 @@
                   <configuration>
                       <file>gatewaypluginapi-javadoc.jar</file>
                       <repositoryId>nexus-vanderbilt</repositoryId>
-<<<<<<< HEAD
-                      <url>${vandylib.repo.url}</url>
-=======
                       <url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/${repo.addr}</url>
->>>>>>> master
                       <generatePom>false</generatePom>
                       <groupId>edu.vu.isis.ammo</groupId>
                       <artifactId>gatewaypluginapi</artifactId>
@@ -273,7 +259,8 @@
             <dependency>
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
-                <version>2.3.0</version>
+                <version>2.4.1</version>    <!--Your installed version of protoc (protobuf-compiler) MUST match this version. -->
+                                            <!--You can change this version to match yours (maybe) but it's untested below 2.3.0. -->
             </dependency>
             <!--dependency>      See the profiles for this 
                 <groupId>com.google.protobuf</groupId>
