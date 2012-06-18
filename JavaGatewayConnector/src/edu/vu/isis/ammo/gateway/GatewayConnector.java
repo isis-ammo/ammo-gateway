@@ -130,8 +130,8 @@ public class GatewayConnector {
 
 	GatewayPrivateMessages.AcknowledgementThresholds.Builder ackThresholds =
 	    GatewayPrivateMessages.AcknowledgementThresholds.newBuilder();
-	ackThresholds.setDeviceDelivered(pushData.ackThresholds.deviceDelivered);
-	ackThresholds.setPluginDelivered(pushData.ackThresholds.pluginDelivered);
+	ackThresholds.setDeviceDelivered(pushData.ackThresholds != null ? pushData.ackThresholds.deviceDelivered : false);
+	ackThresholds.setPluginDelivered(pushData.ackThresholds != null ? pushData.ackThresholds.pluginDelivered : false);
 
 	pushMsg.setThresholds(ackThresholds.build());
 
