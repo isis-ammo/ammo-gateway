@@ -22,7 +22,7 @@ if [ -n "${GATEWAY_ROOT+x}" ]; then
   pushd "$GATEWAY_ROOT/MCastPlugin"
 
   $JAVA_CMD -Djava.net.preferIPv4Stack=true -cp \
-      libs/gatewaypluginapi.jar:libs/slf4j-api-1.6.4.jar:libs/slf4j-simple-1.6.4.jar:libs/json-20090211.jar:libs/jgroups-gw.jar:libs/protobuf-java-2.3.0.jar:dist/lib/mcastplugin.jar \
+      libs/gatewaypluginapi.jar:libs/slf4j-api-1.6.4.jar:libs/slf4j-simple-1.6.4.jar:libs/json-20090211.jar:libs/jgroups-gw.jar:libs/protobuf-java-2.4.1.jar:dist/lib/mcastplugin.jar \
       edu.vu.isis.ammo.mcastplugin.McastPlugin
 
   popd
@@ -33,7 +33,7 @@ else
   pushd /usr/share/java
 
   $JAVA_CMD -Djava.net.preferIPv4Stack=true -cp \
-    gatewaypluginapi.jar:slf4j-api-1.6.4.jar:slf4j-simple-1.6.4.jar:json-20090211.jar:jgroups-gw.jar:protobuf-java-2.3.0.jar:mcastplugin.jar \
+    gatewaypluginapi.jar:slf4j-api-1.6.4.jar:slf4j-simple-1.6.4.jar:json-20090211.jar:jgroups-gw.jar:protobuf-java-2.4.1.jar:mcastplugin.jar \
     edu.vu.isis.ammo.mcastplugin.McastPlugin
 
   popd
