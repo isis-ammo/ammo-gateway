@@ -289,10 +289,31 @@ void SerialMessageProcessor::onAuthenticationResponse(GatewayConnector *sender, 
 
 std::string SerialMessageProcessor::extractString(const char *terse, int& cursor)
 {
-  uint16_t nlen = ntohs ( *(uint16_t *)&(terse[cursor]) ); cursor += 2;
+  uint16_t nlen = ntohs ( *(uint16_t *)&(terse[cursor]) );
+  if(nlen > 0) {
+    cursor += 2;
+    std::ostringstream oname;
+    for (uint16_t i=0; i<nlen; i++) {
+      oname << terse[cursor]; cursor += 1;
+    }
+    return oname.str();
+  } else {
+    //fall back to old-style string encoding (four-byte length, UTF-16 string) if
+    //size is 0.  Hopefully, we don't receive anything legitimate with a length
+    //of 0 (PLI and Chat don't seem to, but this is something to keep an eye out
+    //for).
+    LOG_WARN("Falling back to old string encoding");
+    return extractOldStyleString(terse, cursor);
+  }
+}
+
+std::string SerialMessageProcessor::extractOldStyleString(const char *terse, int& cursor)
+{
+  uint32_t nlen = ntohl ( *(uint32_t *)&(terse[cursor]) ); cursor += sizeof(uint32_t);
   std::ostringstream oname;
-  for (uint16_t i=0; i<nlen; i++) {
-    oname << terse[cursor]; cursor += 1;
+  for (uint32_t i=0; i<nlen; i++) {
+    uint16_t uchar = ntohs( *(uint16_t *)&terse[cursor] ); cursor += 2;
+    oname << static_cast<uint8_t>(uchar & 0xff);
   }
   return oname.str();
 }

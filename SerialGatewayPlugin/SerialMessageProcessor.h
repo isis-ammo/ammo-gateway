@@ -48,6 +48,7 @@ private:
   void processMessage(ammo::protocol::MessageWrapper &msg);
   std::string parseTerseData(int mt, const char *data, std::string &originUser );
   std::string extractString(const char *terse, int& cursor);
+  std::string extractOldStyleString(const char *terse, int& cursor);
   long long extractLongLong(const char *terse, int& cursor);
   friend void testParseTerse();
 };
