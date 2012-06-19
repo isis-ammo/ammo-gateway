@@ -264,7 +264,7 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
   File RMCastPlugin\libs\jgroups-gw.jar
   ; jars from here down are also prereqs for mcastplugin
   File RMCastPlugin\libs\json-20090211.jar
-  File RMCastPlugin\libs\protobuf-java-2.3.0.jar
+  File RMCastPlugin\libs\protobuf-java-2.4.1.jar
   File RMCastPlugin\libs\slf4j-api-1.6.4.jar
   File RMCastPlugin\libs\slf4j-simple-1.6.4.jar
   SetOutPath $APPDATA\ammo-gateway
@@ -487,7 +487,7 @@ Section Uninstall
   Delete $INSTDIR\bin\rmcastplugin.jar
   Delete $INSTDIR\bin\jgroups-gw.jar
   Delete $INSTDIR\bin\json-20090211.jar
-  Delete $INSTDIR\bin\protobuf-java-2.3.0.jar
+  Delete $INSTDIR\bin\protobuf-java-2.4.1.jar
   Delete $INSTDIR\bin\slf4j-api-1.6.4.jar
   Delete $INSTDIR\bin\slf4j-simple-1.6.4.jar
 
