@@ -136,7 +136,7 @@ std::string originUser;
       case 1:			// SMS - not implemented
           return;
       case 2:			// PLI
-	      pushData.mimeType = "ammo/transapps.pli.locations";
+	      pushData.mimeType = "ammo/com.aterrasys.nevada.locations";
 	      pushData.data = parseTerseData(2, dataMessage.data().c_str(), originUser );
 	      pushData.uri = "serial-pli";
         pushData.originUsername = originUser;
@@ -299,7 +299,9 @@ std::string SerialMessageProcessor::extractString(const char *terse, int& cursor
 
 long long SerialMessageProcessor::extractLongLong(const char *terse, int& cursor)
 {
-  return ntohll( *(long long *)&terse[cursor] ); cursor += 8;
+  long long result = ntohll( *(long long *)&terse[cursor] );
+  cursor += 8;
+  return result;
 }
 
 
