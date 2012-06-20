@@ -375,7 +375,7 @@ unsigned char SerialServiceHandler::read_a_char()
         printf("ReadFile failed with error code: %d", err);
 	    exit(-1);
       }
-	  Sleep(1);
+	  Sleep(0);
 	}
 #else
     ssize_t count = read( gFD, &temp, 1 );
