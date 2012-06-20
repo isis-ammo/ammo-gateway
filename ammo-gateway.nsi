@@ -141,7 +141,7 @@ ${MementoSection} "Gateway Core (required)" SecCore
   File build\etc\win32\GatewayConfig.json
   File build\etc\win32\LoggingConfig.json
 
-  SimpleSC::InstallService "GatewayCore" "Gateway Core" 16 2 "$INSTDIR\bin\GatewayCore.exe" "" "" ""
+  SimpleSC::InstallService "GatewayCore" "AMMO Gateway Core" 16 2 "$INSTDIR\bin\GatewayCore.exe" "" "" ""
 
 ${MementoSectionEnd}
 
@@ -162,7 +162,7 @@ ${MementoSection} "Android Gateway Plugin (required)" SecAndPlug
   SetOverwrite on
   File build\bin\AndroidGatewayPlugin.exe
 
-  SimpleSC::InstallService "AndroidGatewayPlugin" "Android Gateway Plugin" 16 2 "$INSTDIR\bin\AndroidGatewayPlugin.exe" "GatewayCore" "" ""
+  SimpleSC::InstallService "AndroidGatewayPlugin" "AMMO Android Gateway Plugin" 16 2 "$INSTDIR\bin\AndroidGatewayPlugin.exe" "GatewayCore" "" ""
 
 ${MementoSectionEnd}
 
@@ -185,7 +185,7 @@ ${MementoSection} "LDAP Gateway Plugin (required)" SecLdapPlug
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\LdapPluginConfig.json
 
-  SimpleSC::InstallService "LdapGatewayPlugin" "LDAP Gateway Plugin" 16 2 "$INSTDIR\bin\LdapGatewayPlugin.exe" "GatewayCore" "" ""
+  SimpleSC::InstallService "LdapGatewayPlugin" "AMMO LDAP Gateway Plugin" 16 2 "$INSTDIR\bin\LdapGatewayPlugin.exe" "GatewayCore" "" ""
 
 ${MementoSectionEnd}
 
@@ -208,7 +208,7 @@ ${MementoSection} "Data Store Gateway Plugin (required)" SecDatPlug
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\DataStorePluginConfig.json
 
-  SimpleSC::InstallService "DataStoreGatewayPlugin" "Data Store Gateway Plugin" 16 2 "$INSTDIR\bin\DataStoreGatewayPlugin.exe" "GatewayCore" "" ""
+  SimpleSC::InstallService "DataStoreGatewayPlugin" "AMMO Data Store Gateway Plugin" 16 2 "$INSTDIR\bin\DataStoreGatewayPlugin.exe" "GatewayCore" "" ""
 
 ${MementoSectionEnd}
 
