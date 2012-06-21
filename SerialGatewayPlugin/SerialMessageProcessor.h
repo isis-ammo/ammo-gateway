@@ -2,6 +2,7 @@
 #define SERIAL_MESSAGE_PROCESSOR_H
 
 #include "ace/Task.h"
+#include "ace/UUID.h"
 #include "protocol/AmmoMessages.pb.h"
 #include "GatewayConnector.h"
 
@@ -46,6 +47,11 @@ private:
   bool isClosed();
   void processMessage(ammo::protocol::MessageWrapper &msg);
   std::string parseTerseData(int mt, const char *data, std::string &originUser );
+  std::string extractString(const char *terse, int& cursor);
+  std::string extractOldStyleString(const char *terse, int& cursor);
+  int16_t extractInt16(const char *terse, int& cursor);
+  int32_t extractInt32(const char *terse, int& cursor);
+  int64_t extractInt64(const char *terse, int& cursor);
   friend void testParseTerse();
 };
 
