@@ -98,6 +98,10 @@ DataStoreDispatcher::dispatchPullRequest (sqlite3 *db,
       ContactsQueryHandler handler (db, sender, pr);
       handler.handleQuery ();
     }
+  else
+    {
+      LOG_TRACE ("query mime type not matched.");
+    }
 }
 
 void
