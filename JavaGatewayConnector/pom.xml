@@ -566,13 +566,16 @@
                   <exec executable="echo">
                     <arg value="${os.arch}"/>
                   </exec>
-                  <property name="proto.dir" value="../../Gateway/common/protocol"/>
-                  <echo>Generating protocol buffers</echo>
-                  <exec executable="protoc" taskname="pb">
-                    <arg value="--proto_path"/>
-                    <arg value="${proto.dir}"/>
-                    <arg value="--java_out=target/generated-sources"/>
-                    <arg value="${proto.dir}/AmmoMessages.proto"/>
+                  <mkdir dir="./gen/ammo/gateway/protocol/"/>
+                  <exec executable="protoc">
+                    <arg value="--java_out=./gen/"/>
+                    <arg value="--proto_path=${basedir}/../common/protocol"/>
+                    <arg value="${basedir}/../common/protocol/AmmoMessages.proto"/>
+                  </exec>
+                  <exec executable="protoc">
+                    <arg value="--java_out=./gen/"/>
+                    <arg value="--proto_path=${basedir}/../common/protocol"/>
+                    <arg value="${basedir}/../common/protocol/GatewayPrivateMessages.proto"/>
                   </exec>
                 </tasks>
                 <sourceRoot>target/generated-sources</sourceRoot>
