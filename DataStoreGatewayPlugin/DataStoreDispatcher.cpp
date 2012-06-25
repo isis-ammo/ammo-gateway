@@ -11,6 +11,7 @@
 #include "SMSQueryHandler.h"
 #include "ContactsQueryHandler.h"
 #include "ChatQueryHandler.h"
+#include "ChatMediaQueryHandler.h"
 
 #include "OriginalPushHandler.h"
 #include "ContactsPushHandler.h"
@@ -82,10 +83,14 @@ DataStoreDispatcher::dispatchPullRequest (sqlite3 *db,
       EventQueryHandler handler (db, sender, pr);
       handler.handleQuery ();
     }
-  else if (pr.mimeType == cfg_mgr_->getMediaMimeType ()
-           || pr.mimeType == cfg_mgr_->getChatMediaMimeType ())
+  else if (pr.mimeType == cfg_mgr_->getMediaMimeType ())
     {
       MediaQueryHandler handler (db, sender, pr);
+      handler.handleQuery ();
+    }
+  else if (pr.mimeType == cfg_mgr_->getChatMediaMimeType ())
+    {
+      ChatMediaQueryHandler handler (db, sender, pr);
       handler.handleQuery ();
     }
   else if (pr.mimeType == cfg_mgr_->getPrivateContactsMimeType ())

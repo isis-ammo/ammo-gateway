@@ -14,6 +14,8 @@ project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin
   exename = DataStoreGatewayPlugin
 
   Source_Files {
+    ChatMediaQueryHandler.cpp
+    ChatMediaProjectionParser.cpp
     ChatQueryHandler.cpp
     ChatProjectionParser.cpp
     ContactsPushHandler.cpp
