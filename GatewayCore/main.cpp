@@ -67,19 +67,10 @@ public:
   void stop();
 
 private:
-  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
-  //to the WFMO reactor, which has radically different semantics and
-  //violates assumptions we made in our code
-  ACE_Select_Reactor selectReactor;
-  ACE_Reactor newReactor;
-  auto_ptr<ACE_Reactor> delete_instance;
-
   ACE_Sig_Action no_sigpipe;
   ACE_Sig_Action original_action;
 
   SigintHandler* handleExit;
-
-  
 
   //Creates and opens the socket acceptor; registers with the singleton ACE_Reactor for accept events
   NetworkAcceptor<ammo::gateway::protocol::GatewayWrapper, GatewayEventHandler, ammo::gateway::internal::SYNC_MULTITHREADED, 0xdeadbeef>* acceptor;
@@ -102,11 +93,9 @@ void App::destroy()
   _instance = NULL;
 }
 
-App::App() : newReactor(&selectReactor),
-             delete_instance(ACE_Reactor::instance(&newReactor)),
-			 no_sigpipe((ACE_SignalHandler) SIG_IGN),  // Set signal handler for SIGPIPE (so we don't crash if a device disconnects during write)
-			 handleExit(NULL),
-			 acceptor(NULL)
+App::App() : no_sigpipe((ACE_SignalHandler) SIG_IGN),  // Set signal handler for SIGPIPE (so we don't crash if a device disconnects during write)
+             handleExit(NULL),
+             acceptor(NULL)
 {
 }
 
@@ -123,6 +112,13 @@ bool App::init(int argc, char* argv[])
   setupLogging("GatewayCore");
   LOG_FATAL("=========");
   LOG_FATAL("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+
+  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
+  //to the WFMO reactor, which has radically different semantics and
+  //violates assumptions we made in our code
+  ACE_Select_Reactor* selectReactor = new ACE_Select_Reactor;
+  ACE_Reactor* newReactor = new ACE_Reactor(selectReactor);
+  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(newReactor));
 
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
