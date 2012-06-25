@@ -166,28 +166,28 @@ ${MementoSection} "Android Gateway Plugin (required)" SecAndPlug
 
 ${MementoSectionEnd}
 
-${MementoSection} "LDAP Gateway Plugin (required)" SecLdapPlug
-
-  SetDetailsPrint textonly
-  DetailPrint "Installing LDAP Plugin ..."
-  SetDetailsPrint listonly
-
-  SimpleSC::StopService "LdapGatewayPlugin" "1" "30"
-  SimpleSC::RemoveService "LdapGatewayPlugin"
-
-  SectionIn 1 2 3 RO
-  ;SetOutPath $INSTDIR
-  ;RMDir /r $SMPROGRAMS\ammo-gateway
-
-  SetOutPath $INSTDIR\bin
-  SetOverwrite on
-  File build\bin\LdapGatewayPlugin.exe
-  SetOutPath $APPDATA\ammo-gateway
-  File build\etc\win32\LdapPluginConfig.json
-
-  SimpleSC::InstallService "LdapGatewayPlugin" "AMMO LDAP Gateway Plugin" 16 2 "$INSTDIR\bin\LdapGatewayPlugin.exe" "GatewayCore" "" ""
-
-${MementoSectionEnd}
+;${MementoSection} "LDAP Gateway Plugin (required)" SecLdapPlug
+;
+;  SetDetailsPrint textonly
+;  DetailPrint "Installing LDAP Plugin ..."
+;  SetDetailsPrint listonly
+;
+;  SimpleSC::StopService "LdapGatewayPlugin" "1" "30"
+;  SimpleSC::RemoveService "LdapGatewayPlugin"
+;
+;  SectionIn 1 2 3 RO
+;  ;SetOutPath $INSTDIR
+;  ;RMDir /r $SMPROGRAMS\ammo-gateway
+;
+;  SetOutPath $INSTDIR\bin
+;  SetOverwrite on
+;  File build\bin\LdapGatewayPlugin.exe
+;  SetOutPath $APPDATA\ammo-gateway
+;  File build\etc\win32\LdapPluginConfig.json
+;
+;  SimpleSC::InstallService "LdapGatewayPlugin" "AMMO LDAP Gateway Plugin" 16 2 "$INSTDIR\bin\LdapGatewayPlugin.exe" "GatewayCore" "" ""
+;
+;${MementoSectionEnd}
 
 ${MementoSection} "Data Store Gateway Plugin (required)" SecDatPlug
 
@@ -350,7 +350,7 @@ Section -post
   ; Start Windows services
   SimpleSC::StartService "GatewayCore" "" "30"
   SimpleSC::StartService "AndroidGatewayPlugin" "" "30"
-  SimpleSC::StartService "LdapGatewayPlugin" "" "30"
+  ;SimpleSC::StartService "LdapGatewayPlugin" "" "30"
   SimpleSC::StartService "DataStoreGatewayPlugin" "" "30"
 
   ${MementoSectionSave}
@@ -365,7 +365,7 @@ SectionEnd
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "The Gateway's Core Service"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAndPlug} "The Android Plugin Service for AMMO Gateway"
-  !insertmacro MUI_DESCRIPTION_TEXT ${SecLdapPlug} "The LDAP Plugin Service for AMMO Gateway"
+  ;!insertmacro MUI_DESCRIPTION_TEXT ${SecLdapPlug} "The LDAP Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecDatPlug} "The Data Store Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecVcredist} "The VC redist dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAce} "The ACE networking dependency"
@@ -432,12 +432,12 @@ Section Uninstall
   SimpleSC::StopService "GatewayCore" "1" "30"
   SimpleSC::StopService "AndroidGatewayPlugin" "1" "30"
   SimpleSC::StopService "DataStoreGatewayPlugin" "1" "30"
-  SimpleSC::StopService "LdapGatewayPlugin" "1" "30"
+  ;SimpleSC::StopService "LdapGatewayPlugin" "1" "30"
   ;SimpleSC::StopService "SerialGatewayPlugin" "1" "30"
   SimpleSC::RemoveService "GatewayCore"
   SimpleSC::RemoveService "AndroidGatewayPlugin"
   SimpleSC::RemoveService "DataStoreGatewayPlugin"
-  SimpleSC::RemoveService "LdapGatewayPlugin"
+  ;SimpleSC::RemoveService "LdapGatewayPlugin"
   ;SimpleSC::RemoveService "SerialGatewayPlugin"
 
   ; Gateway Core
@@ -448,7 +448,7 @@ Section Uninstall
   Delete $INSTDIR\bin\AndroidGatewayPlugin.exe
 
   ; LDAP Gateway Plugin
-  Delete $INSTDIR\bin\LdapGatewayPlugin.exe
+  ;Delete $INSTDIR\bin\LdapGatewayPlugin.exe
 
   ; Data Store Gateway Plugin
   Delete $INSTDIR\bin\DataStoreGatewayPlugin.exe
