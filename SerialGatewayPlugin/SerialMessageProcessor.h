@@ -6,6 +6,8 @@
 #include "protocol/AmmoMessages.pb.h"
 #include "GatewayConnector.h"
 
+#include <map>
+
 class SerialServiceHandler;
 
 class SerialMessageProcessor : public ACE_Task <ACE_MT_SYNCH>, public ammo::gateway::GatewayConnectorDelegate, public ammo::gateway::DataPushReceiverListener, public ammo::gateway::PullResponseReceiverListener {
@@ -44,14 +46,23 @@ private:
   std::string deviceId;
   bool deviceIdAuthenticated;
   
+  typedef std::map<std::string, uint32_t> TimestampMap;
+  TimestampMap latestPliTimestamps;
+  
   bool isClosed();
   void processMessage(ammo::protocol::MessageWrapper &msg);
   std::string parseTerseData(int mt, const char *data, std::string &originUser );
+  void parseGroupPliBlob(std::string groupPliBlob, int32_t baseLat, int32_t baseLon, uint32_t baseTime);
   std::string extractString(const char *terse, int& cursor);
   std::string extractOldStyleString(const char *terse, int& cursor);
+  std::string extractBlob(const char *terse, int& cursor);
+  int8_t extractInt8(const char *terse, int& cursor);
   int16_t extractInt16(const char *terse, int& cursor);
   int32_t extractInt32(const char *terse, int& cursor);
   int64_t extractInt64(const char *terse, int& cursor);
+  
+  std::string generateTransappsPli(std::string originUser, int32_t lat, int32_t lon, uint32_t created);
+  
   friend void testParseTerse();
 };
 

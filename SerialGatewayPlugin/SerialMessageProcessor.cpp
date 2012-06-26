@@ -324,6 +324,24 @@ std::string SerialMessageProcessor::extractOldStyleString(const char *terse, int
   return oname.str();
 }
 
+std::string SerialMessageProcessor::extractBlob(const char *terse, int& cursor)
+{
+  uint16_t length = ntohl ( *(uint16_t *)&(terse[cursor]) );
+  cursor += sizeof(uint16_t);
+  
+  std::string blob(&terse[cursor], length);
+  cursor += length;
+  
+  return blob;
+}
+
+int8_t SerialMessageProcessor::extractInt8(const char* terse, int& cursor)
+{
+  int8_t result = (int8_t) terse[cursor];
+  cursor += sizeof(int8_t);
+  return result;
+}
+
 int16_t SerialMessageProcessor::extractInt16(const char *terse, int& cursor)
 {
   int16_t result = ntohs( *(int16_t *)&terse[cursor] );
@@ -394,6 +412,11 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
       int32_t lat      = extractInt32(terse, cursor);
       int32_t lon      = extractInt32(terse, cursor);
       uint32_t created  = extractInt32(terse, cursor);
+      std::string groupPliBlob = extractBlob(terse, cursor);
+      
+      //update timestamp of last received PLI, so we know what the last 
+      //received time is for delta PLI
+      latestPliTimestamps[originUser] = created;
 
       // JSON
       // {\"lid\":\"0\",\"lon\":\"-74888318\",\"unitid\":\"1\",\"created\":\"1320329753964\",\"name\":\"ahammer\",\"userid\":\"731\",\"lat\":\"40187744\",\"modified\":\"0\"}
@@ -429,6 +452,51 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
   }
   LOG_INFO((long) this << jsonStr.str() );
   
+  return jsonStr.str();
+}
+
+void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t baseLat, int32_t baseLon, uint32_t baseTime) {
+  int cursor = 0;
+  const char *groupPliBlobArray = groupPliBlob.data();
+  
+  int8_t count = extractInt8(groupPliBlobArray, cursor);
+  for(int i = 0; i < count; ++i) {
+    std::string originUsername = extractString(groupPliBlobArray, cursor);
+    int32_t dLat = extractInt16(groupPliBlobArray, cursor);
+    int32_t dLon = extractInt16(groupPliBlobArray, cursor);
+    int16_t dCreatedTime = extractInt8(groupPliBlobArray, cursor);
+    
+    int32_t latitude = baseLat - dLat;
+    int32_t longitude = baseLon - dLon;
+    uint32_t createdTime = baseTime - dCreatedTime;
+    
+    TimestampMap::iterator it = latestTimestamps.find(originUsername);
+    if(it != latestTimestamps.end() && createdTime < it->second) {
+      //received delta PLI is older than the one we already have; discard it
+    } else {
+      //received delta PLI is newer than the one we have or we haven't gotten
+      //one before, update map and send it
+      latestTimestamps[originUsername] = createdTime;
+      std::string pliString = generateTransappsPli(originUsername, latitude, longitude, createdTime);
+      
+      PushData pushData;
+      pushData.mimeType = "ammo/transapps.pli.locations";
+    	pushData.data = pliString;
+    	pushData.uri = "serial-pli";
+      pushData.originUsername = originUsername;
+      pushData.scope = SCOPE_GLOBAL;
+      gatewayConnector->pushData(pushData);
+    }
+  }
+}
+
+std::string SerialMessageProcessor::generateTransappsPli(std::string originUser, int32_t lat, int32_t lon, uint32_t created) {
+  std::ostringstream jsonStr;
+  jsonStr << "{\"name\":\"" << originUser
+	        << "\",\"lat\":\"" << lat << "\",\"lon\":\"" << lon
+	        << "\",\"altitude\":\"" << 0 << "\",\"accuracy\":\"" << 0
+	        << "\",\"created\":\"" << 1000*(uint64_t)created << "\",\"modified\":\"" << 1000*(uint64_t)created
+	        << "\"}";
   return jsonStr.str();
 }
 
