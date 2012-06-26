@@ -473,6 +473,7 @@ void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t
     TimestampMap::iterator it = latestTimestamps.find(originUsername);
     if(it != latestTimestamps.end() && createdTime < it->second) {
       //received delta PLI is older than the one we already have; discard it
+      LOG_TRACE("Dropping PLI relay message from " << originUsername << " because it's too old");
     } else {
       //received delta PLI is newer than the one we have or we haven't gotten
       //one before, update map and send it
@@ -485,6 +486,8 @@ void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t
     	pushData.uri = "serial-pli";
       pushData.originUsername = originUsername;
       pushData.scope = SCOPE_GLOBAL;
+      
+      LOG_TRACE("Sending group PLI relay message: " << pushData.data);
       gatewayConnector->pushData(pushData);
     }
   }
