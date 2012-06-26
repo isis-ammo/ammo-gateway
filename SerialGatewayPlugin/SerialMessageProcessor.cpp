@@ -14,6 +14,19 @@ using namespace ammo::gateway;
 
 const char DEFAULT_PRIORITY = 50;
 
+//Mimetype string constants
+const char *NEVADA_PLI_MIMETYPE = "ammo/com.aterrasys.nevada.locations";
+const char *TRANSAPPS_PLI_MIMETYPE = "ammo/transapps.pli.locations";
+const char *DASH_EVENT_MIMETYPE = "ammo/edu.vu.isis.ammo.dash.event";
+const char *CHAT_MESSAGE_ALL_MIMETYPE = "ammo/transapps.chat.message_groupAll";
+
+//Serial type ID constants
+const int SMS_TYPEID = 1;
+const int NEVADA_PLI_TYPEID = 2;
+const int TRANSAPPS_PLI_TYPEID = 5;
+const int DASH_EVENT_TYPEID = 3;
+const int CHAT_MESSAGE_ALL_TYPEID = 4;
+
 SerialMessageProcessor::SerialMessageProcessor(SerialServiceHandler *serviceHandler) :
 closed(false),
 closeMutex(),
@@ -133,28 +146,28 @@ void SerialMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg)
       PushData pushData;
 std::string originUser;
       switch( dataMessage.mime_type() ) {
-      case 1:			// SMS - not implemented
+      case SMS_TYPEID:			// SMS - not implemented
           return;
-      case 2:			// PLI
-	pushData.mimeType = "ammo/com.aterrasys.nevada.locations";
+      case NEVADA_PLI_TYPEID:			// PLI
+	pushData.mimeType = NEVADA_PLI_MIMETYPE;
 	pushData.data = parseTerseData(2, dataMessage.data().c_str(), originUser );
 	pushData.uri = "serial-pli";
         pushData.originUsername = originUser;
         break;
-      case 5:			// New Transapps PLI
-	pushData.mimeType = "ammo/transapps.pli.locations";
+      case TRANSAPPS_PLI_TYPEID:			// New Transapps PLI
+	pushData.mimeType = TRANSAPPS_PLI_MIMETYPE;
 	pushData.data = parseTerseData(5, dataMessage.data().c_str(), originUser );
 	pushData.uri = "serial-pli";
         pushData.originUsername = originUser;
         break;
-      case 3:			// Dash
-        pushData.mimeType = "ammo/edu.vu.isis.ammo.dash.event";
+      case DASH_EVENT_TYPEID:			// Dash
+        pushData.mimeType = DASH_EVENT_MIMETYPE;
         pushData.data = parseTerseData(3, dataMessage.data().c_str(), originUser );
         pushData.uri = "serial-dash-event";
         pushData.originUsername = originUser;
         break;
-      case 4:			// Dash
-        pushData.mimeType = "ammo/transapps.chat.message_groupAll";
+      case CHAT_MESSAGE_ALL_TYPEID:			// Chat
+        pushData.mimeType = CHAT_MESSAGE_ALL_MIMETYPE;
         pushData.data = parseTerseData(4, dataMessage.data().c_str(), originUser );
         pushData.uri = "serial-chat";
         pushData.originUsername = originUser;
@@ -368,7 +381,7 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
   std::ostringstream jsonStr;
   int cursor = 0;
   switch(mt) {
-  case 2:			// PLI
+  case NEVADA_PLI_TYPEID:			// PLI
     /*
     LID -- Java Long (8)
     UserId - Java Long (8)
@@ -399,7 +412,7 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
     }
     
     break;
-  case 5:			// Transapps (Sandeep mod...) PLI
+  case TRANSAPPS_PLI_TYPEID:			// Transapps (Sandeep mod...) PLI
     /*
     Name - Text : Int (2), UTF8 Char (1 byte per)
     Lat - Java Int (4)
@@ -429,9 +442,9 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
     
     break;
 
-  case 3:			// Dash-Event
+  case DASH_EVENT_TYPEID:			// Dash-Event
     break;
-  case 4:			// Group-chat
+  case CHAT_MESSAGE_ALL_TYPEID:			// Group-chat
     /*
       originator - Text : Int (2), UTF Char (1 byte per)
       text - Text : Int (2), UTF Char (1 byte per)
@@ -450,7 +463,7 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
 					     
     
   }
-  LOG_INFO((long) this << jsonStr.str() );
+  LOG_TRACE((long) this << jsonStr.str() );
   
   return jsonStr.str();
 }
@@ -470,18 +483,18 @@ void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t
     int32_t longitude = baseLon - dLon;
     uint32_t createdTime = baseTime - dCreatedTime;
     
-    TimestampMap::iterator it = latestTimestamps.find(originUsername);
-    if(it != latestTimestamps.end() && createdTime < it->second) {
+    TimestampMap::iterator it = latestPliTimestamps.find(originUsername);
+    if(it != latestPliTimestamps.end() && createdTime < it->second) {
       //received delta PLI is older than the one we already have; discard it
       LOG_TRACE("Dropping PLI relay message from " << originUsername << " because it's too old");
     } else {
       //received delta PLI is newer than the one we have or we haven't gotten
       //one before, update map and send it
-      latestTimestamps[originUsername] = createdTime;
+      latestPliTimestamps[originUsername] = createdTime;
       std::string pliString = generateTransappsPli(originUsername, latitude, longitude, createdTime);
       
       PushData pushData;
-      pushData.mimeType = "ammo/transapps.pli.locations";
+      pushData.mimeType = TRANSAPPS_PLI_MIMETYPE;
     	pushData.data = pliString;
     	pushData.uri = "serial-pli";
       pushData.originUsername = originUsername;
