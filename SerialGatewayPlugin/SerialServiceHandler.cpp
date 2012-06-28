@@ -330,7 +330,7 @@ void SerialServiceHandler::receiveData() {
       break;
       
     case 2:
-	    LOG_DEBUG("SLOT[" << phone_id << "],Len[" << size << "]: ");
+	    LOG_DEBUG("SLOT[" << (int) phone_id << "],Len[" << size << "]: ");
 	    
 	    if(size < MAX_PAYLOAD_SIZE - 16) {
         for (unsigned short i = 0; i < size; ++i)
