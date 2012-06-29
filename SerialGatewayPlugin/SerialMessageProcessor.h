@@ -51,15 +51,15 @@ private:
   
   bool isClosed();
   void processMessage(ammo::protocol::MessageWrapper &msg);
-  std::string parseTerseData(int mt, const char *data, std::string &originUser );
+  std::string parseTerseData(int mt, const char *data, size_t terseLength, std::string &originUser );
   void parseGroupPliBlob(std::string groupPliBlob, int32_t baseLat, int32_t baseLon, uint32_t baseTime);
-  std::string extractString(const char *terse, int& cursor);
-  std::string extractOldStyleString(const char *terse, int& cursor);
-  std::string extractBlob(const char *terse, int& cursor);
-  int8_t extractInt8(const char *terse, int& cursor);
-  int16_t extractInt16(const char *terse, int& cursor);
-  int32_t extractInt32(const char *terse, int& cursor);
-  int64_t extractInt64(const char *terse, int& cursor);
+  std::string extractString(const char *terse, size_t& cursor, size_t length);
+  std::string extractOldStyleString(const char *terse, size_t& cursor, size_t length);
+  std::string extractBlob(const char *terse, size_t& cursor, size_t length);
+  int8_t extractInt8(const char *terse, size_t& cursor, size_t length);
+  int16_t extractInt16(const char *terse, size_t& cursor, size_t length);
+  int32_t extractInt32(const char *terse, size_t& cursor, size_t length);
+  int64_t extractInt64(const char *terse, size_t& cursor, size_t length);
   
   std::string generateTransappsPli(std::string originUser, int32_t lat, int32_t lon, uint32_t created);
   

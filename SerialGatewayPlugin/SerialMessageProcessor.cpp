@@ -144,31 +144,31 @@ void SerialMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg)
       MessageScope scope = SCOPE_GLOBAL;
       
       PushData pushData;
-std::string originUser;
+      std::string originUser;
       switch( dataMessage.mime_type() ) {
       case SMS_TYPEID:			// SMS - not implemented
           return;
       case NEVADA_PLI_TYPEID:			// PLI
-	pushData.mimeType = NEVADA_PLI_MIMETYPE;
-	pushData.data = parseTerseData(2, dataMessage.data().c_str(), originUser );
-	pushData.uri = "serial-pli";
+        pushData.mimeType = NEVADA_PLI_MIMETYPE;
+        pushData.data = parseTerseData(2, dataMessage.data().c_str(), dataMessage.data().length(), originUser );
+        pushData.uri = "serial-pli";
         pushData.originUsername = originUser;
         break;
       case TRANSAPPS_PLI_TYPEID:			// New Transapps PLI
-	pushData.mimeType = TRANSAPPS_PLI_MIMETYPE;
-	pushData.data = parseTerseData(5, dataMessage.data().c_str(), originUser );
-	pushData.uri = "serial-pli";
+        pushData.mimeType = TRANSAPPS_PLI_MIMETYPE;
+        pushData.data = parseTerseData(5, dataMessage.data().c_str(), dataMessage.data().length(), originUser );
+        pushData.uri = "serial-pli";
         pushData.originUsername = originUser;
         break;
       case DASH_EVENT_TYPEID:			// Dash
         pushData.mimeType = DASH_EVENT_MIMETYPE;
-        pushData.data = parseTerseData(3, dataMessage.data().c_str(), originUser );
+        pushData.data = parseTerseData(3, dataMessage.data().c_str(), dataMessage.data().length(), originUser );
         pushData.uri = "serial-dash-event";
         pushData.originUsername = originUser;
         break;
       case CHAT_MESSAGE_ALL_TYPEID:			// Chat
         pushData.mimeType = CHAT_MESSAGE_ALL_MIMETYPE;
-        pushData.data = parseTerseData(4, dataMessage.data().c_str(), originUser );
+        pushData.data = parseTerseData(4, dataMessage.data().c_str(), dataMessage.data().length(), originUser );
         pushData.uri = "serial-chat";
         pushData.originUsername = originUser;
         break;
@@ -306,14 +306,23 @@ void SerialMessageProcessor::onAuthenticationResponse(GatewayConnector *sender, 
   commsHandler->sendMessage(newMsg, DEFAULT_PRIORITY);
 }
 
-std::string SerialMessageProcessor::extractString(const char *terse, int& cursor)
+std::string SerialMessageProcessor::extractString(const char *terse, size_t& cursor, size_t length)
 {
+  if(cursor + sizeof(uint16_t) > length) {
+    LOG_ERROR("Not enough data to get string length (cursor=" << cursor << ", length=" << length << ")");
+    return "";
+  }
   uint16_t nlen = ntohs ( *(uint16_t *)&(terse[cursor]) );
   if(nlen > 0) {
     cursor += 2;
+    if(cursor + nlen > length) {
+      LOG_ERROR("Not enough data to get string (cursor=" << cursor << ", strlen=" << nlen << ", length=" << length << ")");
+      return "";
+    }
     std::ostringstream oname;
     for (uint16_t i=0; i<nlen; i++) {
-      oname << terse[cursor]; cursor += 1;
+      oname << terse[cursor];
+      cursor += 1;
     }
     return oname.str();
   } else {
@@ -322,64 +331,102 @@ std::string SerialMessageProcessor::extractString(const char *terse, int& cursor
     //of 0 (PLI and Chat don't seem to, but this is something to keep an eye out
     //for).
     LOG_WARN("Falling back to old string encoding");
-    return extractOldStyleString(terse, cursor);
+    return extractOldStyleString(terse, cursor, length);
   }
 }
 
-std::string SerialMessageProcessor::extractOldStyleString(const char *terse, int& cursor)
+std::string SerialMessageProcessor::extractOldStyleString(const char *terse, size_t& cursor, size_t length)
 {
-  uint32_t nlen = ntohl ( *(uint32_t *)&(terse[cursor]) ); cursor += sizeof(uint32_t);
+  if(cursor + sizeof(uint32_t) > length) {
+    LOG_ERROR("Not enough data to get string length (cursor=" << cursor << ", length=" << length << ")");
+    return "";
+  }
+  uint32_t nlen = ntohl ( *(uint32_t *)&(terse[cursor]) );
+  cursor += sizeof(uint32_t);
+  
+  if(cursor + nlen * 2 > length) {
+    LOG_ERROR("Not enough data to get string (cursor=" << cursor << ", strlen=" << nlen << ", length=" << length << ")");
+    return "";
+  }
   std::ostringstream oname;
   for (uint32_t i=0; i<nlen; i++) {
-    uint16_t uchar = ntohs( *(uint16_t *)&terse[cursor] ); cursor += 2;
+    uint16_t uchar = ntohs( *(uint16_t *)&terse[cursor] );
+    cursor += 2;
     oname << static_cast<uint8_t>(uchar & 0xff);
   }
   return oname.str();
 }
 
-std::string SerialMessageProcessor::extractBlob(const char *terse, int& cursor)
+std::string SerialMessageProcessor::extractBlob(const char *terse, size_t& cursor, size_t length)
 {
-  uint16_t length = ntohl ( *(uint16_t *)&(terse[cursor]) );
+  LOG_TRACE("Getting blob...");
+  if(cursor + sizeof(uint16_t) > length) {
+    LOG_ERROR("Not enough data to get blob length (cursor=" << cursor << ", length=" << length << ")");
+    return "";
+  }
+  uint16_t blobLength = ntohs ( *(uint16_t *)&(terse[cursor]) );
+  LOG_TRACE("Blob length: " << blobLength);
   cursor += sizeof(uint16_t);
   
-  std::string blob(&terse[cursor], length);
-  cursor += length;
+  if(cursor + blobLength  > length) {
+    LOG_ERROR("Not enough data to get blob (cursor=" << cursor << ", strlen=" << blobLength << ", length=" << length << ")");
+    return "";
+  }
+  std::string blob(&terse[cursor], blobLength);
+  cursor += blobLength;
   
+  LOG_TRACE("Got blob: " << blob);
   return blob;
 }
 
-int8_t SerialMessageProcessor::extractInt8(const char* terse, int& cursor)
+int8_t SerialMessageProcessor::extractInt8(const char* terse, size_t& cursor, size_t length)
 {
+  if(cursor + sizeof(int8_t) > length) {
+    LOG_ERROR("Not enough data to get int8 (cursor=" << cursor << ", length=" << length << ")");
+    return 0;
+  }
   int8_t result = (int8_t) terse[cursor];
   cursor += sizeof(int8_t);
   return result;
 }
 
-int16_t SerialMessageProcessor::extractInt16(const char *terse, int& cursor)
+int16_t SerialMessageProcessor::extractInt16(const char *terse, size_t& cursor, size_t length)
 {
+  if(cursor + sizeof(int16_t) > length) {
+    LOG_ERROR("Not enough data to get int16 (cursor=" << cursor << ", length=" << length << ")");
+    return 0;
+  }
   int16_t result = ntohs( *(int16_t *)&terse[cursor] );
   cursor += sizeof(int16_t);
   return result;
 }
 
-int32_t SerialMessageProcessor::extractInt32(const char *terse, int& cursor)
+int32_t SerialMessageProcessor::extractInt32(const char *terse, size_t& cursor, size_t length)
 {
+  if(cursor + sizeof(int32_t) > length) {
+    LOG_ERROR("Not enough data to get int32 (cursor=" << cursor << ", length=" << length << ")");
+    return 0;
+  }
   int32_t result = ntohl( *(int32_t *)&terse[cursor] );
   cursor += sizeof(int32_t);
   return result;
 }
 
-int64_t SerialMessageProcessor::extractInt64(const char *terse, int& cursor)
+int64_t SerialMessageProcessor::extractInt64(const char *terse, size_t& cursor, size_t length)
 {
+  if(cursor + sizeof(int64_t) > length) {
+    LOG_ERROR("Not enough data to get int64 (cursor=" << cursor << ", length=" << length << ")");
+    return 0;
+  }
   int64_t result = ntohll( *(int64_t *)&terse[cursor] );
   cursor += sizeof(int64_t);
   return result;
 }
 
 
-std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, std::string &originUser) {
+std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, size_t terseLength, std::string &originUser) {
   std::ostringstream jsonStr;
-  int cursor = 0;
+  size_t cursor = 0;
   switch(mt) {
   case NEVADA_PLI_TYPEID:			// PLI
     /*
@@ -394,15 +441,15 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
     */
     /* this will need to change - as MAP PLI definition is goig to change */
     {
-      uint64_t lid  = (uint64_t)extractInt64(terse, cursor);
-      uint64_t uid  = (uint64_t)extractInt64(terse, cursor);
-      uint64_t unid = (uint64_t)extractInt64(terse, cursor);
+      uint64_t lid  = (uint64_t)extractInt64(terse, cursor, terseLength);
+      uint64_t uid  = (uint64_t)extractInt64(terse, cursor, terseLength);
+      uint64_t unid = (uint64_t)extractInt64(terse, cursor, terseLength);
       LOG_INFO((long) this << std::hex << "PLI: l(" << lid << ") u(" << uid << ") un(" << unid << ")");
-      originUser = extractString(terse, cursor);
-      int64_t lat      = extractInt64(terse, cursor);
-      int64_t lon      = extractInt64(terse, cursor);
-      int64_t created  = extractInt64(terse, cursor);
-      int64_t modified = extractInt64(terse, cursor);
+      originUser = extractString(terse, cursor, terseLength);
+      int64_t lat      = extractInt64(terse, cursor, terseLength);
+      int64_t lon      = extractInt64(terse, cursor, terseLength);
+      int64_t created  = extractInt64(terse, cursor, terseLength);
+      int64_t modified = extractInt64(terse, cursor, terseLength);
 
       // JSON
       // {\"lid\":\"0\",\"lon\":\"-74888318\",\"unitid\":\"1\",\"created\":\"1320329753964\",\"name\":\"ahammer\",\"userid\":\"731\",\"lat\":\"40187744\",\"modified\":\"0\"}
@@ -421,11 +468,12 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
     */
     /* this will need to change - as MAP PLI definition is goig to change */
     {
-      originUser = extractString(terse, cursor);
-      int32_t lat      = extractInt32(terse, cursor);
-      int32_t lon      = extractInt32(terse, cursor);
-      uint32_t created  = extractInt32(terse, cursor);
-      std::string groupPliBlob = extractBlob(terse, cursor);
+      originUser = extractString(terse, cursor, terseLength);
+      int32_t lat      = extractInt32(terse, cursor, terseLength);
+      int32_t lon      = extractInt32(terse, cursor, terseLength);
+      uint32_t created  = extractInt32(terse, cursor, terseLength);
+      std::string groupPliBlob = extractBlob(terse, cursor, terseLength);
+      parseGroupPliBlob(groupPliBlob, lat, lon, created);
       
       //update timestamp of last received PLI, so we know what the last 
       //received time is for delta PLI
@@ -451,10 +499,10 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
       created_date Java Long (8)
     */
     {
-      std::string originator = extractString(terse, cursor);
+      std::string originator = extractString(terse, cursor, terseLength);
       originUser = originator;
-      std::string text = extractString(terse, cursor);
-      int64_t created = extractInt64(terse, cursor);
+      std::string text = extractString(terse, cursor, terseLength);
+      int64_t created = extractInt64(terse, cursor, terseLength);
       ACE_Utils::UUID *uuid = ACE_Utils::UUID_GENERATOR::instance ()->generate_UUID ();
       // JSON
       // "{\"created_date\":\"1339572928976\",\"text\":\"Wwwww\",\"modified_date\":\"1339572928984\",\"status\":\"21\",\"receipts\":\"0\",\"group_id\":\"All\",\"media_count\":\"0\",\"longitude\":\"0\",\"uuid\":\"9bf10c58-9154-4be8-8f63-e6a79a5ecbc1\",\"latitude\":\"0\",\"originator\":\"mark\"}"
@@ -469,15 +517,16 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, st
 }
 
 void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t baseLat, int32_t baseLon, uint32_t baseTime) {
-  int cursor = 0;
+  size_t cursor = 0;
   const char *groupPliBlobArray = groupPliBlob.data();
+  size_t groupPliBlobLength = groupPliBlob.length();
   
-  int8_t count = extractInt8(groupPliBlobArray, cursor);
+  int8_t count = extractInt8(groupPliBlobArray, cursor, groupPliBlobLength);
   for(int i = 0; i < count; ++i) {
-    std::string originUsername = extractString(groupPliBlobArray, cursor);
-    int32_t dLat = extractInt16(groupPliBlobArray, cursor);
-    int32_t dLon = extractInt16(groupPliBlobArray, cursor);
-    int16_t dCreatedTime = extractInt8(groupPliBlobArray, cursor);
+    std::string originUsername = extractString(groupPliBlobArray, cursor, groupPliBlobLength);
+    int32_t dLat = extractInt16(groupPliBlobArray, cursor, groupPliBlobLength);
+    int32_t dLon = extractInt16(groupPliBlobArray, cursor, groupPliBlobLength);
+    int16_t dCreatedTime = extractInt8(groupPliBlobArray, cursor, groupPliBlobLength);
     
     int32_t latitude = baseLat - dLat;
     int32_t longitude = baseLon - dLon;
@@ -517,7 +566,7 @@ std::string SerialMessageProcessor::generateTransappsPli(std::string originUser,
 }
 
 
-void testParseTerse() {
+/*void testParseTerse() {
   SerialMessageProcessor test( (SerialServiceHandler *)0 );
   struct t1 {
     uint64_t l;
@@ -561,5 +610,5 @@ void testParseTerse() {
   std::string originUser;
   test.parseTerseData(2, (const char *)&td, originUser);
   test.parseTerseData(2, (const char *)&terseBe[0], originUser);
-}
+}*/
 
