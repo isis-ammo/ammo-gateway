@@ -456,6 +456,7 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, si
       jsonStr << "{\"lid\":\"" << lid << "\",\"userid\":\"" << uid << "\",\"unitid\":\"" << unid << "\",\"name\":\"" << originUser
         << "\",\"lat\":\"" << lat << "\",\"lon\":\"" << lon << "\",\"created\":\"" << created << "\",\"modified\":\"" << modified
         << "\"}";
+      latestPliTimestamps[originUser] = created;
     }
     
     break;
@@ -481,11 +482,7 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, si
 
       // JSON
       // {\"lid\":\"0\",\"lon\":\"-74888318\",\"unitid\":\"1\",\"created\":\"1320329753964\",\"name\":\"ahammer\",\"userid\":\"731\",\"lat\":\"40187744\",\"modified\":\"0\"}
-      jsonStr << "{\"name\":\"" << originUser
-	      << "\",\"lat\":\"" << lat << "\",\"lon\":\"" << lon
-	      << "\",\"altitude\":\"" << 0 << "\",\"accuracy\":\"" << 0
-	      << "\",\"created\":\"" << 1000*(uint64_t)created << "\",\"modified\":\"" << 1000*(uint64_t)created
-	      << "\"}";
+      jsonStr << generateTransappsPli(originUser, lat, lon, created);
     }
     
     break;
