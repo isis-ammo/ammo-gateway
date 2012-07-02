@@ -482,7 +482,7 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, si
 
       // JSON
       // {\"lid\":\"0\",\"lon\":\"-74888318\",\"unitid\":\"1\",\"created\":\"1320329753964\",\"name\":\"ahammer\",\"userid\":\"731\",\"lat\":\"40187744\",\"modified\":\"0\"}
-      jsonStr << generateTransappsPli(originUser, lat, lon, created);
+      jsonStr << generateTransappsPli(originUser, lat, lon, created, 0);
     }
     
     break;
@@ -521,9 +521,10 @@ void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t
   int8_t count = extractInt8(groupPliBlobArray, cursor, groupPliBlobLength);
   for(int i = 0; i < count; ++i) {
     std::string originUsername = extractString(groupPliBlobArray, cursor, groupPliBlobLength);
-    int32_t dLat = extractInt16(groupPliBlobArray, cursor, groupPliBlobLength);
-    int32_t dLon = extractInt16(groupPliBlobArray, cursor, groupPliBlobLength);
-    int16_t dCreatedTime = extractInt8(groupPliBlobArray, cursor, groupPliBlobLength);
+    int16_t dLat = extractInt16(groupPliBlobArray, cursor, groupPliBlobLength);
+    int16_t dLon = extractInt16(groupPliBlobArray, cursor, groupPliBlobLength);
+    int8_t dCreatedTime = extractInt8(groupPliBlobArray, cursor, groupPliBlobLength);
+    int8_t hopCount = extractInt8(groupPliBlobArray, cursor, groupPliBlobLength);
     
     int32_t latitude = baseLat - dLat;
     int32_t longitude = baseLon - dLon;
@@ -537,7 +538,7 @@ void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t
       //received delta PLI is newer than the one we have or we haven't gotten
       //one before, update map and send it
       latestPliTimestamps[originUsername] = createdTime;
-      std::string pliString = generateTransappsPli(originUsername, latitude, longitude, createdTime);
+      std::string pliString = generateTransappsPli(originUsername, latitude, longitude, createdTime, hopCount);
       
       PushData pushData;
       pushData.mimeType = TRANSAPPS_PLI_MIMETYPE;
@@ -552,12 +553,13 @@ void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t
   }
 }
 
-std::string SerialMessageProcessor::generateTransappsPli(std::string originUser, int32_t lat, int32_t lon, uint32_t created) {
+std::string SerialMessageProcessor::generateTransappsPli(std::string originUser, int32_t lat, int32_t lon, uint32_t created, int8_t hopCount) {
   std::ostringstream jsonStr;
   jsonStr << "{\"name\":\"" << originUser
 	        << "\",\"lat\":\"" << lat << "\",\"lon\":\"" << lon
 	        << "\",\"altitude\":\"" << 0 << "\",\"accuracy\":\"" << 0
 	        << "\",\"created\":\"" << 1000*(uint64_t)created << "\",\"modified\":\"" << 1000*(uint64_t)created
+	        << "\",\"hops\":\"" << hopCount
 	        << "\"}";
   return jsonStr.str();
 }

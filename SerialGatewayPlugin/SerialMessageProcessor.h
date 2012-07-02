@@ -61,7 +61,7 @@ private:
   int32_t extractInt32(const char *terse, size_t& cursor, size_t length);
   int64_t extractInt64(const char *terse, size_t& cursor, size_t length);
   
-  std::string generateTransappsPli(std::string originUser, int32_t lat, int32_t lon, uint32_t created);
+  std::string generateTransappsPli(std::string originUser, int32_t lat, int32_t lon, uint32_t created, int8_t hopCount);
   
   friend void testParseTerse();
 };
