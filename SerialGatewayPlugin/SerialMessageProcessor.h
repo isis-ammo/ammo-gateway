@@ -7,6 +7,7 @@
 #include "GatewayConnector.h"
 
 #include <map>
+#include <stdint.h>
 
 class SerialServiceHandler;
 
