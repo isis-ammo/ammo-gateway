@@ -8,3 +8,4 @@ libgatewayconnector.dylib*
 build/
 dist/
 docs/
+gatewaypluginapi-javadoc.jar
