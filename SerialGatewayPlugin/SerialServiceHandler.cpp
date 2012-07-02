@@ -330,28 +330,28 @@ void SerialServiceHandler::receiveData() {
       break;
       
     case 2:
-	    LOG_DEBUG("SLOT[" << phone_id << "],Len[" << size << "]: ");
+	    LOG_DEBUG("SLOT[" << (int) phone_id << "],Len[" << size << "]: ");
 	    
 	    if(size < MAX_PAYLOAD_SIZE - 16) {
         for (unsigned short i = 0; i < size; ++i)
-        {
-          c = read_a_char();
-          buf[i+16] = c;
-        }
-        {
-          int result = gettimeofday( &tv, NULL );
-          if ( result == -1 )
-          {
+	    {
+	      c = read_a_char();
+	      buf[i+16] = c;
+	    }
+	    {
+	      int result = gettimeofday( &tv, NULL );
+	      if ( result == -1 )
+	      {
             LOG_ERROR("gettimeofday() failed\n" );
-            break;
-          }
-          
-          long ts = *(long *)&buf[8];
-          long rts = tv.tv_sec*1000 + tv.tv_usec / 1000; 
+	        break;
+	      }
+	      
+	      long ts = *(long *)&buf[8];
+	      long rts = tv.tv_sec*1000 + tv.tv_usec / 1000; 
           LOG_DEBUG(" Tdt(" << rts << "),Thh(" << ts << "),Tdel(" << rts - ts << ")");
-        }
-        
-        processData(&buf[16], size, *(short  *)&buf[6], 0); // process the message
+	    }
+	    
+	    processData(&buf[16], size, *(short  *)&buf[6], 0); // process the message
 	    } else {
 	      LOG_ERROR("Received packet of invalid size: " << size);
 	    }
@@ -383,7 +383,7 @@ unsigned char SerialServiceHandler::read_a_char()
         LOG_ERROR("ReadFile failed with error code: " << err);
 	    exit(-1);
       }
-	  Sleep(0);
+	  Sleep(1);
 	}
 #else
     ssize_t count = read( gFD, &temp, 1 );
