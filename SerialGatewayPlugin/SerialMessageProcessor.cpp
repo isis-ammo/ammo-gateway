@@ -375,7 +375,7 @@ std::string SerialMessageProcessor::extractBlob(const char *terse, size_t& curso
   std::string blob(&terse[cursor], blobLength);
   cursor += blobLength;
   
-  LOG_TRACE("Got blob: " << blob);
+  //LOG_TRACE("Got blob: " << blob);
   return blob;
 }
 
@@ -559,7 +559,7 @@ std::string SerialMessageProcessor::generateTransappsPli(std::string originUser,
 	        << "\",\"lat\":\"" << lat << "\",\"lon\":\"" << lon
 	        << "\",\"altitude\":\"" << 0 << "\",\"accuracy\":\"" << 0
 	        << "\",\"created\":\"" << 1000*(uint64_t)created << "\",\"modified\":\"" << 1000*(uint64_t)created
-	        << "\",\"hops\":\"" << hopCount
+	        << "\",\"hops\":\"" << (int) hopCount
 	        << "\"}";
   return jsonStr.str();
 }
