@@ -25,8 +25,9 @@ latencies = []
 
 if __name__ == "__main__":
   print "Java API Tester"
+  print jar_dir
 
-  sys.path.append(jar_dir+"/dist/lib/gatewaypluginapi.jar")
+  sys.path.append(jar_dir+"/dist/lib/gatewaypluginapi-1.3.9.jar")
   sys.path.append(jar_dir+"/libs/json-20090211.jar")
   sys.path.append(jar_dir+"/libs/slf4j-api-1.6.4.jar")
   sys.path.append(jar_dir+"/libs/slf4j-simple-1.6.4.jar")
@@ -37,6 +38,7 @@ if __name__ == "__main__":
   
   from edu.vu.isis.ammo.gateway import DataPushReceiverListener
   from edu.vu.isis.ammo.gateway import PushData
+  from edu.vu.isis.ammo.gateway import PushAcknowledgement
   from org.json import JSONException
 
   class DataPushReceiver(DataPushReceiverListener):
@@ -48,7 +50,20 @@ if __name__ == "__main__":
       receivedTime = time.time()
       print receivedTime
       print data.uri
+      print data.originUserName
       print data.mimeType
+# generate an ack
+      ack = PushAcknowledgement()
+      ack.uid  = data.uri
+      ack.destinationDevice = data.originDevice
+      ack.destinationUser = data.originUserName
+      ack.acknowledgingUser = "consumerUser"
+      ack.acknowledgingDevice = "consumerDevice"
+      ack.pluginDelivered = True
+      ret = connector.pushAcknowledgement(ack)
+      print "Sending Ack"
+      print ret
+
 
   class GatewayConnectorD(GatewayConnectorDelegate):
     def __init__(self):
@@ -58,7 +73,7 @@ if __name__ == "__main__":
       print "GatewayConnectorDelegate.onConnect"
       print "Subscribing."
       receiver  = DataPushReceiver( )
-      sender.registerDataInterest("ammo/edu.vu.isis.ammo.dash.event", receiver, None);
+      sender.registerDataInterest("ammo/transapps.chat.message_groupAll", receiver, None);
 
     def onDisconnect(self, sender):
       print "GatewayConnectorDelegate.onDisonnect"
@@ -75,7 +90,7 @@ if __name__ == "__main__":
   #                   default="127.0.0.1")
   # parser.add_option("-p", "--port", dest="port", type="int",
   #                   help="Gateway port to connect to (default %default)",
-  #                   default=32869)
+  #                   default=33289)
   # parser.add_option("-s", "--scope", dest="scope",
   #                   help="Subscription scope (either local or global; default %default)",
   #                   default="global")

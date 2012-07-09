@@ -65,14 +65,12 @@ OriginalQueryStatementBuilder::build (void)
 bool
 OriginalQueryStatementBuilder::bind (void)
 {
-  unsigned int index = 1;
-
   return
-    DataStoreUtils::bind_text (db_, stmt_, index, parser_.uri_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, index, mime_type_, false)
-    && DataStoreUtils::bind_text (db_, stmt_, index, parser_.user_, false)
-    && DataStoreUtils::bind_int (db_, stmt_, index, parser_.time_begin_)
-    && DataStoreUtils::bind_int (db_, stmt_, index, parser_.time_end_);
+    this->bindText (parser_.uri_)
+    && this->bindText (mime_type_)
+    && this->bindText (parser_.user_)
+    && this->bindInteger (parser_.time_begin_)
+    && this->bindInteger (parser_.time_end_);
 }
 
 

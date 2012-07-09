@@ -7,15 +7,16 @@ public class PullRequest {
     * Creates a new pull request with default parameters.
     */
     public PullRequest() {
-      requestUid = null;
-      pluginId = null;
-      mimeType = null;
-      query = null;
-      projection = null;
+      requestUid = "";
+      pluginId = "";
+      mimeType = "";
+      query = "";
+      projection = "";
       maxResults = 0;
       startFromCount = 0;
       liveQuery = false;
       scope = MessageScope.SCOPE_LOCAL;
+      priority = 0;
     }
 
     /**
@@ -73,6 +74,7 @@ public class PullRequest {
      */
     public MessageScope scope;
 
+    public int priority;
     
     @Override public String toString() {
         return new String("Pull: " + requestUid + " from: " + pluginId + " for type " + mimeType + " query: " + query);

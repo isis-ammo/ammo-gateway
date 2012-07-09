@@ -131,18 +131,21 @@ void SerialMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg)
       MessageScope scope = SCOPE_GLOBAL;
       
       PushData pushData;
+std::string originUser;
       switch( dataMessage.mime_type() ) {
       case 1:			// SMS - not implemented
 	return;
       case 2:			// PLI
-	pushData.mimeType = "ammo/com.aterrasys.nevada.locations";
-	pushData.data = parseTerseData(2, dataMessage.data().c_str() );
+	pushData.mimeType = "ammo/transapps.pli.locations";
+	pushData.data = parseTerseData(2, dataMessage.data().c_str(), originUser );
 	pushData.uri = "serial-pli";
+        pushData.originUsername = originUser;
 	break;
       case 3:			// Dash
 	pushData.mimeType = "ammo/edu.vu.isis.ammo.dash.event";
-	pushData.data = parseTerseData(3, dataMessage.data().c_str() );
+	pushData.data = parseTerseData(3, dataMessage.data().c_str(), originUser );
 	pushData.uri = "serial-dash-event";
+        pushData.originUsername = originUser;
 	break;
       }
 
@@ -279,7 +282,7 @@ void SerialMessageProcessor::onAuthenticationResponse(GatewayConnector *sender, 
 }
 
 
-std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse) {
+std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, std::string &originUser) {
   std::ostringstream jsonStr;
   int cursor = 0;
   switch(mt) {
@@ -310,6 +313,8 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse) {
       long long lon      = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
       long long created  = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
       long long modified = ntohll( *(long long *)&terse[cursor] ); cursor += 8;
+
+      originUser = oname.str();
       
       
       // JSON
@@ -370,7 +375,8 @@ void testParseTerse() {
   }
   std::cout << std::endl;
   
-  test.parseTerseData(2, (const char *)&td);
-  test.parseTerseData(2, (const char *)&terseBe[0]);
+  std::string originUser;
+  test.parseTerseData(2, (const char *)&td, originUser);
+  test.parseTerseData(2, (const char *)&terseBe[0], originUser);
 }
 

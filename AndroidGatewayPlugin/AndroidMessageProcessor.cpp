@@ -107,17 +107,66 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       pushData.data = dataMessage.data();
       pushData.scope = scope;
       pushData.encoding = dataMessage.encoding();
+      pushData.originUsername = dataMessage.user_id();
+      pushData.originDevice = dataMessage.origin_device();
       pushData.priority = msg.message_priority();
+      pushData.ackThresholds.deviceDelivered = dataMessage.thresholds().device_delivered();
+      pushData.ackThresholds.pluginDelivered = dataMessage.thresholds().plugin_delivered();
       gatewayConnector->pushData(pushData);
-      ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
-      ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
-      ack->set_uri(dataMessage.uri());
-      ackMsg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
-      LOG_DEBUG(commsHandler << " Sending push acknowledgment to connected device...");
-      ackMsg->set_message_priority(pushData.priority);
-      commsHandler->sendMessage(ackMsg);
+      
+      //Send acknowledgement back to device if that field of the acknowledgement
+      //thresholds object is set
+      if(msg.data_message().thresholds().android_plugin_received()) {
+        ammo::protocol::MessageWrapper *ackMsg = new ammo::protocol::MessageWrapper();
+        ammo::protocol::PushAcknowledgement *ack = ackMsg->mutable_push_acknowledgement();
+        ack->set_uri(dataMessage.uri());
+        ack->set_destination_device(dataMessage.origin_device());
+        ack->set_destination_user(dataMessage.user_id());
+        ammo::protocol::AcknowledgementThresholds *thresholds = ack->mutable_threshold();
+        thresholds->set_device_delivered(false);
+        thresholds->set_plugin_delivered(false);
+        thresholds->set_android_plugin_received(true);
+        ack->set_status(ammo::protocol::PushAcknowledgement_PushStatus_RECEIVED);
+        ackMsg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
+        LOG_DEBUG(commsHandler << " Sending push acknowledgment to connected device...");
+        ackMsg->set_message_priority(pushData.priority);
+        commsHandler->sendMessage(ackMsg);
+      }
       
     }
+  } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT) {
+    LOG_DEBUG((long) commsHandler << " Received Push Acknowledgement...");
+    ammo::gateway::PushAcknowledgement pushAck;
+    ammo::protocol::PushAcknowledgement ackMsg = msg.push_acknowledgement();
+    
+    pushAck.uid = ackMsg.uri();
+    pushAck.destinationDevice = ackMsg.destination_device();
+    pushAck.acknowledgingDevice = ackMsg.acknowledging_device();
+    pushAck.acknowledgingUser = ackMsg.acknowledging_user();
+    pushAck.destinationUser = ackMsg.destination_user();
+    pushAck.deviceDelivered = ackMsg.threshold().device_delivered();
+    pushAck.pluginDelivered = ackMsg.threshold().plugin_delivered();
+    
+    switch(ackMsg.status()) {
+      case ammo::protocol::PushAcknowledgement_PushStatus_RECEIVED:
+        pushAck.status = ammo::gateway::PUSH_RECEIVED;
+        break;
+      case ammo::protocol::PushAcknowledgement_PushStatus_SUCCESS:
+        pushAck.status = ammo::gateway::PUSH_SUCCESS;
+        break;
+      case ammo::protocol::PushAcknowledgement_PushStatus_FAIL:
+        pushAck.status = ammo::gateway::PUSH_FAIL;
+        break;
+      case ammo::protocol::PushAcknowledgement_PushStatus_REJECTED:
+        pushAck.status = ammo::gateway::PUSH_REJECTED;
+        break;
+    }
+    
+    if(gatewayConnector != NULL) {
+      gatewayConnector->pushAcknowledgement(pushAck);
+    }
+    
+    
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_SUBSCRIBE_MESSAGE) {
     LOG_DEBUG((long) commsHandler << " Received Subscribe Message...");
     MessageScope scope;
@@ -199,6 +248,48 @@ void AndroidMessageProcessor::onDisconnect(GatewayConnector *sender) {
   
 }
 
+void AndroidMessageProcessor::onPushAcknowledgementReceived(GatewayConnector *sender, const ammo::gateway::PushAcknowledgement &ack) {
+  LOG_DEBUG((long) commsHandler << " Sending push acknowledgement to device...");
+  LOG_DEBUG((long) commsHandler << "   uid: " << ack.uid);
+  
+  ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
+  ammo::protocol::PushAcknowledgement *ackMsg = msg->mutable_push_acknowledgement();
+  ackMsg->set_uri(ack.uid);
+  ackMsg->set_destination_device(ack.destinationDevice);
+  ackMsg->set_acknowledging_device(ack.acknowledgingDevice);
+  ackMsg->set_destination_user(ack.destinationUser);
+  ackMsg->set_acknowledging_user(ack.acknowledgingUser);
+  
+  ackMsg->mutable_threshold()->set_device_delivered(ack.deviceDelivered);
+  ackMsg->mutable_threshold()->set_plugin_delivered(ack.pluginDelivered);
+  ackMsg->mutable_threshold()->set_android_plugin_received(false);
+  
+  ammo::protocol::PushAcknowledgement_PushStatus status = ammo::protocol::PushAcknowledgement_PushStatus_RECEIVED;
+  
+  switch(ack.status) {
+    case PUSH_RECEIVED:
+      status = ammo::protocol::PushAcknowledgement_PushStatus_RECEIVED;
+      break;
+    case PUSH_SUCCESS:
+      status = ammo::protocol::PushAcknowledgement_PushStatus_SUCCESS;
+      break;
+    case PUSH_FAIL:
+      status = ammo::protocol::PushAcknowledgement_PushStatus_FAIL;
+      break;
+    case PUSH_REJECTED:
+      status = ammo::protocol::PushAcknowledgement_PushStatus_REJECTED;
+      break;
+  }
+  
+  ackMsg->set_status(status);
+  
+  msg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
+  msg->set_message_priority(ammo::gateway::PRIORITY_CTRL);
+  
+  LOG_DEBUG((long) commsHandler << " Sending push acknowledgement message to connected device");
+  commsHandler->sendMessage(msg);
+}
+
 void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData) {
   LOG_DEBUG((long) commsHandler << " Sending subscribed data to device...");
   LOG_DEBUG((long) commsHandler << "    " << pushData);
@@ -210,6 +301,12 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
   dataMsg->set_mime_type(pushData.mimeType);
   dataMsg->set_encoding(pushData.encoding);
   dataMsg->set_data(dataString);
+  dataMsg->set_origin_device(pushData.originDevice);
+  dataMsg->set_user_id(pushData.originUsername);
+  
+  dataMsg->mutable_thresholds()->set_device_delivered(pushData.ackThresholds.deviceDelivered);
+  dataMsg->mutable_thresholds()->set_plugin_delivered(pushData.ackThresholds.pluginDelivered);
+  dataMsg->mutable_thresholds()->set_android_plugin_received(false);
   
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
   msg->set_message_priority(pushData.priority);

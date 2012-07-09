@@ -160,13 +160,16 @@ class NetworkConnector {
 	    mGatewayConnector.onAssociateResultReceived(message.getAssociateResult() );
 	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PUSH_DATA) {
 	    logger.debug("Received Push Data ...");
-	    mGatewayConnector.onPushDataReceived(message.getPushData() );
-	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PULL_REQUEST) {
+	    mGatewayConnector.onPushDataReceived(message.getPushData(), message.getMessagePriority() );
+	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PUSH_ACKNOWLEDGEMENT) {
+	    logger.debug("Received Push Acknowledgement ...");
+	    mGatewayConnector.onPushAcknowledgementReceived(message.getPushAcknowledgement() );
+	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PULL_REQUEST ) {
 	    logger.debug("Received Pull Request ...");
-	    mGatewayConnector.onPullRequestReceived(message.getPullRequest() );
-	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PULL_RESPONSE) {
+	    mGatewayConnector.onPullRequestReceived(message.getPullRequest(), message.getMessagePriority() );
+	} else if (message.getType() == GatewayPrivateMessages.GatewayWrapper.MessageType.PULL_RESPONSE ) {
 	    logger.debug("Received Pull Response ...");
-	    mGatewayConnector.onPullResponseReceived(message.getPullResponse() );
+	    mGatewayConnector.onPullResponseReceived(message.getPullResponse(), message.getMessagePriority() );
 	}
 
 	return true;
@@ -582,6 +585,7 @@ class NetworkConnector {
 		    // 	mChannel.ackToHandler( msg.handler, ChannelDisposal.SENT );
 		}  catch ( Exception ex ) {
 		    logger.warn("sender threw exception {} \n {}", ex.getMessage(), ex.getStackTrace() );
+		    ex.printStackTrace();
 		    break;
 		}
 	    }
@@ -668,7 +672,7 @@ class NetworkConnector {
 		ret.receivedSize = 0; // set the received counter to 0
 		return ret;
 	    } catch(BufferUnderflowException ex) {
-		logger.error("extractHeader: {}", ex.getMessage());
+		logger.error("extractHeader: {} \n {}", ex.getMessage(), ex.getStackTrace() );
 		bbuf.reset();
 	    }
 	    return null;
@@ -734,12 +738,12 @@ class NetworkConnector {
                     // prepare to drain buffer
                     bbuf.flip();
 
-		    while (bbuf.remaining() > 0) { // while there is data - eat it from buffer, before reading more
+		    eatloop:while (bbuf.remaining() > 0) { // while there is data - eat it from buffer, before reading more
 			switch(readState) {
 			case 0:	// HEADER
 			    message = extractHeader(bbuf);
-			    if (message == null)
-				break;
+				if (message == null)
+					break eatloop; // I'm still hungry!  Gimme more bytes from the network!
 			    readState = 1; // found a good header continue reading
 
 			case 1:	// PAYLOAD
@@ -756,7 +760,8 @@ class NetworkConnector {
 
                     bbuf.compact();
                 } catch ( Exception ex ) {
-                    logger.warn("receiver threw exception {}", ex.getStackTrace());
+                    logger.warn("receiver threw exception {}", ex.getMessage());
+		    ex.printStackTrace();
 		    break;
                 }
             }

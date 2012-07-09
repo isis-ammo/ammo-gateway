@@ -18,12 +18,22 @@
   <property name="java-lib-docs" location="${basedir}/docs/api"/>
   
   <condition property="isWindows">
-      <os family="windows" />
-    </condition>
+    <os family="windows" />
+  </condition>
     
-    <condition property="isUnix">
-      <os family="unix" />
-    </condition>
+  <condition property="isUnix">
+    <os family="unix" />
+  </condition>
+  
+  <condition property="protobuf-unix-source" value="/usr/share/java/protobuf-java.jar">
+    <available file="protobuf-java.jar" filepath="/usr/share/java/" />
+  </condition>
+  
+  <condition property="protobuf-unix-source" value="/usr/share/java/protobuf.jar">
+    <not>
+      <available file="protobuf-java.jar" filepath="/usr/share/java/" />
+    </not>
+  </condition>
 
   <target name="init" depends="-pre-build">
     <!-- Create the time stamp -->
@@ -37,9 +47,10 @@
       <echo>configure ammo core libraries for ${basedir}.</echo>
         <!-- configure protobuf -->
         <mkdir dir="libs"/>
+        <echo>Protobuf is at ${protobuf-unix-source}</echo>
         <symlink taskname="add-protobuf-lib" action="single" overwrite="true" 
               link="${basedir}/libs/protobuf.jar" 
-              resource="/usr/share/java/protobuf.jar"/>
+              resource="${protobuf-unix-source}"/>
 
         <fail message="The Protocol Buffers library for Java is missing.  On Ubuntu, install libprotobuf-java.">
            <condition>
@@ -151,6 +162,11 @@
        <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
        -->
     </javadoc>
+    <jar jarfile="${basedir}/gatewaypluginapi-javadoc.jar">
+       <fileset dir="docs" defaultexcludes="yes">
+          <include name="api/**"/>
+       </fileset>
+    </jar>
   </target>
 
   <target name="clean"

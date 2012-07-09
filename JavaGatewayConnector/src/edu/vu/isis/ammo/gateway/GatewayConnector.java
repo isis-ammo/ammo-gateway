@@ -3,6 +3,10 @@ package edu.vu.isis.ammo.gateway;
 import ammo.gateway.protocol.GatewayPrivateMessages;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
 import com.google.protobuf.ByteString;
 
 import org.slf4j.Logger;
@@ -83,7 +87,7 @@ public class GatewayConnector {
 
 	msg.setAssociateDevice(associateMsg.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.ASSOCIATE_DEVICE);
-
+	msg.setMessagePriority( (int) MessagePriority.PRIORITY_AUTH.getValue());
 	if (connector.isConnected()) {
 	    connector.sendMessage(msg.build());
 	    return true;
@@ -117,18 +121,84 @@ public class GatewayConnector {
 	pushMsg.setUri(pushData.uri);
 	pushMsg.setMimeType(pushData.mimeType);
 	pushMsg.setEncoding(pushData.encoding);
+	pushMsg.setOriginUser(pushData.originUserName);
+	pushMsg.setOriginDevice(pushData.originDevice);
 	pushMsg.setData( ByteString.copyFrom(pushData.data) );
 	pushMsg.setScope( (pushData.scope == MessageScope.SCOPE_LOCAL) ?
 			  GatewayPrivateMessages.MessageScope.LOCAL :
 			  GatewayPrivateMessages.MessageScope.GLOBAL );
 
+	GatewayPrivateMessages.AcknowledgementThresholds.Builder ackThresholds =
+	    GatewayPrivateMessages.AcknowledgementThresholds.newBuilder();
+	ackThresholds.setDeviceDelivered(pushData.ackThresholds.deviceDelivered);
+	ackThresholds.setPluginDelivered(pushData.ackThresholds.pluginDelivered);
+
+	pushMsg.setThresholds(ackThresholds.build());
+
 	msg.setPushData(pushMsg.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.PUSH_DATA);
+	msg.setMessagePriority((int)pushData.priority);
 	if (connector.isConnected()) {
 	    connector.sendMessage(msg.build());
 	    return true;
 	} else {
 	    logger.error("pushData: data sent while not connected to gateway, dropped ...");
+	    return false;
+	}
+    }
+    
+      /**
+       * Pushes an acknowledgement for a received push message
+       * 
+       * 
+       * @param pushAckData The push acknowledgement data to be pushed via the gateway
+       * 
+       * @return true if the operation succeeded; false if the operation failed.
+       */
+    public boolean pushAcknowledgement(PushAcknowledgement pushAckData) {
+	GatewayPrivateMessages.GatewayWrapper.Builder msg =
+	    GatewayPrivateMessages.GatewayWrapper.newBuilder();
+	GatewayPrivateMessages.PushAcknowledgement.Builder pushAck =
+	    GatewayPrivateMessages.PushAcknowledgement.newBuilder();
+	pushAck.setUid(pushAckData.uid);
+	pushAck.setDestinationDevice(pushAckData.destinationDevice);
+	pushAck.setAcknowledgingDevice(pushAckData.acknowledgingDevice);
+	pushAck.setDestinationUser(pushAckData.destinationUser);
+	pushAck.setAcknowledgingUser(pushAckData.acknowledgingUser);
+
+	GatewayPrivateMessages.AcknowledgementThresholds.Builder ackThresholds =
+	    GatewayPrivateMessages.AcknowledgementThresholds.newBuilder();
+	ackThresholds.setDeviceDelivered(pushAckData.deviceDelivered);
+	ackThresholds.setPluginDelivered(pushAckData.pluginDelivered);
+
+	pushAck.setThreshold(ackThresholds.build());
+
+	GatewayPrivateMessages.PushAcknowledgement.PushStatus status =
+	    GatewayPrivateMessages.PushAcknowledgement.PushStatus.RECEIVED;
+	switch(pushAckData.status) {
+	case PUSH_RECEIVED:
+	    status = GatewayPrivateMessages.PushAcknowledgement.PushStatus.RECEIVED;
+	    break;
+	case PUSH_SUCCESS:
+	    status = GatewayPrivateMessages.PushAcknowledgement.PushStatus.SUCCESS;
+	    break;
+	case PUSH_FAIL:
+	    status = GatewayPrivateMessages.PushAcknowledgement.PushStatus.FAIL;
+	    break;
+	case PUSH_REJECTED:
+	    status = GatewayPrivateMessages.PushAcknowledgement.PushStatus.REJECTED;
+	    break;
+	}
+	pushAck.setStatus(status);
+	
+	msg.setPushAcknowledgement(pushAck.build());
+	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.PUSH_ACKNOWLEDGEMENT);
+	msg.setMessagePriority((int)MessagePriority.PRIORITY_CTRL.getValue());
+	if (connector.isConnected()) {
+	    connector.sendMessage(msg.build());
+	    return true;
+	} else {
+	    logger.error("pushAck: ack sent while not connected to gateway, dropped ...");
 	    return false;
 	}
     }
@@ -163,6 +233,7 @@ public class GatewayConnector {
 
 	msg.setPullRequest(pullMsg.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.PULL_REQUEST);
+	msg.setMessagePriority((int)request.priority);
 	if (connector.isConnected()) {
 	    connector.sendMessage(msg.build());
 	    return true;
@@ -198,7 +269,8 @@ public class GatewayConnector {
 
 	msg.setPullResponse(pullResp.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.PULL_RESPONSE);
-
+	msg.setMessagePriority((int)response.priority);
+	
 	if (connector.isConnected()) {
 	    connector.sendMessage(msg.build() );
 	    return true;
@@ -239,6 +311,7 @@ public class GatewayConnector {
 
 	msg.setRegisterDataInterest(di.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.REGISTER_DATA_INTEREST);
+	msg.setMessagePriority((int)MessagePriority.PRIORITY_CTRL.getValue());
 
 	receiverListeners.put(mime_type, listener);
 
@@ -274,6 +347,7 @@ public class GatewayConnector {
 
 	msg.setUnregisterDataInterest(di.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.UNREGISTER_DATA_INTEREST);
+	msg.setMessagePriority((int)MessagePriority.PRIORITY_CTRL.getValue());
 
 	receiverListeners.remove(mime_type);
 
@@ -308,6 +382,7 @@ public class GatewayConnector {
 
 	msg.setRegisterPullInterest(di.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.REGISTER_PULL_INTEREST);
+	msg.setMessagePriority((int)MessagePriority.PRIORITY_CTRL.getValue());
 
 	pullRequestListeners.put(mime_type, listener);
 
@@ -341,6 +416,7 @@ public class GatewayConnector {
 
 	msg.setUnregisterPullInterest(di.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.UNREGISTER_PULL_INTEREST);
+	msg.setMessagePriority((int)MessagePriority.PRIORITY_CTRL.getValue());
 
 	pullRequestListeners.remove(mime_type);
 
@@ -392,6 +468,18 @@ public class GatewayConnector {
 
 	connector = new NetworkConnector(this, config.getGatewayAddress(), config.getGatewayPort());
     }
+
+    private List<DataPushReceiverListener> getListenersForType(String mimeType) {
+	List<DataPushReceiverListener> match = new ArrayList<DataPushReceiverListener>();
+	Iterator it = receiverListeners.entrySet().iterator();
+	while( it.hasNext() ) {
+	    Map.Entry pair = (Map.Entry)it.next();
+	    if ( mimeType.startsWith( (String)pair.getKey() ) ) {
+		match.add( (DataPushReceiverListener)pair.getValue() );
+	    }
+	}
+	return match;
+    }
     
     protected void onAssociateResultReceived(final GatewayPrivateMessages.AssociateResult msg) {
 	if (delegate != null) {
@@ -399,22 +487,61 @@ public class GatewayConnector {
 	}
     }
 
-    protected void onPushDataReceived(final GatewayPrivateMessages.PushData msg) {
+    protected void onPushDataReceived(final GatewayPrivateMessages.PushData msg, final int messagePriority) {
 	String mimeType = msg.getMimeType();
-	DataPushReceiverListener listener = receiverListeners.get( mimeType );
-	logger.info("onPushDataReceived: mime {}, listener {}", mimeType, listener);
-	if (listener != null) {
+	List<DataPushReceiverListener> listeners = getListenersForType( mimeType );
+	for( DataPushReceiverListener listener : listeners ) {
+	    logger.info("onPushDataReceived: mime {}, listener {}", mimeType, listener);
 	    PushData pushData = new PushData();
 	    pushData.uri = msg.getUri();
 	    pushData.mimeType = mimeType;
 	    pushData.encoding = msg.getEncoding();
+	    pushData.originUserName = msg.getOriginUser();
+	    pushData.originDevice = msg.getOriginDevice();
 	    pushData.data = msg.getData().toByteArray();
-
+	    pushData.priority = messagePriority;
+	    pushData.ackThresholds = new AcknowledgementThresholds();
+	    pushData.ackThresholds.deviceDelivered = msg.getThresholds().getDeviceDelivered();
+	    pushData.ackThresholds.pluginDelivered = msg.getThresholds().getPluginDelivered();
 	    listener.onPushDataReceived(this, pushData);
+	    // TODO: Auto-generate Acks here ...
 	}
     }
 
-    protected void onPullRequestReceived(final GatewayPrivateMessages.PullRequest msg) {
+    protected void onPushAcknowledgementReceived(final GatewayPrivateMessages.PushAcknowledgement msg) {
+	PushAcknowledgement pushAck = new PushAcknowledgement();
+	pushAck.uid = msg.getUid();
+	pushAck.destinationDevice = msg.getDestinationDevice();
+	pushAck.acknowledgingDevice = msg.getAcknowledgingDevice();
+	pushAck.destinationUser = msg.getDestinationUser();
+	pushAck.deviceDelivered = msg.getThreshold().getDeviceDelivered();
+	pushAck.pluginDelivered = msg.getThreshold().getPluginDelivered();
+	
+	switch(msg.getStatus()) {
+	case RECEIVED:
+	    pushAck.status = PushStatus.PUSH_RECEIVED;
+	    break;
+
+	case SUCCESS:
+	    pushAck.status = PushStatus.PUSH_SUCCESS;
+	    break;
+
+	case FAIL:
+	    pushAck.status = PushStatus.PUSH_FAIL;
+	    break;
+
+	case REJECTED:
+	    pushAck.status = PushStatus.PUSH_REJECTED;
+	    break;
+	}
+
+	if (delegate != null) {
+	    delegate.onPushAcknowledgementReceived(this, pushAck);
+	}
+    }
+
+
+    protected void onPullRequestReceived(final GatewayPrivateMessages.PullRequest msg, final int messagePriority) {
 	String mimeType = msg.getMimeType();
 	PullRequestReceiverListener listener = pullRequestListeners.get( mimeType );
 	logger.info("onPullRequestReceived: mime {}, listener {}", mimeType, listener);
@@ -427,11 +554,12 @@ public class GatewayConnector {
 	    req.projection = msg.getProjection();
 	    req.startFromCount = msg.getStartFromCount();
 	    req.liveQuery = msg.getLiveQuery();
+	    req.priority = messagePriority;
 	    listener.onPullRequestReceived(this, req);
 	}
     }
 
-    protected void onPullResponseReceived(final GatewayPrivateMessages.PullResponse msg) {
+    protected void onPullResponseReceived(final GatewayPrivateMessages.PullResponse msg, final int messagePriority) {
 	String mimeType = msg.getMimeType();
 	PullResponseReceiverListener listener = pullResponseListeners.get( mimeType );
 	logger.info("onPullResponseReceived: mime {}, listener {}", mimeType, listener);
@@ -443,6 +571,7 @@ public class GatewayConnector {
 	    resp.uri = msg.getUri();
 	    resp.encoding = msg.getEncoding();
 	    resp.data = msg.getData().toByteArray();
+	    resp.priority = messagePriority;
 	    listener.onPullResponseReceived(this, resp);
 	}
     }

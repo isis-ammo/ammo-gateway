@@ -26,6 +26,8 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
 import java.util.Enumeration;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.Comparator;
@@ -56,7 +58,7 @@ import edu.vu.isis.ammo.core.pb.AmmoMessages;
  *
  */
 class ReliableMulticastConnector {
-    private static final Logger logger = LoggerFactory.getLogger(ReliableMulticastConnector.class);
+    private static final Logger logger = LoggerFactory.getLogger("net.rmcast");
 
     private static final int BURP_TIME = 5 * 1000; // 5 seconds expressed in milliseconds
     
@@ -124,7 +126,8 @@ class ReliableMulticastConnector {
 	+ 4 // payload checksum
 	+ 4; // header checksum
     static final int GATEWAY_MESSAGE_MAGIC = 0xdeadbeef;
-    static final byte[] GATEWAY_MESSAGE_MAGICB = { (byte)0xde, (byte)0xad, (byte)0xbe, (byte)0xef };
+    //static final byte[] GATEWAY_MESSAGE_MAGICB = { (byte)0xde, (byte)0xad, (byte)0xbe, (byte)0xef };
+    static final byte[] GATEWAY_MESSAGE_MAGICB = { (byte)0xed, (byte)0xad, (byte)0xbe, (byte)0xef };
     
 
     public ReliableMulticastConnector(PluginServiceHandler plugin, String multicastAddr, int multicastPort) {
@@ -253,7 +256,7 @@ class ReliableMulticastConnector {
      *
      */
     private class ConnectorThread extends Thread implements ChannelListener { // jgroups listener interface
-	private final Logger logger = LoggerFactory.getLogger( ConnectorThread.class );
+	private final Logger logger = LoggerFactory.getLogger( "net.rmcast.connector" );
 
 	private final String DEFAULT_HOST = "127.0.0.1";
 	private final int DEFAULT_PORT = 12475;
@@ -374,10 +377,10 @@ class ReliableMulticastConnector {
                 logger.error( "Tried to create mJGroupChannel when we already had one." );
             try
             {
-            	File configFile = new File( "jgroups/udp.xml" );
+            	File configFile = new File( findConfigFile("jgroups/udp.xml") );
             	parent.mJGroupChannel = new JChannel( configFile );
 		parent.mJGroupChannel.addChannelListener( this );
-            	parent.mJGroupChannel.setName( parent.getLocalIpAddress() );
+            	parent.mJGroupChannel.setName( getLocalIpAddress() );
             	//parent.mJGroupChannel.setOpt( Channel.AUTO_RECONNECT, Boolean.TRUE ); // deprecated
             }
             catch ( Exception e )
@@ -462,6 +465,110 @@ class ReliableMulticastConnector {
 	    state.set(ReliableMulticastConnector.DISCONNECTED);
             return ret;
         }
+
+        private final static String CONFIG_DIRECTORY = "ammo-gateway";
+        private final static String CONFIG_FILE = "jgroups/udp.xml";
+
+        private String findConfigFile( String configFile ) {
+            final String os = System.getProperty("os.name").toLowerCase();
+            String filePath;
+
+            if (os.indexOf("win") >= 0) {
+                filePath = findConfigFileWindows(configFile);
+            }
+            else {
+                filePath = findConfigFileLinux(configFile);
+            }
+
+            logger.info("findConfigFile: using config file {}", filePath);
+            return filePath;
+        }
+
+        /**
+         * Searches for the gateway config file.  Search order:
+         *   1) The current working directory
+         *   2) ~/.ammo-gateway/
+         *   3) /etc/ammo-gateway/
+         *   Fallback locations (don't rely on these; they may change or disappear in a
+         *   future release.  Gateway installation should put the config file into
+         *   a location that's searched by default):
+         *   4) $GATEWAY_ROOT/etc
+         *   5) $GATEWAY_ROOT/build/etc
+         *   6) ../etc
+         */
+        private String findConfigFileLinux( String configFile ) {
+            String filePath = configFile;
+            String home = System.getenv("HOME");
+            if (home == null) home = new String("");
+            String gatewayRoot = System.getenv("GATEWAY_ROOT");
+            if (gatewayRoot == null) gatewayRoot = new String("");
+
+            if (new File(filePath).exists() == false) {
+                filePath = home + "/." + CONFIG_DIRECTORY + "/" + CONFIG_FILE;
+                if (new File(filePath).exists() == false) {
+                    filePath = new String("/etc/") + CONFIG_DIRECTORY + "/" + CONFIG_FILE;
+                    if (new File(filePath).exists() == false) {
+                        filePath = gatewayRoot + "/etc/" + CONFIG_FILE;
+                        if (new File(filePath).exists() == false) {
+                            filePath = gatewayRoot + "/build/etc/" + CONFIG_FILE;
+                            if (new File(filePath).exists() == false) {
+                                filePath = new String("../etc/") + CONFIG_FILE;
+                                if (new File(filePath).exists() == false) {
+                                    logger.error("findConfigFile: unable to find config file");
+                                    return "";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return filePath;
+        }
+
+        /**
+         * Searches for the gateway config file.  Search order:
+         *   1) The current working directory
+         *   2) The user's configuration directory (Roaming appdata directory/ammo-gateway)
+         *   3) The all users configuration directory (i.e. C:\ProgramData\ammo-gateway on Vista/7)
+         *   Fallback locations (don't rely on these; they may change or disappear in a
+         *   future release.  Gateway installation should put the config file into
+         *   a location that's searched by default):
+         *   4) $GATEWAY_ROOT/etc
+         *   5) $GATEWAY_ROOT/build/etc
+         *   6) ../etc
+         */
+        private String findConfigFileWindows( String configFile ) {
+            String filePath = configFile;
+            String userConfigPath = System.getenv("APPDATA");
+            if (userConfigPath == null) userConfigPath = new String("");
+            String systemConfigPath = System.getenv("PROGRAMDATA");
+            if (systemConfigPath == null) systemConfigPath = new String("");
+            String gatewayRoot = System.getenv("GATEWAY_ROOT");
+            if (gatewayRoot == null) gatewayRoot = new String("");
+
+            if (new File(filePath).exists() == false) {
+                filePath = userConfigPath + "/" + CONFIG_DIRECTORY + "/" + CONFIG_FILE;
+                if (new File(filePath).exists() == false) {
+                    filePath = systemConfigPath + "/" + CONFIG_DIRECTORY + "/" + CONFIG_FILE;
+                    if (new File(filePath).exists() == false) {
+                        filePath = gatewayRoot + "/etc/" + CONFIG_FILE;
+                        if (new File(filePath).exists() == false) {
+                            filePath = gatewayRoot + "/build/etc/" + CONFIG_FILE;
+                            if (new File(filePath).exists() == false) {
+                                filePath = new String("../etc/") + CONFIG_FILE;
+                                if (new File(filePath).exists() == false) {
+                                    logger.error("findConfigFile: unable to find config file");
+                                    return "";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return filePath;
+        }
     }
 
 
@@ -517,7 +624,12 @@ class ReliableMulticastConnector {
 		    buf.order(endian);
 
 		    buf.clear(); // prepare buffer for writing
-		    buf.putInt( GATEWAY_MESSAGE_MAGIC );
+
+		    buf.put( (byte)GATEWAY_MESSAGE_MAGICB[3] );
+		    buf.put( (byte)GATEWAY_MESSAGE_MAGICB[2] );
+		    buf.put( (byte)GATEWAY_MESSAGE_MAGICB[0] );
+		    buf.put( (byte)0xfe ); // VERSION_1_FULL 
+
 		    buf.putInt(payloadSize);
 		    buf.put( (byte)msg.getMessagePriority() );
 		    buf.put( (byte)0);
@@ -569,7 +681,7 @@ class ReliableMulticastConnector {
         private ReliableMulticastConnector mChannel;
         private SenderQueue mQueue;
         private JChannel mJChannel;
-        private final Logger logger = LoggerFactory.getLogger( "net.tcp.sender" );
+        private final Logger logger = LoggerFactory.getLogger( "net.rmcast.sender" );
     }
 
 
@@ -588,7 +700,12 @@ class ReliableMulticastConnector {
         @Override
         public void receive( org.jgroups.Message msg )
         {
-            logger.info( "Thread <{}>: ChannelReceiver::receive()", Thread.currentThread().getId() );
+            logger.info( "Thread <{}>: ChannelReceiver::receive() size {}, src {} ", new Object[] {Thread.currentThread().getId(), msg.getLength(), msg.getSrc() } );
+	    List<String> addresses = getLocalIpAddresses();
+	    if ( addresses.contains(  msg.getSrc().toString() ) )
+		return;		// loopback message - discard it
+
+
 
 	    ByteBuffer buf = ByteBuffer.wrap( msg.getBuffer() );
 	    buf.order( endian );
@@ -599,7 +716,7 @@ class ReliableMulticastConnector {
 	    if (readState == 0)	{// should have received a full message
 		try {
 		    AmmoMessages.MessageWrapper agm =
-			AmmoMessages.MessageWrapper.parseFrom(message.payload);
+		        AmmoMessages.MessageWrapper.parseFrom(message.payload);
 		    logger.info( "received a message {}", agm.getType() );
 		    mDestination.deliverMessage( agm );
 		} catch(com.google.protobuf.InvalidProtocolBufferException ex) {
@@ -644,8 +761,9 @@ class ReliableMulticastConnector {
 		while (true) {
 		    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[3]) continue;
 		    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[2]) continue;
-		    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[1]) continue;
+		    //if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[1]) continue;
 		    if (bbuf.get() != GATEWAY_MESSAGE_MAGICB[0]) continue;
+		    bbuf.get();   // this is the VERSION byte - TBD SKN process this to differentiate between FULL and TERSE encoding
 		    break;
 		}
 		// got a magic sequence - now should see the header proper
@@ -672,6 +790,7 @@ class ReliableMulticastConnector {
 		return ret;
 	    } catch(BufferUnderflowException ex) {
 		logger.error("extractHeader: {}", ex.getMessage());
+		ex.printStackTrace();
 		bbuf.reset();
 	    }
 	    return null;
@@ -720,7 +839,7 @@ class ReliableMulticastConnector {
         private ConnectorThread mParent;
         private ReliableMulticastConnector mDestination;
         private final Logger logger
-	    = LoggerFactory.getLogger( "net.tcp.receiver" );
+	    = LoggerFactory.getLogger( "net.rmcast.receiver" );
     }
 
 
@@ -732,21 +851,51 @@ class ReliableMulticastConnector {
      *
      * @return
      */
-    public String getLocalIpAddress() {
-        logger.trace("Thread <{}>::getLocalIpAddress", Thread.currentThread().getId());
-        try {
-            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+    public List<String> getLocalIpAddresses()
+    {
+        List<String> addresses = new ArrayList<String>();
+        try
+        {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();)
+            {
                 NetworkInterface intf = en.nextElement();
-                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
+                {
                     InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (!inetAddress.isLoopbackAddress()) {
-                        return inetAddress.getHostAddress().toString();
-                    }
+                    addresses.add( inetAddress.getHostAddress().toString() );
                 }
             }
-        } catch (SocketException ex) {
-            logger.error( ex.toString());
         }
+        catch (SocketException ex)
+        {
+            logger.error("getLocalIpAddresses: {}", ex.toString());
+        }
+
+        return addresses;
+    }
+    public String getLocalIpAddress()
+    {
+        try
+        {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();)
+            {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
+                {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    logger.info( "address: {}", inetAddress );
+		    if (!inetAddress.isLoopbackAddress()) {
+			return inetAddress.getHostAddress().toString();
+		    }
+		    
+                }
+            }
+        }
+        catch (SocketException ex)
+        {
+            logger.error("getLocalIpAddresses: {}", ex.toString());
+        }
+
         return null;
     }
 

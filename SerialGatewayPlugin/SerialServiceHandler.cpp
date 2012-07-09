@@ -2,9 +2,15 @@
 #include "SerialMessageProcessor.h"
 #include "protocol/AmmoMessages.pb.h"
 
-#include <termios.h>
+#ifdef WIN32
+  #include <windows.h>
+  #include <time.h>
+#else
+  #include <termios.h>
+  #include <unistd.h>
+#endif
+
 #include <errno.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -25,13 +31,30 @@ messageProcessor(NULL),
 sendQueueMutex(), 
 receiveQueueMutex()
 {
-  
+#ifdef WIN32
+  this->hComm = NULL;
+#endif
 }
 
 
 int SerialServiceHandler::open(void *ptr)
 {
   
+  // Open the serial port.
+#ifdef WIN32
+  this->hComm = CreateFile( (const char*) ptr,
+                           GENERIC_READ | GENERIC_WRITE,
+                           0,
+						   0,
+						   OPEN_EXISTING,
+						   0,
+						   0);
+  if (this->hComm == INVALID_HANDLE_VALUE) {
+    int err = GetLastError();
+    printf( "open %s error code: %d\n\n", (const char*) ptr, err );
+    exit( -1 );
+  }
+#else
   // Open the port
   gFD = ::open( (const char *)ptr, O_RDWR | O_NOCTTY );// | O_NONBLOCK );
   if ( gFD == -1 )
@@ -39,7 +62,26 @@ int SerialServiceHandler::open(void *ptr)
     printf( "open %s: error: %s\n\n", (const char *)ptr, strerror(errno)  );
     exit( -1 );
   }
+#endif
   
+  // Configure the serial port.
+#ifdef WIN32
+  DCB dcb;
+
+  FillMemory(&dcb, sizeof(dcb), 0);
+  dcb.DCBlength = sizeof(dcb);
+
+  if (!BuildCommDCB("9600,n,8,1", &dcb)) {   
+    printf("could not build dcb: error %d\n", GetLastError());
+    exit(-1);
+  }
+
+  if (!SetCommState(this->hComm, &dcb)) {
+    printf("could not set comm state: error %d\n", GetLastError());
+    CloseHandle(this->hComm);
+    exit(-1);
+  }
+#else
   // Get the attributes for the port
   // struct termios config;
   // int result = tcgetattr( gFD, &config );
@@ -145,7 +187,13 @@ int SerialServiceHandler::open(void *ptr)
   
   // Other "c" bits
   //cfg.c_iflag |= IGNBRK; // Ignore break condition
+  // The constant IUCLC is not present on OSX, so we only use it on non-OSX
+  // platforms (where __APPLE__ is not defined).
+  #ifndef __APPLE__
   cfg.c_iflag &= ~( IGNBRK | BRKINT | IGNPAR | PARMRK | INPCK | ISTRIP | INLCR | IGNCR | ICRNL | IUCLC );
+  #else 
+  cfg.c_iflag &= ~( IGNBRK | BRKINT | IGNPAR | PARMRK | INPCK | ISTRIP | INLCR | IGNCR | ICRNL );
+  #endif
   
   // Other "l" bits
   cfg.c_lflag &= ~IEXTEN;
@@ -172,7 +220,9 @@ int SerialServiceHandler::open(void *ptr)
   
   // tcflush( gFD, TCIFLUSH );
   // tcsetattr( gFD, TCSANOW, &config );
+#endif
   
+  // Configure internal service handler state.
   
   state = READING_HEADER;
   collectedData = NULL;
@@ -197,6 +247,31 @@ int SerialServiceHandler::open(void *ptr)
   
   return 0;
 }
+
+#ifdef WIN32
+#define DELTA_EPOCH_IN_MICROSECONDS 11644473600000000ULL
+int gettimeofday(struct timeval* tv, struct timezone* tz)
+{
+  FILETIME ft;
+  unsigned __int64 tmpres = 0;
+  static int tzflag;
+
+  if (NULL != tv) {
+    GetSystemTimeAsFileTime(&ft);
+
+	tmpres |= ft.dwHighDateTime;
+	tmpres <<= 32;
+	tmpres |= ft.dwLowDateTime;
+
+	tmpres -= DELTA_EPOCH_IN_MICROSECONDS;
+	tmpres /= 10;
+	tv->tv_sec = (long) (tmpres / 1000000UL);
+	tv->tv_usec = (long) (tmpres % 1000000UL);
+  }
+
+  return 0;
+}
+#endif
 
 void SerialServiceHandler::receiveData() {
   
@@ -291,7 +366,21 @@ unsigned char SerialServiceHandler::read_a_char()
   while ( true )
   {
     // printf( "about to read()..." );
+#ifdef WIN32
+    DWORD count = 0;
+    
+	while (count == 0) {
+      if (!ReadFile(this->hComm, &temp, 1, &count, NULL)) {
+        int err = GetLastError();
+        printf("ReadFile failed with error code: %d", err);
+	    exit(-1);
+      }
+	  Sleep(1);
+	}
+#else
     ssize_t count = read( gFD, &temp, 1 );
+#endif
+
     if ( count == -1 )
     {
       perror( "read" );
