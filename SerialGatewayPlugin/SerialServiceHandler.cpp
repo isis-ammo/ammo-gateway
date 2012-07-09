@@ -369,8 +369,8 @@ void SerialServiceHandler::receiveData() {
 }
 
 int SerialServiceHandler::write_a_char(unsigned char toWrite) {
-  ssize_t ret;
   #ifdef WIN32
+  DWORD ret = 0;
   if (!WriteFile(this->hComm, &toWrite, sizeof(toWrite), &ret, NULL)) {
     int err = GetLastError();
     LOG_ERROR("ReadFile failed with error code: " << err);
