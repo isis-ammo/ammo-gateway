@@ -9,7 +9,7 @@
   <properties>
 <!-- TEMPLATE2:BEGIN
 -->
-     <repo.addr>Vanderbilt/</repo.addr> <!-- This field should read "Vanderbilt/" for releases --> 
+     <repo.addr>vanderbilt-snapshot/</repo.addr> <!-- This field should read "Vanderbilt/" for releases --> 
                                                  <!-- else it should read "vanderbilt-snapshot/" for snapshots-->
 <!-- TEMPLATE2:END -->
      <vandylib.release.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/Vanderbilt/</vandylib.release.url>
@@ -23,7 +23,7 @@
   <artifactId>gatewaypluginapi</artifactId>
 <!-- TEMPLATE:BEGIN
 -->
-  <version>1.5.13</version> 
+  <version>1.5.14-SNAPSHOT</version> 
 <!-- TEMPLATE:END -->
 
 

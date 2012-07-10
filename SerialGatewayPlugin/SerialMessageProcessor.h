@@ -6,6 +6,9 @@
 #include "protocol/AmmoMessages.pb.h"
 #include "GatewayConnector.h"
 
+#include <map>
+#include <stdint.h>
+
 class SerialServiceHandler;
 
 class SerialMessageProcessor : public ACE_Task <ACE_MT_SYNCH>, public ammo::gateway::GatewayConnectorDelegate, public ammo::gateway::DataPushReceiverListener, public ammo::gateway::PullResponseReceiverListener {
@@ -44,12 +47,23 @@ private:
   std::string deviceId;
   bool deviceIdAuthenticated;
   
+  typedef std::map<std::string, uint32_t> TimestampMap;
+  TimestampMap latestPliTimestamps;
+  
   bool isClosed();
   void processMessage(ammo::protocol::MessageWrapper &msg);
-  std::string parseTerseData(int mt, const char *data, std::string &originUser );
-  std::string extractString(const char *terse, int& cursor);
-  std::string extractOldStyleString(const char *terse, int& cursor);
-  long long extractLongLong(const char *terse, int& cursor);
+  std::string parseTerseData(int mt, const char *data, size_t terseLength, std::string &originUser );
+  void parseGroupPliBlob(std::string groupPliBlob, int32_t baseLat, int32_t baseLon, uint32_t baseTime);
+  std::string extractString(const char *terse, size_t& cursor, size_t length);
+  std::string extractOldStyleString(const char *terse, size_t& cursor, size_t length);
+  std::string extractBlob(const char *terse, size_t& cursor, size_t length);
+  int8_t extractInt8(const char *terse, size_t& cursor, size_t length);
+  int16_t extractInt16(const char *terse, size_t& cursor, size_t length);
+  int32_t extractInt32(const char *terse, size_t& cursor, size_t length);
+  int64_t extractInt64(const char *terse, size_t& cursor, size_t length);
+  
+  std::string generateTransappsPli(std::string originUser, int32_t lat, int32_t lon, uint32_t created, int8_t hopCount);
+  
   friend void testParseTerse();
 };
 
