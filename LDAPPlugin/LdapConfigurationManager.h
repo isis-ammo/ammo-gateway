@@ -1,12 +1,11 @@
 #ifndef LDAP_CONFIGURATION_MANAGER_H
 #define LDAP_CONFIGURATION_MANAGER_H
 
-#include <string>
+#include "ConfigurationManager.h"
 
-class LdapConfigurationManager 
+class LdapConfigurationManager : public ConfigurationManager
 {
 public:
-  LdapConfigurationManager(std::string fileName);
   static LdapConfigurationManager* getInstance();  
 
   std::string getLdapServerAddress();
@@ -14,13 +13,14 @@ public:
   std::string getLdapUsername();
   std::string getLdapPassword();
 
+protected:
+  void init();
+  void decode(const Json::Value& root);
+
 private:
   LdapConfigurationManager();
-  void configFromFile(std::string fileName);
   
   static LdapConfigurationManager *sharedInstance;
-  
-  std::string findConfigFile(std::string defaultConfigFile);
 
   std::string ldapServerAddress;
   int ldapServerPort;

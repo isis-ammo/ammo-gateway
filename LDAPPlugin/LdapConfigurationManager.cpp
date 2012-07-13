@@ -1,17 +1,8 @@
 #include "LdapConfigurationManager.h"
-
-#include "json/reader.h"
 #include "json/value.h"
-
-#include <iostream>
-#include <fstream>
-
 #include "log.h"
-#include <ace/OS_NS_sys_stat.h>
-#include <ace/OS_NS_stdlib.h>
 
-const char *CONFIG_DIRECTORY = "ammo-gateway";
-const char *LDAP_CONFIG_FILE = "LdapPluginConfig.json";
+static const char *LDAP_CONFIG_FILE = "LdapPluginConfig.json";
 
 using namespace std;
 
@@ -23,139 +14,31 @@ LdapConfigurationManager *LdapConfigurationManager::sharedInstance = NULL;
 //
 // Use the default config file if none specified
 //============================================================
-LdapConfigurationManager::LdapConfigurationManager() : ldapServerAddress("localhost"), ldapServerPort(389), ldapUsername("cn=Manager,dc=ammo,dc=tdm"), ldapPassword("ammmo")
+LdapConfigurationManager::LdapConfigurationManager() : ConfigurationManager(LDAP_CONFIG_FILE)
 {
-  string configFilename = findConfigFile(LDAP_CONFIG_FILE);
-  
-  if(configFilename != "") {
-    configFromFile(configFilename);
-  } else {
-    LOG_WARN("Using default configuration.");
-  }
+  init();
 }
 
-//============================================================
-//
-// Constructor with filename
-//
-// Use the config file specified
-//============================================================
-LdapConfigurationManager::LdapConfigurationManager(string fileName)
+void LdapConfigurationManager::init()
 {
-  configFromFile(fileName);
+  ldapServerAddress = "localhost";
+  ldapServerPort = 389;
+  ldapUsername = "cn=Manager,dc=ammo,dc=tdm";
+  ldapPassword = "ammmo";
 }
 
-//============================================================
-//
-// configFromFile()
-//
-//============================================================
-void LdapConfigurationManager::configFromFile(string fileName)
+void LdapConfigurationManager::decode(const Json::Value& root)
 {
-  ifstream configFile(fileName.c_str());
-  if(configFile)
-    {
-      Json::Value root;
-      Json::Reader reader;
+  CM_DecodeString ( root, "LdapServerAddress", ldapServerAddress );
+  CM_DecodeInt    ( root, "LdapServerPort",    ldapServerPort    );
+  CM_DecodeString ( root, "LdapUsername",      ldapUsername      );
+  CM_DecodeString ( root, "LdapPassword",      ldapPassword      );
 
-      bool parsingSuccessful = reader.parse(configFile, root);
-
-      if(parsingSuccessful)
-        {
-          if(root["LdapServerAddress"].isString())
-            {
-              ldapServerAddress = root["LdapServerAddress"].asString();
-            }
-          else
-            {
-              LOG_ERROR("Error: LdapServerAddress is missing or wrong type (should be string)");
-            }
-
-          if(root["LdapServerPort"].isInt())
-            {
-              ldapServerPort = root["LdapServerPort"].asInt();
-            }
-          else
-            {
-              LOG_ERROR("Error: LdapServerPort is missing or wrong type (should be integer)");
-            }
-
-          if(root["LdapUsername"].isString())
-            {
-              ldapUsername = root["LdapUsername"].asString();
-            }
-          else
-            {
-              LOG_ERROR("Error: LdapUsername is missing or wrong type (should be string)");
-            }
-
-          if(root["LdapPassword"].isString())
-            {
-              ldapPassword = root["LdapPassword"].asString();
-            }
-          else
-            {
-             LOG_ERROR("Error: LdapPassword is missing or wrong type (should be integer)");
-            }
-        }
-      else
-        {
-          LOG_ERROR("JSON parsing error in config file '" 
-	       << fileName << "'.  Using defaults.");
-        }
-      configFile.close();
-    }
-  else
-    {
-      LOG_WARN("Could not read from config file '" << fileName << "'.  Using defaults.");
-    }
-
-}
-
-string LdapConfigurationManager::findConfigFile(std::string defaultConfigFile) {
-  string filePath;
-  ACE_stat statStruct;
-  
-  string home, gatewayRoot;
-  
-  char *homeC = ACE_OS::getenv("HOME");
-  if(homeC == NULL) {
-    home = "";
-  } else {
-    home = homeC;
-  }
-  
-  char *gatewayRootC = ACE_OS::getenv("GATEWAY_ROOT");
-  if(gatewayRootC == NULL) {
-    gatewayRoot = "";
-  } else {
-    gatewayRoot = gatewayRootC;
-  }
-  
-  filePath = defaultConfigFile;
-  //stat returns 0 if the file exists
-  if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-    filePath = home + "/" + "." + CONFIG_DIRECTORY + "/" + LDAP_CONFIG_FILE;
-    if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-      filePath = string("/etc/") + CONFIG_DIRECTORY + "/" + LDAP_CONFIG_FILE;
-      if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-        filePath = gatewayRoot + "/etc/" + LDAP_CONFIG_FILE;
-        if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-          filePath = gatewayRoot + "/build/etc/" + LDAP_CONFIG_FILE;
-          if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-            filePath = string("../etc/") + LDAP_CONFIG_FILE;
-            if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-              LOG_ERROR("No config file found.");
-              return "";
-            }
-          }
-        }
-      }
-    }
-  }
-  
-  LOG_INFO("Using config file: " << filePath);
-  return filePath;
+  LOG_INFO("LDAP Plugin Configuration: ");
+  LOG_INFO("  Ldap Server Address: " << ldapServerAddress);
+  LOG_INFO("  Ldap Server Port: " << ldapServerPort);
+  LOG_INFO("  Ldap Username: " << ldapUsername);
+  LOG_INFO("  Ldap Password: " << ldapPassword);
 }
 
 //============================================================
@@ -208,6 +91,7 @@ LdapConfigurationManager* LdapConfigurationManager::getInstance()
   if(sharedInstance == NULL)
     {
       sharedInstance = new LdapConfigurationManager();
+	  sharedInstance->populate();
     }
   return sharedInstance;
 }

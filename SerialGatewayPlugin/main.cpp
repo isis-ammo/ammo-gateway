@@ -14,12 +14,17 @@
 #include "ace/Reactor.h"
 
 #include "SerialServiceHandler.h"
+#include "SerialConfigurationManager.h"
 
 #include "log.h"
 #include "version.h"
 
 #include "UserSwitch.inl"
 #include "LogConfig.inl"
+
+#ifdef WIN32
+#include "WinSvc.inl"
+#endif
 
 using namespace std;
 
@@ -42,6 +47,7 @@ public:
   }
 };
 
+
 extern void testParseTerse();
 
 ACE_THR_FUNC_RETURN start_svc_handler( void *data ) {
@@ -51,6 +57,168 @@ ACE_THR_FUNC_RETURN start_svc_handler( void *data ) {
   return (ACE_THR_FUNC_RETURN) 0;
 }
 
+
+class App
+{
+public:
+  static App* instance();
+  static void destroy();
+private:
+  static App* _instance;
+
+private:
+  App();
+  ~App();
+
+public:
+  bool init(int argc, char* argv[]);
+  void run();
+  void stop();
+
+private:
+  ACE_Sig_Action no_sigpipe;
+  ACE_Sig_Action original_action;
+
+  SigintHandler* handleExit;
+
+  SerialServiceHandler* svcHandler;
+};
+
+App* App::_instance = NULL;
+
+App* App::instance()
+{
+  if (!_instance) {
+    _instance = new App();
+  }
+
+  return _instance;
+}
+
+void App::destroy()
+{
+  delete _instance;
+  _instance = NULL;
+}
+
+App::App() : no_sigpipe((ACE_SignalHandler) SIG_IGN),  // Set signal handler for SIGPIPE (so we don't crash if a device disconnects during write)
+             handleExit(NULL),
+			 svcHandler(NULL)
+{
+}
+
+App::~App()
+{
+}
+
+bool App::init(int argc, char* argv[])
+{
+  dropPrivileges();
+  setupLogging("SerialGatewayPlugin");
+  LOG_FATAL("=========");
+  LOG_FATAL("AMMO Serial Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  
+  // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
+  // during write)
+  no_sigpipe.register_action(SIGPIPE, &original_action);
+
+  handleExit = new SigintHandler();
+  ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
+  ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
+
+  SerialConfigurationManager* config = SerialConfigurationManager::getInstance();
+
+  LOG_DEBUG("Creating service handler which receives and routes to gateway via the GatewayConnector");
+  svcHandler = new SerialServiceHandler();
+  svcHandler->open( (void *)(config->getListenPort().c_str()) );
+
+  ACE_Thread::spawn( &start_svc_handler, (void *)svcHandler  );
+
+  return true;
+}
+
+void App::run()
+{
+  //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
+  ACE_Reactor *reactor = ACE_Reactor::instance();
+  LOG_DEBUG("Starting event loop...");
+  reactor->run_reactor_event_loop();
+  LOG_DEBUG("Event loop terminated.");
+}
+
+void App::stop()
+{
+  ACE_Reactor::instance()->end_reactor_event_loop();
+}
+
+#ifdef WIN32
+
+bool SvcInit(DWORD argc, LPTSTR* argv)
+{
+  return App::instance()->init(argc, argv);
+}
+
+void SvcRun()
+{
+  App::instance()->run();
+}
+
+void SvcStop()
+{
+  App::instance()->stop();
+}
+
+int main(int argc, char* argv[])
+{
+  const std::string svcName = "SerialGatewayPlugin";
+
+  // Service installation command line option
+  if (argc == 2) {
+    if (lstrcmpi(argv[1], TEXT("install")) == 0) {
+      try
+      {
+        WinSvc::install(svcName);
+		return 0;
+      }
+      catch (WinSvcException e)
+	  {
+        cerr << e.what();
+		return 1;
+	  }
+	}
+  }
+
+  // Normal service operation
+  WinSvc::callbacks_t callbacks(SvcInit, SvcRun, SvcStop);
+
+  App::instance();
+  try
+  {
+    WinSvc::instance(svcName, callbacks);
+    WinSvc::instance()->run();
+  }
+  catch (WinSvcException e)
+  {
+    LOG_FATAL(e.what());
+  }
+
+  App::destroy();
+
+  return 0;
+}
+#else
+int main(int argc, char** argv)
+{
+  if (!App::instance()->init(argc, argv)) {
+    return 1;
+  }
+  App::instance()->run();
+  App::instance()->destroy();
+  return 0;
+}
+#endif
+
+/*
 int main(int argc, char **argv) {
   dropPrivileges();
   setupLogging("SerialGatewayPlugin");
@@ -112,5 +280,6 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+*/
 
 

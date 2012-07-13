@@ -1,9 +1,9 @@
 #ifndef GATEWAY_CONFIGURATION_MANAGER_H
 #define GATEWAY_CONFIGURATION_MANAGER_H
 
-#include <string>
+#include "../LibGatewayConnector/ConfigurationManager.h"
 
-class GatewayConfigurationManager {
+class GatewayConfigurationManager : ConfigurationManager {
 public:
   static GatewayConfigurationManager* getInstance();
   
@@ -15,6 +15,10 @@ public:
   int getCrossGatewayServerPort();
   std::string getCrossGatewayParentAddress();
   int getCrossGatewayParentPort();
+
+protected:
+  void init();
+  void decode(const Json::Value& root);
   
 private:
   GatewayConfigurationManager();
