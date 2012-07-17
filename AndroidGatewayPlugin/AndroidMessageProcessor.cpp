@@ -245,7 +245,7 @@ void AndroidMessageProcessor::onConnect(GatewayConnector *sender) {
 }
 
 void AndroidMessageProcessor::onDisconnect(GatewayConnector *sender) {
-  
+  LOG_WARN("GatewayConnector disconnected");
 }
 
 void AndroidMessageProcessor::onPushAcknowledgementReceived(GatewayConnector *sender, const ammo::gateway::PushAcknowledgement &ack) {
