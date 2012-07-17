@@ -50,9 +50,9 @@ int main (int /* argc */, char ** /* argv */)
   //Explicitly specify the ACE select reactor; on Windows, ACE defaults
   //to the WFMO reactor, which has radically different semantics and
   //violates assumptions we made in our code
-  ACE_Select_Reactor selectReactor;
-  ACE_Reactor newReactor(&selectReactor);
-  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(&newReactor));
+  ACE_Select_Reactor *selectReactor = new ACE_Select_Reactor;
+  ACE_Reactor *newReactor = new ACE_Reactor(selectReactor);
+  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(newReactor));
   
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
