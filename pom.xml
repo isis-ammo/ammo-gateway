@@ -1,14 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project 
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
-                        http://maven.apache.org/xsd/maven-4.0.0.xsd" 
-    xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml version="1.0" encoding="utf-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-
-
-
-<!--
+  <!--
  -
  -
  -
@@ -19,66 +12,53 @@
  -
  -
  -->
-
-
-
   <properties>
-<!-- TEMPLATE2:BEGIN
+    <!-- TEMPLATE2:BEGIN
 -->
-     <repo.addr>vanderbilt-snapshot/</repo.addr> <!-- This field should read "Vanderbilt/" for releases --> 
-<!-- TEMPLATE2:END -->                           <!-- else it should read "vanderbilt-snapshot/" for snapshots-->
-
-     <vandylib.release.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/Vanderbilt/</vandylib.release.url>
-     <vandylib.snapshot.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/vanderbilt-snapshot/</vandylib.snapshot.url>
-     <vandylib.eucleo.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/eucleo/</vandylib.eucleo.url>
-     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-     <build>${basedir}/../build</build>
+    <repo.addr>vanderbilt-snapshot/</repo.addr>
+    <!-- This field should read "Vanderbilt/" for releases -->
+    <!-- TEMPLATE2:END -->
+    <!-- else it should read "vanderbilt-snapshot/" for snapshots-->
+    <vandylib.release.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/Vanderbilt/</vandylib.release.url>
+    <vandylib.snapshot.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/vanderbilt-snapshot/</vandylib.snapshot.url>
+    <vandylib.eucleo.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/eucleo/</vandylib.eucleo.url>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <build>${basedir}/../build</build>
   </properties>
-
   <groupId>edu.vu.isis.ammo</groupId>
   <artifactId>gateway</artifactId>
-<!-- TEMPLATE:BEGIN
+  <!-- TEMPLATE:BEGIN
 -->
-  <version>1.5.15-SNAPSHOT</version> 
-<!-- TEMPLATE:END -->
-
-
-<!--parent>
+  <version>1.5.15-SNAPSHOT</version>
+  <!-- TEMPLATE:END -->
+  <!--parent>
   <groupId>edu.vu.isis</groupId>
   <artifactId>ammo-parent</artifactId>
   <version>1.5.5-SNAPSHOT</version>
 </parent-->
-
-
   <name>Ammo Gateway (Main)</name>
-
   <distributionManagement>
-     <repository>
-        <id>nexus-vanderbilt</id>
-        <url>${vandylib.release.url}</url>
-     </repository>
-     <snapshotRepository>
-         <id>nexus-snapshot</id>
-         <url>${vandylib.snapshot.url}</url>
-     </snapshotRepository>
+    <repository>
+      <id>nexus-vanderbilt</id>
+      <url>${vandylib.release.url}</url>
+    </repository>
+    <snapshotRepository>
+      <id>nexus-snapshot</id>
+      <url>${vandylib.snapshot.url}</url>
+    </snapshotRepository>
   </distributionManagement>
-
   <repositories>
-            <repository>
-               <id>nexus-vanderbilt</id>
-               <url>${vandylib.release.url}</url>
-            </repository>
-            <repository>
-                <id>nexus-eucleo</id>
-                <url>${vandylib.eucleo.url}</url>
-            </repository>
-            <repository>
-                <id>nexus-snapshot</id>
-                <url>${vandylib.snapshot.url}</url>
-            </repository>
+    <repository>
+      <id>nexus-vanderbilt</id>
+      <url>${vandylib.release.url}</url>
+    </repository>
+    <repository>
+      <id>nexus-eucleo</id>
+      <url>${vandylib.eucleo.url}</url>
+    </repository>
+    <repository>
+      <id>nexus-snapshot</id>
+      <url>${vandylib.snapshot.url}</url>
+    </repository>
   </repositories>
-
-
-
 </project>
-
