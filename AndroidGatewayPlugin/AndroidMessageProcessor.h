@@ -44,6 +44,8 @@ private:
   std::string deviceId;
   bool deviceIdAuthenticated;
   
+  time_t latestHeartbeat;
+  
   bool isClosed();
   void processMessage(ammo::protocol::MessageWrapper &msg);
 };

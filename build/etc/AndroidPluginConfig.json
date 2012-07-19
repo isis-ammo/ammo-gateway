@@ -1,0 +1,5 @@
+{
+  "HeartbeatTimeout": 100 //Time since last heartbeat when Android plugin will drop a device connection
+}
+
+//:mode=javascript: (jEdit modeline for syntax highlighting)

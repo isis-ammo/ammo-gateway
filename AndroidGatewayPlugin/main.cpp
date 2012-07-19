@@ -24,6 +24,8 @@
 #include "AndroidEventHandler.h"
 #include "NetworkEnumerations.h"
 
+#include "AndroidPluginConfigurationManager.h"
+
 using namespace std;
 using namespace ammo::gateway::internal;
 
@@ -94,6 +96,10 @@ int main(int argc, char **argv) {
       return 1;
     }
   }
+  
+  //Create config manager here to avoid parsing later and to avoid threading
+  //issues
+  AndroidPluginConfigurationManager::getInstance();
   
   LOG_DEBUG("Creating acceptor...");
   
