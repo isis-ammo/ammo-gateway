@@ -65,7 +65,7 @@ AndroidEventHandler::~AndroidEventHandler() {
   //Flush the receive queue
   int count = 0;
   while(!receiveQueue.empty()) {
-    ProtobufMessageWrapper *msg = sendQueue.top().message;
+    ammo::protocol::MessageWrapper *msg = receiveQueue.top().message;
     delete msg;
     count++;
   }
