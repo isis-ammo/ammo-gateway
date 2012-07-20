@@ -121,7 +121,7 @@ private:
 
 #define CM_DecodeInt(root, optionName, optionVariable) \
   do { \
-    if(root[optionName].isString()) { \
+    if(root[optionName].isInt()) { \
       optionVariable = root[optionName].asInt(); \
     } else { \
       LOG_ERROR(optionName " is missing or wrong type (should be integer)"); \
@@ -130,7 +130,7 @@ private:
 
 #define CM_DecodeUInt(root, optionName, optionVariable) \
   do { \
-    if(root[optionName].isString()) { \
+    if(root[optionName].isUInt()) { \
       optionVariable = root[optionName].asUInt(); \
     } else { \
       LOG_ERROR(optionName " is missing or wrong type (should be unsigned integer)"); \
@@ -139,7 +139,7 @@ private:
 
 #define CM_DecodeDouble(root, optionName, optionVariable) \
   do { \
-    if(root[optionName].isString()) { \
+    if(root[optionName].isDouble()) { \
       optionVariable = root[optionName].asDouble(); \
     } else { \
       LOG_ERROR(optionName " is missing or wrong type (should be double)"); \
@@ -148,7 +148,7 @@ private:
 
 #define CM_DecodeBool(root, optionName, optionVariable) \
   do { \
-    if(root[optionName].isString()) { \
+    if(root[optionName].isBool()) { \
       optionVariable = root[optionName].asBool(); \
     } else { \
       LOG_ERROR(optionName " is missing or wrong type (should be boolean)"); \

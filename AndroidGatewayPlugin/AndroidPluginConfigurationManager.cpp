@@ -19,7 +19,9 @@ void AndroidPluginConfigurationManager::init()
 
 void AndroidPluginConfigurationManager::decode(const Json::Value& root)
 {
-  CM_DecodeUInt( root, "HeartbeatTimeout", heartbeatTimeout);
+  //TODO:  This really ought to be reading a uint, but LibJSON apparently isn't
+  //       handling uints in any kind of a sane, predictable way.
+  CM_DecodeInt( root, "HeartbeatTimeout", heartbeatTimeout);
 
   LOG_INFO("Android Plugin Configuration: ");
   LOG_INFO("  Heartbeat Timeout: " << heartbeatTimeout);
