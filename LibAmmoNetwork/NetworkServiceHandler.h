@@ -413,6 +413,14 @@ ProtobufMessageWrapper *ammo::gateway::internal::NetworkServiceHandler<ProtobufM
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::~NetworkServiceHandler() {
   LOG_TRACE((long) this << " In ~NetworkServiceHandler");
+  //Flush the send queue
+  int count = 0;
+  while(!sendQueue.empty()) {
+    ProtobufMessageWrapper *msg = sendQueue.top().message;
+    delete msg;
+    count++;
+  }
+  LOG_TRACE((long) this << " " << count << " messages flushed from send queue");
   delete eventHandler;
 }
 
