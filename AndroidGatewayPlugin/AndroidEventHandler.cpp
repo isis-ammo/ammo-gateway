@@ -66,6 +66,7 @@ AndroidEventHandler::~AndroidEventHandler() {
   int count = 0;
   while(!receiveQueue.empty()) {
     ammo::protocol::MessageWrapper *msg = receiveQueue.top().message;
+    receiveQueue.pop();
     delete msg;
     count++;
   }

@@ -161,6 +161,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
   //TODO: send event handler its close event here
+  LOG_TRACE((long) this << " In NetworkServiceHandler::handle_close()");
   this->eventHandler->onDisconnect();
   int result = super::handle_close(fd, m);
   
@@ -414,12 +415,15 @@ template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::inter
 ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::~NetworkServiceHandler() {
   LOG_TRACE((long) this << " In ~NetworkServiceHandler");
   //Flush the send queue
+  sendQueueMutex.acquire();
   int count = 0;
   while(!sendQueue.empty()) {
     ProtobufMessageWrapper *msg = sendQueue.top().message;
+    sendQueue.pop();
     delete msg;
     count++;
   }
+  sendQueueMutex.release();
   LOG_TRACE((long) this << " " << count << " messages flushed from send queue");
   delete eventHandler;
 }
