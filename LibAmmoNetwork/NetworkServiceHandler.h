@@ -69,6 +69,8 @@ namespace ammo {
         void sendMessage(ProtobufMessageWrapper *msg);
         ProtobufMessageWrapper *getNextMessageToSend();
         
+        void scheduleDeferredClose();
+        
         NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber> *eventHandler;
         
         ~NetworkServiceHandler();
@@ -103,6 +105,23 @@ namespace ammo {
         
         unsigned long long sentMessageCount;
         unsigned long long receivedMessageCount;
+      };
+      
+      template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
+      class CloseConnectionTask : public ACE_Event_Handler {
+      public:
+        CloseConnectionTask(NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber> *handlerToClose) : handler(handlerToClose) {
+          
+        }
+        
+        virtual int handle_input(ACE_HANDLE fd) {
+          LOG_DEBUG("Processing deferred close for handler " << (long) handler);
+          handler->close();
+          return 0;
+        }
+        
+      private:
+        NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber> *handler;
       };
     }
   }
@@ -409,6 +428,16 @@ ProtobufMessageWrapper *ammo::gateway::internal::NetworkServiceHandler<ProtobufM
   LOG_TRACE((long) this << " Dequeued a message to send.  " << size << " messages remain in queue.");
   
   return msg;
+}
+
+template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
+void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::scheduleDeferredClose() {
+  ammo::gateway::internal::CloseConnectionTask<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber> *task = new ammo::gateway::internal::CloseConnectionTask<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>(this);
+  
+  //TODO:  How can we avoid leaking task?
+  ACE_Reactor *reactor = ACE_Reactor::instance();
+  LOG_DEBUG((long) this << " Scheduled deferred close");
+  reactor->notify(task, ACE_Event_Handler::READ_MASK);
 }
 
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>

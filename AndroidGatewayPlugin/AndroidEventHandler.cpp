@@ -70,7 +70,7 @@ AndroidEventHandler::~AndroidEventHandler() {
     delete msg;
     count++;
   }
-  LOG_TRACE((long) this << " " << count << "messages flushed from receive queue");
+  LOG_TRACE((long) this << " " << count << " messages flushed from receive queue");
   
   delete messageProcessor;
 }
@@ -100,7 +100,7 @@ void AndroidEventHandler::send(ammo::protocol::MessageWrapper *msg) {
   if(heartbeatDelta > heartbeatTimeoutTime) {
     LOG_WARN((long) this << " Haven't received a message from device since " << latestMessageTime << " (" << heartbeatDelta << " seconds ago");
     LOG_WARN((long) this << "   Dropping connection to device.");
-    this->close();
+    this->scheduleDeferredClose();
     delete msg; //we have ownership of msg, so we need to delete it (it isn't
                 //going into the send message queue if we drop the connection)
     return;
