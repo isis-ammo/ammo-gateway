@@ -97,7 +97,7 @@ ammo::protocol::MessageWrapper *AndroidEventHandler::getNextReceivedMessage() {
 void AndroidEventHandler::send(ammo::protocol::MessageWrapper *msg) {
   //Check heartbeat time
   time_t heartbeatDelta = time(NULL) - latestMessageTime;
-  if(heartbeatDelta > heartbeatTimeoutTime) {
+  if(heartbeatTimeoutTime != 0 && heartbeatDelta > heartbeatTimeoutTime) {
     LOG_WARN((long) this << " Haven't received a message from device since " << latestMessageTime << " (" << heartbeatDelta << " seconds ago");
     LOG_WARN((long) this << "   Dropping connection to device.");
     this->scheduleDeferredClose();
