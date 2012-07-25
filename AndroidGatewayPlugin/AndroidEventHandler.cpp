@@ -1,6 +1,8 @@
 #include <string>
+#include <ctime>
 
 #include "AndroidEventHandler.h"
+#include "AndroidPluginConfigurationManager.h"
 #include "NetworkServiceHandler.h"
 #include "log.h"
 
@@ -13,19 +15,22 @@ AndroidEventHandler::AndroidEventHandler() :
 messageProcessor(NULL),
 receiveQueueMutex(),
 receivedMessageCount(0) {
-  LOG_TRACE("ctor AndroidEventHandler()");
+  LOG_TRACE((long) this << " ctor AndroidEventHandler()");
+  latestMessageTime = time(NULL);
+  heartbeatTimeoutTime = AndroidPluginConfigurationManager::getInstance()->getHeartbeatTimeout();
 }
 
 void AndroidEventHandler::onConnect(std::string &peerAddress) {
-  LOG_TRACE("AndroidEventHandler::onConnect(" << peerAddress << ")");
-  LOG_INFO("Got connection from device at " << peerAddress << ")");
+  LOG_TRACE((long) this << " AndroidEventHandler::onConnect(" << peerAddress << ")");
+  LOG_INFO((long) this << " Got connection from device at " << peerAddress << ")");
   
   messageProcessor = new AndroidMessageProcessor(this);
   messageProcessor->activate();
+  latestMessageTime = time(NULL);
 }
 
 void AndroidEventHandler::onDisconnect() {
-  LOG_TRACE("AndroidEventHandler::onDisconnect()");
+  LOG_TRACE((long) this << " AndroidEventHandler::onDisconnect()");
   
   LOG_TRACE((long) this << " Closing Message Processor");
   messageProcessor->close(0);
@@ -38,24 +43,36 @@ void AndroidEventHandler::onDisconnect() {
 }
 
 int AndroidEventHandler::onMessageAvailable(ammo::protocol::MessageWrapper *msg) {
-  LOG_TRACE("AndroidEventHandler::onMessageAvailable()");
+  LOG_TRACE((long) this << " AndroidEventHandler::onMessageAvailable()");
   
   addReceivedMessage(msg, msg->message_priority());
   messageProcessor->signalNewMessageAvailable();
+  
+  latestMessageTime = time(NULL);
   
   return 0;
 }
 
 int AndroidEventHandler::onError(const char errorCode) {
-  LOG_ERROR("AndroidEventHandler::onError(" << errorCode << ")");
+  LOG_ERROR((long) this << " AndroidEventHandler::onError(" << errorCode << ")");
   return 0;
 }
 
 
 AndroidEventHandler::~AndroidEventHandler() {
-  LOG_DEBUG("AndroidEventHandler being destroyed!");
+  LOG_DEBUG((long) this << " AndroidEventHandler being destroyed!");
   
-   delete messageProcessor;
+  //Flush the receive queue
+  int count = 0;
+  while(!receiveQueue.empty()) {
+    ammo::protocol::MessageWrapper *msg = receiveQueue.top().message;
+    receiveQueue.pop();
+    delete msg;
+    count++;
+  }
+  LOG_TRACE((long) this << " " << count << " messages flushed from receive queue");
+  
+  delete messageProcessor;
 }
 
 ammo::protocol::MessageWrapper *AndroidEventHandler::getNextReceivedMessage() {
@@ -68,6 +85,30 @@ ammo::protocol::MessageWrapper *AndroidEventHandler::getNextReceivedMessage() {
   receiveQueueMutex.release();
   
   return msg;
+}
+
+/**
+* Wraps NetworkEventHandler::sendMessage, extending it to check for queue length
+* and time since last heartbeat (so we can expire stale connections).  We wrap
+* sendMessage rather than making it virtual for performance reasons; since
+* NetworkEventHandler is used in other places in the gateway codebase, we don't
+* want to cause that kind of performance impact everywhere.
+*/
+void AndroidEventHandler::send(ammo::protocol::MessageWrapper *msg) {
+  //Check heartbeat time
+  time_t heartbeatDelta = time(NULL) - latestMessageTime;
+  if(heartbeatTimeoutTime != 0 && heartbeatDelta > heartbeatTimeoutTime) {
+    LOG_WARN((long) this << " Haven't received a message from device since " << latestMessageTime << " (" << heartbeatDelta << " seconds ago");
+    LOG_WARN((long) this << "   Dropping connection to device.");
+    this->scheduleDeferredClose();
+    delete msg; //we have ownership of msg, so we need to delete it (it isn't
+                //going into the send message queue if we drop the connection)
+    return;
+  }
+  
+  //TODO: Check message queue length
+  
+  this->sendMessage(msg);
 }
 
 void AndroidEventHandler::addReceivedMessage(ammo::protocol::MessageWrapper *msg, char priority) {

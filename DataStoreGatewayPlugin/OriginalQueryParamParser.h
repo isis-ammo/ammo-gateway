@@ -16,7 +16,7 @@ public:
   std::string user_;
   std::string time_begin_;
   std::string time_end_;
-  std::string directed_user_;
+  std::string recipient_;
 };
 
 #endif // ORIGINAL_QUERY_PARAM_PARSER_H

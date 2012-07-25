@@ -1,13 +1,12 @@
 #include <sqlite3.h>
 
-#include "ace/Connector.h"
-#include "ace/SOCK_Connector.h"
 #include <ace/OS_NS_sys_time.h>
 
 #include "log.h"
 
 #include "OriginalQueryStatementBuilder.h"
 #include "DataStoreUtils.h"
+#include "DataStoreConfigManager.h"
 
 OriginalQueryStatementBuilder::OriginalQueryStatementBuilder (
       const std::string &mime_type,
@@ -22,13 +21,26 @@ bool
 OriginalQueryStatementBuilder::build (void)
 {
   parser_.parse (params_);
+  std::string ext_mime_type = mime_type_;
 
   // We append the last query parameter (the user that a message
-  // was directed to) to the data type string, in accordance
-  // with the way SMS messages are constructed.
-  if (!parser_.directed_user_.empty ())
+  // was directed to) to the data type string. There are two
+  // ways to do this. For SMS mime type, we simply append the
+  // recipient field, and for chat mime type, we appent the
+  // string "user" first. The chat mime type is intended to
+  // replace the SMS mime type, but we handle both case here
+  // for backward compatibility, or in case it's decided in
+  // the future to support both mime types.
+  if (!parser_.recipient_.empty ())
     {
-      mime_type_ = mime_type_ + "_" + parser_.directed_user_;
+      ext_mime_type += "_";
+      
+      if (mime_type_ == DataStoreConfigManager::getInstance ()->getChatMimeType ())
+        {
+          ext_mime_type += "user";
+        }
+        
+      ext_mime_type += parser_.recipient_;
     }
 
 //  LOG_TRACE ("Querying for " << mime_type_);

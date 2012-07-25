@@ -11,7 +11,7 @@ OriginalQueryParamParser::parse (const std::string &params)
   tokenize (user_, params);
   tokenize (time_begin_, params);
   tokenize (time_end_, params);
-  tokenize (directed_user_, params);
+  tokenize (recipient_, params);
   
   fini_check (params);
 }

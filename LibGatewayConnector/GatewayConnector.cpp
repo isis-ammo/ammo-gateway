@@ -313,12 +313,14 @@ bool ammo::gateway::GatewayConnector::unregisterPullResponseInterest(string mime
 }
 
 void ammo::gateway::GatewayConnector::onConnectReceived() {
+  connected = true;
   if(delegate != NULL) {
     delegate->onConnect(this);
   }
 }
 
 void ammo::gateway::GatewayConnector::onDisconnectReceived() {
+  connected = false;
   if(delegate != NULL) {
     delegate->onDisconnect(this);
   }

@@ -285,6 +285,8 @@ void SerialServiceHandler::receiveData() {
   unsigned char c = 0;
   char buf[MAX_PAYLOAD_SIZE] = { '\0' };
   struct timeval tv;
+
+  write_a_char('\n');
   
   while ( true )
   {
@@ -366,6 +368,34 @@ void SerialServiceHandler::receiveData() {
 	
 }
 
+int SerialServiceHandler::write_a_char(unsigned char toWrite) {
+  #ifdef WIN32
+  DWORD ret = 0;
+  if (!WriteFile(this->hComm, &toWrite, sizeof(toWrite), &ret, NULL)) {
+    int err = GetLastError();
+    LOG_ERROR("ReadFile failed with error code: " << err);
+    exit(-1);
+  }
+  #else
+  ssize_t ret = write(gFD, &toWrite, sizeof(toWrite));
+  #endif
+  
+  if ( ret == -1 )
+  {
+    LOG_ERROR( "Read returned -1" );
+    exit( -1 );
+  }
+  else if ( ret >= 1 )
+  {
+    return ret;
+  }
+  else if ( ret == 0 )
+  {
+    LOG_ERROR( "Read returned 0" );
+    exit( -1 );
+  }
+  return ret;
+}
 
 unsigned char SerialServiceHandler::read_a_char()
 {

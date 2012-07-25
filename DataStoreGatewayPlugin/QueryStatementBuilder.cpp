@@ -36,11 +36,11 @@ QueryStatementBuilder::query (void) const
 bool
 QueryStatementBuilder::addFilter (const std::string &token,
                                   const char *stub,
-                                  bool is_int)
+                                  bool is_numeric)
 {
   if (!token.empty ())
     {
-      if (is_int && token.find_first_not_of (digits_) != std::string::npos)
+      if (is_numeric && token.find_first_not_of (digits_) != std::string::npos)
         {
           LOG_ERROR ("token " << token.c_str () << " is malformed");
 
@@ -58,7 +58,7 @@ QueryStatementBuilder::addFilter (const std::string &token,
 
       query_str_ += stub;
 
-      if (!is_int)
+      if (!is_numeric)
         {
           if (token.find ('%') == std::string::npos)
             {

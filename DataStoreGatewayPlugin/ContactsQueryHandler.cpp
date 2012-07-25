@@ -137,6 +137,16 @@ ContactsQueryHandler::encode_row (sqlite3_stmt *stmt,
   static const Json::StaticString ph ("phone");
   value[ph] =
     reinterpret_cast<const char *> (sqlite3_column_text (stmt, 9));
+    
+  size_t len = sqlite3_column_bytes (stmt, 10);
+  std::string fo_str ((char *) sqlite3_column_blob (stmt, 10), len);
+  static const Json::StaticString fo ("photo");
+  value[fo] = fo_str;
+  
+  len = sqlite3_column_bytes (stmt, 11);
+  std::string ig_str ((char *) sqlite3_column_blob (stmt, 11), len);
+  static const Json::StaticString ig ("insignia");
+  value[ig] = ig_str;
   
   Json::FastWriter writer;
   output = writer.write (value);

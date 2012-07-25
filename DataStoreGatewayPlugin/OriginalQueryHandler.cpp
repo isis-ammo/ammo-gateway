@@ -46,7 +46,7 @@ OriginalQueryHandler::handleQuery (void)
 	    size_t len = sqlite3_column_bytes (stmt, 5);
       std::string data ((char *) sqlite3_column_blob (stmt, 5), len);
       
-      LOG_TRACE ("Data type: " << pr_.mimeType);
+//      LOG_TRACE ("Data type: " << pr_.mimeType);
   
       if (!this->matchedData (pr_.projection, data))
         {
@@ -64,7 +64,8 @@ OriginalQueryHandler::handleQuery (void)
       // output even if no responses are sent.
       ++index;
         
-//      LOG_TRACE ("matched on: " << pr_.projection.c_str ());
+//      LOG_TRACE ("matched on: " << pr_.projection);
+//      LOG_TRACE (data);
         
       if (sender_ == 0)
         {

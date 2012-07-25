@@ -42,6 +42,8 @@ public:
   virtual int onMessageAvailable(ammo::protocol::MessageWrapper *msg);
   virtual int onError(const char errorCode);
   
+  void send(ammo::protocol::MessageWrapper *msg);
+  
   ammo::protocol::MessageWrapper *getNextReceivedMessage();
   void addReceivedMessage(ammo::protocol::MessageWrapper *msg, char priority);
   
@@ -55,6 +57,9 @@ private:
   MessageQueue receiveQueue;
   
   unsigned long long receivedMessageCount;
+  
+  time_t latestMessageTime;
+  unsigned int heartbeatTimeoutTime;
 };
 
 #endif
