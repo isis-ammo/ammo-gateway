@@ -10,16 +10,27 @@ purpose whatsoever, and to have or authorize others to do so.
 */
 package edu.vu.isis.ammo.rmcastplugin;
 
-import edu.vu.isis.ammo.gateway.*;
-import edu.vu.isis.ammo.core.pb.AmmoMessages;
-import com.google.protobuf.ByteString;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import com.google.protobuf.ByteString;
+
+import edu.vu.isis.ammo.core.pb.AmmoMessages;
+import edu.vu.isis.ammo.gateway.AcknowledgementThresholds;
+import edu.vu.isis.ammo.gateway.DataPushReceiverListener;
+import edu.vu.isis.ammo.gateway.GatewayConnector;
+import edu.vu.isis.ammo.gateway.GatewayConnectorDelegate;
+import edu.vu.isis.ammo.gateway.MessageScope;
+import edu.vu.isis.ammo.gateway.PullRequest;
+import edu.vu.isis.ammo.gateway.PullRequestReceiverListener;
+import edu.vu.isis.ammo.gateway.PullResponse;
+import edu.vu.isis.ammo.gateway.PullResponseReceiverListener;
+import edu.vu.isis.ammo.gateway.PushAcknowledgement;
+import edu.vu.isis.ammo.gateway.PushData;
 
 /**
  * class PluginServiceHandler
@@ -69,6 +80,7 @@ class PluginServiceHandler implements
 
     public void onAmmoMessageReceived( AmmoMessages.MessageWrapper message ) // from RMCastConnector
     {
+    	logger.info("received a message: {}", message.getType());
 	if (message.getType() == AmmoMessages.MessageWrapper.MessageType.DATA_MESSAGE) { // data message convert to push message
 	    PushData pushData = new PushData();
 	    AmmoMessages.DataMessage dataMessage = message.getDataMessage();
@@ -76,12 +88,34 @@ class PluginServiceHandler implements
 	    pushData.mimeType = dataMessage.getMimeType();
 	    pushData.encoding = dataMessage.getEncoding();
 	    pushData.originUserName = dataMessage.getUserId();
+	    pushData.originDevice = dataMessage.getOriginDevice();
+		pushData.ackThresholds = new AcknowledgementThresholds();
+		pushData.ackThresholds.deviceDelivered = dataMessage.getThresholds().getDeviceDelivered();
+		pushData.ackThresholds.pluginDelivered = dataMessage.getThresholds().getPluginDelivered();
 	    pushData.data = dataMessage.getData().toByteArray();
 	    pushData.scope = (AmmoMessages.MessageScope.GLOBAL == dataMessage.getScope()) ?
 		MessageScope.SCOPE_GLOBAL :
 		MessageScope.SCOPE_LOCAL;
 	    mGatewayConnector.pushData(pushData);
 	    logger.info("received push message from: {} {}", pushData.originUserName, pushData);
+	} else if(message.getType() == AmmoMessages.MessageWrapper.MessageType.PUSH_ACKNOWLEDGEMENT) {
+		PushAcknowledgement out = new PushAcknowledgement();
+		AmmoMessages.PushAcknowledgement in = message.getPushAcknowledgement();
+		out.acknowledgingDevice = in.getAcknowledgingDevice();
+		out.acknowledgingUser = in.getAcknowledgingUser();
+		out.destinationDevice = in.getDestinationDevice();
+		out.destinationUser = in.getDestinationUser();
+		out.deviceDelivered = in.getThreshold().getDeviceDelivered();
+		out.pluginDelivered = in.getThreshold().getPluginDelivered();
+		switch (in.getStatus()) {
+		case FAIL: out.status = edu.vu.isis.ammo.gateway.PushStatus.PUSH_FAIL; break;
+		case RECEIVED: out.status = edu.vu.isis.ammo.gateway.PushStatus.PUSH_RECEIVED; break;
+		case REJECTED: out.status = edu.vu.isis.ammo.gateway.PushStatus.PUSH_RECEIVED; break;
+		case SUCCESS: out.status = edu.vu.isis.ammo.gateway.PushStatus.PUSH_SUCCESS; break;
+		}
+		out.uid = in.getUri();
+		mGatewayConnector.pushAcknowledgement(out);
+		logger.info("received push ack from: {} {}", out.acknowledgingUser, out);
 	} else 	if (false) { // TBD SKN message.getType() == AmmoMessages.MessageWrapper.MessageType.SUBSCRIBE_MESSAGE) {
 	    // subscribe message check the sub map to see if we are not already subscribed to this type
 	    AmmoMessages.SubscribeMessage subscribeMessage = message.getSubscribeMessage();
@@ -153,7 +187,26 @@ class PluginServiceHandler implements
 
     @Override
     public void onPushAcknowledgementReceived(GatewayConnector sender, PushAcknowledgement ack) {
-      
+		AmmoMessages.PushAcknowledgement.Builder ackMsg =
+			AmmoMessages.PushAcknowledgement.newBuilder();
+		ackMsg.setUri(ack.uid);
+		ackMsg.setDestinationDevice(ack.destinationDevice);
+		ackMsg.setDestinationUser(ack.destinationUser);
+		ackMsg.setAcknowledgingDevice(ack.acknowledgingDevice);
+		ackMsg.setAcknowledgingUser(ack.acknowledgingUser);
+		
+		AmmoMessages.AcknowledgementThresholds.Builder thresholds = 
+			AmmoMessages.AcknowledgementThresholds.newBuilder();
+		thresholds.setDeviceDelivered(ack.deviceDelivered);
+		thresholds.setPluginDelivered(ack.pluginDelivered);
+		ackMsg.setThreshold(thresholds.build());
+		
+		AmmoMessages.MessageWrapper.Builder msg =
+			    AmmoMessages.MessageWrapper.newBuilder();
+		msg.setPushAcknowledgement(ackMsg.build());
+		msg.setType(AmmoMessages.MessageWrapper.MessageType.PUSH_ACKNOWLEDGEMENT);
+		
+		mRmcastConnector.sendMessage(msg.build());
     }
 
     @Override
@@ -169,7 +222,13 @@ class PluginServiceHandler implements
 	pushMsg.setMimeType( pushData.mimeType );
 	pushMsg.setEncoding( pushData.encoding );
 	pushMsg.setUserId( pushData.originUserName );
+	pushMsg.setOriginDevice( pushData.originDevice );
 	pushMsg.setData( ByteString.copyFrom(pushData.data) );
+	AmmoMessages.AcknowledgementThresholds.Builder thresholds = 
+			AmmoMessages.AcknowledgementThresholds.newBuilder();
+	thresholds.setDeviceDelivered(pushData.ackThresholds.deviceDelivered);
+	thresholds.setPluginDelivered(pushData.ackThresholds.pluginDelivered);
+	pushMsg.setThresholds(thresholds.build());
 	pushMsg.setScope( pushData.scope == MessageScope.SCOPE_GLOBAL ? AmmoMessages.MessageScope.GLOBAL : AmmoMessages.MessageScope.LOCAL );
 
 	msg.setType( AmmoMessages.MessageWrapper.MessageType.DATA_MESSAGE );

@@ -11,6 +11,10 @@ GatewayEventHandler::GatewayEventHandler() : parent(NULL) {
 
 }
 
+GatewayEventHandler::~GatewayEventHandler() {
+  LOG_TRACE("In ~GatewayEventHandler");
+}
+
 void GatewayEventHandler::onConnect(std::string &peerAddress) {
   LOG_TRACE("GatewayEventHandler::onConnect(" << peerAddress << ")");
   if(parent) {

@@ -24,7 +24,7 @@ if defined GATEWAY_ROOT (
 
   %JAVA_CMD% -cp ^
       libs\gatewaypluginapi.jar;libs\slf4j-api-1.6.4.jar;libs\slf4j-simple-1.6.4.jar;libs\json-20090211.jar;libs\protobuf-java-2.3.0.jar;dist\lib\mcastplugin.jar ^
-      edu.vu.isis.ammo.mcastplugin.McastPlugin
+      edu.vu.isis.ammo.mcastplugin.MCastPlugin
 
   popd
 
@@ -43,7 +43,7 @@ pushd "%PLUGIN_BASE%"
 
 %JAVA_CMD% -cp ^
     gatewaypluginapi.jar;slf4j-api-1.6.4.jar;slf4j-simple-1.6.4.jar;json-20090211.jar;protobuf-java-2.3.0.jar;mcastplugin.jar ^
-    edu.vu.isis.ammo.mcastplugin.McastPlugin
+    edu.vu.isis.ammo.mcastplugin.MCastPlugin
 
 popd
 

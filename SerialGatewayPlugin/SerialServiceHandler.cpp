@@ -2,9 +2,15 @@
 #include "SerialMessageProcessor.h"
 #include "protocol/AmmoMessages.pb.h"
 
-#include <termios.h>
+#ifdef WIN32
+  #include <windows.h>
+  #include <time.h>
+#else
+  #include <termios.h>
+  #include <unistd.h>
+#endif
+
 #include <errno.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -14,6 +20,8 @@
 #include <iostream>
 
 #include "log.h"
+
+const size_t MAX_PAYLOAD_SIZE = 1024;
 
 using namespace std;
 
@@ -25,21 +33,57 @@ messageProcessor(NULL),
 sendQueueMutex(), 
 receiveQueueMutex()
 {
-  
+#ifdef WIN32
+  this->hComm = NULL;
+#endif
 }
 
 
 int SerialServiceHandler::open(void *ptr)
 {
   
+  // Open the serial port.
+#ifdef WIN32
+  this->hComm = CreateFile( (const char*) ptr,
+                           GENERIC_READ | GENERIC_WRITE,
+                           0,
+						   0,
+						   OPEN_EXISTING,
+						   0,
+						   0);
+  if (this->hComm == INVALID_HANDLE_VALUE) {
+    int err = GetLastError();
+    LOG_ERROR("open "<< (const char *) ptr << " error code: " << err );
+    exit( -1 );
+  }
+#else
   // Open the port
   gFD = ::open( (const char *)ptr, O_RDWR | O_NOCTTY );// | O_NONBLOCK );
   if ( gFD == -1 )
   {
-    printf( "open %s: error: %s\n\n", (const char *)ptr, strerror(errno)  );
+    LOG_ERROR("open "<< (const char *) ptr << ": error: " << strerror(errno));
     exit( -1 );
   }
+#endif
   
+  // Configure the serial port.
+#ifdef WIN32
+  DCB dcb;
+
+  FillMemory(&dcb, sizeof(dcb), 0);
+  dcb.DCBlength = sizeof(dcb);
+
+  if (!BuildCommDCB("9600,n,8,1", &dcb)) {   
+    LOG_ERROR("could not build dcb: error " << GetLastError());
+    exit(-1);
+  }
+
+  if (!SetCommState(this->hComm, &dcb)) {
+    LOG_ERROR("could not set comm state: error " << GetLastError());
+    CloseHandle(this->hComm);
+    exit(-1);
+  }
+#else
   // Get the attributes for the port
   // struct termios config;
   // int result = tcgetattr( gFD, &config );
@@ -178,7 +222,9 @@ int SerialServiceHandler::open(void *ptr)
   
   // tcflush( gFD, TCIFLUSH );
   // tcsetattr( gFD, TCSANOW, &config );
+#endif
   
+  // Configure internal service handler state.
   
   state = READING_HEADER;
   collectedData = NULL;
@@ -204,14 +250,43 @@ int SerialServiceHandler::open(void *ptr)
   return 0;
 }
 
+
+//TODO: ACE provides gettimeofday; we shouldn't reimplement it
+#ifdef WIN32
+#define DELTA_EPOCH_IN_MICROSECONDS 11644473600000000ULL
+int gettimeofday(struct timeval* tv, struct timezone* tz)
+{
+  FILETIME ft;
+  unsigned __int64 tmpres = 0;
+  static int tzflag;
+
+  if (NULL != tv) {
+    GetSystemTimeAsFileTime(&ft);
+
+	tmpres |= ft.dwHighDateTime;
+	tmpres <<= 32;
+	tmpres |= ft.dwLowDateTime;
+
+	tmpres -= DELTA_EPOCH_IN_MICROSECONDS;
+	tmpres /= 10;
+	tv->tv_sec = (long) (tmpres / 1000000UL);
+	tv->tv_usec = (long) (tmpres % 1000000UL);
+  }
+
+  return 0;
+}
+#endif
+
 void SerialServiceHandler::receiveData() {
   
   char phone_id = 127;
-  short size = 0;
+  unsigned short size = 0;
   int state = 0;
   unsigned char c = 0;
-  char buf[1024] = { '\0' };
+  char buf[MAX_PAYLOAD_SIZE] = { '\0' };
   struct timeval tv;
+
+  write_a_char('\n');
   
   while ( true )
   {
@@ -257,9 +332,10 @@ void SerialServiceHandler::receiveData() {
       break;
       
     case 2:
-	    printf("SLOT[%2d],Len[%3d]: ", phone_id, size);
+	    LOG_DEBUG("SLOT[" << (int) phone_id << "],Len[" << size << "]: ");
 	    
-	    for ( int i = 0; i < size; ++i )
+	    if(size < MAX_PAYLOAD_SIZE - 16) {
+        for (unsigned short i = 0; i < size; ++i)
 	    {
 	      c = read_a_char();
 	      buf[i+16] = c;
@@ -268,27 +344,58 @@ void SerialServiceHandler::receiveData() {
 	      int result = gettimeofday( &tv, NULL );
 	      if ( result == -1 )
 	      {
-	        printf( "gettimeofday() failed\n" );
+            LOG_ERROR("gettimeofday() failed\n" );
 	        break;
 	      }
 	      
 	      long ts = *(long *)&buf[8];
 	      long rts = tv.tv_sec*1000 + tv.tv_usec / 1000; 
-	      printf( " Tdt(%ld),Thh(%ld),Tdel(%8ld)\n", rts, ts, rts-ts  );
+          LOG_DEBUG(" Tdt(" << rts << "),Thh(" << ts << "),Tdel(" << rts - ts << ")");
 	    }
 	    
 	    processData(&buf[16], size, *(short  *)&buf[6], 0); // process the message
+	    } else {
+	      LOG_ERROR("Received packet of invalid size: " << size);
+	    }
 	    state = 0;
 	    break;
 	    
 	  default:
-	    printf( "Something f-ed up.\n" );
+	    LOG_ERROR("SerialServiceHandler: unknown state");
 	  }
 	}
 	
 	
 }
 
+int SerialServiceHandler::write_a_char(unsigned char toWrite) {
+  #ifdef WIN32
+  DWORD ret = 0;
+  if (!WriteFile(this->hComm, &toWrite, sizeof(toWrite), &ret, NULL)) {
+    int err = GetLastError();
+    LOG_ERROR("ReadFile failed with error code: " << err);
+    exit(-1);
+  }
+  #else
+  ssize_t ret = write(gFD, &toWrite, sizeof(toWrite));
+  #endif
+  
+  if ( ret == -1 )
+  {
+    LOG_ERROR( "Read returned -1" );
+    exit( -1 );
+  }
+  else if ( ret >= 1 )
+  {
+    return ret;
+  }
+  else if ( ret == 0 )
+  {
+    LOG_ERROR( "Read returned 0" );
+    exit( -1 );
+  }
+  return ret;
+}
 
 unsigned char SerialServiceHandler::read_a_char()
 {
@@ -297,10 +404,24 @@ unsigned char SerialServiceHandler::read_a_char()
   while ( true )
   {
     // printf( "about to read()..." );
+#ifdef WIN32
+    DWORD count = 0;
+    
+	while (count == 0) {
+      if (!ReadFile(this->hComm, &temp, 1, &count, NULL)) {
+        int err = GetLastError();
+        LOG_ERROR("ReadFile failed with error code: " << err);
+	    exit(-1);
+      }
+	  Sleep(1);
+	}
+#else
     ssize_t count = read( gFD, &temp, 1 );
+#endif
+
     if ( count == -1 )
     {
-      perror( "read" );
+      LOG_ERROR( "Read returned -1" );
       exit( -1 );
     }
     else if ( count >= 1 )
@@ -309,7 +430,7 @@ unsigned char SerialServiceHandler::read_a_char()
     }
     else if ( count == 0 )
     {
-      perror( "read count 0" );
+      LOG_ERROR( "Read returned 0" );
       exit( -1 );
     }
   }

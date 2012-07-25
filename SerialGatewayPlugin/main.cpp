@@ -11,6 +11,7 @@
 #include "ace/Signal.h"
 
 #include "ace/Acceptor.h"
+#include "ace/Select_Reactor.h"
 #include "ace/Reactor.h"
 
 #include "SerialServiceHandler.h"
@@ -44,11 +45,11 @@ public:
 
 extern void testParseTerse();
 
-void *start_svc_handler( void *data ) {
+ACE_THR_FUNC_RETURN start_svc_handler( void *data ) {
   LOG_DEBUG("Receiving message receiver - blocking call ");
   SerialServiceHandler *svcHandler = static_cast<SerialServiceHandler *>(data);
   svcHandler->receiveData();
-  return (void *)0;
+  return (ACE_THR_FUNC_RETURN) 0;
 }
 
 int main(int argc, char **argv) {
@@ -56,6 +57,13 @@ int main(int argc, char **argv) {
   setupLogging("SerialGatewayPlugin");
   LOG_FATAL("=========");
   LOG_FATAL("AMMO Serial Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
+  
+  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
+  //to the WFMO reactor, which has radically different semantics and
+  //violates assumptions we made in our code
+  ACE_Select_Reactor *selectReactor = new ACE_Select_Reactor;
+  ACE_Reactor *newReactor = new ACE_Reactor(selectReactor);
+  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(newReactor));
   
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
@@ -67,7 +75,11 @@ int main(int argc, char **argv) {
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
   ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
   
+#ifdef WIN32
+  string androidAddress = "COM1";
+#else
   string androidAddress = "/dev/ttyUSB0";
+#endif
   
   queue<string> argumentQueue;
   for(int i=1; i < argc; i++) {
@@ -85,7 +97,11 @@ int main(int argc, char **argv) {
     } else {
       LOG_FATAL("Usage: SerialGatewayPlguin [--listenPort port] [--listenAddress address]");
       LOG_FATAL("  --listenAddress address  Sets the listening address for the Serial");
+#ifdef WIN32
+      LOG_FATAL("                           interface (default COM1)");
+#else
       LOG_FATAL("                           interface (default /dev/ttyUSB0)");
+#endif
       return 1;
     }
   }
@@ -102,7 +118,7 @@ int main(int argc, char **argv) {
   reactor->run_reactor_event_loop();
   LOG_DEBUG("Event loop terminated.");
 
-
+  return 0;
 }
 
 

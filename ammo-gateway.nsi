@@ -192,6 +192,22 @@ ${MementoSection} "Data Store Gateway Plugin (required)" SecDatPlug
 
 ${MementoSectionEnd}
 
+${MementoSection} "Serial Gateway Plugin (required)" SecSerPlug
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing Serial Plugin ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+  ;SetOutPath $INSTDIR
+  ;RMDir /r $SMPROGRAMS\ammo-gateway
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File build\bin\SerialGatewayPlugin.exe
+
+${MementoSectionEnd}
+
 ${MementoSection} "Java Gateway Connector (required)" SecJavaConn
 
   SetDetailsPrint textonly
@@ -412,6 +428,7 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAndPlug} "The Android Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecLdapPlug} "The LDAP Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecDatPlug} "The Data Store Plugin Service for AMMO Gateway"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecSerPlug} "The Serial Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecJavaConn} "The Java Connector for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecMCastPlug} "The MCast Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecRMCastPlug} "The RMCast Plugin Service for AMMO Gateway"
@@ -451,6 +468,9 @@ Section Uninstall
 
   ; LDAP Gateway Plugin
   Delete $INSTDIR\bin\LdapGatewayPlugin.exe
+
+  ; Serial Gateway Plugin
+  Delete $INSTDIR\bin\SerialGatewayPlugin.exe
 
   ; Data Store Gateway Plugin
   Delete $INSTDIR\bin\DataStoreGatewayPlugin.exe
