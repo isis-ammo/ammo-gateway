@@ -13,8 +13,7 @@
  -
  -->
   <properties>
-    <!-- TEMPLATE2:BEGIN
--->
+    <!-- TEMPLATE2:BEGIN-->
     <repo.addr>vanderbilt-snapshot/</repo.addr>
     <!-- This field should read "Vanderbilt/" for releases -->
     <!-- TEMPLATE2:END -->
@@ -27,15 +26,20 @@
   </properties>
   <groupId>edu.vu.isis.ammo</groupId>
   <artifactId>gateway</artifactId>
-  <!-- TEMPLATE:BEGIN
--->
-  <version>1.6.0-SNAPSHOT</version>
-  <!-- TEMPLATE:END -->
+  <packaging>pom</packaging>
+
   <parent>
-  <groupId>edu.vu.isis</groupId>
-  <artifactId>ammo-grandparent</artifactId>
-  <version>1.6.0-SNAPSHOT</version>
-</parent>
+    <groupId>edu.vu.isis</groupId>
+    <artifactId>ammo-grandparent</artifactId>
+    <!-- TEMPLATE:BEGIN-->
+    <version>1.6.0-SNAPSHOT</version>
+    <!-- TEMPLATE:END -->
+  </parent>
+
+  <modules>
+    <module>JavaGatewayConnector</module>
+  </modules>
+
   <name>Ammo Gateway (Main)</name>
   <distributionManagement>
     <repository>

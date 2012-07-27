@@ -2,8 +2,7 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <properties>
-    <!-- TEMPLATE2:BEGIN
--->
+    <!-- TEMPLATE2:BEGIN-->
     <repo.addr>vanderbilt-snapshot/</repo.addr>
     <!-- This field should read "Vanderbilt/" for releases -->
     <!-- else it should read "vanderbilt-snapshot/" for snapshots-->
@@ -16,17 +15,15 @@
   </properties>
   <groupId>edu.vu.isis.ammo</groupId>
   <artifactId>gatewaypluginapi</artifactId>
-  <!-- TEMPLATE:BEGIN
--->
-  <version>1.6.0-SNAPSHOT</version>
-  <!-- TEMPLATE:END -->
-<!--
+
   <parent>
-  <groupId>edu.vu.isis</groupId>
+  <groupId>edu.vu.isis.ammo</groupId>
   <artifactId>gateway</artifactId>
-  <version>1.6.0-SNAPSHOT</version>
-</parent>
--->
+    <!-- TEMPLATE:BEGIN-->
+    <version>1.6.0-SNAPSHOT</version>
+    <!-- TEMPLATE:END -->
+  </parent>
+
   <name>Ammo Gateway Plugin API</name>
   <distributionManagement>
     <repository>
