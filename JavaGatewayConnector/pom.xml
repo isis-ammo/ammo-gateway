@@ -18,13 +18,15 @@
   <artifactId>gatewaypluginapi</artifactId>
   <!-- TEMPLATE:BEGIN
 -->
-  <version>1.5.15-SNAPSHOT</version>
+  <version>1.6.0-SNAPSHOT</version>
   <!-- TEMPLATE:END -->
-  <!--parent>
+<!--
+  <parent>
   <groupId>edu.vu.isis</groupId>
-  <artifactId>ammo-parent</artifactId>
-  <version>1.5.5-SNAPSHOT</version>
-</parent-->
+  <artifactId>gateway</artifactId>
+  <version>1.6.0-SNAPSHOT</version>
+</parent>
+-->
   <name>Ammo Gateway Plugin API</name>
   <distributionManagement>
     <repository>
