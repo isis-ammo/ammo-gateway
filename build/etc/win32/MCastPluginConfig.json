@@ -1,4 +1,5 @@
 {
- "MimeTypes": [ "ammo/com.aterrasys.nevada.locations" ]
+ "MimeTypes": [ "ammo/com.aterrasys.nevada.locations",
+                "ammo/transapps.maps.pli" ]
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)
