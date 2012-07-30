@@ -1,5 +1,5 @@
 project(GatewayCore) : aceexe, protobuf, gatewaycommon {
-  after+=LibJSON
+  after+=LibJSON LibGatewayConnector
 
   exename=GatewayCore
   
