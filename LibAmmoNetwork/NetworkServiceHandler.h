@@ -94,6 +94,7 @@ namespace ammo {
         unsigned int sendPosition;
         unsigned int sendBufferSize;
         
+        bool closeScheduled;
         bool connectionClosing;
         
         std::string deviceId; //not validated; just for pretty logging
@@ -158,6 +159,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   sentMessageCount = 0;
   receivedMessageCount = 0;
   
+  closeScheduled = false;
   connectionClosing = false;
   
   ACE_INET_Addr remoteAddress;
@@ -432,12 +434,17 @@ ProtobufMessageWrapper *ammo::gateway::internal::NetworkServiceHandler<ProtobufM
 
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::scheduleDeferredClose() {
-  ammo::gateway::internal::CloseConnectionTask<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber> *task = new ammo::gateway::internal::CloseConnectionTask<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>(this);
-  
-  //TODO:  How can we avoid leaking task?
-  ACE_Reactor *reactor = ACE_Reactor::instance();
-  LOG_DEBUG((long) this << " Scheduled deferred close");
-  reactor->notify(task, ACE_Event_Handler::READ_MASK);
+  if(!closeScheduled) {
+    closeScheduled = true;
+    ammo::gateway::internal::CloseConnectionTask<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber> *task = new ammo::gateway::internal::CloseConnectionTask<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>(this);
+    
+    //TODO:  How can we avoid leaking task?
+    ACE_Reactor *reactor = ACE_Reactor::instance();
+    LOG_DEBUG((long) this << " Scheduled deferred close");
+    reactor->notify(task, ACE_Event_Handler::READ_MASK);
+  } else {
+    LOG_WARN((long) this << " Attempted to schedule a second deferred close... not scheduling twice (would hang)");
+  }
 }
 
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
