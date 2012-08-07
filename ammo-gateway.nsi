@@ -225,6 +225,10 @@ ${MementoSection} "Serial Gateway Plugin (required)" SecSerPlug
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\SerialGatewayPlugin.exe
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\win32\SerialPluginConfig.json
+
+  SimpleSC::InstallService "SerialGatewayPlugin" "AMMO Serial Gateway Plugin" 16 2 "$INSTDIR\bin\SerialGatewayPlugin.exe" "GatewayCore" "" ""
 
 ${MementoSectionEnd}
 
