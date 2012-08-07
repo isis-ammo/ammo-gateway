@@ -178,12 +178,12 @@ inline ConfigurationManager::ConfigurationManager(const std::string& configfile)
 }
 
 #ifndef WIN32
-inline string ConfigurationManager::findConfigFile(const std::string& configfile) {
+inline std::string ConfigurationManager::findConfigFile(const std::string& configfile) {
   std::string filePath;
   ACE_stat statStruct;
   const char* CONFIG_FILE = configfile.c_str();
   
-  string home, gatewayRoot;
+  std::string home, gatewayRoot;
   
   char *homeC = ACE_OS::getenv("HOME");
   if(homeC == NULL) {
