@@ -222,6 +222,9 @@ ${MementoSection} "Serial Gateway Plugin (required)" SecSerPlug
   ;SetOutPath $INSTDIR
   ;RMDir /r $SMPROGRAMS\ammo-gateway
 
+  SimpleSC::StopService "SerialGatewayPlugin" "1" "30"
+  SimpleSC::RemoveService "SerialGatewayPlugin"
+
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\SerialGatewayPlugin.exe
@@ -260,7 +263,10 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
+  File JavaService\JavaService.exe  ; also used by RMCastPlugin
   File MCastPlugin\mcastplugin.bat
+  File MCastPlugin\mcastplugin-install.bat
+  File MCastPlugin\mcastplugin-uninstall.bat
   File MCastPlugin\dist\lib\mcastplugin.jar
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\MCastPluginConfig.json
@@ -268,6 +274,8 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
   SetShellVarContext all
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\MCastPluginConfig.json
+
+  ExecWait $INSTDIR\bin\mcastplugin-install.bat
 
 ${MementoSectionEnd}
 
@@ -284,6 +292,8 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File RMCastPlugin\rmcastplugin.bat
+  File RMCastPlugin\rmcastplugin-install.bat
+  File RMCastPlugin\rmcastplugin-uninstall.bat
   File RMCastPlugin\dist\lib\rmcastplugin.jar
   File RMCastPlugin\libs\jgroups-gw.jar
   ; jars from here down are also prereqs for mcastplugin
@@ -300,6 +310,8 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
 
   SetOutPath $APPDATA\ammo-gateway\jgroups
   File RMCastPlugin\jgroups\udp.xml
+
+  ExecWait $INSTDIR\bin\rmcastplugin-install.bat
 
 ${MementoSectionEnd}
 
@@ -443,6 +455,9 @@ Section -post
   SimpleSC::StartService "AndroidGatewayPlugin" "" "30"
   ;SimpleSC::StartService "LdapGatewayPlugin" "" "30"
   SimpleSC::StartService "DataStoreGatewayPlugin" "" "30"
+  SimpleSC::StartService "SerialGatewayPlugin" "" "30"
+  SimpleSC::StartService "AMMO MCast Plugin" "" "30"
+  SimpleSC::StartService "AMMO RMCast Plugin" "" "30"
 
   ${MementoSectionSave}
 
@@ -528,12 +543,16 @@ Section Uninstall
   SimpleSC::StopService "AndroidGatewayPlugin" "1" "30"
   SimpleSC::StopService "DataStoreGatewayPlugin" "1" "30"
   ;SimpleSC::StopService "LdapGatewayPlugin" "1" "30"
-  ;SimpleSC::StopService "SerialGatewayPlugin" "1" "30"
+  SimpleSC::StopService "SerialGatewayPlugin" "1" "30"
+  SimpleSC::StopService "AMMO MCast Plugin" "1" "30"
+  SimpleSC::StopService "AMMO RMCast Plugin" "1" "30"
   SimpleSC::RemoveService "GatewayCore"
   SimpleSC::RemoveService "AndroidGatewayPlugin"
   SimpleSC::RemoveService "DataStoreGatewayPlugin"
   ;SimpleSC::RemoveService "LdapGatewayPlugin"
-  ;SimpleSC::RemoveService "SerialGatewayPlugin"
+  SimpleSC::RemoveService "SerialGatewayPlugin"
+  ExecWait $INSTDIR\bin\mcastplugin-uninstall.bat
+  ExecWait $INSTDIR\bin\rmcastplugin-uninstall.bat
 
   ; Gateway Core
   Delete $INSTDIR\bin\GatewayCore.exe
@@ -555,11 +574,16 @@ Section Uninstall
   Delete $INSTDIR\bin\gatewaypluginapi.jar
 
   ; MCast Plugin
+  Delete $INSTDIR\bin\JavaService.exe
   Delete $INSTDIR\bin\mcastplugin.bat
+  Delete $INSTDIR\bin\mcastplugin-install.bat
+  Delete $INSTDIR\bin\mcastplugin-uninstall.bat
   Delete $INSTDIR\bin\mcastplugin.jar
 
   ; RMCast Plugin
   Delete $INSTDIR\bin\rmcastplugin.bat
+  Delete $INSTDIR\bin\rmcastplugin-install.bat
+  Delete $INSTDIR\bin\rmcastplugin-uninstall.bat
   Delete $INSTDIR\bin\rmcastplugin.jar
   Delete $INSTDIR\bin\jgroups-gw.jar
   Delete $INSTDIR\bin\json-20090211.jar
