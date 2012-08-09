@@ -130,7 +130,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
         ackMsg->set_type(ammo::protocol::MessageWrapper_MessageType_PUSH_ACKNOWLEDGEMENT);
         LOG_DEBUG(commsHandler << " Sending push acknowledgment to connected device...");
         ackMsg->set_message_priority(pushData.priority);
-        commsHandler->sendMessage(ackMsg);
+        commsHandler->send(ackMsg);
       }
       
     }
@@ -237,7 +237,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     heartbeatAck->set_message_priority(ammo::gateway::PRIORITY_CTRL);
     
     LOG_DEBUG((long) commsHandler << " Sending heartbeat acknowledgement to connected device...");
-    commsHandler->sendMessage(heartbeatAck);
+    commsHandler->send(heartbeatAck);
   }
 }
 
@@ -245,7 +245,7 @@ void AndroidMessageProcessor::onConnect(GatewayConnector *sender) {
 }
 
 void AndroidMessageProcessor::onDisconnect(GatewayConnector *sender) {
-  
+  LOG_WARN("GatewayConnector disconnected");
 }
 
 void AndroidMessageProcessor::onPushAcknowledgementReceived(GatewayConnector *sender, const ammo::gateway::PushAcknowledgement &ack) {
@@ -287,7 +287,7 @@ void AndroidMessageProcessor::onPushAcknowledgementReceived(GatewayConnector *se
   msg->set_message_priority(ammo::gateway::PRIORITY_CTRL);
   
   LOG_DEBUG((long) commsHandler << " Sending push acknowledgement message to connected device");
-  commsHandler->sendMessage(msg);
+  commsHandler->send(msg);
 }
 
 void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData) {
@@ -312,7 +312,7 @@ void AndroidMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo:
   msg->set_message_priority(pushData.priority);
   
   LOG_DEBUG((long) commsHandler << " Sending Data Push message to connected device");
-  commsHandler->sendMessage(msg);
+  commsHandler->send(msg);
 }
 
 void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, ammo::gateway::PullResponse &response) {
@@ -334,7 +334,7 @@ void AndroidMessageProcessor::onPullResponseReceived(GatewayConnector *sender, a
   msg->set_message_priority(response.priority);
   
   LOG_DEBUG((long) commsHandler << " Sending Pull Response message to connected device");
-  commsHandler->sendMessage(msg);
+  commsHandler->send(msg);
 }
 
 
@@ -349,5 +349,5 @@ void AndroidMessageProcessor::onAuthenticationResponse(GatewayConnector *sender,
   newMsg->set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
   newMsg->set_message_priority(ammo::gateway::PRIORITY_AUTH);
   newMsg->mutable_authentication_result()->set_result(result ? ammo::protocol::AuthenticationResult_Status_SUCCESS : ammo::protocol::AuthenticationResult_Status_SUCCESS);
-  commsHandler->sendMessage(newMsg);
+  commsHandler->send(newMsg);
 }

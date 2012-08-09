@@ -165,10 +165,12 @@ bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uri, std::st
 
 bool GatewayCore::pushAcknowledgement(GatewayEventHandler *sender, std::string uid, std::string destinationDevice, std::string acknowledgingDevice, std::string destinationUser, std::string acknowledgingUser, bool deviceDelivered, bool pluginDelivered, PushStatus status) {
   map<string, GatewayEventHandler *>::iterator it = plugins.find(destinationDevice);
-  if ( it != plugins.end() ) {
-    //check for something here?
+
+  if ( it != plugins.end() && it->second != sender ) { //never send acknowledgements back to the acknowledging plugin; can lead to a feedback loop in certain conditions
     (*it).second->sendPushAcknowledgement(uid, destinationDevice, acknowledgingDevice, destinationUser, acknowledgingUser, deviceDelivered, pluginDelivered, status);
     return true;
+  } else if(it != plugins.end() && it->second == sender) {
+    LOG_WARN("destinationDevice " << destinationDevice << " appears to be the same plugin as acknowledgingDevice " << acknowledgingDevice << " (" << sender << ")");
   } else {
     LOG_ERROR("Couldn't find return handler for " << destinationDevice);
   }

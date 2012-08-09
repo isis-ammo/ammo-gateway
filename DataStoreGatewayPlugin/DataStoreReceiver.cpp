@@ -76,7 +76,7 @@ DataStoreReceiver::init (void)
         }
         
       std::string fullpath (db_filepath_);
-      fullpath += "DataStore_db.sql3";
+      fullpath += "/DataStore_db.sql3";
       
     //  LOG_DEBUG ("full path = " << fullpath.c_str ());
       

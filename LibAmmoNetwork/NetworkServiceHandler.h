@@ -69,6 +69,8 @@ namespace ammo {
         void sendMessage(ProtobufMessageWrapper *msg);
         ProtobufMessageWrapper *getNextMessageToSend();
         
+        void scheduleDeferredClose();
+        
         NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber> *eventHandler;
         
         ~NetworkServiceHandler();
@@ -92,6 +94,7 @@ namespace ammo {
         unsigned int sendPosition;
         unsigned int sendBufferSize;
         
+        bool closeScheduled;
         bool connectionClosing;
         
         std::string deviceId; //not validated; just for pretty logging
@@ -103,6 +106,23 @@ namespace ammo {
         
         unsigned long long sentMessageCount;
         unsigned long long receivedMessageCount;
+      };
+      
+      template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
+      class CloseConnectionTask : public ACE_Event_Handler {
+      public:
+        CloseConnectionTask(NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber> *handlerToClose) : handler(handlerToClose) {
+          
+        }
+        
+        virtual int handle_input(ACE_HANDLE fd) {
+          LOG_DEBUG("Processing deferred close for handler " << (long) handler);
+          handler->close();
+          return 0;
+        }
+        
+      private:
+        NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber> *handler;
       };
     }
   }
@@ -139,6 +159,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
   sentMessageCount = 0;
   receivedMessageCount = 0;
   
+  closeScheduled = false;
   connectionClosing = false;
   
   ACE_INET_Addr remoteAddress;
@@ -161,6 +182,7 @@ int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, Event
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 int ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::handle_close(ACE_HANDLE fd, ACE_Reactor_Mask m) {
   //TODO: send event handler its close event here
+  LOG_TRACE((long) this << " In NetworkServiceHandler::handle_close()");
   this->eventHandler->onDisconnect();
   int result = super::handle_close(fd, m);
   
@@ -411,8 +433,34 @@ ProtobufMessageWrapper *ammo::gateway::internal::NetworkServiceHandler<ProtobufM
 }
 
 template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
+void ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::scheduleDeferredClose() {
+  if(!closeScheduled) {
+    closeScheduled = true;
+    ammo::gateway::internal::CloseConnectionTask<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber> *task = new ammo::gateway::internal::CloseConnectionTask<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>(this);
+    
+    //TODO:  How can we avoid leaking task?
+    ACE_Reactor *reactor = ACE_Reactor::instance();
+    LOG_DEBUG((long) this << " Scheduled deferred close");
+    reactor->notify(task, ACE_Event_Handler::READ_MASK);
+  } else {
+    LOG_WARN((long) this << " Attempted to schedule a second deferred close... not scheduling twice (would hang)");
+  }
+}
+
+template <class ProtobufMessageWrapper, class EventHandler, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 ammo::gateway::internal::NetworkServiceHandler<ProtobufMessageWrapper, EventHandler, SyncMethod, MagicNumber>::~NetworkServiceHandler() {
   LOG_TRACE((long) this << " In ~NetworkServiceHandler");
+  //Flush the send queue
+  sendQueueMutex.acquire();
+  int count = 0;
+  while(!sendQueue.empty()) {
+    ProtobufMessageWrapper *msg = sendQueue.top().message;
+    sendQueue.pop();
+    delete msg;
+    count++;
+  }
+  sendQueueMutex.release();
+  LOG_TRACE((long) this << " " << count << " messages flushed from send queue");
   delete eventHandler;
 }
 

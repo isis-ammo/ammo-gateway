@@ -1,20 +1,17 @@
 package edu.vu.isis.ammo.rmcastplugin;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONArray;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.File;
-import java.io.Reader;
-import java.io.FileReader;
-import java.io.FileNotFoundException;
-import java.util.List;
-import java.util.ArrayList;
 
 class PluginConfigurationManager {
     public final static String CONFIG_DIRECTORY = "ammo-gateway";
@@ -38,39 +35,31 @@ class PluginConfigurationManager {
     }
 
     private PluginConfigurationManager( String configFile ) {
-	mimeTypes = new ArrayList<String>();
+    	mimeTypes = new ArrayList<String>();
 
-	String fileName = findConfigFile(configFile);
-	if (fileName != null) {
-	    try {
-		final JSONTokener tokener = new JSONTokener( new FileReader(fileName) );
-		final JSONObject input = new JSONObject( tokener );
-		if (input != null) {
-		    if(input.has("MimeTypes")) {
-			JSONArray jsonArray = input.getJSONArray("MimeTypes");
-			for(int i=0; i<jsonArray.length(); i++)
-			    mimeTypes.add( jsonArray.getString(i) );
-		    } else {
-			logger.error("<constructor>: MimeTypes is missing or wrong type (should be string array)");
-		    }
-      
-		} else {
-		    logger.error("<constructor> JSON parsing error in config file {}. using defaults", configFile);
-		}
-	    
-	    } catch (JSONException jsx) {
-		logger.error("Exception while parsing Plugin Configuration File: {}",
-			jsx.getStackTrace() );
-		jsx.printStackTrace();
-	    } catch (FileNotFoundException fex) {
-		logger.error("Exception while opening Plugin Configuration File: {}",
-			fex.getStackTrace() );
-		fex.printStackTrace();
-	    }
-	    
-	}
-	    
+    	String fileName = findConfigFile(configFile);
+    	if (fileName != null) {
+    		try {
+    			final JSONTokener tokener = new JSONTokener( new FileReader(fileName) );
+    			final JSONObject input = new JSONObject( tokener );
+    			if(input.has("MimeTypes")) {
+    				JSONArray jsonArray = input.getJSONArray("MimeTypes");
+    				for(int i=0; i<jsonArray.length(); i++)
+    					mimeTypes.add( jsonArray.getString(i) );
+    			} else {
+    				logger.error("<constructor>: MimeTypes is missing or wrong type (should be string array)");
+    			}
 
+    		} catch (JSONException jsx) {
+    			logger.error("Exception while parsing Plugin Configuration File: {}",
+    					jsx.getStackTrace() );
+    			jsx.printStackTrace();
+    		} catch (FileNotFoundException fex) {
+    			logger.error("Exception while opening Plugin Configuration File: {}",
+    					fex.getStackTrace() );
+    			fex.printStackTrace();
+    		}
+    	}
     }
 
     private String findConfigFile( String configFile ) {

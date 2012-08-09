@@ -23,6 +23,8 @@ namespace ammo {
         virtual int onError(const char errorCode) = 0;
         
         void close();
+        void scheduleDeferredClose();
+        
         void setServiceHandler(void *handler);
       protected: //FIXME: protected to allow reactor lock hack in AndroidEventHandler (should be private)
         NetworkServiceHandler<ProtobufMessageWrapper, NetworkEventHandler, SyncMethod, MagicNumber> *serviceHandler;
@@ -50,6 +52,11 @@ void ammo::gateway::internal::NetworkEventHandler<ProtobufMessageWrapper, SyncMe
 template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
 void ammo::gateway::internal::NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber>::close() {
   serviceHandler->close();
+}
+
+template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>
+void ammo::gateway::internal::NetworkEventHandler<ProtobufMessageWrapper, SyncMethod, MagicNumber>::scheduleDeferredClose() {
+  serviceHandler->scheduleDeferredClose();
 }
 
 template <class ProtobufMessageWrapper, ammo::gateway::internal::SynchronizationMethod SyncMethod, unsigned int MagicNumber>

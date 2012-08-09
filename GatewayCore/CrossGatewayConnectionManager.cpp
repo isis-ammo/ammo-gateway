@@ -1,3 +1,5 @@
+#include <ace/OS_NS_unistd.h>
+
 #include "CrossGatewayConnectionManager.h"
 #include "CrossGatewayEventHandler.h"
 #include "GatewayCore.h"

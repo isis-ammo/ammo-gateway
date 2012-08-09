@@ -10,7 +10,8 @@ namespace ammo {
     namespace internal {
       class GatewayEventHandler : public ammo::gateway::internal::NetworkEventHandler<ammo::gateway::protocol::GatewayWrapper, ammo::gateway::internal::SYNC_MULTITHREADED, 0xdeadbeef> {
       public:
-		GatewayEventHandler();
+        GatewayEventHandler();
+        virtual ~GatewayEventHandler();
 
         virtual void onConnect(std::string &peerAddress);
         virtual void onDisconnect();
