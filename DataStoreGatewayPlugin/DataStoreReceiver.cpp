@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <sqlite3.h>
 
 #include "ace/Connector.h"
@@ -65,44 +66,58 @@ DataStoreReceiver::init (void)
   // default null arguments.
   dispatcher_.set_cfg_mgr (DataStoreConfigManager::getInstance ());
 
-  if (!check_path ())
+  try
     {
-      // check_path() will also output error info.
-      LOG_ERROR ("DataStoreReceiver::init() failed");
-      return false;
-    }
-    
-  std::string fullpath (db_filepath_);
-  fullpath += "/DataStore_db.sql3";
-  
-//  LOG_DEBUG ("full path = " << fullpath.c_str ());
-  
-  int status = sqlite3_open (fullpath.c_str (), &db_);
-  
-  if (status != 0)
-    {
-      LOG_ERROR ("Data Store Service - " << sqlite3_errmsg (db_));
-      return false;
-    }
-  
-  const char *data_tbl_str =
-	  "CREATE TABLE IF NOT EXISTS data_table ("
-	  "uri TEXT,"
-	  "mime_type TEXT,"
-	  "origin_user TEXT,"
-	  "tv_sec INTEGER NOT NULL,"
-	  "tv_usec INTEGER,"
-	  "data BLOB)";
+      if (!check_path ())
+        {
+          // check_path() will also output error info.
+          LOG_ERROR ("DataStoreReceiver::init() failed");
+          return false;
+        }
+        
+      std::string fullpath (db_filepath_);
+      fullpath += "/DataStore_db.sql3";
+      
+    //  LOG_DEBUG ("full path = " << fullpath.c_str ());
+      
+      int status = sqlite3_open (fullpath.c_str (), &db_);
+      
+      if (status != 0)
+        {
+          LOG_ERROR ("Data Store Service - " << sqlite3_errmsg (db_));
+          return false;
+        }
+      
+      const char *data_tbl_str =
+	      "CREATE TABLE IF NOT EXISTS data_table ("
+	      "uri TEXT,"
+	      "mime_type TEXT,"
+	      "origin_user TEXT,"
+	      "tv_sec INTEGER NOT NULL,"
+	      "tv_usec INTEGER,"
+	      "data BLOB)";
 	
-  char *db_err = 0;
+      char *db_err = 0;
 	
-  sqlite3_exec (db_, data_tbl_str, 0, 0, &db_err);
+      sqlite3_exec (db_, data_tbl_str, 0, 0, &db_err);
 	
-  if (db_err != 0)
-	  {
-	    LOG_ERROR ("Data Store Service data table - " << db_err);
-			return false;
+      if (db_err != 0)
+	      {
+	        LOG_ERROR ("Data Store Service data table - " << db_err);
+			    return false;
+	      }
 	  }
+	catch (const std::exception &ex)
+    {
+      LOG_ERROR ("DataStoreReceiver::init: caught std::exception - "
+                 << ex.what ());
+      return false;
+    }
+  catch (...)
+    {
+      LOG_ERROR ("DataStoreReceiver::init: caught unknown C++ exception");
+      return false;
+    }
 	  
   return true;
 }
@@ -110,7 +125,13 @@ DataStoreReceiver::init (void)
 bool
 DataStoreReceiver::check_path (void)
 {
-  char delimiter = '/';
+#ifdef WIN32
+  const char delimiter = '\\';
+  const char *delim_str = "\\";
+#else
+  const char delimiter = '/';
+  const char *delim_str = "/";
+#endif
   
   std::string::size_type lastPos =
     db_filepath_.find_first_not_of (delimiter, 0);
@@ -127,10 +148,10 @@ DataStoreReceiver::check_path (void)
       
       switch (db_filepath_[0])
         {
-          case '/':
+          case delimiter:
             result =
               ACE_OS::chdir (top_level
-                             ? (std::string ("/") + seg).c_str ()
+                             ? (std::string (delim_str) + seg).c_str ()
                              : seg.c_str ());
             break;
           case '$':

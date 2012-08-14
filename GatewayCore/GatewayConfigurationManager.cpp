@@ -1,112 +1,40 @@
 #include "GatewayConfigurationManager.h"
-
-#include "ace/Connector.h"
-#include "ace/SOCK_Connector.h"
-
-#include "json/reader.h"
 #include "json/value.h"
-
 #include "log.h"
 
-#include <iostream>
-#include <fstream>
-
-#ifdef WIN32
-#include <Windows.h>
-#include <shlwapi.h>
-#include <ShlObj.h>
-#endif
-
-#include "ace/Signal.h"
-#include <ace/OS_NS_sys_stat.h>
-
-
-
-const char *CONFIG_DIRECTORY = "ammo-gateway";
-const char *CONFIG_FILE = "GatewayConfig.json";
+static const char *CONFIG_FILE = "GatewayConfig.json";
 
 using namespace std;
 
 GatewayConfigurationManager *GatewayConfigurationManager::sharedInstance = NULL;
 
-GatewayConfigurationManager::GatewayConfigurationManager() : 
-gatewayAddress("127.0.0.1"),
-gatewayInterface("0.0.0.0"),
-gatewayPort(12475),
-crossGatewayId("DefaultGateway"),
-crossGatewayServerInterface("127.0.0.1"),
-crossGatewayServerPort(47543),
-crossGatewayParentAddress(""),
-crossGatewayParentPort(47543) {
-  LOG_DEBUG("Parsing config file...");
-  string configFilename = findConfigFile();
-  
-  if(configFilename != "") {
-    ifstream configFile(configFilename.c_str());
-    if(configFile) {
-      Json::Value root;
-      Json::Reader reader;
-      
-      bool parsingSuccessful = reader.parse(configFile, root);
-      
-      if(parsingSuccessful) {
-        if(root["GatewayInterface"].isString()) {
-          gatewayInterface = root["GatewayInterface"].asString();
-        } else {
-          LOG_ERROR("GatewayInterface is missing or wrong type (should be string)");
-        }
-        
-        if(root["GatewayAddress"].isString()) {
-          gatewayAddress = root["GatewayAddress"].asString();
-        } else {
-          LOG_ERROR("GatewayAddress is missing or wrong type (should be string)");
-        }
-        
-        if(root["GatewayPort"].isInt()) {
-          gatewayPort = root["GatewayPort"].asInt();
-        } else {
-          LOG_ERROR("GatewayPort is missing or wrong type (should be integer)");
-        }
+GatewayConfigurationManager::GatewayConfigurationManager() : ConfigurationManager(CONFIG_FILE) {
+  init();
+}
 
-        if(root["CrossGatewayId"].isString()) {
-          crossGatewayId = root["CrossGatewayId"].asString();
-        } else {
-          LOG_ERROR("CrossGatewayId is missing or wrong type (should be string)");
-        }
-        
-        if(root["CrossGatewayServerInterface"].isString()) {
-          crossGatewayServerInterface = root["CrossGatewayServerInterface"].asString();
-        } else {
-          LOG_ERROR("CrossGatewayServerInterface is missing or wrong type (should be string)");
-        }
-        
-        if(root["CrossGatewayServerPort"].isInt()) {
-          crossGatewayServerPort = root["CrossGatewayServerPort"].asInt();
-        } else {
-          LOG_ERROR("CrossGatewayServerPort is missing or wrong type (should be int)");
-        }
-        
-        if(root["CrossGatewayParentAddress"].isString()) {
-          crossGatewayParentAddress = root["CrossGatewayParentAddress"].asString();
-        } else {
-          LOG_ERROR("CrossGatewayParentAddress is missing or wrong type (should be string)");
-        }
-        
-        if(root["CrossGatewayParentPort"].isInt()) {
-          crossGatewayParentPort = root["CrossGatewayParentPort"].asInt();
-        } else {
-          LOG_ERROR("CrossGatewayParentPort is missing or wrong type (should be int)");
-        }
-      } else {
-        LOG_ERROR("JSON parsing error in config file '" << CONFIG_FILE << "'.  Using defaults.");
-      }
-    } else {
-      LOG_WARN("Could not read from config file '" << CONFIG_FILE << "'.  Using defaults.");
-    }
-  } else {
-    LOG_WARN("Using default configuration.");
-  }
-  
+void GatewayConfigurationManager::init()
+{
+  gatewayAddress = "127.0.0.1";
+  gatewayInterface = "0.0.0.0";
+  gatewayPort = 12475;
+  crossGatewayId = "DefaultGateway";
+  crossGatewayServerInterface = "127.0.0.1";
+  crossGatewayServerPort = 47543;
+  crossGatewayParentAddress = "";
+  crossGatewayParentPort = 47543;
+}
+
+void GatewayConfigurationManager::decode(const Json::Value& root)
+{
+  CM_DecodeString ( root, "GatewayInterface",             gatewayInterface            );
+  CM_DecodeString ( root, "GatewayAddress",               gatewayAddress              );
+  CM_DecodeInt    ( root, "GatewayPort",                  gatewayPort                 );
+  CM_DecodeString ( root, "CrossGatewayId",               crossGatewayId              );
+  CM_DecodeString ( root, "CrossGatewayServerInterface",  crossGatewayServerInterface );
+  CM_DecodeInt    ( root, "CrossGatewayServerPort",       crossGatewayServerPort      );
+  CM_DecodeString ( root, "CrossGatewayParentAddress",    crossGatewayParentAddress   );
+  CM_DecodeInt    ( root, "CrossGatewayParentPort",       crossGatewayParentPort      );
+
   LOG_INFO("Gateway Configuration: ");
   LOG_INFO("  Interface: " << gatewayInterface);
   LOG_INFO("  Address: " << gatewayAddress);
@@ -150,127 +78,10 @@ int GatewayConfigurationManager::getCrossGatewayParentPort() {
   return crossGatewayParentPort;
 }
 
-
-#ifndef WIN32
-/**
- * Searches for the gateway config file.  Search order:
- *   1) The current working directory
- *   2) ~/.ammo-gateway/
- *   3) /etc/ammo-gateway/
- *   Fallback locations (don't rely on these; they may change or disappear in a
- *   future release.  Gateway installation should put the config file into
- *   a location that's searched by default):
- *   4) $GATEWAY_ROOT/etc
- *   5) $GATEWAY_ROOT/build/etc
- *   6) ../etc
- */
-string GatewayConfigurationManager::findConfigFile() {
-  string filePath;
-  ACE_stat statStruct;
-  
-  string home, gatewayRoot;
-  
-  char *homeC = ACE_OS::getenv("HOME");
-  if(homeC == NULL) {
-    home = "";
-  } else {
-    home = homeC;
-  }
-  
-  char *gatewayRootC = ACE_OS::getenv("GATEWAY_ROOT");
-  if(gatewayRootC == NULL) {
-    gatewayRoot = "";
-  } else {
-    gatewayRoot = gatewayRootC;
-  }
-  
-  filePath = CONFIG_FILE;
-  //stat returns 0 if the file exists
-  if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-    filePath = home + "/" + "." + CONFIG_DIRECTORY + "/" + CONFIG_FILE;
-    if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-      filePath = string("/etc/") + CONFIG_DIRECTORY + "/" + CONFIG_FILE;
-      if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-        filePath = gatewayRoot + "/etc/" + CONFIG_FILE;
-        if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-          filePath = gatewayRoot + "/build/etc/" + CONFIG_FILE;
-          if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-            filePath = string("../etc/") + CONFIG_FILE;
-            if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-              LOG_ERROR("No config file found.");
-              return "";
-            }
-          }
-        }
-      }
-    }
-  }
-  
-  LOG_INFO("Using config file: " << filePath);
-  return filePath;
-}
-#else
-/**
- * Searches for the gateway config file.  Search order:
- *   1) The current working directory
- *   2) The user's configuration directory (Roaming appdata directory/ammo-gateway)
- *   3) The all users configuration directory (i.e. C:\ProgramData\ammo-gateway on Vista/7)
- *   Fallback locations (don't rely on these; they may change or disappear in a
- *   future release.  Gateway installation should put the config file into
- *   a location that's searched by default):
- *   4) $GATEWAY_ROOT/etc
- *   5) $GATEWAY_ROOT/build/etc
- *   6) ../etc
- */
-string GatewayConfigurationManager::findConfigFile() {
-  string filePath;
-  ACE_stat statStruct;
-  
-  string gatewayRoot;
-  
-  TCHAR userConfigPath[MAX_PATH];
-  TCHAR systemConfigPath[MAX_PATH];
-
-  SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, userConfigPath);
-  SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, systemConfigPath);
-  
-  char *gatewayRootC = ACE_OS::getenv("GATEWAY_ROOT");
-  if(gatewayRootC == NULL) {
-    gatewayRoot = "";
-  } else {
-    gatewayRoot = gatewayRootC;
-  }
-  
-  filePath = CONFIG_FILE;
-  //stat returns 0 if the file exists
-  if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-    filePath = string(userConfigPath) + "\\" + CONFIG_DIRECTORY + "\\" + CONFIG_FILE;
-    if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-      filePath = string(systemConfigPath) + "\\" + CONFIG_DIRECTORY + "\\" + CONFIG_FILE;
-      if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-        filePath = gatewayRoot + "\\etc\\" + CONFIG_FILE;
-        if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-          filePath = gatewayRoot + "\\build\\etc\\" + CONFIG_FILE;
-          if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-            filePath = string("..\\etc\\") + CONFIG_FILE;
-            if(ACE_OS::stat(filePath.c_str(), &statStruct)) {
-              LOG_ERROR("No config file found.");
-              return "";
-            }
-          }
-        }
-      }
-    }
-  }
-  
-  LOG_INFO("Using config file: " << filePath);
-  return filePath;
-}
-#endif
-
 GatewayConfigurationManager* GatewayConfigurationManager::getInstance() {
   if(sharedInstance == NULL) {
     sharedInstance = new GatewayConfigurationManager();
+	sharedInstance->populate();
   }
   return sharedInstance;
 }

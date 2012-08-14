@@ -128,6 +128,9 @@ ${MementoSection} "Gateway Core (required)" SecCore
   ;SetOutPath $INSTDIR
   ;RMDir /r $SMPROGRAMS\ammo-gateway
 
+  SimpleSC::StopService "GatewayCore" "1" "30"
+  SimpleSC::RemoveService "GatewayCore"
+
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\GatewayCore.exe
@@ -138,6 +141,8 @@ ${MementoSection} "Gateway Core (required)" SecCore
   File build\etc\win32\GatewayConfig.json
   File build\etc\win32\LoggingConfig.json
 
+  SimpleSC::InstallService "GatewayCore" "AMMO Gateway Core" 16 2 "$INSTDIR\bin\GatewayCore.exe" "" "" ""
+
 ${MementoSectionEnd}
 
 ${MementoSection} "Android Gateway Plugin (required)" SecAndPlug
@@ -145,6 +150,9 @@ ${MementoSection} "Android Gateway Plugin (required)" SecAndPlug
   SetDetailsPrint textonly
   DetailPrint "Installing Android Plugin ..."
   SetDetailsPrint listonly
+
+  SimpleSC::StopService "AndroidGatewayPlugin" "1" "30"
+  SimpleSC::RemoveService "AndroidGatewayPlugin"
 
   SectionIn 1 2 3 RO
   ;SetOutPath $INSTDIR
@@ -154,25 +162,32 @@ ${MementoSection} "Android Gateway Plugin (required)" SecAndPlug
   SetOverwrite on
   File build\bin\AndroidGatewayPlugin.exe
 
-${MementoSectionEnd}
-
-${MementoSection} "LDAP Gateway Plugin (required)" SecLdapPlug
-
-  SetDetailsPrint textonly
-  DetailPrint "Installing LDAP Plugin ..."
-  SetDetailsPrint listonly
-
-  SectionIn 1 2 3 RO
-  ;SetOutPath $INSTDIR
-  ;RMDir /r $SMPROGRAMS\ammo-gateway
-
-  SetOutPath $INSTDIR\bin
-  SetOverwrite on
-  File build\bin\LdapGatewayPlugin.exe
-  SetOutPath $APPDATA\ammo-gateway
-  File build\etc\win32\LdapPluginConfig.json
+  SimpleSC::InstallService "AndroidGatewayPlugin" "AMMO Android Gateway Plugin" 16 2 "$INSTDIR\bin\AndroidGatewayPlugin.exe" "GatewayCore" "" ""
 
 ${MementoSectionEnd}
+
+;${MementoSection} "LDAP Gateway Plugin (required)" SecLdapPlug
+;
+;  SetDetailsPrint textonly
+;  DetailPrint "Installing LDAP Plugin ..."
+;  SetDetailsPrint listonly
+;
+;  SimpleSC::StopService "LdapGatewayPlugin" "1" "30"
+;  SimpleSC::RemoveService "LdapGatewayPlugin"
+;
+;  SectionIn 1 2 3 RO
+;  ;SetOutPath $INSTDIR
+;  ;RMDir /r $SMPROGRAMS\ammo-gateway
+;
+;  SetOutPath $INSTDIR\bin
+;  SetOverwrite on
+;  File build\bin\LdapGatewayPlugin.exe
+;  SetOutPath $APPDATA\ammo-gateway
+;  File build\etc\win32\LdapPluginConfig.json
+;
+;  SimpleSC::InstallService "LdapGatewayPlugin" "AMMO LDAP Gateway Plugin" 16 2 "$INSTDIR\bin\LdapGatewayPlugin.exe" "GatewayCore" "" ""
+;
+;${MementoSectionEnd}
 
 ${MementoSection} "Data Store Gateway Plugin (required)" SecDatPlug
 
@@ -184,11 +199,16 @@ ${MementoSection} "Data Store Gateway Plugin (required)" SecDatPlug
   ;SetOutPath $INSTDIR
   ;RMDir /r $SMPROGRAMS\ammo-gateway
 
+  SimpleSC::StopService "DataStoreGatewayPlugin" "1" "30"
+  SimpleSC::RemoveService "DataStoreGatewayPlugin"
+
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\DataStoreGatewayPlugin.exe
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\DataStorePluginConfig.json
+
+  SimpleSC::InstallService "DataStoreGatewayPlugin" "AMMO Data Store Gateway Plugin" 16 2 "$INSTDIR\bin\DataStoreGatewayPlugin.exe" "GatewayCore" "" ""
 
 ${MementoSectionEnd}
 
@@ -202,9 +222,16 @@ ${MementoSection} "Serial Gateway Plugin (required)" SecSerPlug
   ;SetOutPath $INSTDIR
   ;RMDir /r $SMPROGRAMS\ammo-gateway
 
+  SimpleSC::StopService "SerialGatewayPlugin" "1" "30"
+  SimpleSC::RemoveService "SerialGatewayPlugin"
+
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\SerialGatewayPlugin.exe
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\win32\SerialPluginConfig.json
+
+  SimpleSC::InstallService "SerialGatewayPlugin" "AMMO Serial Gateway Plugin" 16 2 "$INSTDIR\bin\SerialGatewayPlugin.exe" "GatewayCore" "" ""
 
 ${MementoSectionEnd}
 
@@ -236,7 +263,10 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
+  File JavaService\JavaService.exe  ; also used by RMCastPlugin
   File MCastPlugin\mcastplugin.bat
+  File MCastPlugin\mcastplugin-install.bat
+  File MCastPlugin\mcastplugin-uninstall.bat
   File MCastPlugin\dist\lib\mcastplugin.jar
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\MCastPluginConfig.json
@@ -244,6 +274,8 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
   SetShellVarContext all
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\MCastPluginConfig.json
+
+  ExecWait $INSTDIR\bin\mcastplugin-install.bat
 
 ${MementoSectionEnd}
 
@@ -260,6 +292,8 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File RMCastPlugin\rmcastplugin.bat
+  File RMCastPlugin\rmcastplugin-install.bat
+  File RMCastPlugin\rmcastplugin-uninstall.bat
   File RMCastPlugin\dist\lib\rmcastplugin.jar
   File RMCastPlugin\libs\jgroups-gw.jar
   ; jars from here down are also prereqs for mcastplugin
@@ -276,6 +310,8 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
 
   SetOutPath $APPDATA\ammo-gateway\jgroups
   File RMCastPlugin\jgroups\udp.xml
+
+  ExecWait $INSTDIR\bin\rmcastplugin-install.bat
 
 ${MementoSectionEnd}
 
@@ -414,6 +450,15 @@ Section -post
 
   WriteUninstaller $INSTDIR\uninst-ammo-gateway.exe
 
+  ; Start Windows services
+  SimpleSC::StartService "GatewayCore" "" "30"
+  SimpleSC::StartService "AndroidGatewayPlugin" "" "30"
+  ;SimpleSC::StartService "LdapGatewayPlugin" "" "30"
+  SimpleSC::StartService "DataStoreGatewayPlugin" "" "30"
+  SimpleSC::StartService "SerialGatewayPlugin" "" "30"
+  SimpleSC::StartService "AMMO MCast Plugin" "" "30"
+  SimpleSC::StartService "AMMO RMCast Plugin" "" "30"
+
   ${MementoSectionSave}
 
   SetDetailsPrint both
@@ -426,7 +471,7 @@ SectionEnd
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "The Gateway's Core Service"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAndPlug} "The Android Plugin Service for AMMO Gateway"
-  !insertmacro MUI_DESCRIPTION_TEXT ${SecLdapPlug} "The LDAP Plugin Service for AMMO Gateway"
+  ;!insertmacro MUI_DESCRIPTION_TEXT ${SecLdapPlug} "The LDAP Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecDatPlug} "The Data Store Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecSerPlug} "The Serial Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecJavaConn} "The Java Connector for AMMO Gateway"
@@ -443,6 +488,40 @@ SectionEnd
 
 Function .onInit
 
+  ; Check if we actually have admin rights and bail if not.
+  UserInfo::GetAccountType
+  pop $0
+  ${If} $0 != "admin"
+    MessageBox mb_iconstop "You must have Administrator rights to install AMMO Gateway"
+    SetErrorLevel 740  ; ERROR_ELEVATION_REQUIRED
+    Quit
+  ${EndIf}
+
+  ReadRegStr $R0 HKLM \
+  "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway" \
+  "UninstallString"
+  StrCmp $R0 "" uninst_done
+ 
+  MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+  "AMMO Gateway is already installed. $\n$\nClick `OK` to remove the \
+  previous version or `Cancel` to cancel this upgrade." \
+  IDOK uninst
+  Abort
+ 
+;Run the uninstaller
+uninst:
+  ClearErrors
+  ExecWait '$R0 _?=$INSTDIR' ;Do not copy the uninstaller to a temp file
+ 
+  IfErrors no_remove_uninstaller uninst_done
+    ;You can either use Delete /REBOOTOK in the uninstaller or add some code
+    ;here to remove the uninstaller. Use a registry key to check
+    ;whether the user has chosen to uninstall. If you are using an uninstaller
+    ;components page, make sure all sections are uninstalled.
+  no_remove_uninstaller:
+ 
+uninst_done:
+ 
   ${MementoSectionRestore}
 
 FunctionEnd
@@ -459,6 +538,22 @@ Section Uninstall
   DetailPrint "Deleting Files..."
   SetDetailsPrint listonly
 
+  ; Windows services
+  SimpleSC::StopService "GatewayCore" "1" "30"
+  SimpleSC::StopService "AndroidGatewayPlugin" "1" "30"
+  SimpleSC::StopService "DataStoreGatewayPlugin" "1" "30"
+  ;SimpleSC::StopService "LdapGatewayPlugin" "1" "30"
+  SimpleSC::StopService "SerialGatewayPlugin" "1" "30"
+  SimpleSC::StopService "AMMO MCast Plugin" "1" "30"
+  SimpleSC::StopService "AMMO RMCast Plugin" "1" "30"
+  SimpleSC::RemoveService "GatewayCore"
+  SimpleSC::RemoveService "AndroidGatewayPlugin"
+  SimpleSC::RemoveService "DataStoreGatewayPlugin"
+  ;SimpleSC::RemoveService "LdapGatewayPlugin"
+  SimpleSC::RemoveService "SerialGatewayPlugin"
+  ExecWait $INSTDIR\bin\mcastplugin-uninstall.bat
+  ExecWait $INSTDIR\bin\rmcastplugin-uninstall.bat
+
   ; Gateway Core
   Delete $INSTDIR\bin\GatewayCore.exe
   Delete $INSTDIR\bin\gatewayconnector.dll
@@ -467,7 +562,7 @@ Section Uninstall
   Delete $INSTDIR\bin\AndroidGatewayPlugin.exe
 
   ; LDAP Gateway Plugin
-  Delete $INSTDIR\bin\LdapGatewayPlugin.exe
+  ;Delete $INSTDIR\bin\LdapGatewayPlugin.exe
 
   ; Serial Gateway Plugin
   Delete $INSTDIR\bin\SerialGatewayPlugin.exe
@@ -479,11 +574,16 @@ Section Uninstall
   Delete $INSTDIR\bin\gatewaypluginapi.jar
 
   ; MCast Plugin
+  Delete $INSTDIR\bin\JavaService.exe
   Delete $INSTDIR\bin\mcastplugin.bat
+  Delete $INSTDIR\bin\mcastplugin-install.bat
+  Delete $INSTDIR\bin\mcastplugin-uninstall.bat
   Delete $INSTDIR\bin\mcastplugin.jar
 
   ; RMCast Plugin
   Delete $INSTDIR\bin\rmcastplugin.bat
+  Delete $INSTDIR\bin\rmcastplugin-install.bat
+  Delete $INSTDIR\bin\rmcastplugin-uninstall.bat
   Delete $INSTDIR\bin\rmcastplugin.jar
   Delete $INSTDIR\bin\jgroups-gw.jar
   Delete $INSTDIR\bin\json-20090211.jar
