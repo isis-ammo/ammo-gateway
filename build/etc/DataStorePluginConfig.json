@@ -8,5 +8,13 @@
   "ChatMimeType": "ammo/transapps.chat.message",
   "ChatMediaMimeType": "ammo/transapps.chat.media",
   "DatabasePath": "/var/db/ammo-gateway"
+  "DataStoreLibs": {"$GATEWAY_ROOT/LibDataStoreApp/App_API":
+                      ["ammo/edu.vu.isis.ammo.dash.event",
+                       "ammo/edu.vu.isis.ammo.dash.media",
+                       "ammo/vnd.com.aterrasys.nevada.locations"],
+                    "$GATEWAY_ROOT/LibSecondApp/Second_API":
+                      ["ammo/vnd.com.aterrasys.nevada.locations",
+                       "ammo/edu.vu.isis.ammo.dash.media"]
+                   }
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)

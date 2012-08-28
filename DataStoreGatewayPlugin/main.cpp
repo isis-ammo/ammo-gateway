@@ -132,7 +132,7 @@ bool App::init(int argc, char* argv[])
   gatewayConnector = new GatewayConnector (receiver);
 
   DataStoreConfigManager *config =
-	  DataStoreConfigManager::getInstance (receiver, gatewayConnector);
+	  DataStoreConfigManager::create (receiver, gatewayConnector);
 	  
   // Nothing further is done with 'config' since everything happens
   // in the constructor. This macro avoids the 'unused' warning.  
@@ -223,6 +223,7 @@ int main(int argc, char** argv)
   }
   App::instance()->run();
   App::instance()->destroy();
+
   return 0;
 }
 #endif

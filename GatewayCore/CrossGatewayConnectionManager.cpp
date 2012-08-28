@@ -6,7 +6,6 @@
 #include "GatewayConfigurationManager.h"
 #include "log.h"
 
-
 using namespace ammo::gateway::internal;
 
 const int SLEEP_TIME = 3;

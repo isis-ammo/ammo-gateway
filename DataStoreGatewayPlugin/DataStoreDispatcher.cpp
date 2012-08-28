@@ -4,6 +4,7 @@
 
 #include "DataStoreDispatcher.h"
 #include "DataStoreConfigManager.h"
+#include "DataStore_API.h"
 
 #include "EventQueryHandler.h"
 #include "MediaQueryHandler.h"
@@ -24,10 +25,19 @@ DataStoreDispatcher::DataStoreDispatcher (void)
 }
 
 void
+DataStoreDispatcher::init (void)
+{
+  cfg_mgr_ = DataStoreConfigManager::getInstance ();
+}
+
+void
 DataStoreDispatcher::dispatchPushData (sqlite3 *db,
+                                       GatewayConnector *sender,
                                        PushData &pd)
 {
 //  LOG_TRACE ("Received " << pd);
+  appsPushData (sender, pd);
+
   bool good_data_store = true;
   
   if (pd.mimeType == cfg_mgr_->getPrivateContactsMimeType ())
@@ -105,7 +115,57 @@ DataStoreDispatcher::dispatchPullRequest (sqlite3 *db,
 }
 
 void
-DataStoreDispatcher::set_cfg_mgr (DataStoreConfigManager *cfg_mgr)
+DataStoreDispatcher::appsPushData (GatewayConnector *sender,
+                                   PushData &pd)
 {
-  cfg_mgr_ = cfg_mgr;
+  DataStoreConfigManager::OBJ_MAP::const_iterator i =
+    this->findObjList (pd.mimeType);
+    
+  if (i != cfg_mgr_->obj_map ().end ())
+    {
+      for (DataStoreConfigManager::OBJ_LIST::const_iterator j =
+             (*i).second.begin ();
+           j != (*i).second.end ();
+           ++j)
+        {
+          (*j)->insert (sender, pd);
+        }
+    }
 }
+                 
+void
+DataStoreDispatcher::appsPullRequest (GatewayConnector *sender,
+                                      PullRequest &pr)
+{
+  DataStoreConfigManager::OBJ_MAP::const_iterator i =
+    this->findObjList (pr.mimeType);
+    
+  if (i != cfg_mgr_->obj_map ().end ())
+    {
+      for (DataStoreConfigManager::OBJ_LIST::const_iterator j =
+             (*i).second.begin ();
+           j != (*i).second.end ();
+           ++j)
+        {
+          (*j)->query (sender, pr);
+        }
+    }
+}
+
+DataStoreConfigManager::OBJ_MAP::const_iterator
+DataStoreDispatcher::findObjList (std::string const &mime_type)
+{
+  std::string mt (mime_type);
+
+  // SMS mime types get the user name appended, so we must
+  // check for a match with the beginning substring. If a 
+  // match is found, use the substring as the map search key.
+  if (mime_type.find (cfg_mgr_->getSMSMimeType ()) == 0)
+    {
+      mt = cfg_mgr_->getSMSMimeType ();
+    } 
+  
+  return cfg_mgr_->obj_map ().find (mt);
+}
+
+

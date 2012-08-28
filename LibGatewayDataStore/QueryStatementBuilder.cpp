@@ -36,9 +36,13 @@ QueryStatementBuilder::query (void) const
 bool
 QueryStatementBuilder::addFilter (const std::string &token,
                                   const char *stub,
-                                  bool is_numeric)
+                                  bool is_numeric,
+                                  bool is_lower_bound,
+                                  bool is_blob)
 {
-  if (!token.empty ())
+  // Not handling binary BLOBs at the moment, except to store them in the
+  // database as an empty placeholder.
+  if (!token.empty () && !is_blob)
     {
       if (is_numeric && token.find_first_not_of (digits_) != std::string::npos)
         {
@@ -67,6 +71,17 @@ QueryStatementBuilder::addFilter (const std::string &token,
           else
             {
               query_str_ += " LIKE ?";
+            }
+        }
+      else
+        {
+          if (is_lower_bound)
+            {
+              query_str_ += ">=?";
+            }
+          else
+            {
+              query_str_ += "<=?";
             }
         }
     }

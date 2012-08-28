@@ -1,0 +1,21 @@
+project(LibGatewayDataStore) : acelib, protobuf, gatewaycommon, gatewayplugin {
+  after += LibGatewayConnector LibJSON
+  includes += $(GATEWAY_ROOT)/LibJSON
+  libs += sqlite3
+  dynamicflags += LIBGATEWAYDATASTORE_BUILD_DLL
+  sharedname = gatewaydatastore
+  
+  // Paths to SQLite lib for 32- and 64-bit machines.
+  specific(prop:make) {
+    libpaths += /usr/lib/i386-linux-gnu \
+                /usr/lib/x86_64-linux-gnu
+  }
+
+  Source_Files {
+    DataStoreUtils.cpp
+    PushHandler.cpp
+    QueryHandler.cpp
+    QueryStatementBuilder.cpp
+    StringParser.cpp
+  }
+}

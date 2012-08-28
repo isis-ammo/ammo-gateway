@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "LibGatewayDataStore_Export.h"
+
 namespace Json
 {
   class Value;
@@ -13,7 +15,7 @@ struct sqlite3_stmt;
 
 // Collection of common low-level methods that can't be
 // located in a single base class.
-struct DataStoreUtils
+struct LibGatewayDataStore_Export DataStoreUtils
 {
   static bool parseJson (const std::string &input,
                          Json::Value& root);

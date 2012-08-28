@@ -39,10 +39,10 @@ DataStoreReceiver::onDisconnect (GatewayConnector * /* sender */)
 }
 
 void
-DataStoreReceiver::onPushDataReceived (GatewayConnector * /* sender */,
+DataStoreReceiver::onPushDataReceived (GatewayConnector *sender,
                                        PushData &pushData)
 {
-  dispatcher_.dispatchPushData (db_, pushData);
+  dispatcher_.dispatchPushData (db_, sender, pushData);
 }
 
 void
@@ -61,10 +61,8 @@ DataStoreReceiver::db_filepath (const std::string &path)
 bool
 DataStoreReceiver::init (void)
 {
-  // The config manager's receiver and connectro references have been set,
-  // so we can initialize the dispatcher's member with a call using the
-  // default null arguments.
-  dispatcher_.set_cfg_mgr (DataStoreConfigManager::getInstance ());
+  // Initializes the ConfigManager.
+  dispatcher_.init ();
 
   try
     {
@@ -143,7 +141,7 @@ DataStoreReceiver::check_path (void)
   
   while (std::string::npos != pos || std::string::npos != lastPos)
     {
-      //LOG_DEBUG ("segment: " << seg);
+//      LOG_DEBUG ("segment: " << seg);
       int result = 0;
       
       switch (db_filepath_[0])
@@ -194,12 +192,6 @@ DataStoreReceiver::check_path (void)
                      << seg);
           return false;
         }
-    }
-    
-  // Make sure it ends with a slash so we can just append the db filename.  
-  if (db_filepath_[db_filepath_.size () - 1] != delimiter)
-    {
-      db_filepath_ += delimiter;
     }
     
   return true;

@@ -1,0 +1,20 @@
+project(App_API_Lib): acelib {
+  libout = .
+  sharedname = App_API
+  dynamicflags += APP_API_BUILD_DLL
+  includes += $(GATEWAY_ROOT)/DataStoreGatewayPlugin \
+              $(GATEWAY_ROOT)/LibGatewayConnector
+  after += LibGatewayConnector
+
+  libs += gatewayconnector
+  libpaths += $(GATEWAY_ROOT)/build/lib
+
+  Source_Files {
+    App_API.cpp
+  }
+
+  Header_Files {
+    App_API.h
+    App_API_Export.h
+  }
+}

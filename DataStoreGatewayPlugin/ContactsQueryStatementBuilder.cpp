@@ -82,3 +82,4 @@ ContactsQueryStatementBuilder::bind (void)
 }
 
 
+
