@@ -1,4 +1,5 @@
 {
- "listenPort": "/dev/ttyUSB0"
+ "listenPort": "/dev/ttyUSB0",
+ "gpsPort": "/dev/cu.usbserial-A80090eE"
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)
