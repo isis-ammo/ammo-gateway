@@ -70,6 +70,8 @@ public:
   ammo::protocol::MessageWrapper *getNextReceivedMessage();
   void addReceivedMessage(ammo::protocol::MessageWrapper *msg, char priority);
   
+  int write_a_char(unsigned char toWrite);
+
   ~SerialServiceHandler();
   
 protected:
@@ -80,7 +82,7 @@ protected:
 #endif
 
   unsigned char read_a_char();
-  int write_a_char(unsigned char toWrite);
+
 
   void sendErrorPacket(char errorCode);
   

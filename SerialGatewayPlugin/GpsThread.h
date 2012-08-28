@@ -15,6 +15,8 @@ public:
   
   void stop();
   
+  long getTimeDelta();
+
 private:
   ACE_Thread_Mutex closeMutex;
   bool closed;
@@ -26,8 +28,7 @@ private:
   long timeDelta;
   ACE_Thread_Mutex timeDeltaMutex;
   void setTimeDelta(long delta);
-  long getTimeDelta();
-  
+
 #ifdef WIN32
   HANDLE hComm;
 #else
