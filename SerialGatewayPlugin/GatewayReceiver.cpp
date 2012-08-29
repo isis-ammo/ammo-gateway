@@ -8,6 +8,7 @@
 #include "GatewayReceiver.h"
 #include <sstream>
 #include "json/json.h"
+#include "protocol/AmmoMessages.pb.h"
 
 using namespace std;
 
@@ -55,6 +56,18 @@ void GatewayReceiver::onPushDataReceived(
     //TODO: parse and forward PLI relay, too
     std::string pliRelayBlob("\0", 1);
     appendBlob(tersePayload, pliRelayBlob);
+
+    ammo::protocol::MessageWrapper msg;
+    msg.set_type(ammo::protocol::MessageWrapper_MessageType_TERSE_MESSAGE);
+    msg.set_message_priority(0);
+    ammo::protocol::TerseMessage *terseMsg = msg.mutable_terse_message();
+    terseMsg->set_mime_type(5);
+    terseMsg->set_data(tersePayload.str());
+
+    std::string serializedMessage = msg.SerializeAsString();
+    //we need a pointer to this data, so create a new string and copy it
+    std::string *messageToSend = new std::string(serializedMessage);
+    addReceivedMessage(messageToSend);
   }
 }
 
