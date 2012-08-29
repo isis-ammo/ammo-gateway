@@ -7,6 +7,7 @@
 
 #include "GatewayReceiver.h"
 #include <sstream>
+#include "json/json.h"
 
 using namespace std;
 
@@ -33,7 +34,27 @@ void GatewayReceiver::onPushDataReceived(
      *   createdTime: uint32; time from json / 1000
      *   GroupPliBlob : blob
      */
+    Json::Value root;
+    Json::Reader reader;
+
+    //We only parse the c_str component of the data because the data may contain
+    //binary data at the end (separated by a null, which is why this works).
+    bool parsingSuccessful = reader.parse(pushData.data.c_str(), root);
+
+    string name = root["name"].asString();
+    int32_t lat = atoi(root["lat"].asString().c_str());
+    int32_t lon = atoi(root["lon"].asString().c_str());
+    uint32_t time = atoi(root["created"].asString().c_str()) / 1000;
+
     ostringstream tersePayload;
+    appendString(tersePayload, name);
+    appendInt32(tersePayload, lat);
+    appendInt32(tersePayload, lon);
+    appendUInt32(tersePayload, time);
+
+    //TODO: parse and forward PLI relay, too
+    std::string pliRelayBlob("\0", 1);
+    appendBlob(tersePayload, pliRelayBlob);
   }
 }
 

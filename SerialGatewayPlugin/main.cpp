@@ -141,10 +141,10 @@ bool App::init(int argc, char* argv[])
   gpsThread->activate(THR_NEW_LWP | THR_JOINABLE, 1, 1, ACE_THR_PRI_FIFO_DEF);
 
   LOG_DEBUG("Creating service handler which receives and routes to gateway via the GatewayConnector");
-  //svcHandler = new SerialServiceHandler();
-  //svcHandler->open( (void *)(config->getListenPort().c_str()) );
+  svcHandler = new SerialServiceHandler(gpsThread);
+  svcHandler->open( (void *)(config->getListenPort().c_str()) );
 
-  //ACE_Thread::spawn( &start_svc_handler, (void *)svcHandler  );
+  ACE_Thread::spawn( &start_svc_handler, (void *)svcHandler  );
 
   return true;
 }
