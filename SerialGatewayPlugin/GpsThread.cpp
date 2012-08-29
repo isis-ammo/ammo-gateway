@@ -93,7 +93,7 @@ bool GpsThread::processMessage(ACE_Time_Value msgTime, std::string msg) {
       size_t secondCommaPosition = msg.find(",", firstCommaPosition + 1);
       if(secondCommaPosition != string::npos) {
         string time = msg.substr(firstCommaPosition + 1, secondCommaPosition - firstCommaPosition - 1);
-        LOG_INFO("GPGGA: " << timeinfo->tm_hour << ":" << timeinfo->tm_min << ":" << timeinfo->tm_sec << ":" << msgTime.usec() << " :: " << time);
+        //LOG_INFO("GPGGA: " << timeinfo->tm_hour << ":" << timeinfo->tm_min << ":" << timeinfo->tm_sec << ":" << msgTime.usec() << " :: " << time);
         
         string hoursString = time.substr(0, 2);
         string minutesString = time.substr(2,2);
@@ -102,17 +102,17 @@ bool GpsThread::processMessage(ACE_Time_Value msgTime, std::string msg) {
         int hours = atoi(hoursString.c_str());
         int minutes = atoi(minutesString.c_str());
         double seconds = atof(secondsString.c_str());
-        LOG_INFO("XX GPS TIME: " << hoursString << ":" << minutesString << ":" << secondsString);
+        //LOG_INFO("XX GPS TIME: " << hoursString << ":" << minutesString << ":" << secondsString);
         
         //calculate delta
         int dHours = timeinfo->tm_hour - hours;
         int dMinutes = timeinfo->tm_min - minutes;
         long dMicroseconds = timeinfo->tm_sec * 1e6 + msgTime.usec() - (static_cast<int>(seconds * 1e6));
-        LOG_INFO("dHours: " << dHours << " dMinutes: " << dMinutes << " dMicroseconds: " << dMicroseconds);
+        //LOG_INFO("dHours: " << dHours << " dMinutes: " << dMinutes << " dMicroseconds: " << dMicroseconds);
         
         //total time delta in microseconds
         long delta = static_cast<long>(((dHours*60 + dMinutes)*60))*1e6 + dMicroseconds;
-        LOG_INFO("  Delta: " << delta);
+        //LOG_INFO("  Delta: " << delta);
         
         deltaHistory[deltaHistoryCount % DELTA_HISTORY_SAMPLES] = delta;
         deltaHistoryCount++;
@@ -124,7 +124,8 @@ bool GpsThread::processMessage(ACE_Time_Value msgTime, std::string msg) {
         }
         
         long deltaAverage = deltaTotal / min(deltaHistoryCount, DELTA_HISTORY_SAMPLES);
-        LOG_INFO("Using average delta " << deltaAverage << " (" << min(deltaHistoryCount, DELTA_HISTORY_SAMPLES) << " samples)");
+        //LOG_INFO("Using average delta " << deltaAverage << " (" << min(deltaHistoryCount, DELTA_HISTORY_SAMPLES) << " samples)");
+        setTimeDelta(deltaAverage);
       } else {
         LOG_WARN("Malformed GGA message");
       }

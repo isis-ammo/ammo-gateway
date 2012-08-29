@@ -25,6 +25,7 @@ void GatewayReceiver::onPushDataReceived(
     ammo::gateway::GatewayConnector* sender,
     ammo::gateway::PushData& pushData) {
   LOG_DEBUG("Push data received: uri: " << pushData.uri << " type: " << pushData.mimeType);
+  LOG_DEBUG("  data: " << pushData.data.c_str());
 
   if(pushData.mimeType == "ammo/transapps.pli.locations") {
     /*
@@ -45,7 +46,8 @@ void GatewayReceiver::onPushDataReceived(
     string name = root["name"].asString();
     int32_t lat = atoi(root["lat"].asString().c_str());
     int32_t lon = atoi(root["lon"].asString().c_str());
-    uint32_t time = atoi(root["created"].asString().c_str()) / 1000;
+    uint32_t time = atoll(root["created"].asString().c_str()) / 1000;
+    LOG_DEBUG("XXX name=" << name << " lat=" << lat << " lon=" << lon << " time=" << time);
 
     ostringstream tersePayload;
     appendString(tersePayload, name);
@@ -76,21 +78,24 @@ void GatewayReceiver::appendString(ostringstream &stream, std::string &str) {
     LOG_WARN("String too long, putting zero length string instead");
     appendUInt16(stream, 0);
   } else {
-    appendUInt16(stream, str.length());
+    appendUInt16(stream,str.length());
     stream << str;
   }
 }
 
 void GatewayReceiver::appendInt32(ostringstream &stream, int32_t val) {
-  stream.write(reinterpret_cast<char *>(&val), sizeof(val));
+  int32_t networkVal = htonl(val);
+  stream.write(reinterpret_cast<char *>(&networkVal), sizeof(val));
 }
 
 void GatewayReceiver::appendUInt32(ostringstream &stream, uint32_t val) {
-  stream.write(reinterpret_cast<char *>(&val), sizeof(val));
+  uint32_t networkVal = htonl(val);
+  stream.write(reinterpret_cast<char *>(&networkVal), sizeof(val));
 }
 
 void GatewayReceiver::appendUInt16(ostringstream &stream, uint16_t val) {
-  stream.write(reinterpret_cast<char *>(&val), sizeof(val));
+  uint16_t networkVal = htons(val);
+  stream.write(reinterpret_cast<char *>(&networkVal), sizeof(val));
 }
 
 void GatewayReceiver::appendBlob(ostringstream &stream, std::string &blob) {

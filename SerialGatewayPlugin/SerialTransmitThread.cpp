@@ -66,6 +66,7 @@ int SerialTransmitThread::svc() {
       usleep((thisSlotBegin + cycleDuration - gpsTime) * 1000);
     } else {
       //we're in our slot...  send as much data as we can
+      //LOG_DEBUG("In slot... " << thisSlotEnd - gpsTime << " remaining in slot");
       bool slotTimeAvailable = true;
 
       while(slotTimeAvailable && receiver->isMessageAvailable()) {
@@ -86,6 +87,7 @@ int SerialTransmitThread::svc() {
           if(nextMessageLength <= bytesThatWillFit) {
             //send the message
             std::string *msg = receiver->getNextReceivedMessage();
+            LOG_TRACE("Sending message, length " << msg->length() << " + header");
             sendMessage(msg);
             delete msg;
           } else {

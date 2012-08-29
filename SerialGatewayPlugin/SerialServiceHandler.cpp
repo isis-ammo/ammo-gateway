@@ -256,6 +256,7 @@ int SerialServiceHandler::open(void *ptr)
   connectionClosing = false;
   
   messageProcessor->activate();
+  transmitThread->activate();
   
   return 0;
 }
