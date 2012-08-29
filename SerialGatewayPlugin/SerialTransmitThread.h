@@ -14,6 +14,16 @@ class SerialServiceHandler;
 class GatewayReceiver;
 class GpsThread;
 
+struct TerseMessageHeader {
+  uint8_t  magic[3];
+  uint8_t  versionAndSlot; //first two bits set to 01 and next six bits encode phone ID
+  uint16_t payloadSize;
+  uint16_t payloadChecksum;
+  uint32_t timestamp;
+  uint16_t reserved;
+  uint16_t headerChecksum;
+};
+
 class SerialTransmitThread: public ACE_Task<ACE_MT_SYNCH> {
 public:
   SerialTransmitThread(SerialServiceHandler *parent, GatewayReceiver *receiver, GpsThread *gpsThread);
@@ -31,6 +41,8 @@ private:
   ACE_Thread_Mutex closeMutex;
   bool closed;
   bool isClosed();
+
+  void sendMessage(std::string *msg);
 
   int slotDuration;
   int slotNumber;

@@ -12,6 +12,9 @@
 #endif
 
 class SerialMessageProcessor;
+class SerialTransmitThread;
+class GatewayReceiver;
+class GpsThread;
 
 const unsigned int HEADER_MAGIC_NUMBER = 0xfeedbeef;
 /**
@@ -56,7 +59,7 @@ public:
 
 class SerialServiceHandler {
 public:
-  SerialServiceHandler();
+  SerialServiceHandler(GpsThread *gpsThread);
   
   int open(void *ptr = 0);
 
@@ -108,6 +111,9 @@ protected:
   ACE_Thread_Mutex sendQueueMutex;
   ACE_Thread_Mutex receiveQueueMutex;
   
+  GatewayReceiver *receiver;
+  SerialTransmitThread *transmitThread;
+
   typedef std::priority_queue<QueuedMessage, std::vector<QueuedMessage>, QueuedMessageComparison> MessageQueue;
   MessageQueue sendQueue;
   MessageQueue receiveQueue;
