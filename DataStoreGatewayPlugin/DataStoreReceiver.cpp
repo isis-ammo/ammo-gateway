@@ -1,10 +1,6 @@
 #include <stdexcept>
 #include <sqlite3.h>
 
-#include "ace/Connector.h"
-#include "ace/SOCK_Connector.h"
-
-#include "ace/OS_NS_sys_stat.h"
 #include <ace/OS_NS_sys_stat.h>
 #include <ace/OS_NS_unistd.h>
 
