@@ -84,18 +84,26 @@ int SerialTransmitThread::svc() {
           long timeLeft = thisSlotEnd - gpsTime;
           long bytesThatWillFit = timeLeft * bytesPerMs;
 
-          if(nextMessageLength <= bytesThatWillFit) {
+          LOG_TRACE("Time: " << gpsTime << ", left in slot " << timeLeft << "ms, bytes sent " << thisSlotConsumed << "/" << maxPayloadSize);
+          if(nextMessageLength <= (maxPayloadSize - thisSlotConsumed) && nextMessageLength <= bytesThatWillFit) {
             //send the message
             std::string *msg = receiver->getNextReceivedMessage();
             LOG_TRACE("Sending message, length " << msg->length() << " + header");
             sendMessage(msg);
+            thisSlotConsumed += nextMessageLength;
             delete msg;
           } else {
             //hold the message until the next slot (we process messages in order, so we can't skip ahead)
+            LOG_TRACE("Out of slot space!");
             slotTimeAvailable = false;
           }
         }
       }
+      //finished sending data in this slot...  sleep until the next one
+      systemTime = ACE_OS::gettimeofday().get_msec(); //gets system time in milliseconds
+      gpsTime = systemTime - gpsThread->getTimeDelta() / 1000 + gpsTimeOffset;
+
+      usleep((thisSlotBegin + cycleDuration - gpsTime) * 1000);
     }
   }
   return 0;

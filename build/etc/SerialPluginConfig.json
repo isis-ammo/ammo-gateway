@@ -1,5 +1,7 @@
 {
- "listenPort": "/dev/ttyUSB0",
- "gpsPort": "/dev/cu.usbserial-A80090eE"
+ "listenPort": "/dev/cu.usbserial-A501G1U6",
+ "gpsPort": "/dev/cu.usbserial-A80090eE",
+ "slotNumber": 2,
+ "numberOfSlots": 16
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)
