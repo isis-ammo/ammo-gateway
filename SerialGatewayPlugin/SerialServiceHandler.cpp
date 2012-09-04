@@ -32,6 +32,7 @@ extern std::string gatewayAddress;
 extern int gatewayPort;
 
 #define PLI_TYPE "ammo/transapps.pli.locations"
+#define CHAT_TYPE "ammo/transapps.chat.message_groupAll"
 
 SerialServiceHandler::SerialServiceHandler(GpsThread *gpsThread) :
 messageProcessor(NULL),
@@ -50,6 +51,7 @@ transmitThread(NULL)
     transmitThread = new SerialTransmitThread(this, receiver, gpsThread);
 
     messageProcessor->gatewayConnector->registerDataInterest(PLI_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
+    messageProcessor->gatewayConnector->registerDataInterest(CHAT_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
   }
 }
 
