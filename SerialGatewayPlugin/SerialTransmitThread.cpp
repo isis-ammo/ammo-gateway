@@ -139,11 +139,11 @@ void SerialTransmitThread::sendMessage(std::string *msg) {
   header.headerChecksum = (uint16_t) headerChecksum;
 
   //send the header
-  for(int i = 0; i < sizeof(header); i++) {
+  for(size_t i = 0; i < sizeof(header); i++) {
     parent->write_a_char(reinterpret_cast<uint8_t *>(&header)[i]);
   }
   //send the payload
-  for(int i = 0; i < msg->length(); i++) {
+  for(size_t i = 0; i < msg->length(); i++) {
     parent->write_a_char((*msg)[i]);
   }
 }

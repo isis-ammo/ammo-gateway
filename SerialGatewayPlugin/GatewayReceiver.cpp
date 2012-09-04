@@ -10,6 +10,8 @@
 #include "json/json.h"
 #include "protocol/AmmoMessages.pb.h"
 
+#include <limits>
+
 using namespace std;
 
 #define htonll(x) (((int64_t)(ntohl((int32_t)((x << 32) >> 32))) << 32) | (uint32_t)ntohl(((int)(x >> 32))))
@@ -122,7 +124,7 @@ void GatewayReceiver::onPushDataReceived(
 }
 
 void GatewayReceiver::appendString(ostringstream &stream, std::string &str) {
-  if(str.length() > UINT16_MAX) {
+  if(str.length() > numeric_limits<uint16_t>::max()) {
     LOG_WARN("String too long, putting zero length string instead");
     appendUInt16(stream, 0);
   } else {
