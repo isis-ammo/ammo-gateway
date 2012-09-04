@@ -9,6 +9,7 @@
 #define GATEWAYRECEIVER_H_
 
 #include "GatewayConnector.h"
+#include <stdint.h>
 
 class GatewayReceiver : public ammo::gateway::DataPushReceiverListener {
 public:
