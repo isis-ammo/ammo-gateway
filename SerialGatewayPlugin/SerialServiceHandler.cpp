@@ -293,8 +293,8 @@ int gettimeofday(struct timeval* tv, struct timezone* tz)
 
 	tmpres -= DELTA_EPOCH_IN_MICROSECONDS;
 	tmpres /= 10;
-	tv->tv_sec = (long) (tmpres / 1000000UL);
-	tv->tv_usec = (long) (tmpres % 1000000UL);
+	tv->tv_sec = (int64_t) (tmpres / 1000000UL);
+	tv->tv_usec = (int64_t) (tmpres % 1000000UL);
   }
 
   return 0;

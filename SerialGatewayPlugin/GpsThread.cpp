@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+#include <stdint.h>
 #include <sstream>
 
 #include "SerialConfigurationManager.h"
@@ -107,23 +108,23 @@ bool GpsThread::processMessage(ACE_Time_Value msgTime, std::string msg) {
         //calculate delta
         int dHours = timeinfo->tm_hour - hours;
         int dMinutes = timeinfo->tm_min - minutes;
-        long dMicroseconds = timeinfo->tm_sec * 1e6 + msgTime.usec() - (static_cast<int>(seconds * 1e6));
+        int64_t dMicroseconds = timeinfo->tm_sec * 1e6 + msgTime.usec() - (static_cast<int>(seconds * 1e6));
         //LOG_INFO("dHours: " << dHours << " dMinutes: " << dMinutes << " dMicroseconds: " << dMicroseconds);
         
         //total time delta in microseconds
-        long delta = static_cast<long>(((dHours*60 + dMinutes)*60))*1e6 + dMicroseconds;
+        int64_t delta = static_cast<int64_t>(((dHours*60 + dMinutes)*60))*1e6 + dMicroseconds;
         //LOG_INFO("  Delta: " << delta);
         
         deltaHistory[deltaHistoryCount % DELTA_HISTORY_SAMPLES] = delta;
         deltaHistoryCount++;
         
         //do a rolling average (FIR filter) to remove some of the jitter
-        long deltaTotal = 0;
+        int64_t deltaTotal = 0;
         for(int i = 0; i < min(deltaHistoryCount, DELTA_HISTORY_SAMPLES); i++) {
           deltaTotal += deltaHistory[i];
         }
         
-        long deltaAverage = deltaTotal / min(deltaHistoryCount, DELTA_HISTORY_SAMPLES);
+        int64_t deltaAverage = deltaTotal / min(deltaHistoryCount, DELTA_HISTORY_SAMPLES);
         //LOG_INFO("Using average delta " << deltaAverage << " (" << min(deltaHistoryCount, DELTA_HISTORY_SAMPLES) << " samples)");
         setTimeDelta(deltaAverage);
       } else {
@@ -135,14 +136,14 @@ bool GpsThread::processMessage(ACE_Time_Value msgTime, std::string msg) {
   return true;
 }
 
-void GpsThread::setTimeDelta(long delta) {
+void GpsThread::setTimeDelta(int64_t delta) {
   timeDeltaMutex.acquire();
   timeDelta = delta;
   timeDeltaMutex.release();
 }
 
-long GpsThread::getTimeDelta() {
-  volatile long temp;
+int64_t GpsThread::getTimeDelta() {
+  volatile int64_t temp;
   timeDeltaMutex.acquire();
   temp = timeDelta;
   timeDeltaMutex.release();
