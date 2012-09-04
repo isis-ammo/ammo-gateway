@@ -1,5 +1,8 @@
 #include "SerialServiceHandler.h"
 #include "SerialMessageProcessor.h"
+#include "GatewayReceiver.h"
+#include "GpsThread.h"
+#include "SerialTransmitThread.h"
 #include "protocol/AmmoMessages.pb.h"
 
 #ifdef WIN32
@@ -28,14 +31,26 @@ using namespace std;
 extern std::string gatewayAddress;
 extern int gatewayPort;
 
-SerialServiceHandler::SerialServiceHandler() : 
+#define PLI_TYPE "ammo/transapps.pli.locations"
+
+SerialServiceHandler::SerialServiceHandler(GpsThread *gpsThread) :
 messageProcessor(NULL),
 sendQueueMutex(), 
-receiveQueueMutex()
+receiveQueueMutex(),
+transmitThread(NULL)
 {
 #ifdef WIN32
   this->hComm = NULL;
 #endif
+
+  //constructor happens on main thread; both these objects need to be constructed here
+  messageProcessor = new SerialMessageProcessor(this);
+  if(gpsThread != NULL) {
+    receiver = new GatewayReceiver();
+    transmitThread = new SerialTransmitThread(this, receiver, gpsThread);
+
+    messageProcessor->gatewayConnector->registerDataInterest(PLI_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
+  }
 }
 
 
@@ -243,9 +258,12 @@ int SerialServiceHandler::open(void *ptr)
   
   connectionClosing = false;
   
-  
-  messageProcessor = new SerialMessageProcessor(this);
-  messageProcessor->activate();
+  if(messageProcessor != NULL) {
+    messageProcessor->activate();
+  }
+  if(transmitThread != NULL) {
+    transmitThread->activate();
+  }
   
   return 0;
 }
@@ -362,6 +380,7 @@ void SerialServiceHandler::receiveData() {
 	    
 	  default:
 	    LOG_ERROR("SerialServiceHandler: unknown state");
+	    break;
 	  }
 	}
 	

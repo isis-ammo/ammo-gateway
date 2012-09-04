@@ -1,4 +1,11 @@
 {
- "listenPort": "/dev/ttyUSB0"
+ "listenPort": "/dev/ttyUSB0",
+ "gpsPort": "/dev/ttyUSB1",
+ "sendEnabled": false,
+ "slotDuration": 750,
+ "slotNumber": 15, //slot number is 1-based
+ "numberOfSlots": 16,
+ "transmitDuration": 500,
+ "gpsTimeOffset": 0
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)

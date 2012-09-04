@@ -12,6 +12,9 @@
 #endif
 
 class SerialMessageProcessor;
+class SerialTransmitThread;
+class GatewayReceiver;
+class GpsThread;
 
 const unsigned int HEADER_MAGIC_NUMBER = 0xfeedbeef;
 /**
@@ -56,7 +59,7 @@ public:
 
 class SerialServiceHandler {
 public:
-  SerialServiceHandler();
+  SerialServiceHandler(GpsThread *gpsThread);
   
   int open(void *ptr = 0);
 
@@ -70,6 +73,8 @@ public:
   ammo::protocol::MessageWrapper *getNextReceivedMessage();
   void addReceivedMessage(ammo::protocol::MessageWrapper *msg, char priority);
   
+  int write_a_char(unsigned char toWrite);
+
   ~SerialServiceHandler();
   
 protected:
@@ -80,7 +85,7 @@ protected:
 #endif
 
   unsigned char read_a_char();
-  int write_a_char(unsigned char toWrite);
+
 
   void sendErrorPacket(char errorCode);
   
@@ -106,6 +111,9 @@ protected:
   ACE_Thread_Mutex sendQueueMutex;
   ACE_Thread_Mutex receiveQueueMutex;
   
+  GatewayReceiver *receiver;
+  SerialTransmitThread *transmitThread;
+
   typedef std::priority_queue<QueuedMessage, std::vector<QueuedMessage>, QueuedMessageComparison> MessageQueue;
   MessageQueue sendQueue;
   MessageQueue receiveQueue;
