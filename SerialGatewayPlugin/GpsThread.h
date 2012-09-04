@@ -3,6 +3,7 @@
 
 #include "ace/Task.h"
 #include <ace/Date_Time.h>
+#include <stdint.h>
 
 #define DELTA_HISTORY_SAMPLES 20
 
