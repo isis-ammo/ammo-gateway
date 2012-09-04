@@ -10,6 +10,8 @@ public:
   std::string getListenPort() { return listenPort; }
   std::string getGpsPort() { return gpsPort; }
 
+  bool getSendEnabled() { return sendEnabled; }
+
   int getSlotDuration() { return slotDuration; }
   int getSlotNumber() { return slotNumber; }
   int getNumberOfSlots() { return numberOfSlots; }
@@ -26,6 +28,8 @@ private:
   static SerialConfigurationManager *sharedInstance;
   std::string listenPort;
   std::string gpsPort;
+
+  bool sendEnabled;
 
   int slotDuration;
   int slotNumber;

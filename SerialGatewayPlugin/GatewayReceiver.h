@@ -26,9 +26,11 @@ public:
 
   void appendString(std::ostringstream &stream, std::string &str);
 
-  void appendInt32(std::ostringstream &stream, int32_t val);
+  void appendInt64(std::ostringstream &stream, int64_t val);
 
+  void appendInt32(std::ostringstream &stream, int32_t val);
   void appendUInt32(std::ostringstream &stream, uint32_t val);
+
   void appendUInt16(std::ostringstream &stream, uint16_t val);
 
   void appendBlob(std::ostringstream &stream, std::string &blob);

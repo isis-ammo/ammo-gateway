@@ -12,6 +12,8 @@
 
 using namespace std;
 
+#define htonll(x) (((int64_t)(ntohl((int32_t)((x << 32) >> 32))) << 32) | (uint32_t)ntohl(((int)(x >> 32))))
+
 GatewayReceiver::GatewayReceiver() : receivedMessageCount(0) {
   // TODO Auto-generated constructor stub
   
@@ -43,33 +45,75 @@ void GatewayReceiver::onPushDataReceived(
     //binary data at the end (separated by a null, which is why this works).
     bool parsingSuccessful = reader.parse(pushData.data.c_str(), root);
 
-    string name = root["name"].asString();
-    int32_t lat = atoi(root["lat"].asString().c_str());
-    int32_t lon = atoi(root["lon"].asString().c_str());
-    uint32_t time = atoll(root["created"].asString().c_str()) / 1000;
-    LOG_DEBUG("XXX name=" << name << " lat=" << lat << " lon=" << lon << " time=" << time);
+    if(parsingSuccessful) {
+      string name = root["name"].asString();
+      int32_t lat = atoi(root["lat"].asString().c_str());
+      int32_t lon = atoi(root["lon"].asString().c_str());
+      uint32_t time = atoll(root["created"].asString().c_str()) / 1000;
+      LOG_DEBUG("XXX name=" << name << " lat=" << lat << " lon=" << lon << " time=" << time);
 
-    ostringstream tersePayload;
-    appendString(tersePayload, name);
-    appendInt32(tersePayload, lat);
-    appendInt32(tersePayload, lon);
-    appendUInt32(tersePayload, time);
+      ostringstream tersePayload;
+      appendString(tersePayload, name);
+      appendInt32(tersePayload, lat);
+      appendInt32(tersePayload, lon);
+      appendUInt32(tersePayload, time);
 
-    //TODO: parse and forward PLI relay, too
-    std::string pliRelayBlob("\0", 1);
-    appendBlob(tersePayload, pliRelayBlob);
+      //TODO: parse and forward PLI relay, too
+      std::string pliRelayBlob("\0", 1);
+      appendBlob(tersePayload, pliRelayBlob);
 
-    ammo::protocol::MessageWrapper msg;
-    msg.set_type(ammo::protocol::MessageWrapper_MessageType_TERSE_MESSAGE);
-    msg.set_message_priority(0);
-    ammo::protocol::TerseMessage *terseMsg = msg.mutable_terse_message();
-    terseMsg->set_mime_type(5);
-    terseMsg->set_data(tersePayload.str());
+      ammo::protocol::MessageWrapper msg;
+      msg.set_type(ammo::protocol::MessageWrapper_MessageType_TERSE_MESSAGE);
+      msg.set_message_priority(0);
+      ammo::protocol::TerseMessage *terseMsg = msg.mutable_terse_message();
+      terseMsg->set_mime_type(5);
+      terseMsg->set_data(tersePayload.str());
 
-    std::string serializedMessage = msg.SerializeAsString();
-    //we need a pointer to this data, so create a new string and copy it
-    std::string *messageToSend = new std::string(serializedMessage);
-    addReceivedMessage(messageToSend);
+      std::string serializedMessage = msg.SerializeAsString();
+      //we need a pointer to this data, so create a new string and copy it
+      std::string *messageToSend = new std::string(serializedMessage);
+      addReceivedMessage(messageToSend);
+    } else {
+      LOG_ERROR("Couldn't parse PLI data from gateway");
+    }
+  } else if (pushData.mimeType == "ammo/transapps.chat.message_groupAll") {
+    /* Terse Chat type definition:
+     *   Originator : string
+     *   Text : string
+     *   Created Date : int64
+     */
+    Json::Value root;
+    Json::Reader reader;
+
+    //We only parse the c_str component of the data because the data may contain
+    //binary data at the end (separated by a null, which is why this works).
+    bool parsingSuccessful = reader.parse(pushData.data.c_str(), root);
+
+    if(parsingSuccessful) {
+      string originator = root["originator"].asString();
+      string text = root["text"].asString();
+      int64_t time = atoll(root["created_date"].asString().c_str());
+
+
+      ostringstream tersePayload;
+      appendString(tersePayload, originator);
+      appendString(tersePayload, text);
+      appendInt64(tersePayload, time);
+
+      ammo::protocol::MessageWrapper msg;
+      msg.set_type(ammo::protocol::MessageWrapper_MessageType_TERSE_MESSAGE);
+      msg.set_message_priority(0);
+      ammo::protocol::TerseMessage *terseMsg = msg.mutable_terse_message();
+      terseMsg->set_mime_type(4);
+      terseMsg->set_data(tersePayload.str());
+
+      std::string serializedMessage = msg.SerializeAsString();
+      //we need a pointer to this data, so create a new string and copy it
+      std::string *messageToSend = new std::string(serializedMessage);
+      addReceivedMessage(messageToSend);
+    } else {
+      LOG_ERROR("Couldn't parse Chat data from gateway");
+    }
   }
 }
 
@@ -81,6 +125,11 @@ void GatewayReceiver::appendString(ostringstream &stream, std::string &str) {
     appendUInt16(stream,str.length());
     stream << str;
   }
+}
+
+void GatewayReceiver::appendInt64(ostringstream &stream, int64_t val) {
+  int64_t networkVal = htonll(val);
+  stream.write(reinterpret_cast<char *>(&networkVal), sizeof(val));
 }
 
 void GatewayReceiver::appendInt32(ostringstream &stream, int32_t val) {

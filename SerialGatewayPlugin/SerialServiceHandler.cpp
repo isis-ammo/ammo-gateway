@@ -36,7 +36,8 @@ extern int gatewayPort;
 SerialServiceHandler::SerialServiceHandler(GpsThread *gpsThread) :
 messageProcessor(NULL),
 sendQueueMutex(), 
-receiveQueueMutex()
+receiveQueueMutex(),
+transmitThread(NULL)
 {
 #ifdef WIN32
   this->hComm = NULL;
@@ -44,10 +45,12 @@ receiveQueueMutex()
 
   //constructor happens on main thread; both these objects need to be constructed here
   messageProcessor = new SerialMessageProcessor(this);
-  receiver = new GatewayReceiver();
-  transmitThread = new SerialTransmitThread(this, receiver, gpsThread);
+  if(gpsThread != NULL) {
+    receiver = new GatewayReceiver();
+    transmitThread = new SerialTransmitThread(this, receiver, gpsThread);
 
-  messageProcessor->gatewayConnector->registerDataInterest(PLI_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
+    messageProcessor->gatewayConnector->registerDataInterest(PLI_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
+  }
 }
 
 
@@ -255,8 +258,12 @@ int SerialServiceHandler::open(void *ptr)
   
   connectionClosing = false;
   
-  messageProcessor->activate();
-  transmitThread->activate();
+  if(messageProcessor != NULL) {
+    messageProcessor->activate();
+  }
+  if(transmitThread != NULL) {
+    transmitThread->activate();
+  }
   
   return 0;
 }

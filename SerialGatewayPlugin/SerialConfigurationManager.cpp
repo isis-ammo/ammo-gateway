@@ -35,6 +35,8 @@ void SerialConfigurationManager::init()
   gpsPort = "/dev/ttyUSB1";
 #endif
 
+  sendEnabled = false;
+
   slotDuration = 750;
   slotNumber = 1;
   numberOfSlots = 16;
@@ -46,6 +48,7 @@ void SerialConfigurationManager::decode(const Json::Value& root)
 {
   CM_DecodeString ( root, "listenPort", listenPort );
   CM_DecodeString ( root, "gpsPort", gpsPort);
+  CM_DecodeBool   ( root, "sendEnabled", sendEnabled);
   CM_DecodeInt    ( root, "slotDuration", slotDuration);
   CM_DecodeInt    ( root, "slotNumber", slotNumber);
   CM_DecodeInt    ( root, "numberOfSlots", numberOfSlots);
@@ -55,6 +58,7 @@ void SerialConfigurationManager::decode(const Json::Value& root)
   LOG_INFO("Serial Plugin Configuration: ");
   LOG_INFO("  Listen Port: " << listenPort);
   LOG_INFO("  GPS Port: " << gpsPort);
+  LOG_INFO("  Send Enabled: " << sendEnabled);
   LOG_INFO("  Slot Duration: " << slotDuration);
   LOG_INFO("  Slot Number: " << slotNumber);
   LOG_INFO("  Number Of Slots: " << numberOfSlots);

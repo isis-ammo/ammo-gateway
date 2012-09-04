@@ -137,8 +137,12 @@ bool App::init(int argc, char* argv[])
 
   SerialConfigurationManager* config = SerialConfigurationManager::getInstance();
   
-  GpsThread *gpsThread = new GpsThread();
-  gpsThread->activate(THR_NEW_LWP | THR_JOINABLE, 1, 1, ACE_THR_PRI_FIFO_DEF);
+  GpsThread *gpsThread = NULL;
+
+  if(config->getSendEnabled()) {
+    GpsThread *gpsThread = new GpsThread();
+    gpsThread->activate(THR_NEW_LWP | THR_JOINABLE, 1, 1, ACE_THR_PRI_FIFO_DEF);
+  }
 
   LOG_DEBUG("Creating service handler which receives and routes to gateway via the GatewayConnector");
   svcHandler = new SerialServiceHandler(gpsThread);
