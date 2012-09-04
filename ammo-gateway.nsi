@@ -44,6 +44,7 @@ RequestExecutionLevel admin
 !include "LogicLib.nsh"
 !include "Memento.nsh"
 !include "WordFunc.nsh"
+!include "x64.nsh"
 
 ;--------------------------------
 ;Functions
@@ -114,6 +115,94 @@ Page custom PageReinstall PageLeaveReinstall
 ;Languages
 
 !insertmacro MUI_LANGUAGE "English"
+
+;--------------------------------
+;Macros
+
+; Find JavaHome in the registry and return it in $0. If not found,
+; set $0 to an empty string. Note: Only checks currently set registry.
+; If you need to check the 64 or 32 bit registries specifically, you must use 
+; SetRegView before calling this macro. 
+!macro FindJavaHome
+  !define UniqueID_FindJavaHome ${__LINE__}
+
+  ; Place CurrentVersion in $0 or jump to no_java if not available.
+  ReadRegStr $0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
+  StrCmp $0 "" no_java_${UniqueID_FindJavaHome}
+
+  ; Place JavaHome in $0 using CurrentVersion or just to no_java if not available.
+  ReadRegStr $0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment\$0" "JavaHome"
+  StrCmp $0 "" no_java_${UniqueID_FindJavaHome}
+
+  ; Return JavaHome
+  Goto end_${UniqueID_FindJavaHome}
+
+  no_java_${UniqueID_FindJavaHome}:
+
+  ; Return an empty string
+  StrCpy $0 ""
+  Goto end_${UniqueID_FindJavaHome}
+
+  end_${UniqueID_FindJavaHome}:
+
+  !undef UniqueID_FindJavaHome
+!macroend
+
+; Find jvm.dll and return it to $0. If not found, set $0 to an empty string.
+!macro FindJvmDll
+  !define UniqueID_FindJvmDll ${__LINE__}
+
+  ; Try 64 bit registry first.
+  try_64_${UniqueID_FindJvmDll}:
+  SetRegView 64
+
+  ; Get 64 bit JavaHome
+  !insertmacro FindJavaHome
+
+  ; Look in 64 bit server directory
+  try_server_64_${UniqueID_FindJvmDll}:
+  IfFileExists "$0\bin\server\jvm.dll" 0 try_client_64_${UniqueID_FindJvmDll}
+  StrCpy $0 "$0\bin\server\jvm.dll"
+  Goto success_${UniqueID_FindJvmDll}
+
+  ; Look in 64 bit client directory
+  try_client_64_${UniqueID_FindJvmDll}:
+  IfFileExists "$0\bin\client\jvm.dll" 0 try_32_${UniqueID_FindJvmDll}
+  StrCpy $0 "$0\bin\client\jvm.dll"
+  Goto success_${UniqueID_FindJvmDll}
+
+  ; Try 32 bit registry next.
+  try_32_${UniqueID_FindJvmDll}:
+  SetRegView 64
+
+  ; Get 32 bit JavaHome
+  !insertmacro FindJavaHome
+
+  ; Look in 32 bit server directory
+  try_server_32_${UniqueID_FindJvmDll}:
+  IfFileExists "$0\bin\server\jvm.dll" 0 try_client_32_${UniqueID_FindJvmDll}
+  StrCpy $0 "$0\bin\server\jvm.dll"
+  Goto success_${UniqueID_FindJvmDll}
+
+  ; Look in 32 bit client directory
+  try_client_32_${UniqueID_FindJvmDll}:
+  IfFileExists "$0\bin\client\jvm.dll" 0 failed_${UniqueID_FindJvmDll}
+  StrCpy $0 "$0\bin\client\jvm.dll"
+  Goto success_${UniqueID_FindJvmDll}
+
+  failed_${UniqueID_FindJvmDll}:
+  ; Set $0 to empty string indicating failure
+  StrCpy $0 ""
+  Goto end_${UniqueID_FindJvmDll}
+
+  success_${UniqueID_FindJvmDll}:
+  ; nop - $0 already contains location of jvm.dll
+  Goto end_${UniqueID_FindJvmDll}
+
+  end_${UniqueID_FindJvmDll}:
+
+  !undef UniqueID_FindJvmDll
+!macroend
 
 ;--------------------------------
 ;Installer Sections
@@ -263,10 +352,12 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
-  File JavaService\JavaService.exe  ; also used by RMCastPlugin
+  ${If} ${RunningX64}  ; also used by RMCastPlugin
+    File /oname=JavaService.exe JavaService\JavaService64.exe
+  ${Else}
+    File JavaService\JavaService.exe
+  ${EndIf}
   File MCastPlugin\mcastplugin.bat
-  File MCastPlugin\mcastplugin-install.bat
-  File MCastPlugin\mcastplugin-uninstall.bat
   File MCastPlugin\dist\lib\mcastplugin.jar
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\MCastPluginConfig.json
@@ -275,7 +366,31 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\MCastPluginConfig.json
 
-  ExecWait $INSTDIR\bin\mcastplugin-install.bat
+  !insertmacro FindJvmDll
+  ${If} $0 == ""
+    Goto mcast_no_java
+  ${EndIf}
+
+  ExpandEnvStrings $1 "%COMSPEC%"
+  ExecWait '"$1" /C IF 1==1 "$INSTDIR\bin\JavaService.exe" \
+               -install \
+               "AMMO MCast Plugin" \
+               "$0" \
+               -Djava.net.preferIPv4Stack=true \
+               "-Djava.class.path=$INSTDIR\bin\gatewaypluginapi.jar;$INSTDIR\bin\slf4j-api-1.6.4.jar;$INSTDIR\bin\slf4j-simple-1.6.4.jar;$INSTDIR\bin\json-20090211.jar;$INSTDIR\bin\jgroups-gw.jar;$INSTDIR\bin\protobuf-java-2.3.0.jar;$INSTDIR\bin\mcastplugin.jar" \
+               -start edu.vu.isis.ammo.mcastplugin.MCastPlugin \
+               -depends "GatewayCore" \
+               -description "AMMO MCast Plugin" ' $0
+  ${If} $0 != "0"
+    MessageBox MB_OK|MB_ICONEXCLAMATION "MCastPlugin failed to install. Error Code: $0"
+  ${EndIf}
+  Goto mcast_the_end
+
+  mcast_no_java:
+  MessageBox MB_OK|MB_ICONEXCLAMATION "MCastPlugin failed to install. ERROR: Java was not found"
+  Goto mcast_the_end
+
+  mcast_the_end:
 
 ${MementoSectionEnd}
 
@@ -292,8 +407,6 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File RMCastPlugin\rmcastplugin.bat
-  File RMCastPlugin\rmcastplugin-install.bat
-  File RMCastPlugin\rmcastplugin-uninstall.bat
   File RMCastPlugin\dist\lib\rmcastplugin.jar
   File RMCastPlugin\libs\jgroups-gw.jar
   ; jars from here down are also prereqs for mcastplugin
@@ -311,7 +424,31 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
   SetOutPath $APPDATA\ammo-gateway\jgroups
   File RMCastPlugin\jgroups\udp.xml
 
-  ExecWait $INSTDIR\bin\rmcastplugin-install.bat
+  !insertmacro FindJvmDll
+  ${If} $0 == ""
+    Goto rmcast_no_java
+  ${EndIf}
+
+  ExpandEnvStrings $1 "%COMSPEC%"
+  ExecWait '"$1" /C IF 1==1 "$INSTDIR\bin\JavaService.exe" \
+               -install \
+               "AMMO RMCast Plugin" \
+               "$0" \
+               -Djava.net.preferIPv4Stack=true \
+               "-Djava.class.path=$INSTDIR\bin\gatewaypluginapi.jar;$INSTDIR\bin\slf4j-api-1.6.4.jar;$INSTDIR\bin\slf4j-simple-1.6.4.jar;$INSTDIR\bin\json-20090211.jar;$INSTDIR\bin\jgroups-gw.jar;$INSTDIR\bin\protobuf-java-2.3.0.jar;$INSTDIR\bin\rmcastplugin.jar" \
+               -start edu.vu.isis.ammo.rmcastplugin.RMCastPlugin \
+               -depends "GatewayCore" \
+               -description "AMMO RMCast Plugin" ' $0
+  ${If} $0 != "0"
+    MessageBox MB_OK|MB_ICONEXCLAMATION "RMCastPlugin failed to install. Error Code: $0"
+  ${EndIf}
+  Goto rmcast_the_end
+
+  rmcast_no_java:
+  MessageBox MB_OK|MB_ICONEXCLAMATION "RMCastPlugin failed to install. ERROR: Java was not found"
+  Goto rmcast_the_end
+
+  rmcast_the_end:
 
 ${MementoSectionEnd}
 
@@ -551,8 +688,8 @@ Section Uninstall
   SimpleSC::RemoveService "DataStoreGatewayPlugin"
   ;SimpleSC::RemoveService "LdapGatewayPlugin"
   SimpleSC::RemoveService "SerialGatewayPlugin"
-  ExecWait $INSTDIR\bin\mcastplugin-uninstall.bat
-  ExecWait $INSTDIR\bin\rmcastplugin-uninstall.bat
+  ExecWait '"$INSTDIR\bin\JavaService.exe" -uninstall "AMMO MCast Plugin"'
+  ExecWait '"$INSTDIR\bin\JavaService.exe" -uninstall "AMMO RMCast Plugin"'
 
   ; Gateway Core
   Delete $INSTDIR\bin\GatewayCore.exe
@@ -576,14 +713,10 @@ Section Uninstall
   ; MCast Plugin
   Delete $INSTDIR\bin\JavaService.exe
   Delete $INSTDIR\bin\mcastplugin.bat
-  Delete $INSTDIR\bin\mcastplugin-install.bat
-  Delete $INSTDIR\bin\mcastplugin-uninstall.bat
   Delete $INSTDIR\bin\mcastplugin.jar
 
   ; RMCast Plugin
   Delete $INSTDIR\bin\rmcastplugin.bat
-  Delete $INSTDIR\bin\rmcastplugin-install.bat
-  Delete $INSTDIR\bin\rmcastplugin-uninstall.bat
   Delete $INSTDIR\bin\rmcastplugin.jar
   Delete $INSTDIR\bin\jgroups-gw.jar
   Delete $INSTDIR\bin\json-20090211.jar
