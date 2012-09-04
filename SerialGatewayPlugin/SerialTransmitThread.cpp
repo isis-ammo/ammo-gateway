@@ -20,6 +20,13 @@ const uint8_t MAGIC[] = { 0xef, 0xbe, 0xed };
 
 const uint8_t VERSION = 0x40; //gets OR'd with the slot number to produce TerseMessageHeader::versionAndSlot
 
+//Windows doesn't have usleep, so we'll define it locally here
+#ifdef WIN32
+void usleep(long useconds) {
+  Sleep(useconds / 1000);
+}
+#endif
+
 SerialTransmitThread::SerialTransmitThread(SerialServiceHandler *parent, GatewayReceiver *receiver, GpsThread *gpsThread) : parent(parent), receiver(receiver), gpsThread(gpsThread), closed(false), newMessageAvailable(newMessageMutex) {
   // TODO Auto-generated constructor stub
   SerialConfigurationManager *config = SerialConfigurationManager::getInstance();

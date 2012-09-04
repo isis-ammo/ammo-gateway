@@ -14,6 +14,10 @@ using namespace std;
 
 #define htonll(x) (((int64_t)(ntohl((int32_t)((x << 32) >> 32))) << 32) | (uint32_t)ntohl(((int)(x >> 32))))
 
+#ifdef WIN32
+#define atoll(str) _atoi64(str)
+#endif
+
 GatewayReceiver::GatewayReceiver() : receivedMessageCount(0) {
   // TODO Auto-generated constructor stub
   
