@@ -59,6 +59,7 @@ int SerialTransmitThread::svc() {
   while(!isClosed()) {
     long systemTime = ACE_OS::gettimeofday().get_msec(); //gets system time in milliseconds
     long gpsTime = systemTime - gpsThread->getTimeDelta() / 1000 + gpsTimeOffset;
+    LOG_TRACE("S:" << systemTime << " G:" << gpsTime);
 
     long cycleStartTime = (long) (gpsTime / cycleDuration) * cycleDuration;
     long thisSlotBegin = cycleStartTime + offset;
@@ -68,13 +69,15 @@ int SerialTransmitThread::svc() {
 
     if(gpsTime < thisSlotBegin) {
       //sleep until slot begins
+      LOG_TRACE("Waiting");
       usleep((thisSlotBegin - gpsTime) * 1000);
     } else if(gpsTime > thisSlotEnd) {
       //missed our slot...  sleep until next slot begins
+      LOG_TRACE("Missed");
       usleep((thisSlotBegin + cycleDuration - gpsTime) * 1000);
     } else {
       //we're in our slot...  send as much data as we can
-      //LOG_DEBUG("In slot... " << thisSlotEnd - gpsTime << " remaining in slot");
+      LOG_TRACE("In slot... " << thisSlotEnd - gpsTime << " remaining in slot");
       bool slotTimeAvailable = true;
 
       while(slotTimeAvailable && receiver->isMessageAvailable()) {
