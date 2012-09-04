@@ -48,6 +48,7 @@ void SerialTransmitThread::stop() {
 }
 
 int SerialTransmitThread::svc() {
+  LOG_DEBUG("Serial transmit thread running");
   int offset = ((slotNumber - 1) % numberOfSlots) * slotDuration;
   int cycleDuration = slotDuration * numberOfSlots;
   double bytesPerMs = BAUD_RATE / (10*1000.0);

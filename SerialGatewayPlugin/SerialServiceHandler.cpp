@@ -48,8 +48,10 @@ transmitThread(NULL)
   messageProcessor = new SerialMessageProcessor(this);
   if(gpsThread != NULL) {
     receiver = new GatewayReceiver();
+    LOG_DEBUG("Creating serial transmit thread");
     transmitThread = new SerialTransmitThread(this, receiver, gpsThread);
 
+    LOG_DEBUG("Registering interest in forwarded types")
     messageProcessor->gatewayConnector->registerDataInterest(PLI_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
     messageProcessor->gatewayConnector->registerDataInterest(CHAT_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
   }
@@ -261,9 +263,11 @@ int SerialServiceHandler::open(void *ptr)
   connectionClosing = false;
   
   if(messageProcessor != NULL) {
+    LOG_DEBUG("Starting message processor thread");
     messageProcessor->activate();
   }
   if(transmitThread != NULL) {
+    LOG_DEBUG("Starting serial transmit thread");
     transmitThread->activate();
   }
   
