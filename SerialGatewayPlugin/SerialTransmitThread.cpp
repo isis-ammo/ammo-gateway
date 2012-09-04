@@ -20,6 +20,13 @@ const uint8_t MAGIC[] = { 0xef, 0xbe, 0xed };
 
 const uint8_t VERSION = 0x40; //gets OR'd with the slot number to produce TerseMessageHeader::versionAndSlot
 
+//Windows doesn't have usleep, so we'll define it locally here
+#ifdef WIN32
+void usleep(long useconds) {
+  Sleep(useconds / 1000);
+}
+#endif
+
 SerialTransmitThread::SerialTransmitThread(SerialServiceHandler *parent, GatewayReceiver *receiver, GpsThread *gpsThread) : parent(parent), receiver(receiver), gpsThread(gpsThread), closed(false), newMessageAvailable(newMessageMutex) {
   // TODO Auto-generated constructor stub
   SerialConfigurationManager *config = SerialConfigurationManager::getInstance();
@@ -132,11 +139,11 @@ void SerialTransmitThread::sendMessage(std::string *msg) {
   header.headerChecksum = (uint16_t) headerChecksum;
 
   //send the header
-  for(int i = 0; i < sizeof(header); i++) {
+  for(size_t i = 0; i < sizeof(header); i++) {
     parent->write_a_char(reinterpret_cast<uint8_t *>(&header)[i]);
   }
   //send the payload
-  for(int i = 0; i < msg->length(); i++) {
+  for(size_t i = 0; i < msg->length(); i++) {
     parent->write_a_char((*msg)[i]);
   }
 }

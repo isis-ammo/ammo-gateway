@@ -9,6 +9,7 @@
 #define SERIALTRANSMITTHREAD_H_
 
 #include <ace/Task.h>
+#include <stdint.h>
 
 class SerialServiceHandler;
 class GatewayReceiver;
