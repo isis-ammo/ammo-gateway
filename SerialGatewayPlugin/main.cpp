@@ -140,7 +140,8 @@ bool App::init(int argc, char* argv[])
   GpsThread *gpsThread = NULL;
 
   if(config->getSendEnabled()) {
-    GpsThread *gpsThread = new GpsThread();
+    LOG_DEBUG("Starting GPS sync thread...");
+    gpsThread = new GpsThread();
     gpsThread->activate(THR_NEW_LWP | THR_JOINABLE, 1, 1, ACE_THR_PRI_FIFO_DEF);
   }
 

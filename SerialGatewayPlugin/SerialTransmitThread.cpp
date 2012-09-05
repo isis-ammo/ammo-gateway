@@ -13,6 +13,7 @@
 
 #include "ace/Time_Value.h"
 #include <cmath>
+#include <stdint.h>
 
 const int BAUD_RATE = 9600;
 
@@ -22,7 +23,7 @@ const uint8_t VERSION = 0x40; //gets OR'd with the slot number to produce TerseM
 
 //Windows doesn't have usleep, so we'll define it locally here
 #ifdef WIN32
-void usleep(long useconds) {
+void usleep(int64_t useconds) {
   Sleep(useconds / 1000);
 }
 #endif
@@ -48,32 +49,36 @@ void SerialTransmitThread::stop() {
 }
 
 int SerialTransmitThread::svc() {
+  LOG_DEBUG("Serial transmit thread running");
   int offset = ((slotNumber - 1) % numberOfSlots) * slotDuration;
   int cycleDuration = slotDuration * numberOfSlots;
   double bytesPerMs = BAUD_RATE / (10*1000.0);
 
-  long tweakedTransmitDuration = transmitDuration + (long) std::min(50, transmitDuration / 10);
-  long maxPayloadSize = (long) (transmitDuration * bytesPerMs);
+  int64_t tweakedTransmitDuration = transmitDuration + (int64_t) std::min(50, transmitDuration / 10);
+  int64_t maxPayloadSize = (int64_t) (transmitDuration * bytesPerMs);
 
   while(!isClosed()) {
-    long systemTime = ACE_OS::gettimeofday().get_msec(); //gets system time in milliseconds
-    long gpsTime = systemTime - gpsThread->getTimeDelta() / 1000 + gpsTimeOffset;
+    int64_t systemTime = ACE_OS::gettimeofday().get_msec(); //gets system time in milliseconds
+    int64_t gpsTime = systemTime - gpsThread->getTimeDelta() / 1000 + gpsTimeOffset;
+    LOG_TRACE("S:" << systemTime << " G:" << gpsTime);
 
-    long cycleStartTime = (long) (gpsTime / cycleDuration) * cycleDuration;
-    long thisSlotBegin = cycleStartTime + offset;
-    long thisSlotEnd = thisSlotBegin + tweakedTransmitDuration;
+    int64_t cycleStartTime = (int64_t) (gpsTime / cycleDuration) * cycleDuration;
+    int64_t thisSlotBegin = cycleStartTime + offset;
+    int64_t thisSlotEnd = thisSlotBegin + tweakedTransmitDuration;
 
-    long thisSlotConsumed = 0;
+    int64_t thisSlotConsumed = 0;
 
     if(gpsTime < thisSlotBegin) {
       //sleep until slot begins
+      LOG_TRACE("Waiting");
       usleep((thisSlotBegin - gpsTime) * 1000);
     } else if(gpsTime > thisSlotEnd) {
       //missed our slot...  sleep until next slot begins
+      LOG_TRACE("Missed");
       usleep((thisSlotBegin + cycleDuration - gpsTime) * 1000);
     } else {
       //we're in our slot...  send as much data as we can
-      //LOG_DEBUG("In slot... " << thisSlotEnd - gpsTime << " remaining in slot");
+      LOG_TRACE("In slot... " << thisSlotEnd - gpsTime << " remaining in slot");
       bool slotTimeAvailable = true;
 
       while(slotTimeAvailable && receiver->isMessageAvailable()) {
@@ -88,8 +93,8 @@ int SerialTransmitThread::svc() {
           systemTime = ACE_OS::gettimeofday().get_msec(); //gets system time in milliseconds
           gpsTime = systemTime - gpsThread->getTimeDelta() / 1000 + gpsTimeOffset;
 
-          long timeLeft = thisSlotEnd - gpsTime;
-          long bytesThatWillFit = timeLeft * bytesPerMs;
+          int64_t timeLeft = thisSlotEnd - gpsTime;
+          int64_t bytesThatWillFit = timeLeft * bytesPerMs;
 
           LOG_TRACE("Time: " << gpsTime << ", left in slot " << timeLeft << "ms, bytes sent " << thisSlotConsumed << "/" << maxPayloadSize);
           if(nextMessageLength <= (maxPayloadSize - thisSlotConsumed) && nextMessageLength <= bytesThatWillFit) {
@@ -129,8 +134,8 @@ void SerialTransmitThread::sendMessage(std::string *msg) {
   uint32_t fullChecksum = ACE::crc32(msg->data(), msg->length());
   header.payloadChecksum = static_cast<uint16_t>(fullChecksum);
 
-  long systemTime = ACE_OS::gettimeofday().get_msec(); //gets system time in milliseconds
-  long gpsTime = systemTime - gpsThread->getTimeDelta() / 1000 + gpsTimeOffset;
+  int64_t systemTime = ACE_OS::gettimeofday().get_msec(); //gets system time in milliseconds
+  int64_t gpsTime = systemTime - gpsThread->getTimeDelta() / 1000 + gpsTimeOffset;
   int gpsTimeInt = static_cast<int>(gpsTime % 100000000);
   header.timestamp = gpsTimeInt;
   header.reserved = 0;

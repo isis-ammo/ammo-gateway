@@ -32,6 +32,7 @@ extern std::string gatewayAddress;
 extern int gatewayPort;
 
 #define PLI_TYPE "ammo/transapps.pli.locations"
+#define CHAT_TYPE "ammo/transapps.chat.message_groupAll"
 
 SerialServiceHandler::SerialServiceHandler(GpsThread *gpsThread) :
 messageProcessor(NULL),
@@ -47,9 +48,12 @@ transmitThread(NULL)
   messageProcessor = new SerialMessageProcessor(this);
   if(gpsThread != NULL) {
     receiver = new GatewayReceiver();
+    LOG_DEBUG("Creating serial transmit thread");
     transmitThread = new SerialTransmitThread(this, receiver, gpsThread);
 
+    LOG_DEBUG("Registering interest in forwarded types")
     messageProcessor->gatewayConnector->registerDataInterest(PLI_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
+    messageProcessor->gatewayConnector->registerDataInterest(CHAT_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
   }
 }
 
@@ -259,9 +263,11 @@ int SerialServiceHandler::open(void *ptr)
   connectionClosing = false;
   
   if(messageProcessor != NULL) {
+    LOG_DEBUG("Starting message processor thread");
     messageProcessor->activate();
   }
   if(transmitThread != NULL) {
+    LOG_DEBUG("Starting serial transmit thread");
     transmitThread->activate();
   }
   
@@ -287,8 +293,8 @@ int gettimeofday(struct timeval* tv, struct timezone* tz)
 
 	tmpres -= DELTA_EPOCH_IN_MICROSECONDS;
 	tmpres /= 10;
-	tv->tv_sec = (long) (tmpres / 1000000UL);
-	tv->tv_usec = (long) (tmpres % 1000000UL);
+	tv->tv_sec = (int64_t) (tmpres / 1000000UL);
+	tv->tv_usec = (int64_t) (tmpres % 1000000UL);
   }
 
   return 0;

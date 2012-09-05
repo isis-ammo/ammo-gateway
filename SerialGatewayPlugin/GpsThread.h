@@ -3,6 +3,7 @@
 
 #include "ace/Task.h"
 #include <ace/Date_Time.h>
+#include <stdint.h>
 
 #define DELTA_HISTORY_SAMPLES 20
 
@@ -15,19 +16,19 @@ public:
   
   void stop();
   
-  long getTimeDelta();
+  int64_t getTimeDelta();
 
 private:
   ACE_Thread_Mutex closeMutex;
   bool closed;
   bool isClosed();
   
-  long deltaHistory[DELTA_HISTORY_SAMPLES];
+  int64_t deltaHistory[DELTA_HISTORY_SAMPLES];
   int deltaHistoryCount;
   
-  long timeDelta;
+  int64_t timeDelta;
   ACE_Thread_Mutex timeDeltaMutex;
-  void setTimeDelta(long delta);
+  void setTimeDelta(int64_t delta);
 
 #ifdef WIN32
   HANDLE hComm;

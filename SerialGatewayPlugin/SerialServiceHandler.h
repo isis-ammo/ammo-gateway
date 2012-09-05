@@ -11,6 +11,8 @@
   #include <windows.h>
 #endif
 
+#include <stdint.h>
+
 class SerialMessageProcessor;
 class SerialTransmitThread;
 class GatewayReceiver;
