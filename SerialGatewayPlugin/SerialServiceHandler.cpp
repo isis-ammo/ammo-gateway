@@ -60,7 +60,39 @@ transmitThread(NULL)
 
 int SerialServiceHandler::open(void *ptr)
 {
+  //ACE-based serial initialization code
+  int result = serialConnector.connect(serialDev, ACE_DEV_Addr(static_cast<char *>(ptr)));
+  if(result == -1) {
+    LOG_ERROR("Couldn't open serial port " << ptr);
+    exit(-1);
+  }
   
+  ACE_TTY_IO::Serial_Params params;
+  params.baudrate = 9600;
+  params.xonlim = 0;
+  params.xofflim = 0;
+  params.readmincharacters = 0;
+  params.readtimeoutmsec = -1; //negative value means infinite timeout
+  params.paritymode = "NONE";
+  params.ctsenb = true;
+  params.rtsenb = 1;
+  params.xinenb = false;
+  params.xoutenb = false;
+  params.modem = false;
+  params.rcvenb = true;
+  params.dsrenb = false;
+  params.dtrdisable = false;
+  params.databits = 8;
+  params.stopbits = 1;
+
+  result = serialDev.control(ACE_TTY_IO::SETPARAMS, &params);
+
+  if(result == -1) {
+    LOG_ERROR("Couldn't configure serial port");
+    exit(-1);
+  }
+
+/*
   // Open the serial port.
 #ifdef WIN32
   this->hComm = CreateFile( (const char*) ptr,
@@ -235,13 +267,14 @@ int SerialServiceHandler::open(void *ptr)
   if (tcsetattr(gFD, TCSANOW, &cfg))
   {
     close(gFD);
-    /* TODO: throw an exception */
+     TODO: throw an exception
     return 0;
   }
   
   // tcflush( gFD, TCIFLUSH );
   // tcsetattr( gFD, TCSANOW, &config );
 #endif
+*/
   
   // Configure internal service handler state.
   
@@ -394,7 +427,9 @@ void SerialServiceHandler::receiveData() {
 }
 
 int SerialServiceHandler::write_a_char(unsigned char toWrite) {
-  #ifdef WIN32
+  ssize_t bytesWritten = serialDev.send_n(&toWrite, 1);
+
+  /*#ifdef WIN32
   DWORD ret = 0;
   if (!WriteFile(this->hComm, &toWrite, sizeof(toWrite), &ret, NULL)) {
     int err = GetLastError();
@@ -403,30 +438,30 @@ int SerialServiceHandler::write_a_char(unsigned char toWrite) {
   }
   #else
   ssize_t ret = write(gFD, &toWrite, sizeof(toWrite));
-  #endif
+  #endif*/
   
-  if ( ret == -1 )
+  if ( bytesWritten == -1 )
   {
-    LOG_ERROR( "Read returned -1" );
+    LOG_ERROR( "Write returned -1" );
     exit( -1 );
   }
-  else if ( ret >= 1 )
+  else if ( bytesWritten >= 1 )
   {
-    return ret;
+    return bytesWritten;
   }
-  else if ( ret == 0 )
+  else if ( bytesWritten == 0 )
   {
-    LOG_ERROR( "Read returned 0" );
+    LOG_ERROR( "Write returned 0" );
     exit( -1 );
   }
-  return ret;
+  return bytesWritten;
 }
 
 unsigned char SerialServiceHandler::read_a_char()
 {
   unsigned char temp;
   
-  while ( true )
+  /*while ( true )
   {
     // printf( "about to read()..." );
 #ifdef WIN32
@@ -442,22 +477,28 @@ unsigned char SerialServiceHandler::read_a_char()
 	}
 #else
     ssize_t count = read( gFD, &temp, 1 );
-#endif
+#endif*/
 
-    if ( count == -1 )
-    {
-      LOG_ERROR( "Read returned -1" );
-      exit( -1 );
-    }
-    else if ( count >= 1 )
-    {
-      break;
-    }
-    else if ( count == 0 )
-    {
-      LOG_ERROR( "Read returned 0" );
-      exit( -1 );
-    }
+  //recv_n for serial seems to disobey the contract recv_n is supposed
+  //to obey and returns 0 eventually if there's not data
+  ssize_t count = 0;
+  while(count == 0) {
+    count = serialDev.recv_n((void *) &temp, 1);
+  }
+
+  if ( count == -1 )
+  {
+    LOG_ERROR( "Read returned -1" );
+    exit( -1 );
+  }
+  else if ( count >= 1 )
+  {
+
+  }
+  else if ( count == 0 )
+  {
+    LOG_ERROR( "Read returned 0" );
+    exit( -1 );
   }
   return temp;
 }

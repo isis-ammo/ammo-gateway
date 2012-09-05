@@ -4,6 +4,9 @@
 #include "GatewayConnector.h"
 #include "ace/Svc_Handler.h"
 #include "ace/SOCK_Stream.h"
+#include "ace/DEV_Connector.h"
+#include "ace/TTY_IO.h"
+#include "ace/OS_NS_unistd.h"
 #include "protocol/AmmoMessages.pb.h"
 #include <vector>
 #include <queue>
@@ -80,6 +83,10 @@ public:
   ~SerialServiceHandler();
   
 protected:
+  ACE_TTY_IO serialDev;
+  ACE_DEV_Connector serialConnector;
+
+
 #ifdef WIN32
   HANDLE hComm;
 #else
