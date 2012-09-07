@@ -50,6 +50,7 @@ void SerialTransmitThread::stop() {
 
 int SerialTransmitThread::svc() {
   LOG_DEBUG("Serial transmit thread running");
+
   int offset = ((slotNumber - 1) % numberOfSlots) * slotDuration;
   int cycleDuration = slotDuration * numberOfSlots;
   double bytesPerMs = BAUD_RATE / (10*1000.0);
@@ -144,13 +145,9 @@ void SerialTransmitThread::sendMessage(std::string *msg) {
   header.headerChecksum = (uint16_t) headerChecksum;
 
   //send the header
-  for(size_t i = 0; i < sizeof(header); i++) {
-    parent->write_a_char(reinterpret_cast<uint8_t *>(&header)[i]);
-  }
+  parent->write_string(std::string((char *)&header, sizeof(header)));
   //send the payload
-  for(size_t i = 0; i < msg->length(); i++) {
-    parent->write_a_char((*msg)[i]);
-  }
+  parent->write_string(*msg);
 }
 
 bool SerialTransmitThread::isClosed() {

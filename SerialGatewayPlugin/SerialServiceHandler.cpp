@@ -72,16 +72,16 @@ int SerialServiceHandler::open(void *ptr)
   params.xonlim = 0;
   params.xofflim = 0;
   params.readmincharacters = 0;
-  params.readtimeoutmsec = -1; //negative value means infinite timeout
+  params.readtimeoutmsec = 1; //negative value means infinite timeout
   params.paritymode = "NONE";
-  params.ctsenb = true;
-  params.rtsenb = 1;
+  params.ctsenb = false;
+  params.rtsenb = 0;
   params.xinenb = false;
   params.xoutenb = false;
   params.modem = false;
   params.rcvenb = true;
   params.dsrenb = false;
-  params.dtrdisable = false;
+  params.dtrdisable = true;
   params.databits = 8;
   params.stopbits = 1;
 
@@ -427,7 +427,17 @@ void SerialServiceHandler::receiveData() {
 }
 
 int SerialServiceHandler::write_a_char(unsigned char toWrite) {
-  ssize_t bytesWritten = serialDev.send_n(&toWrite, 1);
+  //LOG_TRACE("In write_a_char()");
+  ssize_t bytesWritten = 0;
+  while(bytesWritten == 0) {
+    //LOG_INFO("QQQQQQQQQQQQQ");
+    serialPortMutex.acquire();
+    //LOG_INFO("XXXXXXXXXXXX");
+    bytesWritten = serialDev.send_n(&toWrite, 1);
+    //LOG_INFO("YYYYYYYYYYYY " << bytesWritten);
+    serialPortMutex.release();
+  }
+  //LOG_TRACE("Send complete");
 
   /*#ifdef WIN32
   DWORD ret = 0;
@@ -457,6 +467,21 @@ int SerialServiceHandler::write_a_char(unsigned char toWrite) {
   return bytesWritten;
 }
 
+int SerialServiceHandler::write_string(std::string &toWrite) {
+  serialPortMutex.acquire();
+  ssize_t bytesWritten = serialDev.send_n(toWrite.data(), toWrite.length());
+  serialPortMutex.release();
+
+  if(bytesWritten == -1) {
+    LOG_ERROR("Write returned -1");
+    exit(-1);
+  } else if(bytesWritten != toWrite.length()) {
+    LOG_WARN("Didn't send entire message");
+  }
+
+  return bytesWritten;
+}
+
 unsigned char SerialServiceHandler::read_a_char()
 {
   unsigned char temp;
@@ -481,9 +506,16 @@ unsigned char SerialServiceHandler::read_a_char()
 
   //recv_n for serial seems to disobey the contract recv_n is supposed
   //to obey and returns 0 eventually if there's not data
+
+  
   ssize_t count = 0;
   while(count == 0) {
-    count = serialDev.recv_n((void *) &temp, 1);
+    serialPortMutex.acquire();
+    ACE_Time_Value timeout(0, 10000);
+    //LOG_INFO("AAAAAAAAAAAA");
+    count = serialDev.recv_n((void *) &temp, 1, &timeout);
+    //LOG_INFO("ZZZZZZZZZZZZ");
+    serialPortMutex.release();
   }
 
   if ( count == -1 )

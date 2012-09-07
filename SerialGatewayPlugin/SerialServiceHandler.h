@@ -8,6 +8,7 @@
 #include "ace/TTY_IO.h"
 #include "ace/OS_NS_unistd.h"
 #include "protocol/AmmoMessages.pb.h"
+#include "ace/Token.h"
 #include <vector>
 #include <queue>
 #ifdef WIN32
@@ -79,6 +80,7 @@ public:
   void addReceivedMessage(ammo::protocol::MessageWrapper *msg, char priority);
   
   int write_a_char(unsigned char toWrite);
+  int write_string(std::string &toWrite);
 
   ~SerialServiceHandler();
   
@@ -122,6 +124,8 @@ protected:
   
   GatewayReceiver *receiver;
   SerialTransmitThread *transmitThread;
+
+  ACE_Token serialPortMutex;
 
   typedef std::priority_queue<QueuedMessage, std::vector<QueuedMessage>, QueuedMessageComparison> MessageQueue;
   MessageQueue sendQueue;
