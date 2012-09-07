@@ -80,20 +80,13 @@ public:
   void addReceivedMessage(ammo::protocol::MessageWrapper *msg, char priority);
   
   int write_a_char(unsigned char toWrite);
-  int write_string(std::string &toWrite);
+  int write_string(const std::string &toWrite);
 
   ~SerialServiceHandler();
   
 protected:
   ACE_TTY_IO serialDev;
   ACE_DEV_Connector serialConnector;
-
-
-#ifdef WIN32
-  HANDLE hComm;
-#else
-  int gFD;
-#endif
 
   unsigned char read_a_char();
 
@@ -125,7 +118,7 @@ protected:
   GatewayReceiver *receiver;
   SerialTransmitThread *transmitThread;
 
-  ACE_Token serialPortMutex;
+  ACE_Token serialPortToken;
 
   typedef std::priority_queue<QueuedMessage, std::vector<QueuedMessage>, QueuedMessageComparison> MessageQueue;
   MessageQueue sendQueue;

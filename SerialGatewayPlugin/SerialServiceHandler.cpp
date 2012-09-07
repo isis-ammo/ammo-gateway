@@ -40,10 +40,6 @@ sendQueueMutex(),
 receiveQueueMutex(),
 transmitThread(NULL)
 {
-#ifdef WIN32
-  this->hComm = NULL;
-#endif
-
   //constructor happens on main thread; both these objects need to be constructed here
   messageProcessor = new SerialMessageProcessor(this);
   if(gpsThread != NULL) {
@@ -74,14 +70,14 @@ int SerialServiceHandler::open(void *ptr)
   params.readmincharacters = 0;
   params.readtimeoutmsec = 1; //negative value means infinite timeout
   params.paritymode = "NONE";
-  params.ctsenb = false;
-  params.rtsenb = 0;
+  params.ctsenb = true;
+  params.rtsenb = 1;
   params.xinenb = false;
   params.xoutenb = false;
   params.modem = false;
   params.rcvenb = true;
   params.dsrenb = false;
-  params.dtrdisable = true;
+  params.dtrdisable = false;
   params.databits = 8;
   params.stopbits = 1;
 
@@ -91,190 +87,6 @@ int SerialServiceHandler::open(void *ptr)
     LOG_ERROR("Couldn't configure serial port");
     exit(-1);
   }
-
-/*
-  // Open the serial port.
-#ifdef WIN32
-  this->hComm = CreateFile( (const char*) ptr,
-                           GENERIC_READ | GENERIC_WRITE,
-                           0,
-						   0,
-						   OPEN_EXISTING,
-						   0,
-						   0);
-  if (this->hComm == INVALID_HANDLE_VALUE) {
-    int err = GetLastError();
-    LOG_ERROR("open "<< (const char *) ptr << " error code: " << err );
-    exit( -1 );
-  }
-#else
-  // Open the port
-  gFD = ::open( (const char *)ptr, O_RDWR | O_NOCTTY );// | O_NONBLOCK );
-  if ( gFD == -1 )
-  {
-    LOG_ERROR("open "<< (const char *) ptr << ": error: " << strerror(errno));
-    exit( -1 );
-  }
-#endif
-  
-  // Configure the serial port.
-#ifdef WIN32
-  DCB dcb;
-
-  FillMemory(&dcb, sizeof(dcb), 0);
-  dcb.DCBlength = sizeof(dcb);
-
-  if (!BuildCommDCB("9600,n,8,1", &dcb)) {   
-    LOG_ERROR("could not build dcb: error " << GetLastError());
-    exit(-1);
-  }
-
-  if (!SetCommState(this->hComm, &dcb)) {
-    LOG_ERROR("could not set comm state: error " << GetLastError());
-    CloseHandle(this->hComm);
-    exit(-1);
-  }
-#else
-  // Get the attributes for the port
-  // struct termios config;
-  // int result = tcgetattr( gFD, &config );
-  // if ( result == -1 )
-  // {
-  //     perror( "tcgetattr" );
-  //     exit( -1 );
-  // }
-  
-  // // Set baud rate and 8, NONE, 1
-  
-  // // SETTING KEY:
-  // // 1 -- ignore BREAK condition
-  // // 2 -- map BREAK to SIGINTR
-  // // 3 -- mark parity and framing errors
-  // // 4 -- strip the 8th bit off chars
-  // // 5 -- map NL to CR
-  // // 6 -- ignore CR
-  // // 7 -- map CR to NL
-  // // 8 -- enable output flow control (software flow control)
-  // // 9 -- enable input flow control (software flow control)
-  // // 10-- any char will restart after stop (software flow control)
-  // // 11-- postprocess output (not set = raw output)
-  // // 12-- enable echoing of input characters
-  // // 13-- echo NL
-  // // 14-- enable canonical input (else raw)
-  // // 15-- enable SIGINTR, SIGSUSP, SIGDSUSP, and SIGQUIT signals
-  // // 16-- enable extended functions
-  // // 17-- parity enable
-  // // 18-- send 2 stop bits
-  // // 19-- character size mask
-  // // 20-- 8 bits
-  // // 21-- enable follwing output processing
-  
-  // //		               1      2      3      4     5      6     7    8     9    10
-  // config.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON|IXOFF|IXANY);
-  // //                  11
-  // config.c_oflag &= ~OPOST;
-  // //                   12    13     14    15    16
-  // config.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
-  // //		              17     18     19
-  // //                 20
-  // config.c_cflag |= CS8;
-  // //                   21
-  // config.c_cflag |= CRTSCTS;
-  
-  // config.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON|IXOFF|IXANY);
-  // config.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
-  // config.c_cflag &= ~(PARENB|CSTOPB|CSIZE);
-  // config.c_cflag |= CS8;
-  
-  // 	speed_t speed = B9600;
-  
-  // cfsetispeed(&config, speed);
-  // cfsetospeed(&config, speed);
-  
-  // bzero(&config, sizeof(config) );
-  // config.c_cflag = B9600 | CRTSCTS | CS8 | CLOCAL | CREAD;
-  // config.c_iflag = IGNPAR | ICRNL;
-  // config.c_oflag = 0;
-  // //config.c_lflag = ICANON;
-  // config.c_cc[VMIN] = 1;	// blocking read until 1 character arrives
-  
-  struct termios cfg;
-  
-  if (tcgetattr(gFD, &cfg))
-  {
-    close(gFD);
-    // TODO: throw an exception
-    return 0;
-  }
-  
-  // Set baud rate
-  cfsetispeed( &cfg, B9600 );
-  cfsetospeed( &cfg, B9600 );
-  
-  cfmakeraw( &cfg );
-  
-  // Always set these
-  cfg.c_cflag |= (CLOCAL | CREAD);
-  
-  // Set 8, None, 1
-  cfg.c_cflag &= ~PARENB;
-  cfg.c_cflag &= ~CSTOPB;
-  cfg.c_cflag &= ~CSIZE;
-  cfg.c_cflag |= CS8;
-  
-  // Enable hardware flow control
-  cfg.c_cflag |= CRTSCTS;
-  
-  // Use raw input rather than canonical (line-oriented)
-  cfg.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-  
-  // Disable software flow control
-  cfg.c_iflag &= ~(IXON | IXOFF | IXANY);
-  
-  // Use raw output rather than processed (line-oriented)
-  cfg.c_oflag &= ~OPOST;
-  
-  // Read one character at a time.  VTIME defaults to zero, so reads will
-  // block indefinitely.
-  cfg.c_cc[VMIN] = 1;
-  
-  // Other "c" bits
-  //cfg.c_iflag |= IGNBRK; // Ignore break condition
-  // The constant IUCLC is not present on OSX, so we only use it on non-OSX
-  // platforms (where __APPLE__ is not defined).
-  #ifndef __APPLE__
-  cfg.c_iflag &= ~( IGNBRK | BRKINT | IGNPAR | PARMRK | INPCK | ISTRIP | INLCR | IGNCR | ICRNL | IUCLC );
-  #else 
-  cfg.c_iflag &= ~( IGNBRK | BRKINT | IGNPAR | PARMRK | INPCK | ISTRIP | INLCR | IGNCR | ICRNL );
-  #endif
-  
-  // Other "l" bits
-  cfg.c_lflag &= ~IEXTEN;
-  
-  
-  // Old, bad code. Sort of works, but was using canonical mode, which
-  // we don't want.
-  
-  //struct termios config;
-  //memset( &config, 0, sizeof(config) );
-  //config.c_cflag = B9600 | CRTSCTS  | CS8 | CLOCAL | CREAD;
-  //config.c_iflag = IGNPAR | ICRNL;
-  //config.c_oflag = 0;
-  //config.c_cc[VMIN] = 1;
-  
-  tcflush( gFD, TCIFLUSH );
-  
-  if (tcsetattr(gFD, TCSANOW, &cfg))
-  {
-    close(gFD);
-     TODO: throw an exception
-    return 0;
-  }
-  
-  // tcflush( gFD, TCIFLUSH );
-  // tcsetattr( gFD, TCSANOW, &config );
-#endif
-*/
   
   // Configure internal service handler state.
   
@@ -427,28 +239,12 @@ void SerialServiceHandler::receiveData() {
 }
 
 int SerialServiceHandler::write_a_char(unsigned char toWrite) {
-  //LOG_TRACE("In write_a_char()");
   ssize_t bytesWritten = 0;
   while(bytesWritten == 0) {
-    //LOG_INFO("QQQQQQQQQQQQQ");
-    serialPortMutex.acquire();
-    //LOG_INFO("XXXXXXXXXXXX");
+    serialPortToken.acquire();
     bytesWritten = serialDev.send_n(&toWrite, 1);
-    //LOG_INFO("YYYYYYYYYYYY " << bytesWritten);
-    serialPortMutex.release();
+    serialPortToken.release();
   }
-  //LOG_TRACE("Send complete");
-
-  /*#ifdef WIN32
-  DWORD ret = 0;
-  if (!WriteFile(this->hComm, &toWrite, sizeof(toWrite), &ret, NULL)) {
-    int err = GetLastError();
-    LOG_ERROR("ReadFile failed with error code: " << err);
-    exit(-1);
-  }
-  #else
-  ssize_t ret = write(gFD, &toWrite, sizeof(toWrite));
-  #endif*/
   
   if ( bytesWritten == -1 )
   {
@@ -467,10 +263,16 @@ int SerialServiceHandler::write_a_char(unsigned char toWrite) {
   return bytesWritten;
 }
 
-int SerialServiceHandler::write_string(std::string &toWrite) {
-  serialPortMutex.acquire();
+int SerialServiceHandler::write_string(const std::string &toWrite) {
+  /*
+   * Using ACE_Token here (rather than ACE_Thread_Mutex like most threaded code)
+   * ensures that the sending thread gets an opportunity to send eventually (if
+   * we just use a mutex, the sending thread ends up starved by the tight loop
+   * in read_a_char()).
+   */
+  serialPortToken.acquire();
   ssize_t bytesWritten = serialDev.send_n(toWrite.data(), toWrite.length());
-  serialPortMutex.release();
+  serialPortToken.release();
 
   if(bytesWritten == -1) {
     LOG_ERROR("Write returned -1");
@@ -486,36 +288,12 @@ unsigned char SerialServiceHandler::read_a_char()
 {
   unsigned char temp;
   
-  /*while ( true )
-  {
-    // printf( "about to read()..." );
-#ifdef WIN32
-    DWORD count = 0;
-    
-	while (count == 0) {
-      if (!ReadFile(this->hComm, &temp, 1, &count, NULL)) {
-        int err = GetLastError();
-        LOG_ERROR("ReadFile failed with error code: " << err);
-	    exit(-1);
-      }
-	  Sleep(1);
-	}
-#else
-    ssize_t count = read( gFD, &temp, 1 );
-#endif*/
-
-  //recv_n for serial seems to disobey the contract recv_n is supposed
-  //to obey and returns 0 eventually if there's not data
-
-  
   ssize_t count = 0;
   while(count == 0) {
-    serialPortMutex.acquire();
-    ACE_Time_Value timeout(0, 10000);
-    //LOG_INFO("AAAAAAAAAAAA");
+    serialPortToken.acquire();
+    ACE_Time_Value timeout(0, 10000); //10ms timeout; when this expires, we give the sender side an opportunity to send stuff
     count = serialDev.recv_n((void *) &temp, 1, &timeout);
-    //LOG_INFO("ZZZZZZZZZZZZ");
-    serialPortMutex.release();
+    serialPortToken.release();
   }
 
   if ( count == -1 )
