@@ -7,6 +7,7 @@
 #include "protocol/AmmoMessages.pb.h"
 #include <vector>
 #include <queue>
+#include <string>
 #ifdef WIN32
   #include <windows.h>
 #endif
@@ -73,6 +74,7 @@ public:
   ~SerialServiceHandler();
   
 protected:
+  std::string name;  // COM port name - used for logging
 #ifdef WIN32
   HANDLE hComm;
 #else

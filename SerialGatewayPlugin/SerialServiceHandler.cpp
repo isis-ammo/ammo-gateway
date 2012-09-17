@@ -53,7 +53,7 @@ int SerialServiceHandler::open(void *ptr)
 						   0);
   if (this->hComm == INVALID_HANDLE_VALUE) {
     int err = GetLastError();
-    LOG_ERROR("open "<< (const char *) ptr << " error code: " << err );
+    LOG_ERROR(this->name << " - open "<< (const char *) ptr << " error code: " << err );
     exit( -1 );
   }
 #else
@@ -61,7 +61,7 @@ int SerialServiceHandler::open(void *ptr)
   gFD = ::open( (const char *)ptr, O_RDWR | O_NOCTTY );// | O_NONBLOCK );
   if ( gFD == -1 )
   {
-    LOG_ERROR("open "<< (const char *) ptr << ": error: " << strerror(errno));
+    LOG_ERROR(this->name << " - open "<< (const char *) ptr << ": error: " << strerror(errno));
     exit( -1 );
   }
 #endif
@@ -74,12 +74,12 @@ int SerialServiceHandler::open(void *ptr)
   dcb.DCBlength = sizeof(dcb);
 
   if (!BuildCommDCB("9600,n,8,1", &dcb)) {   
-    LOG_ERROR("could not build dcb: error " << GetLastError());
+    LOG_ERROR(this->name << " - could not build dcb: error " << GetLastError());
     exit(-1);
   }
 
   if (!SetCommState(this->hComm, &dcb)) {
-    LOG_ERROR("could not set comm state: error " << GetLastError());
+    LOG_ERROR(this->name << " - could not set comm state: error " << GetLastError());
     CloseHandle(this->hComm);
     exit(-1);
   }
@@ -332,7 +332,7 @@ void SerialServiceHandler::receiveData() {
       break;
       
     case 2:
-	    LOG_DEBUG("SLOT[" << (int) phone_id << "],Len[" << size << "]: ");
+	    LOG_DEBUG(this->name << " - SLOT[" << (int) phone_id << "],Len[" << size << "]: ");
 	    
 	    if(size < MAX_PAYLOAD_SIZE - 16) {
         for (unsigned short i = 0; i < size; ++i)
@@ -344,24 +344,24 @@ void SerialServiceHandler::receiveData() {
 	      int result = gettimeofday( &tv, NULL );
 	      if ( result == -1 )
 	      {
-            LOG_ERROR("gettimeofday() failed\n" );
+            LOG_ERROR(this->name << " - gettimeofday() failed\n" );
 	        break;
 	      }
 	      
 	      long ts = *(long *)&buf[8];
 	      long rts = tv.tv_sec*1000 + tv.tv_usec / 1000; 
-          LOG_DEBUG(" Tdt(" << rts << "),Thh(" << ts << "),Tdel(" << rts - ts << ")");
+          LOG_DEBUG(this->name << " - Tdt(" << rts << "),Thh(" << ts << "),Tdel(" << rts - ts << ")");
 	    }
 	    
 	    processData(&buf[16], size, *(short  *)&buf[6], 0); // process the message
 	    } else {
-	      LOG_ERROR("Received packet of invalid size: " << size);
+	      LOG_ERROR(this->name << " - Received packet of invalid size: " << size);
 	    }
 	    state = 0;
 	    break;
 	    
 	  default:
-	    LOG_ERROR("SerialServiceHandler: unknown state");
+	    LOG_ERROR(this->name << " - SerialServiceHandler: unknown state");
 	  }
 	}
 	
@@ -373,7 +373,7 @@ int SerialServiceHandler::write_a_char(unsigned char toWrite) {
   DWORD ret = 0;
   if (!WriteFile(this->hComm, &toWrite, sizeof(toWrite), &ret, NULL)) {
     int err = GetLastError();
-    LOG_ERROR("ReadFile failed with error code: " << err);
+    LOG_ERROR(this->name << " - ReadFile failed with error code: " << err);
     exit(-1);
   }
   #else
@@ -382,7 +382,7 @@ int SerialServiceHandler::write_a_char(unsigned char toWrite) {
   
   if ( ret == -1 )
   {
-    LOG_ERROR( "Read returned -1" );
+    LOG_ERROR(this->name << " - Read returned -1" );
     exit( -1 );
   }
   else if ( ret >= 1 )
@@ -391,7 +391,7 @@ int SerialServiceHandler::write_a_char(unsigned char toWrite) {
   }
   else if ( ret == 0 )
   {
-    LOG_ERROR( "Read returned 0" );
+    LOG_ERROR(this->name << " - Read returned 0" );
     exit( -1 );
   }
   return ret;
@@ -410,7 +410,7 @@ unsigned char SerialServiceHandler::read_a_char()
 	while (count == 0) {
       if (!ReadFile(this->hComm, &temp, 1, &count, NULL)) {
         int err = GetLastError();
-        LOG_ERROR("ReadFile failed with error code: " << err);
+        LOG_ERROR(this->name << " - ReadFile failed with error code: " << err);
 	    exit(-1);
       }
 	  Sleep(1);
@@ -421,7 +421,7 @@ unsigned char SerialServiceHandler::read_a_char()
 
     if ( count == -1 )
     {
-      LOG_ERROR( "Read returned -1" );
+      LOG_ERROR(this->name << " - Read returned -1" );
       exit( -1 );
     }
     else if ( count >= 1 )
@@ -430,7 +430,7 @@ unsigned char SerialServiceHandler::read_a_char()
     }
     else if ( count == 0 )
     {
-      LOG_ERROR( "Read returned 0" );
+      LOG_ERROR(this->name << " - Read returned 0" );
       exit( -1 );
     }
   }
@@ -442,8 +442,8 @@ int SerialServiceHandler::processData(char *data, unsigned int messageSize, unsi
   //Validate checksum
   unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
   if( (calculatedChecksum & 0xffff) != (messageChecksum & 0xffff) ) {
-    LOG_ERROR((long) this << " Mismatched checksum " << std::hex << calculatedChecksum << " : " << messageChecksum);
-    LOG_ERROR((long) this << " size " << std::dec << messageSize ); // << " payload: " < );
+    LOG_ERROR(this->name << " - " << (long) this << " Mismatched checksum " << std::hex << calculatedChecksum << " : " << messageChecksum);
+    LOG_ERROR(this->name << " - " << (long) this << " size " << std::dec << messageSize ); // << " payload: " < );
     return -1;
   }
   
@@ -451,8 +451,8 @@ int SerialServiceHandler::processData(char *data, unsigned int messageSize, unsi
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper();
   bool result = msg->ParseFromArray(data, messageSize);
   if(result == false) {
-    LOG_ERROR((long) this << " MessageWrapper could not be deserialized.");
-    LOG_ERROR((long) this << " Client must have sent something that isn't a protocol buffer (or the wrong type).");
+    LOG_ERROR(this->name << " - " << (long) this << " MessageWrapper could not be deserialized.");
+    LOG_ERROR(this->name << " - " << (long) this << " Client must have sent something that isn't a protocol buffer (or the wrong type).");
     delete msg;
     return -1;
   }
@@ -491,7 +491,7 @@ void SerialServiceHandler::addReceivedMessage(ammo::protocol::MessageWrapper *ms
   queuedMsg.message = msg;
   
   if(priority != msg->message_priority()) {
-    LOG_WARN((long) this << " Priority mismatch on received message: Header = " << (int) priority << ", Message = " << msg->message_priority());
+    LOG_WARN(this->name << " - " << (long) this << " Priority mismatch on received message: Header = " << (int) priority << ", Message = " << msg->message_priority());
   }
   
   receiveQueueMutex.acquire();
@@ -502,6 +502,6 @@ void SerialServiceHandler::addReceivedMessage(ammo::protocol::MessageWrapper *ms
 }
 
 SerialServiceHandler::~SerialServiceHandler() {
-  LOG_TRACE((long) this << " In ~SerialServiceHandler");
+  LOG_TRACE(this->name << " - " << (long) this << " In ~SerialServiceHandler");
   delete messageProcessor;
 }

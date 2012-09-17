@@ -194,6 +194,14 @@ int main(int argc, char* argv[])
 		return 1;
 	  }
 	}
+	else if (lstrcmpi(argv[1], TEXT("-nowinsvc")) == 0) {
+      if (!App::instance()->init(argc, argv)) {
+        return 1;
+      }
+      App::instance()->run();
+      App::instance()->destroy();
+      return 0;
+    }
   }
 
   // Normal service operation
