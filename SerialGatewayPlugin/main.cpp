@@ -14,6 +14,7 @@
 #include "ace/Select_Reactor.h"
 #include "ace/Reactor.h"
 
+#include "GpsThread.h"
 #include "SerialServiceHandler.h"
 #include "SerialConfigurationManager.h"
 
@@ -135,9 +136,17 @@ bool App::init(int argc, char* argv[])
   ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
 
   SerialConfigurationManager* config = SerialConfigurationManager::getInstance();
+  
+  GpsThread *gpsThread = NULL;
+
+  if(config->getSendEnabled()) {
+    LOG_DEBUG("Starting GPS sync thread...");
+    gpsThread = new GpsThread();
+    gpsThread->activate(THR_NEW_LWP | THR_JOINABLE, 1, 1, ACE_THR_PRI_FIFO_DEF);
+  }
 
   LOG_DEBUG("Creating service handler which receives and routes to gateway via the GatewayConnector");
-  svcHandler = new SerialServiceHandler();
+  svcHandler = new SerialServiceHandler(gpsThread);
   svcHandler->open( (void *)(config->getListenPort().c_str()) );
 
   ACE_Thread::spawn( &start_svc_handler, (void *)svcHandler  );

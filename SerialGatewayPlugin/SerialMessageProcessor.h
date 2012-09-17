@@ -34,6 +34,8 @@ public:
   //PullResponseReceiverListener method
   virtual void onPullResponseReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PullResponse &response);
   
+  ammo::gateway::GatewayConnector *gatewayConnector;
+
 private:
   bool closed;
   ACE_Thread_Mutex closeMutex;
@@ -42,8 +44,8 @@ private:
   
   SerialServiceHandler *commsHandler;
   
-  ammo::gateway::GatewayConnector *gatewayConnector;
   
+
   std::string deviceId;
   bool deviceIdAuthenticated;
   
