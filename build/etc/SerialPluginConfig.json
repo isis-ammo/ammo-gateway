@@ -1,5 +1,7 @@
 {
  "listenPort": "/dev/ttyUSB0",
+ //"listenPort1": "/dev/ttyUSB1",
+ //"listenPort2": "/dev/ttyUSB2",
  "gpsPort": "/dev/ttyUSB1",
  "sendEnabled": false,
  "slotDuration": 750,

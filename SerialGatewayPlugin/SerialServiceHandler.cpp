@@ -44,10 +44,10 @@ transmitThread(NULL)
   messageProcessor = new SerialMessageProcessor(this);
   if(gpsThread != NULL) {
     receiver = new GatewayReceiver();
-    LOG_DEBUG("Creating serial transmit thread");
+    LOG_DEBUG(this->name << " - Creating serial transmit thread");
     transmitThread = new SerialTransmitThread(this, receiver, gpsThread);
 
-    LOG_DEBUG("Registering interest in forwarded types")
+    LOG_DEBUG(this->name << " - Registering interest in forwarded types")
     messageProcessor->gatewayConnector->registerDataInterest(PLI_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
     messageProcessor->gatewayConnector->registerDataInterest(CHAT_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
   }
@@ -56,10 +56,12 @@ transmitThread(NULL)
 
 int SerialServiceHandler::open(void *ptr)
 {
+  this->name = static_cast<char *>(ptr);
+
   //ACE-based serial initialization code
   int result = serialConnector.connect(serialDev, ACE_DEV_Addr(static_cast<char *>(ptr)));
   if(result == -1) {
-    LOG_ERROR("Couldn't open serial port " << ptr);
+    LOG_ERROR(this->name << " - Couldn't open serial port " << ptr);
     exit(-1);
   }
   
@@ -84,7 +86,7 @@ int SerialServiceHandler::open(void *ptr)
   result = serialDev.control(ACE_TTY_IO::SETPARAMS, &params);
 
   if(result == -1) {
-    LOG_ERROR("Couldn't configure serial port");
+    LOG_ERROR(this->name << " - Couldn't configure serial port");
     exit(-1);
   }
   
@@ -108,11 +110,11 @@ int SerialServiceHandler::open(void *ptr)
   connectionClosing = false;
   
   if(messageProcessor != NULL) {
-    LOG_DEBUG("Starting message processor thread");
+    LOG_DEBUG(this->name << " - Starting message processor thread");
     messageProcessor->activate();
   }
   if(transmitThread != NULL) {
-    LOG_DEBUG("Starting serial transmit thread");
+    LOG_DEBUG(this->name << " - Starting serial transmit thread");
     transmitThread->activate();
   }
   
@@ -276,10 +278,10 @@ int SerialServiceHandler::write_string(const std::string &toWrite) {
   serialPortToken.release();
 
   if(bytesWritten == -1) {
-    LOG_ERROR("Write returned -1");
+    LOG_ERROR(this->name << " - Write returned -1");
     exit(-1);
   } else if(bytesWritten != toWrite.length()) {
-    LOG_WARN("Didn't send entire message");
+    LOG_WARN(this->name << "Didn't send entire message");
   }
 
   return bytesWritten;
@@ -299,7 +301,7 @@ unsigned char SerialServiceHandler::read_a_char()
 
   if ( count == -1 )
   {
-    LOG_ERROR( "Read returned -1" );
+    LOG_ERROR(this->name << " - Read returned -1" );
     exit( -1 );
   }
   else if ( count >= 1 )
@@ -308,7 +310,7 @@ unsigned char SerialServiceHandler::read_a_char()
   }
   else if ( count == 0 )
   {
-    LOG_ERROR( "Read returned 0" );
+    LOG_ERROR(this->name << " - Read returned 0" );
     exit( -1 );
   }
   return temp;

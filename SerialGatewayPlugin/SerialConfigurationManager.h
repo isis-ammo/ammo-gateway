@@ -1,13 +1,14 @@
 #ifndef SERIAL_CONFIGURATION_MANAGER_H
 #define SERIAL_CONFIGURATION_MANAGER_H
 
+#include <vector>
 #include "ConfigurationManager.h"
 
 class SerialConfigurationManager : public ConfigurationManager {
 public:
   static SerialConfigurationManager* getInstance();
   
-  std::string getListenPort() { return listenPort; }
+  std::vector<std::string> getListenPorts() { return listenPorts; }
   std::string getGpsPort() { return gpsPort; }
 
   bool getSendEnabled() { return sendEnabled; }
@@ -26,7 +27,7 @@ private:
   SerialConfigurationManager();
   
   static SerialConfigurationManager *sharedInstance;
-  std::string listenPort;
+  std::vector<std::string> listenPorts;
   std::string gpsPort;
 
   bool sendEnabled;
