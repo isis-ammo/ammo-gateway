@@ -8,5 +8,6 @@
         <file alias="ammo-bullet.png">icons/ammo-bullet.png</file>
         <file alias="save_file.png">icons/tango-media-floppy.png</file>
         <file alias="exit.png">icons/tango-system-log-out.png</file>
+        <file alias="save_all.png">icons/tango-saveall.png</file>
     </qresource>
 </RCC>

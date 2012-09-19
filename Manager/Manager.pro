@@ -34,7 +34,8 @@ SOURCES += main.cpp\
     json/json_internalmap.inl \
     json/json_internalarray.inl \
     LogFileAction.cpp \
-    ConfigFileWidget.cpp
+    ConfigFileWidget.cpp \
+    TabWidget.cpp
 
 HEADERS  += MainWindow.h \
     LogFileWidget.h \
@@ -52,7 +53,8 @@ HEADERS  += MainWindow.h \
     json/config.h \
     json/autolink.h \
     LogFileAction.h \
-    ConfigFileWidget.h
+    ConfigFileWidget.h \
+    TabWidget.h
 
 FORMS    += MainWindow.ui \
     LogFileWidget.ui \
@@ -61,7 +63,25 @@ FORMS    += MainWindow.ui \
 
 OTHER_FILES += \
     ManagerConfig.json \
-    icons/README.txt
+    icons/README.txt \
+    icons/tango-text-x-generic.svg \
+    icons/tango-text-x-generic.png \
+    icons/tango-system-log-out.svg \
+    icons/tango-system-log-out.png \
+    icons/tango-saveall.png \
+    icons/tango-preferences-system.svg \
+    icons/tango-preferences-system.png \
+    icons/tango-media-stop.png \
+    icons/tango-media-restart.png \
+    icons/tango-media-playback-stop.svg \
+    icons/tango-media-playback-stop.png \
+    icons/tango-media-playback-set-2.svg \
+    icons/tango-media-playback-set-2.png \
+    icons/tango-media-play.png \
+    icons/tango-media-floppy.svg \
+    icons/tango-media-floppy.png \
+    icons/README.txt \
+    icons/ammo-bullet.png
 
 RESOURCES += \
     Resources.qrc

@@ -19,3 +19,7 @@ Tango Media Floppy
 Tango System Log Out
 -o- Used as exit button
 -o- http://openclipart.org/detail/34279/tango-system-log-out-by-warszawianka
+
+'Tango Save All'
+-o- Used as save all button
+-o- Homemade using Tange Media Floppy as source

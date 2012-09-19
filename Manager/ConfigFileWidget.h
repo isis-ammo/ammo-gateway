@@ -3,20 +3,24 @@
 
 #include <QFile>
 #include <QFileInfo>
-#include <QWidget>
+#include "TabWidget.h"
 
 namespace Ui {
 class ConfigFileWidget;
 }
 
-class ConfigFileWidget : public QWidget
+class ConfigFileWidget : public TabWidget
 {
     Q_OBJECT
     
 public:
     explicit ConfigFileWidget(const QFileInfo& file, QWidget *parent = 0);
     ~ConfigFileWidget();
-    
+
+private slots:
+    void textChanged();
+    void save();
+
 private:
     Ui::ConfigFileWidget *ui;
     QFile file;

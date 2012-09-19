@@ -4,7 +4,7 @@
 #include "ui_LogFileWidget.h"
 
 LogFileWidget::LogFileWidget(const QString& logFileName, QWidget *parent) :
-    QWidget(parent),
+    TabWidget(parent),
     ui(new Ui::LogFileWidget)
 {
     ui->setupUi(this);

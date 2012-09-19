@@ -1,15 +1,15 @@
 #ifndef LOGFILEWIDGET_H
 #define LOGFILEWIDGET_H
 
-#include <QWidget>
 #include <QFile>
 #include <QFileSystemWatcher>
+#include "TabWidget.h"
 
 namespace Ui {
 class LogFileWidget;
 }
 
-class LogFileWidget : public QWidget
+class LogFileWidget : public TabWidget
 {
     Q_OBJECT
     

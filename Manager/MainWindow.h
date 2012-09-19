@@ -10,6 +10,8 @@ namespace Ui {
 class MainWindow;
 }
 
+class TabWidget;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -19,12 +21,18 @@ public:
     ~MainWindow();
 
 private slots:
+    void save();
+    void saveAll();
+    void exit();
+
     void openConfig();
     void openLog();
     void closeLogTab(int idx);
 
     void openConfigFile(QFileInfo file);
     void openLogFile(QFileInfo file);
+
+    void dirtyTab(TabWidget* w, bool dirty);
 
 private:
     void setupServiceWidgets();
