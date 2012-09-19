@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ServiceWidget</class>
+ <widget class="QWidget" name="ServiceWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>163</width>
+    <height>46</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <property name="spacing">
+    <number>2</number>
+   </property>
+   <property name="margin">
+    <number>2</number>
+   </property>
+   <item>
+    <widget class="QGroupBox" name="serviceBox">
+     <property name="title">
+      <string/>
+     </property>
+     <property name="flat">
+      <bool>false</bool>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QToolButton" name="startButton">
+        <property name="toolTip">
+         <string>Start Service</string>
+        </property>
+        <property name="statusTip">
+         <string>Start Service</string>
+        </property>
+        <property name="text">
+         <string>Start</string>
+        </property>
+        <property name="icon">
+         <iconset resource="Resources.qrc">
+          <normaloff>:/icons/service_start.png</normaloff>:/icons/service_start.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="stopButton">
+        <property name="toolTip">
+         <string>Stop Service</string>
+        </property>
+        <property name="statusTip">
+         <string>Stop Service</string>
+        </property>
+        <property name="text">
+         <string>Stop</string>
+        </property>
+        <property name="icon">
+         <iconset resource="Resources.qrc">
+          <normaloff>:/icons/service_stop.png</normaloff>:/icons/service_stop.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="restartButton">
+        <property name="toolTip">
+         <string>Restart Service</string>
+        </property>
+        <property name="statusTip">
+         <string>Restart Service</string>
+        </property>
+        <property name="text">
+         <string>Restart</string>
+        </property>
+        <property name="icon">
+         <iconset resource="Resources.qrc">
+          <normaloff>:/icons/service_restart.png</normaloff>:/icons/service_restart.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="configButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Edit Configuration File For Service</string>
+        </property>
+        <property name="statusTip">
+         <string>Edit Configuration File For Service</string>
+        </property>
+        <property name="text">
+         <string>Config</string>
+        </property>
+        <property name="icon">
+         <iconset resource="Resources.qrc">
+          <normaloff>:/icons/service_config.png</normaloff>:/icons/service_config.png</iconset>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonIconOnly</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="logButton">
+        <property name="toolTip">
+         <string>View Log File For Service</string>
+        </property>
+        <property name="statusTip">
+         <string>View Log File For Service</string>
+        </property>
+        <property name="text">
+         <string>Log</string>
+        </property>
+        <property name="icon">
+         <iconset resource="Resources.qrc">
+          <normaloff>:/icons/service_log.png</normaloff>:/icons/service_log.png</iconset>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="Resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

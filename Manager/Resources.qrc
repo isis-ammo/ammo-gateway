@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="service_start.png">icons/tango-media-play.png</file>
+        <file alias="service_restart.png">icons/tango-media-restart.png</file>
+        <file alias="service_stop.png">icons/tango-media-stop.png</file>
+        <file alias="service_config.png">icons/tango-preferences-system.png</file>
+        <file alias="service_log.png">icons/tango-text-x-generic.png</file>
+        <file alias="ammo-bullet.png">icons/ammo-bullet.png</file>
+        <file alias="save_file.png">icons/tango-media-floppy.png</file>
+        <file alias="exit.png">icons/tango-system-log-out.png</file>
+    </qresource>
+</RCC>
