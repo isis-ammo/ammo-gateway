@@ -3,6 +3,7 @@
 
 #include <QFileInfo>
 #include <QWidget>
+#include <QVector>
 #include "ServiceDesc.h"
 
 namespace Ui {
@@ -17,11 +18,13 @@ public:
     explicit ServiceWidget(const ServiceDesc_t& desc, QWidget *parent = 0);
     ~ServiceWidget();
 
+    QVector<QAction*> actions();
+
 signals:
     void openConfigFile(QFileInfo file);
     void openLogFile(QFileInfo file);
 
-private slots:
+public slots:
     void startSvc();
     void stopSvc();
     void restartSvc();
@@ -31,6 +34,11 @@ private slots:
 private:
     Ui::ServiceWidget *ui;
     ServiceDesc_t desc;
+    QAction* actionStart;
+    QAction* actionStop;
+    QAction* actionRestart;
+    QAction* actionConfig;
+    QAction* actionLog;
 };
 
 #endif // SERVICEWIDGET_H

@@ -207,6 +207,13 @@ void MainWindow::setupServiceWidgets()
                 this, SLOT(openConfigFile(QFileInfo)));
         connect(svcWidget, SIGNAL(openLogFile(QFileInfo)),
                 this, SLOT(openLogFile(QFileInfo)));
+
+        QMenu* menu = new QMenu(svcDesc.humanName.c_str());
+        ui->menuServices->addMenu(menu);
+
+        foreach (QAction* action, svcWidget->actions()) {
+            menu->addAction(action);
+        }
     }
 
     ui->servicesLayout->addStretch();

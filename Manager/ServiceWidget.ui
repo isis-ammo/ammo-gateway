@@ -30,6 +30,13 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
+       <widget class="QToolButton" name="toolButton">
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QToolButton" name="startButton">
         <property name="toolTip">
          <string>Start Service</string>
@@ -127,6 +134,66 @@
     </widget>
    </item>
   </layout>
+  <action name="actionStart">
+   <property name="icon">
+    <iconset resource="Resources.qrc">
+     <normaloff>:/icons/service_start.png</normaloff>:/icons/service_start.png</iconset>
+   </property>
+   <property name="text">
+    <string>Start Service</string>
+   </property>
+   <property name="toolTip">
+    <string>Start the service</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="icon">
+    <iconset resource="Resources.qrc">
+     <normaloff>:/icons/service_stop.png</normaloff>:/icons/service_stop.png</iconset>
+   </property>
+   <property name="text">
+    <string>Stop Service</string>
+   </property>
+   <property name="toolTip">
+    <string>Stop the service</string>
+   </property>
+  </action>
+  <action name="actionRestart">
+   <property name="icon">
+    <iconset resource="Resources.qrc">
+     <normaloff>:/icons/service_restart.png</normaloff>:/icons/service_restart.png</iconset>
+   </property>
+   <property name="text">
+    <string>Restart Service</string>
+   </property>
+   <property name="toolTip">
+    <string>Restart the service</string>
+   </property>
+  </action>
+  <action name="actionConfig">
+   <property name="icon">
+    <iconset resource="Resources.qrc">
+     <normaloff>:/icons/service_config.png</normaloff>:/icons/service_config.png</iconset>
+   </property>
+   <property name="text">
+    <string>Edit Config File</string>
+   </property>
+   <property name="toolTip">
+    <string>Configure the service</string>
+   </property>
+  </action>
+  <action name="actionLog">
+   <property name="icon">
+    <iconset resource="Resources.qrc">
+     <normaloff>:/icons/service_log.png</normaloff>:/icons/service_log.png</iconset>
+   </property>
+   <property name="text">
+    <string>View Log File</string>
+   </property>
+   <property name="toolTip">
+    <string>View the service's log file</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="Resources.qrc"/>
