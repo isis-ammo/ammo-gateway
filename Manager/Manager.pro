@@ -11,19 +11,13 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = Manager
 TEMPLATE = app
 
-win32 {
-    #DEFINES += WIN32 _WIN32 _WINDOWS JSON_DLL_BUILD
-    DEFINES += WIN32 _WIN32 _WINDOWS
-}
+win32:DEFINES += WIN32 _WIN32 _WINDOWS WINDOWS
+linux-g++:DEFINES += LINUX
 
-#LIBS += -L$$PWD/../build/lib/ -ljson -lShell32
-LIBS += -lShell32
-
-#INCLUDEPATH += $$PWD/../LibJSON
-#DEPENDPATH += $$PWD/../LibJSON
+win32:LIBS += -lAdvApi32 -lShell32
 
 SOURCES += main.cpp\
-        MainWindow.cpp \
+    MainWindow.cpp \
     LogFileWidget.cpp \
     ServiceWidget.cpp \
     ManagerConfigurationManager.cpp \
@@ -35,7 +29,11 @@ SOURCES += main.cpp\
     json/json_internalarray.inl \
     LogFileAction.cpp \
     ConfigFileWidget.cpp \
-    TabWidget.cpp
+    TabWidget.cpp \
+    ServiceController.cpp
+
+win32:SOURCES += ServiceControllerWindows.cpp
+linux-g++:SOURCES += ServiceControllerLinux.cpp
 
 HEADERS  += MainWindow.h \
     LogFileWidget.h \
@@ -54,7 +52,11 @@ HEADERS  += MainWindow.h \
     json/autolink.h \
     LogFileAction.h \
     ConfigFileWidget.h \
-    TabWidget.h
+    TabWidget.h \
+    ServiceController.h \
+
+win32:HEADERS += ServiceControllerWindows.h
+linux-g++:HEADERS += ServiceControllerLinux.h
 
 FORMS    += MainWindow.ui \
     LogFileWidget.ui \

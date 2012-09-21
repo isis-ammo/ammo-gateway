@@ -179,8 +179,8 @@ void MainWindow::openLogFile(QFileInfo fileinfo)
     widget->setName(fileinfo.fileName());
     ui->tabWidget->setCurrentIndex(tabIdx);
 
-    connect(widget, SIGNAL(dirty(QWidget*,bool)),
-            this, SLOT(dirtyTab(QWidget*,bool)));
+    connect(widget, SIGNAL(dirty(TabWidget*,bool)),
+            this, SLOT(dirtyTab(TabWidget*,bool)));
 }
 
 void MainWindow::dirtyTab(TabWidget *w, bool dirty)

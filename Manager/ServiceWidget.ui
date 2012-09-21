@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>163</width>
+    <width>194</width>
     <height>46</height>
    </rect>
   </property>
@@ -29,13 +29,6 @@
       <bool>false</bool>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="QToolButton" name="toolButton">
-        <property name="text">
-         <string>...</string>
-        </property>
-       </widget>
-      </item>
       <item>
        <widget class="QToolButton" name="startButton">
         <property name="toolTip">

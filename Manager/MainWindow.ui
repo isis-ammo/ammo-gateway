@@ -147,6 +147,9 @@
    <property name="text">
     <string>Open Log File</string>
    </property>
+   <property name="statusTip">
+    <string>Open Log File</string>
+   </property>
    <property name="shortcut">
     <string>Alt+L</string>
    </property>
@@ -159,6 +162,9 @@
    <property name="text">
     <string>Exit</string>
    </property>
+   <property name="statusTip">
+    <string>Exit</string>
+   </property>
   </action>
   <action name="action_Open_Config_File">
    <property name="icon">
@@ -166,6 +172,9 @@
      <normaloff>:/icons/service_config.png</normaloff>:/icons/service_config.png</iconset>
    </property>
    <property name="text">
+    <string>Open Config File</string>
+   </property>
+   <property name="statusTip">
     <string>Open Config File</string>
    </property>
    <property name="shortcut">
@@ -183,6 +192,9 @@
    <property name="toolTip">
     <string>Save the current tab</string>
    </property>
+   <property name="statusTip">
+    <string>Save the current tab</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
    </property>
@@ -196,6 +208,9 @@
     <string>Save All</string>
    </property>
    <property name="toolTip">
+    <string>Save all tabs</string>
+   </property>
+   <property name="statusTip">
     <string>Save all tabs</string>
    </property>
    <property name="shortcut">

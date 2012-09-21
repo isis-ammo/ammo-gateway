@@ -3,14 +3,19 @@
 #include <QFileInfo>
 #include <QIcon>
 #include <QMenu>
+#include <QMessageBox>
+#include <QProgressDialog>
+#include <QTimer>
 #include "LogFileAction.h"
+#include "ServiceController.h"
 #include "ServiceWidget.h"
 #include "ui_ServiceWidget.h"
 
 ServiceWidget::ServiceWidget(const ServiceDesc_t& desc, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ServiceWidget),
-    desc(desc)
+    desc(desc),
+    ctrl(ServiceController::create(desc.humanName.c_str(), desc.svcName.c_str()))
 {
     ui->setupUi(this);
 
@@ -54,6 +59,11 @@ ServiceWidget::ServiceWidget(const ServiceDesc_t& desc, QWidget *parent) :
         ui->logButton->setEnabled(false);
     }
 
+    QTimer* timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()),
+            this, SLOT(update()));
+    timer->start(2000);
+
     connect(ui->startButton, SIGNAL(clicked()),
             this, SLOT(startSvc()));
     connect(ui->stopButton, SIGNAL(clicked()),
@@ -86,14 +96,57 @@ QVector<QAction*> ServiceWidget::actions()
 
 void ServiceWidget::startSvc()
 {
+    QProgressDialog progress("Starting Service", "Cancel", 0, 0, this);
+    QString errMsg;
+
+    progress.setCancelButton(NULL);
+    progress.setMinimumDuration(2000);
+    progress.setWindowModality(Qt::WindowModal);
+
+    progress.open();
+
+    if (!ctrl->start(errMsg)) {
+        QMessageBox::warning(this, QString("Failed to start %1").arg(this->desc.humanName.c_str()), errMsg);
+    }
+
+    progress.accept();
 }
 
 void ServiceWidget::stopSvc()
 {
+    QProgressDialog progress("Stopping Service", "Cancel", 0, 0, this);
+    QString errMsg;
+
+    progress.setCancelButton(NULL);
+    progress.setMinimumDuration(2000);
+    progress.setWindowModality(Qt::WindowModal);
+
+    if (!ctrl->stop(errMsg)) {
+        QMessageBox::warning(this, QString("Failed to stop %1").arg(this->desc.humanName.c_str()), errMsg);
+    }
+
+    progress.accept();
 }
 
 void ServiceWidget::restartSvc()
 {
+    QProgressDialog progress("Restarting Service", "Cancel", 0, 0, this);
+    QString errMsg;
+
+    progress.setCancelButton(NULL);
+    progress.setMinimumDuration(2000);
+    progress.setWindowModality(Qt::WindowModal);
+
+    if (!ctrl->start(errMsg)) {
+        QMessageBox::warning(this, QString("Failed to start %1").arg(this->desc.humanName.c_str()), errMsg);
+        return;
+    }
+
+    if (!ctrl->stop(errMsg)) {
+        QMessageBox::warning(this, QString("Failed to stop %1").arg(this->desc.humanName.c_str()), errMsg);
+    }
+
+    progress.accept();
 }
 
 void ServiceWidget::configSvc()
@@ -123,4 +176,15 @@ void ServiceWidget::logSvc()
 
     ui->logButton->setMenu(menu);
     ui->logButton->showMenu();
+}
+
+void ServiceWidget::update()
+{
+    QString dummy;
+    bool running = ctrl->running(dummy);
+    QString text;
+
+    text = (running) ? QString(desc.humanName.c_str()) + " (running)" : QString(desc.humanName.c_str());
+
+    ui->serviceBox->setTitle(text);
 }

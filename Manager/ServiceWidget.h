@@ -10,6 +10,8 @@ namespace Ui {
 class ServiceWidget;
 }
 
+class ServiceController;
+
 class ServiceWidget : public QWidget
 {
     Q_OBJECT
@@ -30,10 +32,12 @@ public slots:
     void restartSvc();
     void configSvc();
     void logSvc();
+    void update();
 
 private:
     Ui::ServiceWidget *ui;
     ServiceDesc_t desc;
+    ServiceController* ctrl;
     QAction* actionStart;
     QAction* actionStop;
     QAction* actionRestart;
