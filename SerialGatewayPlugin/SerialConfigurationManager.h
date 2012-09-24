@@ -13,6 +13,7 @@ public:
 
   bool getSendEnabled() { return sendEnabled; }
 
+  int getBaudRate() { return baudRate; }
   int getSlotDuration() { return slotDuration; }
   int getSlotNumber() { return slotNumber; }
   int getNumberOfSlots() { return numberOfSlots; }
@@ -32,6 +33,7 @@ private:
 
   bool sendEnabled;
 
+  int baudRate;
   int slotDuration;
   int slotNumber;
   int numberOfSlots;

@@ -15,8 +15,6 @@
 #include <cmath>
 #include <stdint.h>
 
-const int BAUD_RATE = 9600;
-
 const uint8_t MAGIC[] = { 0xef, 0xbe, 0xed };
 
 const uint8_t VERSION = 0x40; //gets OR'd with the slot number to produce TerseMessageHeader::versionAndSlot
@@ -31,6 +29,7 @@ void usleep(int64_t useconds) {
 SerialTransmitThread::SerialTransmitThread(SerialServiceHandler *parent, GatewayReceiver *receiver, GpsThread *gpsThread) : parent(parent), receiver(receiver), gpsThread(gpsThread), closed(false), newMessageAvailable(newMessageMutex) {
   // TODO Auto-generated constructor stub
   SerialConfigurationManager *config = SerialConfigurationManager::getInstance();
+  baudRate = config->getBaudRate();
   slotDuration = config->getSlotDuration();
   slotNumber = config->getSlotNumber();
   numberOfSlots = config->getNumberOfSlots();
@@ -53,7 +52,7 @@ int SerialTransmitThread::svc() {
 
   int offset = ((slotNumber - 1) % numberOfSlots) * slotDuration;
   int cycleDuration = slotDuration * numberOfSlots;
-  double bytesPerMs = BAUD_RATE / (10*1000.0);
+  double bytesPerMs = baudRate / (10*1000.0);
 
   int64_t tweakedTransmitDuration = transmitDuration + (int64_t) std::min(50, transmitDuration / 10);
   int64_t maxPayloadSize = (int64_t) (transmitDuration * bytesPerMs);

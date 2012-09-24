@@ -43,6 +43,8 @@ void SerialConfigurationManager::init()
 
   sendEnabled = false;
 
+  baudRate = 9600;
+
   slotDuration = 750;
   slotNumber = 1;
   numberOfSlots = 16;
@@ -60,6 +62,7 @@ void SerialConfigurationManager::decode(const Json::Value& root)
   listenPorts.push_back(listenPort);
   CM_DecodeString ( root, "gpsPort", gpsPort);
   CM_DecodeBool   ( root, "sendEnabled", sendEnabled);
+  CM_DecodeInt    ( root, "baudRate", baudRate);
   CM_DecodeInt    ( root, "slotDuration", slotDuration);
   CM_DecodeInt    ( root, "slotNumber", slotNumber);
   CM_DecodeInt    ( root, "numberOfSlots", numberOfSlots);
@@ -91,6 +94,7 @@ void SerialConfigurationManager::decode(const Json::Value& root)
   }
   LOG_INFO("  GPS Port: " << gpsPort);
   LOG_INFO("  Send Enabled: " << sendEnabled);
+  LOG_INFO("  Baud Rate: " << baudRate);
   LOG_INFO("  Slot Duration: " << slotDuration);
   LOG_INFO("  Slot Number: " << slotNumber);
   LOG_INFO("  Number Of Slots: " << numberOfSlots);

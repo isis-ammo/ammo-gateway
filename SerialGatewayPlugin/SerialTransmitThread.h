@@ -45,6 +45,7 @@ private:
 
   void sendMessage(std::string *msg);
 
+  int baudRate;
   int slotDuration;
   int slotNumber;
   int numberOfSlots;

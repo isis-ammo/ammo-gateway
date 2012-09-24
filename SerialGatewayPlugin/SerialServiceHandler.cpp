@@ -3,6 +3,7 @@
 #include "GatewayReceiver.h"
 #include "GpsThread.h"
 #include "SerialTransmitThread.h"
+#include "SerialConfigurationManager.h"
 #include "protocol/AmmoMessages.pb.h"
 
 #ifdef WIN32
@@ -66,7 +67,7 @@ int SerialServiceHandler::open(void *ptr)
   }
   
   ACE_TTY_IO::Serial_Params params;
-  params.baudrate = 9600;
+  params.baudrate = SerialConfigurationManager::getInstance()->getBaudRate();
   params.xonlim = 0;
   params.xofflim = 0;
   params.readmincharacters = 0;
