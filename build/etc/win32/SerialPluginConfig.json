@@ -4,6 +4,7 @@
  //"listenPort2": "COM2",
  "gpsPort": "COM1",
  "sendEnabled": false,
+ "baudRate": 9600,
  "slotDuration": 750,
  "slotNumber": 15, //slot number is 1-based
  "numberOfSlots": 16,
