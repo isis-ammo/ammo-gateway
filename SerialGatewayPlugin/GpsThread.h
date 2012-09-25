@@ -3,6 +3,11 @@
 
 #include "ace/Task.h"
 #include <ace/Date_Time.h>
+
+#include "ace/DEV_Connector.h"
+#include "ace/TTY_IO.h"
+#include "ace/OS_NS_unistd.h"
+
 #include <stdint.h>
 
 #define DELTA_HISTORY_SAMPLES 20
@@ -30,11 +35,8 @@ private:
   ACE_Thread_Mutex timeDeltaMutex;
   void setTimeDelta(int64_t delta);
 
-#ifdef WIN32
-  HANDLE hComm;
-#else
-  int gFD;
-#endif
+  ACE_TTY_IO serialDev;
+  ACE_DEV_Connector serialConnector;
   
   bool initSerial();
   

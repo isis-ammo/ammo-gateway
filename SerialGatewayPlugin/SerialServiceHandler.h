@@ -4,9 +4,14 @@
 #include "GatewayConnector.h"
 #include "ace/Svc_Handler.h"
 #include "ace/SOCK_Stream.h"
+#include "ace/DEV_Connector.h"
+#include "ace/TTY_IO.h"
+#include "ace/OS_NS_unistd.h"
 #include "protocol/AmmoMessages.pb.h"
+#include "ace/Token.h"
 #include <vector>
 #include <queue>
+#include <string>
 #ifdef WIN32
   #include <windows.h>
 #endif
@@ -76,15 +81,14 @@ public:
   void addReceivedMessage(ammo::protocol::MessageWrapper *msg, char priority);
   
   int write_a_char(unsigned char toWrite);
+  int write_string(const std::string &toWrite);
 
   ~SerialServiceHandler();
   
 protected:
-#ifdef WIN32
-  HANDLE hComm;
-#else
-  int gFD;
-#endif
+  std::string name;  // COM port name - used for logging
+  ACE_TTY_IO serialDev;
+  ACE_DEV_Connector serialConnector;
 
   unsigned char read_a_char();
 
@@ -115,6 +119,8 @@ protected:
   
   GatewayReceiver *receiver;
   SerialTransmitThread *transmitThread;
+
+  ACE_Token serialPortToken;
 
   typedef std::priority_queue<QueuedMessage, std::vector<QueuedMessage>, QueuedMessageComparison> MessageQueue;
   MessageQueue sendQueue;

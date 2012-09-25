@@ -145,11 +145,14 @@ bool App::init(int argc, char* argv[])
     gpsThread->activate(THR_NEW_LWP | THR_JOINABLE, 1, 1, ACE_THR_PRI_FIFO_DEF);
   }
 
-  LOG_DEBUG("Creating service handler which receives and routes to gateway via the GatewayConnector");
-  svcHandler = new SerialServiceHandler(gpsThread);
-  svcHandler->open( (void *)(config->getListenPort().c_str()) );
+  std::vector<std::string> listenPorts = config->getListenPorts();
+  for (int i = 0; i < listenPorts.size(); i++) {
+    LOG_DEBUG("Creating service handler which receives and routes to gateway via the GatewayConnector");
+    svcHandler = new SerialServiceHandler(gpsThread);
+    svcHandler->open( (void *)(listenPorts[i].c_str()) );
 
-  ACE_Thread::spawn( &start_svc_handler, (void *)svcHandler  );
+    ACE_Thread::spawn( &start_svc_handler, (void *)svcHandler  );
+  }
 
   return true;
 }
@@ -203,6 +206,14 @@ int main(int argc, char* argv[])
 		return 1;
 	  }
 	}
+	else if (lstrcmpi(argv[1], TEXT("-nowinsvc")) == 0) {
+      if (!App::instance()->init(argc, argv)) {
+        return 1;
+      }
+      App::instance()->run();
+      App::instance()->destroy();
+      return 0;
+    }
   }
 
   // Normal service operation

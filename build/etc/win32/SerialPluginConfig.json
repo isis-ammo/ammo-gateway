@@ -1,5 +1,7 @@
 {
  "listenPort": "COM0",
+ //"listenPort1": "COM1",
+ //"listenPort2": "COM2",
  "gpsPort": "COM1",
  "sendEnabled": false,
  "slotDuration": 750,
