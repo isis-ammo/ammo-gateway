@@ -20,6 +20,8 @@ public:
   int getTransmitDuration() { return transmitDuration; }
   int getGpsTimeOffset() { return gpsTimeOffset; }
 
+  int getPliRelayPerCycle() { return pliRelayPerCycle; }
+
 protected:
   void init();
   void decode(const Json::Value& root);
@@ -40,6 +42,8 @@ private:
   int transmitDuration;
 
   int gpsTimeOffset;
+
+  int pliRelayPerCycle;
 };
 
 #endif //SERIAL_CONFIGURATION_MANAGER_H

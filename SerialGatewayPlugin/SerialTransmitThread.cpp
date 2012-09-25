@@ -57,6 +57,8 @@ int SerialTransmitThread::svc() {
   int64_t tweakedTransmitDuration = transmitDuration + (int64_t) std::min(50, transmitDuration / 10);
   int64_t maxPayloadSize = (int64_t) (transmitDuration * bytesPerMs);
 
+  bool sentPliRelayThisCycle = false;
+
   while(!isClosed()) {
     int64_t systemTime = ACE_OS::gettimeofday().get_msec(); //gets system time in milliseconds
     int64_t gpsTime = systemTime - gpsThread->getTimeDelta() / 1000 + gpsTimeOffset;
@@ -81,13 +83,27 @@ int SerialTransmitThread::svc() {
       LOG_TRACE("In slot... " << thisSlotEnd - gpsTime << " remaining in slot");
       bool slotTimeAvailable = true;
 
-      while(slotTimeAvailable && receiver->isMessageAvailable()) {
-        int nextMessageLength = receiver->getNextMessageSize() + sizeof(TerseMessageHeader);
+      while(slotTimeAvailable && (!sentPliRelayThisCycle || receiver->isMessageAvailable())) {
+        std::string relayMessage = "";
+        int nextMessageLength = 0;
+        if(!sentPliRelayThisCycle) {
+          nextMessageLength = relayMessage.length();
+          if(relayMessage == "") {
+            //no pli relay to be sent
+            nextMessageLength = receiver->getNextMessageSize() + sizeof(TerseMessageHeader);
+            sentPliRelayThisCycle = true;
+          }
+        } else {
+          nextMessageLength = receiver->getNextMessageSize() + sizeof(TerseMessageHeader);
+        }
+
         if(nextMessageLength > maxPayloadSize) {
           //throw too-long messages out without processing
           LOG_WARN("Message of size " << nextMessageLength << " is greater than max payload size... dropping.");
-          std::string *msg = receiver->getNextReceivedMessage();
-          delete msg;
+          if(sentPliRelayThisCycle) {
+            std::string *msg = receiver->getNextReceivedMessage();
+            delete msg;
+          }
         } else {
           //update GPS time; previous operation might have taken a while
           systemTime = ACE_OS::gettimeofday().get_msec(); //gets system time in milliseconds
@@ -99,11 +115,21 @@ int SerialTransmitThread::svc() {
           LOG_TRACE("Time: " << gpsTime << ", left in slot " << timeLeft << "ms, bytes sent " << thisSlotConsumed << "/" << maxPayloadSize);
           if(nextMessageLength <= (maxPayloadSize - thisSlotConsumed) && nextMessageLength <= bytesThatWillFit) {
             //send the message
-            std::string *msg = receiver->getNextReceivedMessage();
+            std::string *msg;
+            if(!sentPliRelayThisCycle) {
+              msg = &relayMessage;
+            } else {
+              msg = receiver->getNextReceivedMessage();
+            }
             LOG_TRACE("Sending message, length " << msg->length() << " + header");
             sendMessage(msg);
             thisSlotConsumed += nextMessageLength;
-            delete msg;
+            if(!sentPliRelayThisCycle) {
+              //PLI relay messages are stack allocated, don't delete them
+              sentPliRelayThisCycle = true;
+            } else {
+              delete msg;
+            }
           } else {
             //hold the message until the next slot (we process messages in order, so we can't skip ahead)
             LOG_TRACE("Out of slot space!");
@@ -116,6 +142,9 @@ int SerialTransmitThread::svc() {
       gpsTime = systemTime - gpsThread->getTimeDelta() / 1000 + gpsTimeOffset;
 
       usleep((thisSlotBegin + cycleDuration - gpsTime) * 1000);
+      //we shouldn't get here until the next slot begins, so reset our variable
+      //tracking whether or not we've sent PLI relay
+      sentPliRelayThisCycle = false;
     }
   }
   return 0;

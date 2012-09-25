@@ -50,6 +50,8 @@ void SerialConfigurationManager::init()
   numberOfSlots = 16;
   transmitDuration = 500;
   gpsTimeOffset = 0;
+
+  pliRelayPerCycle = 4;
 }
 
 void SerialConfigurationManager::decode(const Json::Value& root)
@@ -68,6 +70,8 @@ void SerialConfigurationManager::decode(const Json::Value& root)
   CM_DecodeInt    ( root, "numberOfSlots", numberOfSlots);
   CM_DecodeInt    ( root, "transmitDuration", transmitDuration);
   CM_DecodeInt    ( root, "gpsTimeOffset", gpsTimeOffset);
+
+  CM_DecodeInt    ( root, "pliRelayPerCycle", pliRelayPerCycle);
 
   bool findMorePorts = true;
   for (int i = 1; findMorePorts; i++) {
@@ -100,4 +104,5 @@ void SerialConfigurationManager::decode(const Json::Value& root)
   LOG_INFO("  Number Of Slots: " << numberOfSlots);
   LOG_INFO("  Transmit Duration: " << transmitDuration);
   LOG_INFO("  GPS Time Offset: " << gpsTimeOffset);
+  LOG_INFO("  Pli Relay Per Cycle: " << pliRelayPerCycle);
 }
