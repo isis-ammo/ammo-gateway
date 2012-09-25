@@ -237,6 +237,7 @@ std::string GatewayReceiver::getNextPliRelayPacket() {
       appendInt16(relayBlob, dLat);
       appendInt16(relayBlob, dLon);
       appendInt8(relayBlob, dTime);
+      appendInt8(relayBlob, 1); //TODO: add hop count
       deltaCount++;
     }
   }
@@ -250,7 +251,16 @@ std::string GatewayReceiver::getNextPliRelayPacket() {
 
   pliMapMutex.release();
 
-  return tersePayload.str();
+  ammo::protocol::MessageWrapper msg;
+  msg.set_type(ammo::protocol::MessageWrapper_MessageType_TERSE_MESSAGE);
+  msg.set_message_priority(0);
+  ammo::protocol::TerseMessage *terseMsg = msg.mutable_terse_message();
+  terseMsg->set_mime_type(5);
+  terseMsg->set_data(tersePayload.str());
+
+  std::string serializedMessage = msg.SerializeAsString();
+
+  return serializedMessage;
 }
 
 std::string *GatewayReceiver::getNextReceivedMessage() {

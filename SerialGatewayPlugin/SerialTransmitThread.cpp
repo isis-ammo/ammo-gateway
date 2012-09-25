@@ -87,11 +87,16 @@ int SerialTransmitThread::svc() {
         std::string relayMessage = "";
         int nextMessageLength = 0;
         if(!sentPliRelayThisCycle) {
+          relayMessage = receiver->getNextPliRelayPacket();
           nextMessageLength = relayMessage.length();
           if(relayMessage == "") {
             //no pli relay to be sent
-            nextMessageLength = receiver->getNextMessageSize() + sizeof(TerseMessageHeader);
-            sentPliRelayThisCycle = true;
+            if(receiver->isMessageAvailable()) {
+              nextMessageLength = receiver->getNextMessageSize() + sizeof(TerseMessageHeader);
+              sentPliRelayThisCycle = true;
+            } else {
+              break;
+            }
           }
         } else {
           nextMessageLength = receiver->getNextMessageSize() + sizeof(TerseMessageHeader);
