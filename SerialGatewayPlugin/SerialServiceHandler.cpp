@@ -39,10 +39,11 @@ SerialServiceHandler::SerialServiceHandler(GpsThread *gpsThread) :
 messageProcessor(NULL),
 sendQueueMutex(), 
 receiveQueueMutex(),
-transmitThread(NULL)
+transmitThread(NULL),
+receiver(NULL)
 {
   //constructor happens on main thread; both these objects need to be constructed here
-  messageProcessor = new SerialMessageProcessor(this);
+
   if(gpsThread != NULL) {
     receiver = new GatewayReceiver();
     LOG_DEBUG(this->name << " - Creating serial transmit thread");
@@ -52,6 +53,7 @@ transmitThread(NULL)
     messageProcessor->gatewayConnector->registerDataInterest(PLI_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
     messageProcessor->gatewayConnector->registerDataInterest(CHAT_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
   }
+  messageProcessor = new SerialMessageProcessor(this, receiver);
 }
 
 

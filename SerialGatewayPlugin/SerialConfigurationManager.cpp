@@ -52,6 +52,9 @@ void SerialConfigurationManager::init()
   gpsTimeOffset = 0;
 
   pliRelayPerCycle = 4;
+
+  pliRelayEnabled = true;
+  pliSendFrequency = 2; //every other slot
 }
 
 void SerialConfigurationManager::decode(const Json::Value& root)
@@ -72,6 +75,9 @@ void SerialConfigurationManager::decode(const Json::Value& root)
   CM_DecodeInt    ( root, "gpsTimeOffset", gpsTimeOffset);
 
   CM_DecodeInt    ( root, "pliRelayPerCycle", pliRelayPerCycle);
+
+  CM_DecodeBool    ( root, "pliRelayEnabled", pliRelayEnabled);
+  CM_DecodeInt    ( root, "pliSendFrequency", pliSendFrequency);
 
   bool findMorePorts = true;
   for (int i = 1; findMorePorts; i++) {

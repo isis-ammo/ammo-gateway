@@ -10,10 +10,11 @@
 #include <stdint.h>
 
 class SerialServiceHandler;
+class GatewayReceiver;
 
 class SerialMessageProcessor : public ACE_Task <ACE_MT_SYNCH>, public ammo::gateway::GatewayConnectorDelegate, public ammo::gateway::DataPushReceiverListener, public ammo::gateway::PullResponseReceiverListener {
 public:
-  SerialMessageProcessor(SerialServiceHandler *serviceHandler);
+  SerialMessageProcessor(SerialServiceHandler *serviceHandler, GatewayReceiver *receiver);
   virtual ~SerialMessageProcessor();
   
   virtual int open(void *args);
@@ -44,7 +45,7 @@ private:
   
   SerialServiceHandler *commsHandler;
   
-  
+  GatewayReceiver *receiver;
 
   std::string deviceId;
   bool deviceIdAuthenticated;

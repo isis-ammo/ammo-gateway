@@ -48,6 +48,8 @@ public:
 
   void appendBlob(std::ostringstream &stream, const std::string &blob);
 
+  void addPli(std::string &username, int32_t lat, int32_t lon, int32_t createdTime);
+
 private:
   ACE_Thread_Mutex receiveQueueMutex;
 
