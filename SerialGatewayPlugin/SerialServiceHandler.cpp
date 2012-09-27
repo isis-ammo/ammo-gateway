@@ -43,7 +43,8 @@ transmitThread(NULL),
 receiver(NULL)
 {
   //constructor happens on main thread; both these objects need to be constructed here
-
+  messageProcessor = new SerialMessageProcessor(this);
+  
   if(gpsThread != NULL) {
     receiver = new GatewayReceiver();
     LOG_DEBUG(this->name << " - Creating serial transmit thread");
@@ -52,8 +53,9 @@ receiver(NULL)
     LOG_DEBUG(this->name << " - Registering interest in forwarded types")
     messageProcessor->gatewayConnector->registerDataInterest(PLI_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
     messageProcessor->gatewayConnector->registerDataInterest(CHAT_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
+    messageProcessor->setReceiver(receiver);
   }
-  messageProcessor = new SerialMessageProcessor(this, receiver);
+  
 }
 
 

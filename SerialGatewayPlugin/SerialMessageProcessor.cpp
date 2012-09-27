@@ -28,13 +28,13 @@ const int TRANSAPPS_PLI_TYPEID = 5;
 const int DASH_EVENT_TYPEID = 3;
 const int CHAT_MESSAGE_ALL_TYPEID = 4;
 
-SerialMessageProcessor::SerialMessageProcessor(SerialServiceHandler *serviceHandler, GatewayReceiver *gwreceiver) :
+SerialMessageProcessor::SerialMessageProcessor(SerialServiceHandler *serviceHandler) :
 closed(false),
 closeMutex(),
 newMessageMutex(),
 newMessageAvailable(newMessageMutex),
 commsHandler(serviceHandler),
-receiver(gwreceiver),
+receiver(NULL),
 gatewayConnector(NULL),
 deviceId(""),
 deviceIdAuthenticated(false)
@@ -49,6 +49,10 @@ SerialMessageProcessor::~SerialMessageProcessor() {
   if(gatewayConnector) {
     delete gatewayConnector;
   }
+}
+
+void SerialMessageProcessor::setReceiver(GatewayReceiver *receiver) {
+  this->receiver = receiver;
 }
 
 int SerialMessageProcessor::open(void *args) {
