@@ -25,5 +25,6 @@ project(GatewayCore) : aceexe, protobuf, gatewaycommon {
     CrossGatewayConnectionManager.cpp
     GatewayCore.cpp
     GatewayConfigurationManager.cpp
+    SubscriptionDataStore.cpp
   }
 }
