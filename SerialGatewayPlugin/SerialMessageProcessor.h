@@ -14,8 +14,10 @@ class GatewayReceiver;
 
 class SerialMessageProcessor : public ACE_Task <ACE_MT_SYNCH>, public ammo::gateway::GatewayConnectorDelegate, public ammo::gateway::DataPushReceiverListener, public ammo::gateway::PullResponseReceiverListener {
 public:
-  SerialMessageProcessor(SerialServiceHandler *serviceHandler, GatewayReceiver *receiver);
+  SerialMessageProcessor(SerialServiceHandler *serviceHandler);
   virtual ~SerialMessageProcessor();
+  
+  void setReceiver(GatewayReceiver *receiver);
   
   virtual int open(void *args);
   virtual int close(unsigned long flags);
