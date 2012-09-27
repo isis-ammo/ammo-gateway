@@ -11,6 +11,7 @@
 #include "protocol/GatewayPrivateMessages.pb.h"
 
 #include "CrossGatewayEventHandler.h"
+#include "SubscriptionDataStore.h"
 #include "Enumerations.h"
 
 class GatewayEventHandler;
@@ -97,8 +98,7 @@ private:
   std::map<std::string, GatewayEventHandler *> plugins;
   
   std::map<std::string, CrossGatewayEventHandler *> crossGatewayHandlers;
-  typedef std::multimap<std::string, SubscriptionInfo> CrossGatewaySubscriptionMap;
-  CrossGatewaySubscriptionMap subscriptions;
+  SubscriptionDataStore crossGatewaySubscriptions;
   
   typedef std::multimap<std::string, PullRequestHandlerInfo> CrossGatewayPullRequestHandlerMap;
   CrossGatewayPullRequestHandlerMap crossGatewayPullRequestHandlers;
