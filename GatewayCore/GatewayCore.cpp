@@ -415,12 +415,26 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, std::s
   {
     set<GatewayEventHandler *>::iterator it;
 
-    set<GatewayEventHandler *> handlers = getPushHandlersForType(mimeType);
+    set<GatewayEventHandler *> handlers;
+    map<GatewayEventHandler *, MessageScope> scopeMap;
+
+    for(PushHandlerMap::iterator it = pushHandlers.begin(); it!= pushHandlers.end(); it++) {
+        if(mimeType.find(it->first) == 0) { //looking for subscribers which are a prefix of mimeType
+          handlers.insert(it->second.handler);
+          if(scopeMap.count(it->second.handler) == 0) {
+            scopeMap[it->second.handler] = it->second.scope;
+          } else {
+            if(scopeMap[it->second.handler] == SCOPE_LOCAL && it->second.scope == SCOPE_GLOBAL) {
+              scopeMap[it->second.handler] = it->second.scope;
+            }
+          }
+        }
+      }
 
     for(it = handlers.begin(); it != handlers.end(); ++it) {
-      //if((*it).second.scope == SCOPE_GLOBAL) {  //disregarding scope for now; TODO: take scope into account
+      if(scopeMap[*it] == SCOPE_GLOBAL) {  //disregarding scope for now; TODO: take scope into account
         (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, "", SCOPE_GLOBAL, false, false, priority);
-      //}
+      }
     }
 
     
