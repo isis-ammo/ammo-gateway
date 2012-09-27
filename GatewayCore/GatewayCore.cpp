@@ -149,14 +149,11 @@ bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uri, std::st
   if(messageScope == SCOPE_GLOBAL) {
     //now propagate the subscription to all the other gateway nodes
     {
-      multimap<string, SubscriptionInfo>::iterator it;
-      pair<multimap<string, SubscriptionInfo>::iterator,multimap<string,SubscriptionInfo>::iterator> subscriptionIterators;
+      SubscriptionDataStore::SubscriptionHandlerSet subscribedHandlers = crossGatewaySubscriptions.getHandlersForType(mimeType);
 
-      subscriptionIterators = subscriptions.equal_range(mimeType);
-
-      for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
+      for(SubscriptionDataStore::SubscriptionHandlerSet::iterator it = subscribedHandlers.begin(); it != subscribedHandlers.end(); it++) {
         LOG_TRACE("Sending cross-gateway data");
-        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, encoding, data, originUser, priority);
+        crossGatewayHandlers[(*it)]->sendPushedData(uri, mimeType, encoding, data, originUser, priority);
       }
     }
   }
@@ -290,11 +287,10 @@ bool GatewayCore::registerCrossGatewayConnection(std::string handlerId, CrossGat
   //also need to subscribe the number of times specified by the reference count,
   //so the ref count on the other end will be correct (should add a shortcut
   //for this so we don't send as many messages)
-  for(CrossGatewaySubscriptionMap::iterator it = subscriptions.begin(); it != subscriptions.end(); it++) {
-    if(it->second.handlerId != handlerId) {
-      for(unsigned int i = 0; i < it->second.references; i++) {
-        handler->sendSubscribeMessage(it->first);
-      }
+  SubscriptionDataStore::SubscriptionMap subs = crossGatewaySubscriptions.getSubscriptionMap();
+  for(SubscriptionDataStore::SubscriptionMap::iterator it = subs.begin(); it != subs.end(); it++) {
+    if(it->second != handlerId) {
+      handler->sendSubscribeMessage(it->first);
     }
   }
   
@@ -317,28 +313,8 @@ bool GatewayCore::unregisterCrossGatewayConnection(std::string handlerId) {
 
 bool GatewayCore::subscribeCrossGateway(std::string mimeType, std::string originHandlerId) {
   LOG_DEBUG("Got subscription to type " << mimeType << " for handler " << originHandlerId);
-  //see if there's already a subscription to this type for this handler
-  bool foundSubscription = false;
-  multimap<string, SubscriptionInfo>::iterator it;
-  pair<multimap<string, SubscriptionInfo>::iterator,multimap<string,SubscriptionInfo>::iterator> subscriptionIterators;
-  
-  subscriptionIterators = subscriptions.equal_range(mimeType);
-  
-  for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
-    if(originHandlerId == (*it).second.handlerId) {
-      (*it).second.references++;
-      foundSubscription = true;
-    }
-  }
-  
-  if(!foundSubscription) {
-    //if we get here, we don't already have an entry for this handler in the table
-    SubscriptionInfo newSubscription;
-    newSubscription.handlerId = originHandlerId;
-    newSubscription.references = 1;
-    
-    subscriptions.insert(pair<string, SubscriptionInfo>(mimeType, newSubscription));
-  }
+
+  crossGatewaySubscriptions.subscribe(mimeType, originHandlerId);
   
   //now propogate the subscription to all the other gateway nodes, except the one it came from
   for(map<string, CrossGatewayEventHandler *>::iterator it = crossGatewayHandlers.begin(); it != crossGatewayHandlers.end(); it++) {
@@ -358,24 +334,10 @@ bool GatewayCore::unsubscribeCrossGateway(std::string mimeType, std::string orig
     }
   }
   
-  //look for an existing subscription to this type
-  multimap<string, SubscriptionInfo>::iterator it;
-  pair<multimap<string, SubscriptionInfo>::iterator,multimap<string,SubscriptionInfo>::iterator> subscriptionIterators;
-  
-  subscriptionIterators = subscriptions.equal_range(mimeType);
-  
-  for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
-    if(originHandlerId == (*it).second.handlerId) {
-      (*it).second.references--;
-      if((*it).second.references == 0) {
-        subscriptions.erase(it);
-      }
-      return true;
-    }
-  }
+  crossGatewaySubscriptions.unsubscribe(mimeType, originHandlerId);
   
   //if we get here, there wasn't a subscription to unsubscribe from
-  LOG_WARN("Tried to unsubscribe without an existing subscription");
+  //LOG_WARN("Tried to unsubscribe without an existing subscription");
   return false;
 }
 
@@ -451,30 +413,27 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, std::s
   
   //do a local push of this data
   {
-    PushHandlerMap::iterator it;
-    pair<PushHandlerMap::iterator,PushHandlerMap::iterator> handlerIterators;
-    
-    handlerIterators = pushHandlers.equal_range(mimeType);
-    
-    for(it = handlerIterators.first; it != handlerIterators.second; ++it) {
-      if((*it).second.scope == SCOPE_GLOBAL) {
-        LOG_TRACE("Sending push data");
-        (*it).second.handler->sendPushedData(uri, mimeType, encoding, data, originUser, "", SCOPE_GLOBAL, false, false, priority);
-      }
+    set<GatewayEventHandler *>::iterator it;
+
+    set<GatewayEventHandler *> handlers = getPushHandlersForType(mimeType);
+
+    for(it = handlers.begin(); it != handlers.end(); ++it) {
+      //if((*it).second.scope == SCOPE_GLOBAL) {  //disregarding scope for now; TODO: take scope into account
+        (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, "", SCOPE_GLOBAL, false, false, priority);
+      //}
     }
+
+    
   }
   
   //push to all subscribed cross-gateway nodes, except the origin
   {
-    multimap<string, SubscriptionInfo>::iterator it;
-    pair<multimap<string, SubscriptionInfo>::iterator,multimap<string,SubscriptionInfo>::iterator> subscriptionIterators;
+    SubscriptionDataStore::SubscriptionHandlerSet subscribedHandlers = crossGatewaySubscriptions.getHandlersForType(mimeType);
     
-    subscriptionIterators = subscriptions.equal_range(mimeType);
-    
-    for(it = subscriptionIterators.first; it != subscriptionIterators.second; it++) {
-      if(originHandlerId != (*it).second.handlerId) {
+    for(SubscriptionDataStore::SubscriptionHandlerSet::iterator it = subscribedHandlers.begin(); it != subscribedHandlers.end(); it++) {
+      if(originHandlerId != (*it)) {
         LOG_TRACE("Sending cross-gateway data");
-        crossGatewayHandlers[(*it).second.handlerId]->sendPushedData(uri, mimeType, encoding, data, originUser, priority);
+        crossGatewayHandlers[(*it)]->sendPushedData(uri, mimeType, encoding, data, originUser, priority);
       }
     }
   }
@@ -563,6 +522,7 @@ std::set<GatewayEventHandler *> GatewayCore::getPushHandlersForType(std::string 
       matchingHandlers.insert(it->second.handler);
     }
   }
+  
   return matchingHandlers;
 }
 

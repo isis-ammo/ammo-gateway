@@ -7,14 +7,17 @@
 
 class SubscriptionDataStore {
 public:
+  typedef std::set<std::string> SubscriptionHandlerSet;
+  typedef std::multimap<std::string, std::string> SubscriptionMap;
+  
   SubscriptionDataStore();
   
-  std::set<std::string> getHandlersForType(const std::string &typeName);
+  SubscriptionMap getSubscriptionMap();
+  SubscriptionHandlerSet getHandlersForType(const std::string &typeName);
   void subscribe(const std::string &typeName, const std::string &handlerName);
   void unsubscribe(const std::string &typeName, const std::string &handlerName);
   
 private:
-  typedef std::multimap<std::string, std::string> SubscriptionMap;
   SubscriptionMap subscriptions;
 };
 
