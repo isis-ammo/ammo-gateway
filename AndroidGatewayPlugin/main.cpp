@@ -148,6 +148,8 @@ bool App::init(int argc, char* argv[])
       string param = argumentQueue.front();
       argumentQueue.pop();
       androidAddress = param;
+    } else if(arg == "-nowinsvc") {
+      //don't consider -nowinsvc an error (functionality is in main())
     } else {
       LOG_FATAL("Usage: AndroidGatewayPlguin [--listenPort port] [--listenAddress address]");
       LOG_FATAL("  --listenPort port        Sets the listening port for the Android ");
