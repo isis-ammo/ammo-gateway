@@ -24,7 +24,7 @@ using namespace std;
 GatewayReceiver::GatewayReceiver() : receivedMessageCount(0), pliIndex(0) {
   // TODO Auto-generated constructor stub
   pliRelayPerCycle = SerialConfigurationManager::getInstance()->getPliRelayPerCycle();
-  
+  pliRelayEnabled = SerialConfigurationManager::getInstance()->getPliRelayEnabled();
 }
 
 GatewayReceiver::~GatewayReceiver() {
@@ -139,15 +139,17 @@ void GatewayReceiver::onPushDataReceived(
 }
 
 void GatewayReceiver::addPli(std::string &username, int32_t lat, int32_t lon, int32_t createdTime) {
-  PliInfo location;
-  location.lat = lat;
-  location.lon = lon;
-  location.createdTime = createdTime;
+  //this method is only used for relay of PLI from serial; the pliRelayEnabled flag only disables that
+  if(pliRelayEnabled) {
+    PliInfo location;
+    location.lat = lat;
+    location.lon = lon;
+    location.createdTime = createdTime;
 
-  pliMapMutex.acquire();
-  pliMap[username] = location;
-  pliMapMutex.release();
-
+    pliMapMutex.acquire();
+    pliMap[username] = location;
+    pliMapMutex.release();
+  }
 }
 
 void GatewayReceiver::appendString(ostringstream &stream, const std::string &str) {

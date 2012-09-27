@@ -51,6 +51,7 @@ private:
   int numberOfSlots;
   int transmitDuration;
   int gpsTimeOffset;
+  int pliSendFrequency;
 
 
   ACE_Thread_Mutex newMessageMutex;

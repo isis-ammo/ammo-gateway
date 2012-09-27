@@ -62,6 +62,7 @@ private:
   PliMap pliMap;
   ACE_Thread_Mutex pliMapMutex;
 
+  bool pliRelayEnabled;
   int pliRelayPerCycle;
   int pliIndex;
 };
