@@ -35,6 +35,7 @@ SerialTransmitThread::SerialTransmitThread(SerialServiceHandler *parent, Gateway
   numberOfSlots = config->getNumberOfSlots();
   transmitDuration = config->getTransmitDuration();
   gpsTimeOffset = config->getGpsTimeOffset();
+  pliSendFrequency = config->getPliSendFrequency();
 }
 
 SerialTransmitThread::~SerialTransmitThread() {
@@ -58,6 +59,7 @@ int SerialTransmitThread::svc() {
   int64_t maxPayloadSize = (int64_t) (transmitDuration * bytesPerMs);
 
   bool sentPliRelayThisCycle = false;
+  int pliCycleCount = 0;
 
   while(!isClosed()) {
     int64_t systemTime = ACE_OS::gettimeofday().get_msec(); //gets system time in milliseconds
@@ -149,7 +151,11 @@ int SerialTransmitThread::svc() {
       usleep((thisSlotBegin + cycleDuration - gpsTime) * 1000);
       //we shouldn't get here until the next slot begins, so reset our variable
       //tracking whether or not we've sent PLI relay
-      sentPliRelayThisCycle = false;
+      pliCycleCount++;
+      if(pliCycleCount == pliSendFrequency) {
+        sentPliRelayThisCycle = false;
+        pliCycleCount = 0;
+      }
     }
   }
   return 0;
