@@ -1,5 +1,6 @@
 #include "SerialMessageProcessor.h"
 #include "SerialServiceHandler.h"
+#include "GatewayReceiver.h"
 
 #include "log.h"
 #include <stdint.h>
@@ -27,12 +28,13 @@ const int TRANSAPPS_PLI_TYPEID = 5;
 const int DASH_EVENT_TYPEID = 3;
 const int CHAT_MESSAGE_ALL_TYPEID = 4;
 
-SerialMessageProcessor::SerialMessageProcessor(SerialServiceHandler *serviceHandler) :
+SerialMessageProcessor::SerialMessageProcessor(SerialServiceHandler *serviceHandler, GatewayReceiver *gwreceiver) :
 closed(false),
 closeMutex(),
 newMessageMutex(),
 newMessageAvailable(newMessageMutex),
 commsHandler(serviceHandler),
+receiver(gwreceiver),
 gatewayConnector(NULL),
 deviceId(""),
 deviceIdAuthenticated(false)
@@ -483,6 +485,11 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, si
       // JSON
       // {\"lid\":\"0\",\"lon\":\"-74888318\",\"unitid\":\"1\",\"created\":\"1320329753964\",\"name\":\"ahammer\",\"userid\":\"731\",\"lat\":\"40187744\",\"modified\":\"0\"}
       jsonStr << generateTransappsPli(originUser, lat, lon, created, 0);
+
+      if(receiver != NULL) {
+        LOG_TRACE("Adding to local PLI relay");
+        receiver->addPli(originUser, lat, lon, created);
+      }
     }
     
     break;
@@ -549,6 +556,11 @@ void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t
       
       LOG_TRACE("Sending group PLI relay message: " << pushData.data);
       gatewayConnector->pushData(pushData);
+
+      if(receiver != NULL) {
+        LOG_TRACE("Adding to local PLI relay");
+        receiver->addPli(originUsername, latitude, longitude, createdTime);
+      }
     }
   }
 }

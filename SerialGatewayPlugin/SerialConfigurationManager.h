@@ -22,6 +22,9 @@ public:
 
   int getPliRelayPerCycle() { return pliRelayPerCycle; }
 
+  bool getPliRelayEnabled() { return pliRelayEnabled; }
+  int getPliSendFrequency() { return pliSendFrequency; }
+
 protected:
   void init();
   void decode(const Json::Value& root);
@@ -44,6 +47,9 @@ private:
   int gpsTimeOffset;
 
   int pliRelayPerCycle;
+
+  bool pliRelayEnabled;
+  int pliSendFrequency;
 };
 
 #endif //SERIAL_CONFIGURATION_MANAGER_H

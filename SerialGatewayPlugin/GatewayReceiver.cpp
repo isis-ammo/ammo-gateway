@@ -138,6 +138,18 @@ void GatewayReceiver::onPushDataReceived(
   }
 }
 
+void GatewayReceiver::addPli(std::string &username, int32_t lat, int32_t lon, int32_t createdTime) {
+  PliInfo location;
+  location.lat = lat;
+  location.lon = lon;
+  location.createdTime = createdTime;
+
+  pliMapMutex.acquire();
+  pliMap[username] = location;
+  pliMapMutex.release();
+
+}
+
 void GatewayReceiver::appendString(ostringstream &stream, const std::string &str) {
   if(str.length() > numeric_limits<uint16_t>::max()) {
     LOG_WARN("String too long, putting zero length string instead");
