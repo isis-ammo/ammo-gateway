@@ -9,6 +9,9 @@
  "slotNumber": 15, //slot number is 1-based
  "numberOfSlots": 16,
  "transmitDuration": 500,
- "gpsTimeOffset": 0
+ "gpsTimeOffset": 0,
+ "pliRelayPerCycle": 4, //number of PLI messages to relay each cycle (in addition to the base location, so one more PLI location will actually be sent)
+ "pliRelayEnabled": true, //enables/disables relay of messages received through serial only; gateway PLI is always relayed
+ "pliSendFrequency": 2 //sets how often PLI will be relayed; i.e. 2 will relay every other slot; 3 will relay every third slot
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)
