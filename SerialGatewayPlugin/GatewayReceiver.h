@@ -70,6 +70,9 @@ private:
   int pliRelayPerCycle;
   int pliIndex;
   std::string pliRelayNodeName;
+  
+  int rangeScale;
+  int timeScale;
 };
 
 #endif /* GATEWAYRECEIVER_H_ */

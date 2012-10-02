@@ -1,6 +1,7 @@
 #include "SerialMessageProcessor.h"
 #include "SerialServiceHandler.h"
 #include "GatewayReceiver.h"
+#include "SerialConfigurationManager.h"
 
 #include "log.h"
 #include <stdint.h>
@@ -42,6 +43,10 @@ deviceIdAuthenticated(false)
   //need to initialize GatewayConnector in the main thread; the constructor always
   //happens in the main thread
   gatewayConnector = new GatewayConnector(this);
+  
+  SerialConfigurationManager *config = SerialConfigurationManager::getInstance();
+  rangeScale = config->getRangeScale();
+  timeScale = config->getTimeScale();
 }
 
 SerialMessageProcessor::~SerialMessageProcessor() {
@@ -537,9 +542,9 @@ void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t
     int8_t dCreatedTime = extractInt8(groupPliBlobArray, cursor, groupPliBlobLength);
     int8_t hopCount = extractInt8(groupPliBlobArray, cursor, groupPliBlobLength);
     
-    int32_t latitude = baseLat - dLat;
-    int32_t longitude = baseLon - dLon;
-    uint32_t createdTime = baseTime - dCreatedTime;
+    int32_t latitude = (baseLat - dLat) * rangeScale;
+    int32_t longitude = (baseLon - dLon) * rangeScale;
+    uint32_t createdTime = (baseTime - dCreatedTime) * timeScale;
     
     TimestampMap::iterator it = latestPliTimestamps.find(originUsername);
     if(it != latestPliTimestamps.end() && createdTime < it->second) {
