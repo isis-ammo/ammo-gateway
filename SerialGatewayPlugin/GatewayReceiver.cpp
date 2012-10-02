@@ -12,6 +12,7 @@
 #include "SerialConfigurationManager.h"
 #include "GpsThread.h"
 #include <limits>
+#include <cmath>
 
 using namespace std;
 
