@@ -55,6 +55,9 @@ private:
   typedef std::map<std::string, uint32_t> TimestampMap;
   TimestampMap latestPliTimestamps;
   
+  int rangeScale;
+  int timeScale;
+  
   bool isClosed();
   void processMessage(ammo::protocol::MessageWrapper &msg);
   std::string parseTerseData(int mt, const char *data, size_t terseLength, std::string &originUser );

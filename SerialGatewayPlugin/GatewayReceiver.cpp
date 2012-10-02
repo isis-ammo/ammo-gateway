@@ -28,6 +28,8 @@ GatewayReceiver::GatewayReceiver(GpsThread *gpsThread) : gpsThread(gpsThread), r
   pliRelayPerCycle = config->getPliRelayPerCycle();
   pliRelayEnabled = config->getPliRelayEnabled();
   pliRelayNodeName = config->getPliRelayNodeName();
+  rangeScale = config->getRangeScale();
+  timeScale = config->getTimeScale();
 }
 
 GatewayReceiver::~GatewayReceiver() {
@@ -243,9 +245,9 @@ std::string GatewayReceiver::getNextPliRelayPacket() {
   PliMap::iterator baseObject = pliMapIt;
 
   while(deltaCount < pliRelayPerCycle) {
-    int32_t dLat = baseLat - pliMapIt->second.lat;
-    int32_t dLon = baseLon - pliMapIt->second.lon;
-    int32_t dTime = baseTime - pliMapIt->second.createdTime;
+    int32_t dLat = (baseLat - pliMapIt->second.lat) / rangeScale;
+    int32_t dLon = (baseLon - pliMapIt->second.lon) / rangeScale;
+    int32_t dTime = (baseTime - pliMapIt->second.createdTime) / timeScale;
     if(numeric_limits<int16_t>::min() <= dLat && dLat <= numeric_limits<int16_t>::max() &&
         numeric_limits<int16_t>::min() <= dLon && dLon <= numeric_limits<int16_t>::max() &&
         numeric_limits<int8_t>::min() <= dTime && dTime <= numeric_limits<int8_t>::max()) {
