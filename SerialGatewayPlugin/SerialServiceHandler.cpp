@@ -46,7 +46,7 @@ receiver(NULL)
   messageProcessor = new SerialMessageProcessor(this);
   
   if(gpsThread != NULL) {
-    receiver = new GatewayReceiver();
+    receiver = new GatewayReceiver(gpsThread);
     LOG_DEBUG(this->name << " - Creating serial transmit thread");
     transmitThread = new SerialTransmitThread(this, receiver, gpsThread);
 

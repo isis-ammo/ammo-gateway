@@ -55,6 +55,7 @@ void SerialConfigurationManager::init()
 
   pliRelayEnabled = true;
   pliSendFrequency = 2; //every other slot
+  pliRelayNodeName = "base";
 }
 
 void SerialConfigurationManager::decode(const Json::Value& root)
@@ -76,8 +77,9 @@ void SerialConfigurationManager::decode(const Json::Value& root)
 
   CM_DecodeInt    ( root, "pliRelayPerCycle", pliRelayPerCycle);
 
-  CM_DecodeBool    ( root, "pliRelayEnabled", pliRelayEnabled);
+  CM_DecodeBool   ( root, "pliRelayEnabled", pliRelayEnabled);
   CM_DecodeInt    ( root, "pliSendFrequency", pliSendFrequency);
+  CM_DecodeString ( root, "pliRelayNodeName", pliRelayNodeName);
 
   bool findMorePorts = true;
   for (int i = 1; findMorePorts; i++) {
@@ -111,4 +113,7 @@ void SerialConfigurationManager::decode(const Json::Value& root)
   LOG_INFO("  Transmit Duration: " << transmitDuration);
   LOG_INFO("  GPS Time Offset: " << gpsTimeOffset);
   LOG_INFO("  Pli Relay Per Cycle: " << pliRelayPerCycle);
+  LOG_INFO("  Pli Relay Enabled: " << pliRelayEnabled);
+  LOG_INFO("  Pli Send Frequency: " << pliSendFrequency);
+  LOG_INFO("  Pli Relay Node Name: " << pliRelayNodeName);
 }
