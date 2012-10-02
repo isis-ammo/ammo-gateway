@@ -24,6 +24,7 @@ public:
 
   bool getPliRelayEnabled() { return pliRelayEnabled; }
   int getPliSendFrequency() { return pliSendFrequency; }
+  std::string getPliRelayNodeName() { return pliRelayNodeName; }
 
 protected:
   void init();
@@ -50,6 +51,7 @@ private:
 
   bool pliRelayEnabled;
   int pliSendFrequency;
+  std::string pliRelayNodeName;
 };
 
 #endif //SERIAL_CONFIGURATION_MANAGER_H

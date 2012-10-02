@@ -22,6 +22,7 @@ public:
   void stop();
   
   int64_t getTimeDelta();
+  bool getPosition(double &lat, double &lon);
 
 private:
   ACE_Thread_Mutex closeMutex;
@@ -34,6 +35,11 @@ private:
   int64_t timeDelta;
   ACE_Thread_Mutex timeDeltaMutex;
   void setTimeDelta(int64_t delta);
+  
+  double latitude;
+  double longitude;
+  bool fixAcquired;
+  void setPosition(bool fix, double lat, double lon);
 
   ACE_TTY_IO serialDev;
   ACE_DEV_Connector serialConnector;

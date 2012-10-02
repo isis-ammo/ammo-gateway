@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include <map>
 
+class GpsThread;
+
 struct PliInfo {
   int32_t lat;
   int32_t lon;
@@ -20,7 +22,7 @@ struct PliInfo {
 
 class GatewayReceiver : public ammo::gateway::DataPushReceiverListener {
 public:
-  GatewayReceiver();
+  GatewayReceiver(GpsThread *gpsThread);
   virtual ~GatewayReceiver();
 
   //DataPushReceiverListener methods
@@ -51,6 +53,8 @@ public:
   void addPli(std::string &username, int32_t lat, int32_t lon, int32_t createdTime);
 
 private:
+  GpsThread *gpsThread;
+  
   ACE_Thread_Mutex receiveQueueMutex;
 
   typedef std::queue<std::string *> MessageQueue;
@@ -65,6 +69,7 @@ private:
   bool pliRelayEnabled;
   int pliRelayPerCycle;
   int pliIndex;
+  std::string pliRelayNodeName;
 };
 
 #endif /* GATEWAYRECEIVER_H_ */

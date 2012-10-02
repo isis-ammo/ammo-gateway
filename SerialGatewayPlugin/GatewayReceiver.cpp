@@ -10,7 +10,7 @@
 #include "json/json.h"
 #include "protocol/AmmoMessages.pb.h"
 #include "SerialConfigurationManager.h"
-
+#include "GpsThread.h"
 #include <limits>
 
 using namespace std;
@@ -21,10 +21,12 @@ using namespace std;
 #define atoll(str) _atoi64(str)
 #endif
 
-GatewayReceiver::GatewayReceiver() : receivedMessageCount(0), pliIndex(0) {
+GatewayReceiver::GatewayReceiver(GpsThread *gpsThread) : gpsThread(gpsThread), receivedMessageCount(0), pliIndex(0) {
   // TODO Auto-generated constructor stub
-  pliRelayPerCycle = SerialConfigurationManager::getInstance()->getPliRelayPerCycle();
-  pliRelayEnabled = SerialConfigurationManager::getInstance()->getPliRelayEnabled();
+  SerialConfigurationManager *config = SerialConfigurationManager::getInstance();
+  pliRelayPerCycle = config->getPliRelayPerCycle();
+  pliRelayEnabled = config->getPliRelayEnabled();
+  pliRelayNodeName = config->getPliRelayNodeName();
 }
 
 GatewayReceiver::~GatewayReceiver() {
@@ -214,20 +216,46 @@ std::string GatewayReceiver::getNextPliRelayPacket() {
   }
 
 
-  PliMap::iterator baseObject = pliMapIt;
+  double latDouble = 0;
+  double lonDouble = 0;
+  
+  if(gpsThread->getPosition(latDouble, lonDouble) == false) {
+    LOG_WARN("Can't forward PLI; no GPS lock");
+    return "";
+  }
+  
+  int32_t baseLat = round(latDouble * 1e6);
+  int32_t baseLon = round(lonDouble * 1e6);
+  time_t baseTime = time(NULL);
 
   //And prepare the PLI packet
   ostringstream tersePayload;
-  appendString(tersePayload, baseObject->first);
-  appendInt32(tersePayload, baseObject->second.lat);
-  appendInt32(tersePayload, baseObject->second.lon);
-  appendUInt32(tersePayload, baseObject->second.createdTime);
+  appendString(tersePayload, pliRelayNodeName);
+  appendInt32(tersePayload, baseLat);
+  appendInt32(tersePayload, baseLon);
+  appendUInt32(tersePayload, baseTime);
 
   ostringstream relayBlob;
 
   int8_t deltaCount = 0;
+  
+  PliMap::iterator baseObject = pliMapIt;
 
   while(deltaCount < pliRelayPerCycle) {
+    int32_t dLat = baseLat - pliMapIt->second.lat;
+    int32_t dLon = baseLon - pliMapIt->second.lon;
+    int32_t dTime = baseTime - pliMapIt->second.createdTime;
+    if(numeric_limits<int16_t>::min() <= dLat && dLat <= numeric_limits<int16_t>::max() &&
+        numeric_limits<int16_t>::min() <= dLon && dLon <= numeric_limits<int16_t>::max() &&
+        numeric_limits<int8_t>::min() <= dTime && dTime <= numeric_limits<int8_t>::max()) {
+      appendString(relayBlob, pliMapIt->first);
+      appendInt16(relayBlob, dLat);
+      appendInt16(relayBlob, dLon);
+      appendInt8(relayBlob, dTime);
+      appendInt8(relayBlob, 1); //TODO: add hop count
+      deltaCount++;
+    }
+    
     pliMapIt++;
     pliIndex++;
     if(pliMapIt == pliMap.end()) {
@@ -239,20 +267,6 @@ std::string GatewayReceiver::getNextPliRelayPacket() {
     if(pliMapIt == baseObject) {
       //we've wrapped back around to where we started; don't repeat
       break;
-    }
-
-    int32_t dLat = baseObject->second.lat - pliMapIt->second.lat;
-    int32_t dLon = baseObject->second.lon - pliMapIt->second.lon;
-    int32_t dTime = baseObject->second.createdTime - pliMapIt->second.createdTime;
-    if(numeric_limits<int16_t>::min() <= dLat && dLat <= numeric_limits<int16_t>::max() &&
-        numeric_limits<int16_t>::min() <= dLon && dLon <= numeric_limits<int16_t>::max() &&
-        numeric_limits<int8_t>::min() <= dTime && dTime <= numeric_limits<int8_t>::max()) {
-      appendString(relayBlob, pliMapIt->first);
-      appendInt16(relayBlob, dLat);
-      appendInt16(relayBlob, dLon);
-      appendInt8(relayBlob, dTime);
-      appendInt8(relayBlob, 1); //TODO: add hop count
-      deltaCount++;
     }
   }
 

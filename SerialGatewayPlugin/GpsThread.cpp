@@ -20,7 +20,7 @@
 
 using namespace std;
 
-GpsThread::GpsThread() : closeMutex(), closed(false), deltaHistoryCount(0), timeDelta(0) {
+GpsThread::GpsThread() : closeMutex(), closed(false), deltaHistoryCount(0), timeDelta(0), latitude(0), longitude(0), fixAcquired(false) {
 }
 
 GpsThread::~GpsThread() {
@@ -86,9 +86,50 @@ bool GpsThread::processMessage(ACE_Time_Value msgTime, std::string msg) {
   if(firstCommaPosition != string::npos) {
     string sentenceType = msg.substr(0, firstCommaPosition);
     if(sentenceType == "$GPGGA") {
-      size_t secondCommaPosition = msg.find(",", firstCommaPosition + 1);
-      if(secondCommaPosition != string::npos) {
-        string time = msg.substr(firstCommaPosition + 1, secondCommaPosition - firstCommaPosition - 1);
+      /*
+       * GPGGA message structure (essential fix data with time, 3D location, and accuracy):
+       *
+       * Example:  $GPGGA,185656.000,3608.6668,N,08647.6318,W,1,06,1.1,195.6,M,-31.7,M,,0000*60
+       * Pos    Example      Definition
+       * 0      $GPGGA       message type
+       * 1      185656.000   time (HHMMSS.SSS)
+       * 2      3608.6668    latitude (36 degrees, 8.6668 minutes)
+       * 3      N            direction of latitude
+       * 4      08647.6318   longitude (86 degrees, 47.6318 minutes)
+       * 5      W            direction of longitude
+       * 6      1            fix quality (0=invalid, 1=GPS fix, 2-8 are also valid and mean different fix types)
+       * 7      06           number of satellites being tracked
+       * 8      1.1          horizontal "dilution" of precision (measurement of accuracy; <1 is ideal, 1-2 is excellent, 2-5 is good)
+       * 9,10   195.6,M      altitude above mean sea level (in meters)
+       * 11,12  -31.7,M      height of mean sea level above WGS84 ellipsoid
+       * 13     empty field  time since last DGPS update
+       * 14     0000         DGPS station ID
+       * XX     *60          checksum
+       */
+      // Divide the returned GPS string into tokens (separated by ',')
+      char separator = ',';
+      std::vector<std::string> tokenizedMsg;
+
+      std::string::size_type pos1 = 0;
+      std::string::size_type pos2 = 0;
+      while (pos2 != std::string::npos)
+        {
+          pos2 = msg.find_first_of(separator, pos1);
+          std::string t;
+          if (pos2 != std::string::npos)
+            {
+              t = msg.substr(pos1, pos2-pos1);
+              pos1 = (pos2 + 1);
+            }
+          else
+            {
+              t = msg.substr(pos1);
+            }
+          tokenizedMsg.push_back(t);
+        }
+
+      if(tokenizedMsg.size() == 15) { //GPGGA message should have 15 elements
+        string time = tokenizedMsg[1];
         //LOG_INFO("GPGGA: " << timeinfo->tm_hour << ":" << timeinfo->tm_min << ":" << timeinfo->tm_sec << ":" << msgTime.usec() << " :: " << time);
         
         string hoursString = time.substr(0, 2);
@@ -122,6 +163,41 @@ bool GpsThread::processMessage(ACE_Time_Value msgTime, std::string msg) {
         int64_t deltaAverage = deltaTotal / min(deltaHistoryCount, DELTA_HISTORY_SAMPLES);
         //LOG_INFO("Using average delta " << deltaAverage << " (" << min(deltaHistoryCount, DELTA_HISTORY_SAMPLES) << " samples)");
         setTimeDelta(deltaAverage);
+
+        //get latitude and longitude if fix is good enough
+        string latString = tokenizedMsg[2];
+        string latDirString = tokenizedMsg[3];
+        string lonString = tokenizedMsg[4];
+        string lonDirString = tokenizedMsg[5];
+        string fixType = tokenizedMsg[6];
+        if(fixType != "0" && latString != "" && latDirString != "" && lonString != "" && lonDirString != "") {
+          string latDegreesString = latString.substr(0, 2);
+          string latMinutesString = latString.substr(2, string::npos);
+          string lonDegreesString = lonString.substr(0, 3);
+          string lonMinutesString = lonString.substr(3, string::npos);
+          
+          int latDegrees = atoi(latDegreesString.c_str());
+          double latMinutes = atof(latMinutesString.c_str());
+          int lonDegrees = atoi(lonDegreesString.c_str());
+          double lonMinutes = atof(lonMinutesString.c_str());
+          
+          double tempLatitude = (double) latDegrees + latMinutes / 60.0;
+          double tempLongitude = (double) lonDegrees + lonMinutes / 60.0;
+          
+          if(latDirString == "S") {
+            tempLatitude = tempLatitude * -1;
+          }
+          
+          if(lonDirString == "W") {
+            tempLongitude = tempLongitude * -1;
+          }
+          
+          //LOG_INFO("Location: Lat: " << tempLatitude << " Lon:" << tempLongitude);
+          setPosition(true, tempLatitude, tempLongitude);
+        } else {
+          //LOG_INFO("Inadequate GPS fix");
+          setPosition(false, 0, 0);
+        }
       } else {
         LOG_WARN("Malformed GGA message");
       }
@@ -143,6 +219,23 @@ int64_t GpsThread::getTimeDelta() {
   temp = timeDelta;
   timeDeltaMutex.release();
   return temp;
+}
+
+void GpsThread::setPosition(bool fix, double lat, double lon) {
+  timeDeltaMutex.acquire();
+  fixAcquired = fix;
+  latitude = lat;
+  longitude = lon;
+  timeDeltaMutex.release();
+}
+
+bool GpsThread::getPosition(double &lat, double &lon) {
+  timeDeltaMutex.acquire();
+  lat = latitude;
+  lon = longitude;
+  bool status = fixAcquired;
+  timeDeltaMutex.release();
+  return status;
 }
 
 bool GpsThread::initSerial() {
