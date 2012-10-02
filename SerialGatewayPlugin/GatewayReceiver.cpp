@@ -225,8 +225,8 @@ std::string GatewayReceiver::getNextPliRelayPacket() {
     return "";
   }
   
-  int32_t baseLat = round(latDouble * 1e6);
-  int32_t baseLon = round(lonDouble * 1e6);
+  int32_t baseLat = (int) (latDouble * 1e6);
+  int32_t baseLon = (int) (lonDouble * 1e6);
   time_t baseTime = time(NULL);
 
   //And prepare the PLI packet
