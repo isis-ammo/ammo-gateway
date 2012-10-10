@@ -1,6 +1,6 @@
 
 #include <stdexcept>
-#include <sqlite3.h>
+#include "sqlite3.h"
 
 #include "json/value.h"
 #include "json/writer.h"

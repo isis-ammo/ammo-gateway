@@ -1,4 +1,4 @@
-#include <sqlite3.h>
+#include "sqlite3.h"
 
 #include "GatewayConnector.h"
 #include "log.h"

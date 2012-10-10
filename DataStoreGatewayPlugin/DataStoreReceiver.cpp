@@ -1,5 +1,5 @@
 #include <stdexcept>
-#include <sqlite3.h>
+#include "sqlite3.h"
 
 #include "ace/Connector.h"
 #include "ace/SOCK_Connector.h"
