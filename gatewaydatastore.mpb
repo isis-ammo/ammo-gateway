@@ -1,6 +1,6 @@
 project : gatewayplugin {
   after += LibGatewayDataStore
 
-  includes += $(GATEWAY_ROOT)/LibGatewayDataStore
+  includes += $(GATEWAY_ROOT)/DataStoreGatewayPlugin/LibGatewayDataStore
   libs += sqlite3 gatewaydatastore
 }

@@ -5,12 +5,6 @@ project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin
 
   libs += sqlite3
   
-  // Paths to SQLite lib for 32- and 64-bit machines.
-  specific(prop:make) {
-    libpaths += /usr/lib/i386-linux-gnu \
-                /usr/lib/x86_64-linux-gnu
-  }
-
   exename = DataStoreGatewayPlugin
 
   Source_Files {
