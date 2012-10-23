@@ -113,6 +113,9 @@
         </ant>
         <ant antfile="build.xml" dir="${mcastplugin.dir}" target="dist">
         </ant>
+        <exec executable="msbuild" dir="Manager" searchpath="true" failonerror="true">
+		<arg value="/p:Configuration=Release" />
+        </exec>
     </target>
 
     <target name="build" depends="configure, build-unix, build-windows, -java-plugin-connector"
@@ -190,6 +193,9 @@ Built on ${os.arch} ${os.name} ${os.version}
         <exec executable="msbuild" dir="." searchpath="true">
            <arg value="/t:clean"/>
         </exec>
+        <exec executable="msbuild" dir="Manager" searchpath="true">
+           <arg value="/t:clean"/>
+        </exec>
     </target>
 
     <target name="clean" depends="-clean-gatewayversion,clean-dist,clean-unix,clean-windows"
@@ -218,6 +224,10 @@ Built on ${os.arch} ${os.name} ${os.version}
         <exec executable="cmd" dir="." searchpath="true">
            <arg value="/c"/>
            <arg value="mwc.pl --type vc10 Gateway.mwc"/>
+        </exec>
+        <exec executable="cmd" dir="Manager" searchpath="true">
+           <arg value="/c"/>
+           <arg value="qmake -tp vc"/>
         </exec>
     </target>
 

@@ -13,6 +13,10 @@
   !define VC_ROOT "C:\Program Files\Microsoft Visual Studio 10.0\VC"
 !endif
 
+!ifndef QTDIR
+  !error "You must set QTDIR."
+!endif
+
 !ifndef VERSION
   !error "You must set VERSION."
 !endif
@@ -452,6 +456,29 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
 
 ${MementoSectionEnd}
 
+${MementoSection} "Manager (required)" SecManager
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing Manager ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File "Manager\release\Manager.exe"
+  File "${QTDIR}\bin\QtCore4.dll"
+  File "${QTDIR}\bin\QtGui4.dll"
+
+  SetShellVarContext all
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\win32\ManagerConfig.json
+
+  CreateDirectory "$SMPROGRAMS\AMMO Gateway"
+  CreateShortcut "$SMPROGRAMS\AMMO Gateway\Manager.lnk" "$INSTDIR\bin\Manager.exe"
+
+${MementoSectionEnd}
+
 ${MementoSection} "VC Redist (required)" SecVcredist
 
   SetDetailsPrint textonly
@@ -614,6 +641,7 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${SecJavaConn} "The Java Connector for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecMCastPlug} "The MCast Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecRMCastPlug} "The RMCast Plugin Service for AMMO Gateway"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecManager} "The Gateway Manager"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecVcredist} "The VC redist dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAce} "The ACE networking dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecSqlite} "The SQLite database dependency"
@@ -724,6 +752,13 @@ Section Uninstall
   Delete $INSTDIR\bin\slf4j-api-1.6.4.jar
   Delete $INSTDIR\bin\slf4j-simple-1.6.4.jar
 
+  ; Manager
+  Delete "Manager\release\Manager.exe"
+  Delete "${QTDIR}\bin\QtCore4.dll"
+  Delete "${QTDIR}\bin\QtGui4.dll"
+  Delete "$APPDATA\ammo-gateway\ManagerConfig.json"
+  Delete "$SMPROGRAMS\AMMO Gateway\Manager.lnk"
+
   ; ACE
   Delete $INSTDIR\bin\ACE.dll
   Delete $INSTDIR\bin\ACEd.dll
@@ -741,6 +776,7 @@ Section Uninstall
   ; directory cleanup
   RMDir /r $INSTDIR\bin
   RMDir $INSTDIR
+  RMDir "$SMPROGRAMS\AMMO Gateway"
 
   SetDetailsPrint both
 
