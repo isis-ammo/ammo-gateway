@@ -6,6 +6,9 @@
 
 QT       += core gui
 
+win32:CONFIG += embed_manifest_exe
+win32:QMAKE_LFLAGS_WINDOWS += /manifestuac:level=\'requireAdministrator\'
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = Manager
