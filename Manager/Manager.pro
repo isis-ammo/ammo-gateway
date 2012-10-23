@@ -66,6 +66,8 @@ FORMS    += MainWindow.ui \
     ServiceWidget.ui \
     ConfigFileWidget.ui
 
+RC_FILE = Manager.rc
+
 OTHER_FILES += \
     ManagerConfig.json \
     icons/README.txt \
