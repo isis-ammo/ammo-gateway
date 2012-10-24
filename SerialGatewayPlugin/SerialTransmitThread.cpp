@@ -15,8 +15,6 @@
 #include <cmath>
 #include <stdint.h>
 
-const int BAUD_RATE = 9600;
-
 const uint8_t MAGIC[] = { 0xef, 0xbe, 0xed };
 
 const uint8_t VERSION = 0x40; //gets OR'd with the slot number to produce TerseMessageHeader::versionAndSlot
@@ -31,11 +29,13 @@ void usleep(int64_t useconds) {
 SerialTransmitThread::SerialTransmitThread(SerialServiceHandler *parent, GatewayReceiver *receiver, GpsThread *gpsThread) : parent(parent), receiver(receiver), gpsThread(gpsThread), closed(false), newMessageAvailable(newMessageMutex) {
   // TODO Auto-generated constructor stub
   SerialConfigurationManager *config = SerialConfigurationManager::getInstance();
+  baudRate = config->getBaudRate();
   slotDuration = config->getSlotDuration();
   slotNumber = config->getSlotNumber();
   numberOfSlots = config->getNumberOfSlots();
   transmitDuration = config->getTransmitDuration();
   gpsTimeOffset = config->getGpsTimeOffset();
+  pliSendFrequency = config->getPliSendFrequency();
 }
 
 SerialTransmitThread::~SerialTransmitThread() {
@@ -53,10 +53,13 @@ int SerialTransmitThread::svc() {
 
   int offset = ((slotNumber - 1) % numberOfSlots) * slotDuration;
   int cycleDuration = slotDuration * numberOfSlots;
-  double bytesPerMs = BAUD_RATE / (10*1000.0);
+  double bytesPerMs = baudRate / (10*1000.0);
 
   int64_t tweakedTransmitDuration = transmitDuration + (int64_t) std::min(50, transmitDuration / 10);
   int64_t maxPayloadSize = (int64_t) (transmitDuration * bytesPerMs);
+
+  bool sentPliRelayThisCycle = false;
+  int pliCycleCount = 0;
 
   while(!isClosed()) {
     int64_t systemTime = ACE_OS::gettimeofday().get_msec(); //gets system time in milliseconds
@@ -82,13 +85,32 @@ int SerialTransmitThread::svc() {
       LOG_TRACE("In slot... " << thisSlotEnd - gpsTime << " remaining in slot");
       bool slotTimeAvailable = true;
 
-      while(slotTimeAvailable && receiver->isMessageAvailable()) {
-        int nextMessageLength = receiver->getNextMessageSize() + sizeof(TerseMessageHeader);
+      while(slotTimeAvailable && (!sentPliRelayThisCycle || receiver->isMessageAvailable())) {
+        std::string relayMessage = "";
+        int nextMessageLength = 0;
+        if(!sentPliRelayThisCycle) {
+          relayMessage = receiver->getNextPliRelayPacket();
+          nextMessageLength = relayMessage.length();
+          if(relayMessage == "") {
+            //no pli relay to be sent
+            if(receiver->isMessageAvailable()) {
+              nextMessageLength = receiver->getNextMessageSize() + sizeof(TerseMessageHeader);
+              sentPliRelayThisCycle = true;
+            } else {
+              break;
+            }
+          }
+        } else {
+          nextMessageLength = receiver->getNextMessageSize() + sizeof(TerseMessageHeader);
+        }
+
         if(nextMessageLength > maxPayloadSize) {
           //throw too-long messages out without processing
           LOG_WARN("Message of size " << nextMessageLength << " is greater than max payload size... dropping.");
-          std::string *msg = receiver->getNextReceivedMessage();
-          delete msg;
+          if(sentPliRelayThisCycle) {
+            std::string *msg = receiver->getNextReceivedMessage();
+            delete msg;
+          }
         } else {
           //update GPS time; previous operation might have taken a while
           systemTime = ACE_OS::gettimeofday().get_msec(); //gets system time in milliseconds
@@ -100,11 +122,21 @@ int SerialTransmitThread::svc() {
           LOG_TRACE("Time: " << gpsTime << ", left in slot " << timeLeft << "ms, bytes sent " << thisSlotConsumed << "/" << maxPayloadSize);
           if(nextMessageLength <= (maxPayloadSize - thisSlotConsumed) && nextMessageLength <= bytesThatWillFit) {
             //send the message
-            std::string *msg = receiver->getNextReceivedMessage();
+            std::string *msg;
+            if(!sentPliRelayThisCycle) {
+              msg = &relayMessage;
+            } else {
+              msg = receiver->getNextReceivedMessage();
+            }
             LOG_TRACE("Sending message, length " << msg->length() << " + header");
             sendMessage(msg);
             thisSlotConsumed += nextMessageLength;
-            delete msg;
+            if(!sentPliRelayThisCycle) {
+              //PLI relay messages are stack allocated, don't delete them
+              sentPliRelayThisCycle = true;
+            } else {
+              delete msg;
+            }
           } else {
             //hold the message until the next slot (we process messages in order, so we can't skip ahead)
             LOG_TRACE("Out of slot space!");
@@ -117,6 +149,13 @@ int SerialTransmitThread::svc() {
       gpsTime = systemTime - gpsThread->getTimeDelta() / 1000 + gpsTimeOffset;
 
       usleep((thisSlotBegin + cycleDuration - gpsTime) * 1000);
+      //we shouldn't get here until the next slot begins, so reset our variable
+      //tracking whether or not we've sent PLI relay
+      pliCycleCount++;
+      if(pliCycleCount == pliSendFrequency) {
+        sentPliRelayThisCycle = false;
+        pliCycleCount = 0;
+      }
     }
   }
   return 0;

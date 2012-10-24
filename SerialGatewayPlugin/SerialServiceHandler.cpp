@@ -3,6 +3,7 @@
 #include "GatewayReceiver.h"
 #include "GpsThread.h"
 #include "SerialTransmitThread.h"
+#include "SerialConfigurationManager.h"
 #include "protocol/AmmoMessages.pb.h"
 
 #ifdef WIN32
@@ -38,19 +39,23 @@ SerialServiceHandler::SerialServiceHandler(GpsThread *gpsThread) :
 messageProcessor(NULL),
 sendQueueMutex(), 
 receiveQueueMutex(),
-transmitThread(NULL)
+transmitThread(NULL),
+receiver(NULL)
 {
   //constructor happens on main thread; both these objects need to be constructed here
   messageProcessor = new SerialMessageProcessor(this);
+  
   if(gpsThread != NULL) {
-    receiver = new GatewayReceiver();
+    receiver = new GatewayReceiver(gpsThread);
     LOG_DEBUG(this->name << " - Creating serial transmit thread");
     transmitThread = new SerialTransmitThread(this, receiver, gpsThread);
 
     LOG_DEBUG(this->name << " - Registering interest in forwarded types")
     messageProcessor->gatewayConnector->registerDataInterest(PLI_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
     messageProcessor->gatewayConnector->registerDataInterest(CHAT_TYPE, receiver, ammo::gateway::SCOPE_GLOBAL);
+    messageProcessor->setReceiver(receiver);
   }
+  
 }
 
 
@@ -66,7 +71,7 @@ int SerialServiceHandler::open(void *ptr)
   }
   
   ACE_TTY_IO::Serial_Params params;
-  params.baudrate = 9600;
+  params.baudrate = SerialConfigurationManager::getInstance()->getBaudRate();
   params.xonlim = 0;
   params.xofflim = 0;
   params.readmincharacters = 0;

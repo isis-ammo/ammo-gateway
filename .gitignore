@@ -18,3 +18,4 @@ GNUmakefile*
 *_db.sql3
 nbproject/
 gatewayversion.mpb
+!build/

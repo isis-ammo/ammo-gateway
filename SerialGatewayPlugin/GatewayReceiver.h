@@ -10,10 +10,19 @@
 
 #include "GatewayConnector.h"
 #include <stdint.h>
+#include <map>
+
+class GpsThread;
+
+struct PliInfo {
+  int32_t lat;
+  int32_t lon;
+  int32_t createdTime;
+};
 
 class GatewayReceiver : public ammo::gateway::DataPushReceiverListener {
 public:
-  GatewayReceiver();
+  GatewayReceiver(GpsThread *gpsThread);
   virtual ~GatewayReceiver();
 
   //DataPushReceiverListener methods
@@ -25,24 +34,45 @@ public:
   int getNextMessageSize();
   bool isMessageAvailable();
 
-  void appendString(std::ostringstream &stream, std::string &str);
+  std::string getNextPliRelayPacket();
 
-  void appendInt64(std::ostringstream &stream, int64_t val);
+  void appendString(std::ostringstream &stream, const std::string &str);
 
-  void appendInt32(std::ostringstream &stream, int32_t val);
-  void appendUInt32(std::ostringstream &stream, uint32_t val);
+  void appendInt64(std::ostringstream &stream, const int64_t val);
 
-  void appendUInt16(std::ostringstream &stream, uint16_t val);
+  void appendInt32(std::ostringstream &stream, const int32_t val);
+  void appendUInt32(std::ostringstream &stream, const uint32_t val);
 
-  void appendBlob(std::ostringstream &stream, std::string &blob);
+  void appendInt16(std::ostringstream &stream, const int16_t val);
+  void appendUInt16(std::ostringstream &stream, const uint16_t val);
+
+  void appendInt8(std::ostringstream &stream, const int8_t val);
+
+  void appendBlob(std::ostringstream &stream, const std::string &blob);
+
+  void addPli(std::string &username, int32_t lat, int32_t lon, int32_t createdTime);
 
 private:
+  GpsThread *gpsThread;
+  
   ACE_Thread_Mutex receiveQueueMutex;
 
   typedef std::queue<std::string *> MessageQueue;
   MessageQueue receiveQueue;
 
   unsigned long long receivedMessageCount;
+
+  typedef std::map<std::string, PliInfo> PliMap;
+  PliMap pliMap;
+  ACE_Thread_Mutex pliMapMutex;
+
+  bool pliRelayEnabled;
+  int pliRelayPerCycle;
+  int pliIndex;
+  std::string pliRelayNodeName;
+  
+  int rangeScale;
+  int timeScale;
 };
 
 #endif /* GATEWAYRECEIVER_H_ */

@@ -10,11 +10,14 @@
 #include <stdint.h>
 
 class SerialServiceHandler;
+class GatewayReceiver;
 
 class SerialMessageProcessor : public ACE_Task <ACE_MT_SYNCH>, public ammo::gateway::GatewayConnectorDelegate, public ammo::gateway::DataPushReceiverListener, public ammo::gateway::PullResponseReceiverListener {
 public:
   SerialMessageProcessor(SerialServiceHandler *serviceHandler);
   virtual ~SerialMessageProcessor();
+  
+  void setReceiver(GatewayReceiver *receiver);
   
   virtual int open(void *args);
   virtual int close(unsigned long flags);
@@ -44,13 +47,16 @@ private:
   
   SerialServiceHandler *commsHandler;
   
-  
+  GatewayReceiver *receiver;
 
   std::string deviceId;
   bool deviceIdAuthenticated;
   
   typedef std::map<std::string, uint32_t> TimestampMap;
   TimestampMap latestPliTimestamps;
+  
+  int rangeScale;
+  int timeScale;
   
   bool isClosed();
   void processMessage(ammo::protocol::MessageWrapper &msg);

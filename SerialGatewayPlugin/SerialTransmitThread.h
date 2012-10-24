@@ -45,11 +45,13 @@ private:
 
   void sendMessage(std::string *msg);
 
+  int baudRate;
   int slotDuration;
   int slotNumber;
   int numberOfSlots;
   int transmitDuration;
   int gpsTimeOffset;
+  int pliSendFrequency;
 
 
   ACE_Thread_Mutex newMessageMutex;

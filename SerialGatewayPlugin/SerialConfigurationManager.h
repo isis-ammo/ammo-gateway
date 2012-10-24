@@ -13,11 +13,21 @@ public:
 
   bool getSendEnabled() { return sendEnabled; }
 
+  int getBaudRate() { return baudRate; }
   int getSlotDuration() { return slotDuration; }
   int getSlotNumber() { return slotNumber; }
   int getNumberOfSlots() { return numberOfSlots; }
   int getTransmitDuration() { return transmitDuration; }
   int getGpsTimeOffset() { return gpsTimeOffset; }
+
+  int getPliRelayPerCycle() { return pliRelayPerCycle; }
+
+  bool getPliRelayEnabled() { return pliRelayEnabled; }
+  int getPliSendFrequency() { return pliSendFrequency; }
+  std::string getPliRelayNodeName() { return pliRelayNodeName; }
+  
+  int getRangeScale() { return rangeScale; }
+  int getTimeScale() { return timeScale; }
 
 protected:
   void init();
@@ -32,12 +42,22 @@ private:
 
   bool sendEnabled;
 
+  int baudRate;
   int slotDuration;
   int slotNumber;
   int numberOfSlots;
   int transmitDuration;
 
   int gpsTimeOffset;
+
+  int pliRelayPerCycle;
+
+  bool pliRelayEnabled;
+  int pliSendFrequency;
+  std::string pliRelayNodeName;
+  
+  int rangeScale;
+  int timeScale;
 };
 
 #endif //SERIAL_CONFIGURATION_MANAGER_H

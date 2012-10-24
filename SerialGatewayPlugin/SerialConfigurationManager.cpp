@@ -43,11 +43,22 @@ void SerialConfigurationManager::init()
 
   sendEnabled = false;
 
+  baudRate = 9600;
+
   slotDuration = 750;
   slotNumber = 1;
   numberOfSlots = 16;
   transmitDuration = 500;
   gpsTimeOffset = 0;
+
+  pliRelayPerCycle = 4;
+
+  pliRelayEnabled = true;
+  pliSendFrequency = 2; //every other slot
+  pliRelayNodeName = "base";
+  
+  rangeScale = 4;
+  timeScale = 4;
 }
 
 void SerialConfigurationManager::decode(const Json::Value& root)
@@ -60,11 +71,20 @@ void SerialConfigurationManager::decode(const Json::Value& root)
   listenPorts.push_back(listenPort);
   CM_DecodeString ( root, "gpsPort", gpsPort);
   CM_DecodeBool   ( root, "sendEnabled", sendEnabled);
+  CM_DecodeInt    ( root, "baudRate", baudRate);
   CM_DecodeInt    ( root, "slotDuration", slotDuration);
   CM_DecodeInt    ( root, "slotNumber", slotNumber);
   CM_DecodeInt    ( root, "numberOfSlots", numberOfSlots);
   CM_DecodeInt    ( root, "transmitDuration", transmitDuration);
   CM_DecodeInt    ( root, "gpsTimeOffset", gpsTimeOffset);
+
+  CM_DecodeInt    ( root, "pliRelayPerCycle", pliRelayPerCycle);
+
+  CM_DecodeBool   ( root, "pliRelayEnabled", pliRelayEnabled);
+  CM_DecodeInt    ( root, "pliSendFrequency", pliSendFrequency);
+  CM_DecodeString ( root, "pliRelayNodeName", pliRelayNodeName);
+  CM_DecodeInt    ( root, "rangeScale", rangeScale);
+  CM_DecodeInt    ( root, "timeScale", timeScale);
 
   bool findMorePorts = true;
   for (int i = 1; findMorePorts; i++) {
@@ -87,13 +107,20 @@ void SerialConfigurationManager::decode(const Json::Value& root)
     std::stringstream ss;
     ss << "listenPort" << i;
     std::string portKey = ss.str();
-	LOG_INFO("  Listen Port " << i << ": " << listenPorts[i]);
+    LOG_INFO("  Listen Port " << i << ": " << listenPorts[i]);
   }
   LOG_INFO("  GPS Port: " << gpsPort);
   LOG_INFO("  Send Enabled: " << sendEnabled);
+  LOG_INFO("  Baud Rate: " << baudRate);
   LOG_INFO("  Slot Duration: " << slotDuration);
   LOG_INFO("  Slot Number: " << slotNumber);
   LOG_INFO("  Number Of Slots: " << numberOfSlots);
   LOG_INFO("  Transmit Duration: " << transmitDuration);
   LOG_INFO("  GPS Time Offset: " << gpsTimeOffset);
+  LOG_INFO("  Pli Relay Per Cycle: " << pliRelayPerCycle);
+  LOG_INFO("  Pli Relay Enabled: " << pliRelayEnabled);
+  LOG_INFO("  Pli Send Frequency: " << pliSendFrequency);
+  LOG_INFO("  Pli Relay Node Name: " << pliRelayNodeName);
+  LOG_INFO("  Range Scale: " << rangeScale);
+  LOG_INFO("  Time Scale: " << timeScale);
 }

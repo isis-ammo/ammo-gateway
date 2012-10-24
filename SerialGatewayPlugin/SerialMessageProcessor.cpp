@@ -1,5 +1,7 @@
 #include "SerialMessageProcessor.h"
 #include "SerialServiceHandler.h"
+#include "GatewayReceiver.h"
+#include "SerialConfigurationManager.h"
 
 #include "log.h"
 #include <stdint.h>
@@ -33,6 +35,7 @@ closeMutex(),
 newMessageMutex(),
 newMessageAvailable(newMessageMutex),
 commsHandler(serviceHandler),
+receiver(NULL),
 gatewayConnector(NULL),
 deviceId(""),
 deviceIdAuthenticated(false)
@@ -40,6 +43,10 @@ deviceIdAuthenticated(false)
   //need to initialize GatewayConnector in the main thread; the constructor always
   //happens in the main thread
   gatewayConnector = new GatewayConnector(this);
+  
+  SerialConfigurationManager *config = SerialConfigurationManager::getInstance();
+  rangeScale = config->getRangeScale();
+  timeScale = config->getTimeScale();
 }
 
 SerialMessageProcessor::~SerialMessageProcessor() {
@@ -47,6 +54,10 @@ SerialMessageProcessor::~SerialMessageProcessor() {
   if(gatewayConnector) {
     delete gatewayConnector;
   }
+}
+
+void SerialMessageProcessor::setReceiver(GatewayReceiver *receiver) {
+  this->receiver = receiver;
 }
 
 int SerialMessageProcessor::open(void *args) {
@@ -483,6 +494,11 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, si
       // JSON
       // {\"lid\":\"0\",\"lon\":\"-74888318\",\"unitid\":\"1\",\"created\":\"1320329753964\",\"name\":\"ahammer\",\"userid\":\"731\",\"lat\":\"40187744\",\"modified\":\"0\"}
       jsonStr << generateTransappsPli(originUser, lat, lon, created, 0);
+
+      if(receiver != NULL) {
+        LOG_TRACE("Adding to local PLI relay");
+        receiver->addPli(originUser, lat, lon, created);
+      }
     }
     
     break;
@@ -526,9 +542,9 @@ void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t
     int8_t dCreatedTime = extractInt8(groupPliBlobArray, cursor, groupPliBlobLength);
     int8_t hopCount = extractInt8(groupPliBlobArray, cursor, groupPliBlobLength);
     
-    int32_t latitude = baseLat - dLat;
-    int32_t longitude = baseLon - dLon;
-    uint32_t createdTime = baseTime - dCreatedTime;
+    int32_t latitude = (baseLat - dLat) * rangeScale;
+    int32_t longitude = (baseLon - dLon) * rangeScale;
+    uint32_t createdTime = (baseTime - dCreatedTime) * timeScale;
     
     TimestampMap::iterator it = latestPliTimestamps.find(originUsername);
     if(it != latestPliTimestamps.end() && createdTime < it->second) {
@@ -549,6 +565,11 @@ void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t
       
       LOG_TRACE("Sending group PLI relay message: " << pushData.data);
       gatewayConnector->pushData(pushData);
+
+      if(receiver != NULL) {
+        LOG_TRACE("Adding to local PLI relay");
+        receiver->addPli(originUsername, latitude, longitude, createdTime);
+      }
     }
   }
 }
