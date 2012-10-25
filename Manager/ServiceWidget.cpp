@@ -40,12 +40,15 @@ ServiceWidget::ServiceWidget(const ServiceDesc_t& desc, QWidget *parent) :
     actionConfig = new QAction(QIcon(":/icons/service_config.png"), "Edit Service Config File", NULL);
     actionConfig->setToolTip("Edit the service's config file");
     actionConfig->setStatusTip("Edit the service's config file");
+    actionConfig->setEnabled(desc.configName != "");
     connect(actionConfig, SIGNAL(triggered()),
             this, SLOT(configSvc()));
 
     actionLog = new QAction(QIcon(":/icons/service_log.png"), "View Service Log File", NULL);
     actionLog->setToolTip("View the service's log file");
     actionLog->setStatusTip("View the service's log file");
+    actionLog->setEnabled(desc.logName != "");
+    actionLog->
     connect(actionLog, SIGNAL(triggered()),
             this, SLOT(logSvc()));
 
@@ -88,8 +91,9 @@ QVector<QAction*> ServiceWidget::actions()
     actions.append(actionStart);
     actions.append(actionStop);
     actions.append(actionRestart);
-    actions.append(actionConfig);
-    actions.append(actionLog);
+    // Only include start/stop/restart actions (used in menu)
+//    actions.append(actionConfig);
+//    actions.append(actionLog);
 
     return actions;
 }

@@ -120,6 +120,7 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuServices">
     <property name="title">
@@ -215,6 +216,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+   <property name="toolTip">
+    <string>About AMMO Gateway Manager</string>
+   </property>
+   <property name="statusTip">
+    <string>About AMMO Gateway Manager</string>
    </property>
   </action>
  </widget>

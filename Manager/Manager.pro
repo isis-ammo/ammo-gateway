@@ -33,7 +33,8 @@ SOURCES += main.cpp\
     LogFileAction.cpp \
     ConfigFileWidget.cpp \
     TabWidget.cpp \
-    ServiceController.cpp
+    ServiceController.cpp \
+    AboutDialog.cpp
 
 win32:SOURCES += ServiceControllerWindows.cpp
 linux-g++:SOURCES += ServiceControllerLinux.cpp
@@ -57,6 +58,7 @@ HEADERS  += MainWindow.h \
     ConfigFileWidget.h \
     TabWidget.h \
     ServiceController.h \
+    AboutDialog.h
 
 win32:HEADERS += ServiceControllerWindows.h
 linux-g++:HEADERS += ServiceControllerLinux.h
@@ -64,7 +66,8 @@ linux-g++:HEADERS += ServiceControllerLinux.h
 FORMS    += MainWindow.ui \
     LogFileWidget.ui \
     ServiceWidget.ui \
-    ConfigFileWidget.ui
+    ConfigFileWidget.ui \
+    AboutDialog.ui
 
 RC_FILE = Manager.rc
 

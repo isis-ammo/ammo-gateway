@@ -21,6 +21,8 @@ public:
     ~MainWindow();
 
 private slots:
+    void about();
+
     void save();
     void saveAll();
     void exit();

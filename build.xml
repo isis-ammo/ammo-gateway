@@ -91,7 +91,8 @@
         <copy file="${gatewayversion.template}" tofile="${gatewayversion.out}" overwrite="true"/>
         <replace file="${gatewayversion.out}" token="&lt;VERSION&gt;" value="${gatewayversion}"/>
         <copy file="${gatewayversion-mpb.template}" tofile="${gatewayversion-mpb.out}" overwrite="true"/>
-        <replace file="${gatewayversion-mpb.out}" token="&lt;VERSION&gt;" value="${gatewayversion-stripped}"/>
+	<replace file="${gatewayversion-mpb.out}" token="&lt;VERSION&gt;" value="${gatewayversion-stripped}"/>
+	<copy file="${gatewayversion.file}" tofile="Manager\${gatewayversion.file}" overwrite="true"/>
     </target>
     
     <target name="build-unix" if="isUnix" depends="configure, -java-plugin-connector">

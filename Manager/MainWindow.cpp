@@ -3,6 +3,7 @@
 #include <QIcon>
 #include <QMessageBox>
 #include <QVector>
+#include "AboutDialog.h"
 #include "ConfigFileWidget.h"
 #include "ManagerConfigurationManager.h"
 #include "MainWindow.h"
@@ -25,6 +26,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->mainToolBar->addAction(ui->actionExit);
     setupServiceWidgets();
 
+    connect(ui->actionAbout, SIGNAL(triggered()),
+            this, SLOT(about()));
     connect(ui->action_Open_Config_File, SIGNAL(triggered()),
             this, SLOT(openConfig()));
     connect(ui->action_Open_Log_File, SIGNAL(triggered()),
@@ -41,6 +44,12 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::about()
+{
+    AboutDialog* about = new AboutDialog(this);
+    about->exec();
 }
 
 void MainWindow::save()

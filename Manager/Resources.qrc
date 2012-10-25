@@ -10,4 +10,7 @@
         <file alias="exit.png">icons/tango-system-log-out.png</file>
         <file alias="save_all.png">icons/tango-saveall.png</file>
     </qresource>
+    <qresource prefix="/">
+        <file alias="version.txt">.build-version</file>
+    </qresource>
 </RCC>
