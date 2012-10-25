@@ -258,6 +258,10 @@ ${MementoSection} "Android Gateway Plugin (required)" SecAndPlug
   SetOverwrite on
   File build\bin\AndroidGatewayPlugin.exe
 
+  SetShellVarContext all
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\win32\AndroidPluginConfig.json
+
   SimpleSC::InstallService "AndroidGatewayPlugin" "AMMO Android Gateway Plugin" 16 2 "$INSTDIR\bin\AndroidGatewayPlugin.exe" "GatewayCore" "" ""
 
 ${MementoSectionEnd}

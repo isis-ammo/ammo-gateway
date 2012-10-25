@@ -9,7 +9,7 @@
     {
       "HumanName"  : "Android Plugin",
       "SvcName"    : "AndroidGatewayPlugin",
-      "ConfigName" : "",
+      "ConfigName" : "AndroidPluginConfig.json",
       "LogName"    : "AndroidGatewayPlugin"
     },
     {
