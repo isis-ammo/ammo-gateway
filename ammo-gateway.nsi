@@ -205,6 +205,9 @@ Page custom PageReinstall PageLeaveReinstall
 
   end_${UniqueID_FindJvmDll}:
 
+  ; Restore registry view to 32-bit
+  SetRegView 32
+
   !undef UniqueID_FindJvmDll
 !macroend
 
@@ -590,6 +593,9 @@ Section -post
 
   SetOutPath $INSTDIR
 
+  ; Make sure to use the 32-bit registry
+  SetRegView 32
+
   WriteRegStr HKLM "Software\ammo-gateway" "" $INSTDIR
 !ifdef VER_MAJOR & VER_MINOR & VER_REVISION & VER_BUILD
   WriteRegDword HKLM "Software\ammo-gateway" "VersionMajor" "${VER_MAJOR}"
@@ -662,6 +668,9 @@ Function .onInit
     Quit
   ${EndIf}
 
+  ; Make sure to use the 32-bit registry
+  SetRegView 32
+
   ReadRegStr $R0 HKLM \
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway" \
   "UninstallString"
@@ -695,6 +704,9 @@ FunctionEnd
 ;Uninstaller Section
 
 Section Uninstall
+
+  ; Make sure to use the 32-bit registry
+  SetRegView 32
 
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway"
   DeleteRegKey HKLM "Software\ammo-gateway"
@@ -754,8 +766,8 @@ Section Uninstall
 
   ; Manager
   Delete "Manager\release\Manager.exe"
-  Delete "${QTDIR}\bin\QtCore4.dll"
-  Delete "${QTDIR}\bin\QtGui4.dll"
+  Delete "$INSTDIR\bin\QtCore4.dll"
+  Delete "$INSTDIR\bin\QtGui4.dll"
   Delete "$APPDATA\ammo-gateway\ManagerConfig.json"
   Delete "$SMPROGRAMS\AMMO Gateway\Manager.lnk"
 
