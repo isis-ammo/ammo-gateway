@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="DataStorePlugin" default="help">
+
+  <property name="generator.jar" location="../../ammo-gen/AmmoGenerator/target/ammogen-1.7.0-SNAPSHOT.jar"/>
+  <property name="contract.dir" value="../ammo-gen/AmmoGenerator/target/test-classes/samples"/>
+  <property name="template.dir" value="../../ammo-gen/AmmoGenerator/src/main/resources/templates/cpp"/>
+  <property name="output.dir" value="."/>
+  
+    <property name="incident_plugin.dir" location="${output.dir}/plugin/IncidentDataStorePlugin"/>
+    <property name="incident_serialization.dir" location="${output.dir}/serialization/LibIncidentSerialization"/>
+
+    <mkdir dir="${incident_plugin.dir}"/>
+    <mkdir dir="${incident_serialization.dir}"/>
+    
+  <path id="generator.class.path">
+    <pathelement location="${generator.jar}"/>
+    <pathelement location="/home/parsons/.m2/repository/org/antlr/stringtemplate/4.0.2/stringtemplate-4.0.2.jar" />
+    <pathelement location="/home/parsons/.m2/repository/commons-lang/commons-lang/2.1/commons-lang-2.1.jar"   />
+    <pathelement location="/home/parsons/.m2/repository/org/antlr/antlr-runtime/3.3/antlr-runtime-3.3.jar"   />
+    <pathelement location="/usr/share/java/xercesImpl.jar"/>
+  </path>
+
+  <target name="help">
+     <echo message="To see available targets run 'ant -p' or 'ant -projecthelp' " />
+     <java classname="org.apache.tools.ant.Main">
+         <arg value="-projecthelp" />
+     </java>
+  </target>
+  
+  <target name="plugin-incident">
+    <echo message="executing plugin-incident"/>
+    <java classname="edu.vu.isis.ammo.generator.AmmoGenerator"
+        failonerror="true">
+      <arg value="template=gateway-plugin"/>
+      <arg value="skeleton=false"/>
+      <arg value="mkdir=true"/>
+      <arg value="provider=false"/>
+      <arg value="contract=${contract.dir}/incident.xml"/>
+      <arg value="output=${incident_plugin.dir}"/>
+      <classpath refid="generator.class.path"/>
+    </java>
+  </target>
+  
+  <target name="gen-plugin" depends="plugin-incident">
+    <echo message="executing 'gen-plugin' target"/>
+  </target>
+
+  <target name="gen-serial">
+    <echo message="executing 'gen-serial' target"/>
+  </target>
+
+  <target name="gen" depends="gen-plugin, gen-serial">
+  </target>
+
+  <target name="clean"
+        description="clean up" >
+  </target>
+
+
+  <target name="realclean" depends="clean"
+        description="real clean up" >
+  </target>
+
+</project>
