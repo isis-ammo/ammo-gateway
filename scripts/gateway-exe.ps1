@@ -1,6 +1,6 @@
 # PowerShell script for building the AMMO Gateway and installer
 
-. .\platform\jenkins\environ.ps1
+. .\scripts\environ.ps1
 
 $env:GATEWAY_VERSION=$(get_version_full)
 $env:GATEWAY_ROOT=$pwd.path + "\Gateway"
