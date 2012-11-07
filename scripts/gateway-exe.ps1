@@ -3,7 +3,7 @@
 . .\scripts\environ.ps1
 
 $env:GATEWAY_VERSION=$(get_version_full)
-$env:GATEWAY_ROOT=$pwd.path + "\Gateway"
+$env:GATEWAY_ROOT=$pwd.path
 
 Write-Host Building Gateway Version: $env:GATEWAY_VERSION
 Write-Host GATEWAY_ROOT: $env:GATEWAY_ROOT
