@@ -72,7 +72,7 @@ install: all
 	install -m 644 RMCastPlugin/dist/lib/rmcastplugin.jar $(DESTDIR)/usr/share/java
 	install -m 644 RMCastPlugin/libs/jgroups-gw.jar $(DESTDIR)/usr/share/java
 	install -m 644 RMCastPlugin/libs/json-20090211.jar $(DESTDIR)/usr/share/java
-	install -m 644 RMCastPlugin/libs/protobuf-java-2.3.0.jar $(DESTDIR)/usr/share/java
+	install -m 644 RMCastPlugin/libs/protobuf-java-2.4.1.jar $(DESTDIR)/usr/share/java
 	install -m 644 RMCastPlugin/libs/slf4j-api-1.6.4.jar $(DESTDIR)/usr/share/java
 	install -m 644 RMCastPlugin/libs/slf4j-simple-1.6.4.jar $(DESTDIR)/usr/share/java
 	echo "Installing scripts ..."
