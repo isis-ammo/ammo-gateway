@@ -3,8 +3,9 @@ Makefile*
 GNUmakefile*
 *.o
 .depend*
-DataStoreGatewayPlugin/lib/
-DataStoreGatewayPlugin/plugin/
-DataStoreGatewayPlugin/serialization/
+lib/
+plugin/
+serialization/
+DataStoreGatewayPlugin
 DataStoreGatewayPluginGatewayPlugin.exe
 Debug\
