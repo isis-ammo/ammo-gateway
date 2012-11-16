@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="build incident" default="help" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+
+  <artifact:dependencies filesetId="contract.set">
+    <dependency groupId="edu.vu.isis" artifactId="dashlib" version="1.7.0-SNAPSHOT" classifier="contract" type="xml"/>
+  </artifact:dependencies>
+
+  <property name="incident_plugin.dir" location="plugin/IncidentDataStorePlugin"/>
+  <property name="incident_serialization.dir" location="serialization/LibIncidentSerialization"/>
+  <property name="contract.path" location="${edu.vu.isis:dashlib:xml:contract}"/>
+
+  <mkdir dir="${incident_plugin.dir}"/>
+  <mkdir dir="${incident_serialization.dir}"/>
+    
+  <target name="help">
+    <echo message="To see available targets run 'ant -p' or 'ant -projecthelp' " />
+    <java classname="org.apache.tools.ant.Main">
+      <arg value="-projecthelp"/>
+    </java>
+  </target>
+  
+  <available file="${incident_plugin.dir}/main.cpp" property="incident_plugin.exists"/>
+  <available file="${incident_serialization.dir}/IncidentSerialization.mpc"
+property="incident_serial.exists"/>
+
+  <uptodate property="incident_plugin.newer" srcfile="${contract.path}" targetfile="${incident_plugin.dir}/main.cpp"/>
+  <uptodate property="incident_serial.newer" srcfile="${contract.path}" targetfile="${incident_serialization.dir}/IncidentSerialization.mpc"/>
+  
+  <condition property="incident_plugin.regenerate">
+    <or>
+      <isfalse value="${incident_plugin.exists}"/>
+      <isfalse value="${incident_plugin.newer}"/>
+    </or>
+  </condition>
+    
+  <condition property="incident_serial.regenerate">
+    <or>
+      <isfalse value="${incident_serial.exists}"/>
+      <isfalse value="${incident_serial.newer}"/>
+    </or>
+  </condition>
+    
+  <target name="incident-plugin" if="incident_plugin.regenerate">
+    <java classname="edu.vu.isis.ammo.generator.AmmoGenerator" failonerror="true">
+      <arg value="template=gateway-plugin"/>
+      <arg value="skeleton=false"/>
+      <arg value="mkdir=false"/>
+      <arg value="provider=false"/>
+      <arg value="contract=${contract.path}"/>
+      <arg value="output=${incident_plugin.dir}"/>
+      <classpath refid="generator.class.path"/>
+    </java>
+  </target>
+
+  <target name="incident-serialization" if="incident_serial.regenerate">
+    <java classname="edu.vu.isis.ammo.generator.AmmoGenerator" failonerror="true">
+      <arg value="template=gateway-plugin-serialization"/>
+      <arg value="skeleton=false"/>
+      <arg value="mkdir=false"/>
+      <arg value="provider=false"/>
+      <arg value="contract=${contract.path}"/>
+      <arg value="output=${incident_serialization.dir}"/>
+      <classpath refid="generator.class.path"/>
+    </java>
+  </target>
+
+  <target name="clean-incident" description="clean up">
+  </target>
+
+  <target name="realclean-incident" depends="clean-incident" description="real clean up">
+    <delete dir="${incident_plugin.dir}"/>
+    <delete dir="${incident_serialization.dir}"/>
+  </target>
+
+</project>

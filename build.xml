@@ -19,7 +19,7 @@
     <property name="gatewayversion-mpb.out" value="gatewayversion.mpb" />
     <property name="rmcastplugin.dir" location="RMCastPlugin"/>
     <property name="mcastplugin.dir" location="MCastPlugin"/>
-    <property name="datastoreplugin.dir" location="DataStoreGatewayPlugin"/>
+    <property name="datastore.plugin.build.dir" location="DataStoreGatewayPlugin"/>
     
     <condition property="isWindows">
       <os family="windows" />
@@ -97,7 +97,7 @@
     </target>
     
     <target name="gen-c++">
-        <ant antfile="build.xml" dir="${datastoreplugin.dir}" target="gen">
+        <ant antfile="build.xml" dir="${datastore.plugin.build.dir}" target="gen">
         </ant>
     </target>
     
@@ -207,6 +207,8 @@ Built on ${os.arch} ${os.name} ${os.version}
 
     <target name="clean" depends="-clean-gatewayversion,clean-dist,clean-unix,clean-windows"
         description="clean ${build} and ${dist} dirs" >
+        <ant antfile="build.xml" dir="${datastore.plugin.build.dir}" target="clean">
+        </ant>
     </target>
     
     <target name="realclean-unix" depends="-clean-gatewayversion,clean-dist" if="isUnix">
@@ -218,6 +220,8 @@ Built on ${os.arch} ${os.name} ${os.version}
     
     <target name="realclean" depends="-clean-gatewayversion,clean-dist,realclean-unix,clean-windows"
         description="clean all build products and generated code" >
+        <ant antfile="build.xml" dir="${datastore.plugin.build.dir}" target="realclean">
+        </ant>
     </target>
     
     <target name="configure-unix" depends="update-gatewayversion" if="isUnix">

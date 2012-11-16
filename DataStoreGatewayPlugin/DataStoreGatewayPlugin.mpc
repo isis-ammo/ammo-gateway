@@ -1,10 +1,7 @@
 project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
-  after += LibGatewayConnector LibJSON
-  
+  after += LibGatewayConnector LibJSON LibGatewayDataStore
   includes += $(GATEWAY_ROOT)/LibJSON
-
   libs += sqlite3
-  
   exename = DataStoreGatewayPlugin
 
   Source_Files {

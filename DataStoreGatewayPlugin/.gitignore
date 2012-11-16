@@ -1,8 +1,10 @@
-gen/
 *.so*
 Makefile*
+GNUmakefile*
 *.o
 .depend*
-DataStoreGatewayPlugin
+DataStoreGatewayPlugin/lib/
+DataStoreGatewayPlugin/plugin/
+DataStoreGatewayPlugin/serialization/
 DataStoreGatewayPluginGatewayPlugin.exe
 Debug\
