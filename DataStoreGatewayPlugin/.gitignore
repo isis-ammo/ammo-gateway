@@ -3,7 +3,6 @@ Makefile*
 GNUmakefile*
 *.o
 .depend*
-lib/
 plugin/
 serialization/
 DataStoreGatewayPlugin
