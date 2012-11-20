@@ -11,22 +11,23 @@
 
 
 Makefile: Gateway.mwc
+	touch Makefile #we don't actually use Makefile, so let's just touch it instead of generating it with MWC
 	cat install.mk >> GNUmakefile
 
 #.PHONY: build
-#build: GNUmakefile
-override_dh_auto_build: GNUmakefile
+#build: Makefile
+override_dh_auto_build: Makefile
 	dh_auto_build
 
-override_db_auto_install: GNUmakefile
+override_db_auto_install: Makefile
 	dh_auto_install
 	rm $(DESTDIR)/etc/init.d/ammo-gateway
 
 #.PHONY: clean
 #clean: Makefile
-override_dh_auto_clean: GNUmakefile
+override_dh_auto_clean: Makefile
 	dh_auto_clean
-	rm -f GNUmakefile
+	rm -f Makefile
 	
 override_dh_strip:
 	echo "Leaving debug symbols in package binaries"
