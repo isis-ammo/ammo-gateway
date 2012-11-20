@@ -17,7 +17,7 @@ Makefile: Gateway.mwc
 #.PHONY: build
 #build: Makefile
 override_dh_auto_build: Makefile
-	ant build
+	dh_auto_build
 
 override_db_auto_install: Makefile
 	dh_auto_install
