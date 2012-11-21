@@ -13,7 +13,8 @@ OriginalQueryStatementBuilder::OriginalQueryStatementBuilder (
       const std::string &params,
       sqlite3 *db)
   : QueryStatementBuilder (params, db, "SELECT * FROM data_table WHERE "),
-    mime_type_ (mime_type)
+    mime_type_ (mime_type),
+    bind_index_ (1)
 {
 }
 
@@ -49,8 +50,8 @@ OriginalQueryStatementBuilder::build (void)
     this->addFilter (parser_.uri_, "uri", false)
     && this->addFilter (mime_type_, "mime_type", false)
     && this->addFilter (parser_.user_, "origin_user", false)
-    && this->addFilter (parser_.time_begin_, "tv_sec>=?", true)
-    && this->addFilter (parser_.time_end_, "tv_sec<=?", true);
+    && this->addFilter (parser_.time_begin_, "tv_sec>=?", true, true)
+    && this->addFilter (parser_.time_end_, "tv_sec<=?", true, false);
     
   if (!good_adds)
     {
@@ -78,11 +79,42 @@ bool
 OriginalQueryStatementBuilder::bind (void)
 {
   return
-    this->bindText (parser_.uri_)
-    && this->bindText (mime_type_)
-    && this->bindText (parser_.user_)
+    DataStoreUtils::bind_text (db_, stmt_, bind_index_, parser_.uri_, false)
+    && DataStoreUtils::bind_text (db_, stmt_, bind_index_, mime_type_, false)
+    && DataStoreUtils::bind_text (db_, stmt_, bind_index_, parser_.user_, false)
     && this->bindInteger (parser_.time_begin_)
     && this->bindInteger (parser_.time_end_);
+}
+
+bool
+OriginalQueryStatementBuilder::bindInteger (const std::string &token)
+{
+  if (!token.empty ())
+    {
+	    long val = 0;
+	    
+	    if (! DataStoreUtils::safe_atol (token, val))
+	      {
+          LOG_ERROR ("Conversion of string "
+                     << token.c_str ()
+                     << " to integer failed");
+
+          return false;
+        }
+		
+	    if (val < 0)
+	      {
+		      // A negative time value indicates that it is to be
+		      // used as an offset from the current time.
+		      val += static_cast<long> (ACE_OS::gettimeofday ().sec ());
+		    }
+		    
+		  unsigned int uval = static_cast<unsigned int> (val);
+		    
+		  return DataStoreUtils::bind_int (db_, stmt_, bind_index_, uval);
+    }
+
+  return true;
 }
 
 
