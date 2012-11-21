@@ -62,6 +62,8 @@ install: all
 	echo "Installing libs ..."
 	install -m 644 build/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib
 	ln -s $(INSTALL_DIR_BASE)/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib/libgatewayconnector.so
+	install -m 644 build/lib/libgatewaydatastore.so.$(VERSION) $(INSTALL_DIR)/lib
+	ln -s $(INSTALL_DIR_BASE)/lib/libgatewaydatastore.so.$(VERSION) $(INSTALL_DIR)/lib/libgatewaydatastore.so
 	install -m 644 build/lib/libgeotrans-mgrs.so.$(VERSION) $(INSTALL_DIR)/lib
 	ln -s $(INSTALL_DIR_BASE)/lib/libgeotrans-mgrs.so.$(VERSION) $(INSTALL_DIR)/lib/libgeotrans-mgrs.so
 	install -m 644 build/lib/libjson.so.$(VERSION) $(INSTALL_DIR)/lib
