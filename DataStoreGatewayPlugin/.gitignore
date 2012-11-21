@@ -1,9 +1,8 @@
-*.so*
 Makefile*
 GNUmakefile*
 *.o
 .depend*
-lib/
+lib/*.so*
 plugin/
 serialization/
 DataStoreGatewayPlugin
