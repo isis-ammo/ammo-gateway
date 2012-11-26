@@ -1,7 +1,6 @@
 project(LibGatewayDataStore) : acelib, protobuf, gatewaycommon, gatewayplugin {
   includes += $(GATEWAY_ROOT)/LibJSON
   libs += sqlite3
-  libout = $(GATEWAY_ROOT)/build/lib //libraries must be in build/lib to be found at runtime
   sharedname = gatewaydatastore
   
   specific(prop:windows) {
