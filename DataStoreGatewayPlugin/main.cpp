@@ -105,6 +105,14 @@ App::~App()
 bool App::init(int argc, char* argv[])
 {
   dropPrivileges();
+
+  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
+  //to the WFMO reactor, which has radically different semantics and
+  //violates assumptions we made in our code
+  ACE_Select_Reactor *selectReactor = new ACE_Select_Reactor;
+  ACE_Reactor *newReactor = new ACE_Reactor(selectReactor);
+  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(newReactor));
+  
   setupLogging("DataStoreGatewayPlugin");
   LOG_FATAL("=========");
   LOG_FATAL("AMMO Location Store Gateway Plugin ("
@@ -114,13 +122,6 @@ bool App::init(int argc, char* argv[])
             << " at "
             << __TIME__
             << ")");
-
-  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
-  //to the WFMO reactor, which has radically different semantics and
-  //violates assumptions we made in our code
-  ACE_Select_Reactor *selectReactor = new ACE_Select_Reactor;
-  ACE_Reactor *newReactor = new ACE_Reactor(selectReactor);
-  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(newReactor));
   
   handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
