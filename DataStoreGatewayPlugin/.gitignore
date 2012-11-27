@@ -1,6 +1,10 @@
 Makefile*
+GNUmakefile*
 *.o
 .depend*
+lib/*.so*
+plugin/
+serialization/
 DataStoreGatewayPlugin
 DataStoreGatewayPluginGatewayPlugin.exe
 Debug\

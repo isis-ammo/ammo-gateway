@@ -3,7 +3,9 @@
 
 #include <string>
 
-class StringParser
+#include "LibGatewayDataStore_Export.h"
+
+class LibGatewayDataStore_Export StringParser
 {
 public:
   StringParser (void);

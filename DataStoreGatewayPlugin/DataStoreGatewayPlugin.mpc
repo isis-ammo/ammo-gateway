@@ -1,16 +1,8 @@
 project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
-  after += LibGatewayConnector LibJSON
-  
-  includes += $(GATEWAY_ROOT)/LibJSON
-
-  libs += sqlite3
-  
-  // Paths to SQLite lib for 32- and 64-bit machines.
-  specific(prop:make) {
-    libpaths += /usr/lib/i386-linux-gnu \
-                /usr/lib/x86_64-linux-gnu
-  }
-
+  after += LibGatewayConnector LibJSON LibGatewayDataStore
+  includes += $(GATEWAY_ROOT)/LibJSON LibGatewayDataStore
+  libs += sqlite3 gatewaydatastore
+  libpaths += lib
   exename = DataStoreGatewayPlugin
 
   Source_Files {
@@ -25,7 +17,6 @@ project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin
     DataStoreConfigManager.cpp
     DataStoreDispatcher.cpp
     DataStoreReceiver.cpp
-    DataStoreUtils.cpp
     EventProjectionParser.cpp
     EventQueryHandler.cpp
     main.cpp
@@ -36,13 +27,10 @@ project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin
     OriginalQueryParamParser.cpp
     OriginalQueryStatementBuilder.cpp
     ProjectionFilter.cpp
-    PushHandler.cpp
-    QueryHandler.cpp
     QueryStatementBuilder.cpp
     ReportProjectionParser.cpp
     ReportQueryHandler.cpp
     SMSProjectionParser.cpp
     SMSQueryHandler.cpp
-    StringParser.cpp
   }
 }

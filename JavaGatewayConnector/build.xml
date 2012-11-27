@@ -71,7 +71,7 @@
         <mkdir dir="libs"/>
         <copy taskname="add-protobuf-lib" overwrite="true" 
               tofile="${basedir}/libs/protobuf.jar" 
-              file="${basedir}/libs/protobuf-java-2.3.0.jar"/>
+              file="${basedir}/libs/protobuf-java-2.4.1.jar"/>
 
         <fail message="Files are missing.">
            <condition>
@@ -144,7 +144,8 @@
   <target name="document" depends="init,protobuf"
         description="build the javadoc " >
     <javadoc destdir="${java-lib-docs}" author="true" version="true"
-          use="true" public="true" windowtitle="Gateway Connector API">
+          use="true" public="true" windowtitle="Gateway Connector API"
+          additionalparam = "-quiet ">
 
        <packageset dir="src" defaultexcludes="yes">
           <include name="edu/vu/isis/ammo/**"/>
