@@ -11,6 +11,7 @@
 
 #include "ace/Signal.h"
 #include <ace/OS_NS_sys_stat.h>
+#include <ace/Logging_Strategy.h>
 
 #ifdef WIN32
 #include <Windows.h>
@@ -36,6 +37,9 @@ void setupLogging(std::string appName) {
   
   std::string logLevel = "trace";
   std::string logFile = "";
+  int logFileMaxSize = 10000;
+  int logFileSampleTime = 30;
+  int logFileCount = 20;
   
   if(configFilename != "") {
     std::ifstream configFile(configFilename.c_str());
@@ -59,6 +63,40 @@ void setupLogging(std::string appName) {
           //don't write an error; having the LogFile parameter unconfigured is a
           //valid scenario
         }
+        
+        if(root["LogFileMaxSize"].isInt()) {
+          /**
+          * Log file maximum size in KB
+          * 0 means don't rotate (maintain old behavior)
+          */
+          logFileMaxSize = root["LogFileMaxSize"].asInt();
+        } else {
+          LOG_ERROR("LogFileMaxSize is missing or wrong type (should be int)");
+        }
+        
+        if(root["LogFileSampleTime"].isInt()) {
+          int temp = root["LogFileSampleTime"].asInt();
+          if(temp <= 0) {
+            LOG_ERROR("Invalid LogFileSampleTime (must be > 0)");
+          } else {
+            logFileSampleTime = temp;
+          }
+        } else {
+          LOG_ERROR("LogFileSampleTime is missing or wrong type (should be int)");
+        }
+        
+        if(root["LogFileCount"].isInt()) {
+          int temp = root["LogFileCount"].asInt();
+          if(temp <= 0) {
+            LOG_ERROR("Invalid LogFileCount (must be > 0)");
+          } else {
+            logFileCount = temp;
+          }
+        } else {
+          LOG_ERROR("LogFileCount is missing or wrong type (should be int)");
+        }
+        
+        
       } else {
         LOG_ERROR("JSON parsing error in config file '" << LOG_CONFIG_FILE << "'.  Using defaults.");
       }
@@ -70,16 +108,62 @@ void setupLogging(std::string appName) {
   }
   
   if(logFile != "") { //blank filename or no logFile entry in config file writes to stderr
-    std::string expandedFilename = expandLogFileName(logFile, appName);
-    LOG_INFO("Logging to file " << expandedFilename);
-    ACE_OSTREAM_TYPE *output = new std::ofstream(expandedFilename.c_str(), std::ofstream::out | std::ofstream::app);
-    if(*output) {
-      ACE_LOG_MSG->msg_ostream(output, 1);
-      ACE_LOG_MSG->set_flags(ACE_Log_Msg::OSTREAM);
-      ACE_LOG_MSG->clr_flags(ACE_Log_Msg::STDERR);
+    if(logFileMaxSize > 0) {
+      std::string expandedFilename = expandLogFileName(logFile, appName);
+      LOG_INFO("Logging to logrolled file with base name " << expandedFilename);
+      
+      std::ostringstream maxSizeStringStream;
+      maxSizeStringStream << logFileMaxSize;
+      std::string maxSizeString = maxSizeStringStream.str();
+      
+      std::ostringstream sampleTimeStringStream;
+      sampleTimeStringStream << logFileSampleTime;
+      std::string sampleTimeString = sampleTimeStringStream.str();
+      
+      std::ostringstream countStringStream;
+      countStringStream << logFileCount;
+      std::string countString = countStringStream.str();
+      
+      LOG_INFO("Logging to file " << expandedFilename);
+      ACE_TCHAR *l_argv[6]; 
+      l_argv[0] = (ACE_TCHAR *) ACE_TEXT ("-s"); //log file basename 
+      l_argv[1] = (ACE_TCHAR *) ACE_TEXT (expandedFilename.c_str());
+      l_argv[1] = (ACE_TCHAR *) ACE_TEXT ("-o");      //order files 
+      l_argv[2] = (ACE_TCHAR *) ACE_TEXT ("-m");  //max size = ~1MB (1000 KB) 
+      l_argv[1] = (ACE_TCHAR *) ACE_TEXT (maxSizeString.c_str()); 
+      l_argv[3] = (ACE_TCHAR *) ACE_TEXT ("-i");    //logfile size is sampled every 30 seconds 
+      l_argv[1] = (ACE_TCHAR *) ACE_TEXT (sampleTimeString.c_str());
+      l_argv[4] = (ACE_TCHAR *) ACE_TEXT ("-N");     //support 2 files 
+      l_argv[4] = (ACE_TCHAR *) ACE_TEXT (countString.c_str());
+      l_argv[5] = 0;
+      
+      int ls_argc = 5; 
+      ACE_Auto_Basic_Ptr<ACE_TCHAR *> ls_argv (new ACE_TCHAR *[ls_argc]); 
+      for (int c = 0; c < ls_argc; ++c) 
+              (ls_argv.get ())[c] = l_argv[c];
+      
+      //Allocate the logging strategy on the heap, because if it's stack allocated,
+      //it will be deleted when it goes out of scope and horrible things will happen
+      //(yes, that means we leak it)
+      ACE_Logging_Strategy *logging_strategy = new ACE_Logging_Strategy(); 
+      int result = logging_strategy->init (ls_argc, ls_argv.get ());
+      
+      if(result != 0) {
+        LOG_WARN("Error creating logging strategy and/or log file...  does the directory exist?");
+        LOG_WARN("Logging to console instead.");
+      }
     } else {
-      LOG_WARN("Couldn't create log file...  does the directory exist?");
-      LOG_WARN("Logging to console instead.");
+      std::string expandedFilename = expandLogFileName(logFile, appName);
+      LOG_INFO("Logging to single file " << expandedFilename);
+      ACE_OSTREAM_TYPE *output = new std::ofstream(expandedFilename.c_str(), std::ofstream::out | std::ofstream::app);
+      if(*output) {
+        ACE_LOG_MSG->msg_ostream(output, 1);
+        ACE_LOG_MSG->set_flags(ACE_Log_Msg::OSTREAM);
+        ACE_LOG_MSG->clr_flags(ACE_Log_Msg::STDERR);
+      } else {
+        LOG_WARN("Couldn't create log file...  does the directory exist?");
+        LOG_WARN("Logging to console instead.");
+      }
     }
   }
   
