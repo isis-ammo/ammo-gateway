@@ -123,21 +123,19 @@ void setupLogging(std::string appName) {
       std::ostringstream countStringStream;
       countStringStream << logFileCount;
       std::string countString = countStringStream.str();
-      
-      LOG_INFO("Logging to file " << expandedFilename);
-      ACE_TCHAR *l_argv[6]; 
+      ACE_TCHAR *l_argv[610]; 
       l_argv[0] = (ACE_TCHAR *) ACE_TEXT ("-s"); //log file basename 
       l_argv[1] = (ACE_TCHAR *) ACE_TEXT (expandedFilename.c_str());
-      l_argv[1] = (ACE_TCHAR *) ACE_TEXT ("-o");      //order files 
-      l_argv[2] = (ACE_TCHAR *) ACE_TEXT ("-m");  //max size = ~1MB (1000 KB) 
-      l_argv[1] = (ACE_TCHAR *) ACE_TEXT (maxSizeString.c_str()); 
-      l_argv[3] = (ACE_TCHAR *) ACE_TEXT ("-i");    //logfile size is sampled every 30 seconds 
-      l_argv[1] = (ACE_TCHAR *) ACE_TEXT (sampleTimeString.c_str());
-      l_argv[4] = (ACE_TCHAR *) ACE_TEXT ("-N");     //support 2 files 
-      l_argv[4] = (ACE_TCHAR *) ACE_TEXT (countString.c_str());
-      l_argv[5] = 0;
+      l_argv[2] = (ACE_TCHAR *) ACE_TEXT ("-o");      //order files 
+      l_argv[3] = (ACE_TCHAR *) ACE_TEXT ("-m");  //max size = ~1MB (1000 KB) 
+      l_argv[4] = (ACE_TCHAR *) ACE_TEXT (maxSizeString.c_str()); 
+      l_argv[5] = (ACE_TCHAR *) ACE_TEXT ("-i");    //logfile size is sampled every 30 seconds 
+      l_argv[6] = (ACE_TCHAR *) ACE_TEXT (sampleTimeString.c_str());
+      l_argv[7] = (ACE_TCHAR *) ACE_TEXT ("-N");     //support 2 files 
+      l_argv[8] = (ACE_TCHAR *) ACE_TEXT (countString.c_str());
+      l_argv[9] = 0;
       
-      int ls_argc = 5; 
+      int ls_argc = 9; 
       ACE_Auto_Basic_Ptr<ACE_TCHAR *> ls_argv (new ACE_TCHAR *[ls_argc]); 
       for (int c = 0; c < ls_argc; ++c) 
               (ls_argv.get ())[c] = l_argv[c];
