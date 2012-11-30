@@ -52,9 +52,6 @@ int setRegisterPullInterest(GatewayConnector* gwc, std::string interest, AtsHand
 
 int main(int argc, char **argv) {  
   dropPrivileges();
-  setupLogging("AtsGatewayPlugin");
-  LOG_FATAL("=========");
-  LOG_FATAL("AMMO Ats Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   
   //Explicitly specify the ACE select reactor; on Windows, ACE defaults
   //to the WFMO reactor, which has radically different semantics and
@@ -62,6 +59,10 @@ int main(int argc, char **argv) {
   ACE_Select_Reactor selectReactor;
   ACE_Reactor newReactor(&selectReactor);
   auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(&newReactor));
+  
+  setupLogging("AtsGatewayPlugin");
+  LOG_FATAL("=========");
+  LOG_FATAL("AMMO Ats Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);

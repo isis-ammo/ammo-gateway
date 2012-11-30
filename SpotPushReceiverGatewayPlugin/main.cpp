@@ -33,9 +33,6 @@ public:
 
 int main(int argc, char **argv) {  
   dropPrivileges();
-  setupLogging("SpotGatewayPlugin");
-  LOG_FATAL("=========");
-  LOG_FATAL("AMMO Spot Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   
   //Explicitly specify the ACE select reactor; on Windows, ACE defaults
   //to the WFMO reactor, which has radically different semantics and
@@ -43,6 +40,10 @@ int main(int argc, char **argv) {
   ACE_Select_Reactor *selectReactor = new ACE_Select_Reactor;
   ACE_Reactor *newReactor = new ACE_Reactor(selectReactor);
   auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(newReactor));
+  
+  setupLogging("SpotGatewayPlugin");
+  LOG_FATAL("=========");
+  LOG_FATAL("AMMO Spot Gateway Plugin (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   
   SigintHandler * handleExit = new SigintHandler();
   ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
