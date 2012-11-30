@@ -109,9 +109,6 @@ App::~App()
 bool App::init(int argc, char* argv[])
 {
   dropPrivileges();
-  setupLogging("GatewayCore");
-  LOG_FATAL("=========");
-  LOG_FATAL("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
 
   //Explicitly specify the ACE select reactor; on Windows, ACE defaults
   //to the WFMO reactor, which has radically different semantics and
@@ -119,6 +116,10 @@ bool App::init(int argc, char* argv[])
   ACE_Select_Reactor *selectReactor = new ACE_Select_Reactor;
   ACE_Reactor *newReactor = new ACE_Reactor(selectReactor);
   auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(newReactor));
+  
+  setupLogging("GatewayCore");
+  LOG_FATAL("=========");
+  LOG_FATAL("AMMO Gateway Core (" << VERSION << " built on " << __DATE__ << " at " << __TIME__ << ")");
   
   // Set signal handler for SIGPIPE (so we don't crash if a device disconnects
   // during write)
