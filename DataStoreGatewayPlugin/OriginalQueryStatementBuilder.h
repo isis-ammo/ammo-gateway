@@ -17,9 +17,14 @@ public:
 private:
   bool bind (void);
 
+  // We need an extra step here so that negative time values can
+  // be converted to offsets from time of day.
+  bool bindInteger (const std::string &token);
+
 private:
   OriginalQueryParamParser parser_;
   std::string mime_type_;
+  unsigned int bind_index_;
 };
 
 #endif // ORIGINAL_QUERY_STATEMENT_BUILDER_H

@@ -18,6 +18,7 @@ private:
 
 private:
   ContactsQueryParamParser parser_;
+  unsigned int bind_index_;
 };
 
 #endif // CONTACTS_QUERY_STATEMENT_BUILDER_H

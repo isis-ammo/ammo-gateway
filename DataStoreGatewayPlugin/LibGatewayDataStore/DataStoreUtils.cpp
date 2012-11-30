@@ -59,7 +59,7 @@ DataStoreUtils::bind_int (sqlite3 *db,
                           unsigned int &slot,
                           int val)
 {
-  int status = sqlite3_bind_int (stmt, slot, val);
+  int status = sqlite3_bind_int (stmt, slot++, val);
 	
   if (status != SQLITE_OK)
     {
@@ -67,11 +67,9 @@ DataStoreUtils::bind_int (sqlite3 *db,
                  << " with value " << val
                  << " failed: " << sqlite3_errmsg (db));
 		
-		  ++slot;
       return false;
     }
    
-  ++slot; 
   return true;
 }
                  
