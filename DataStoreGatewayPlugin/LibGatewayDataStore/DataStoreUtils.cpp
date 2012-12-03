@@ -214,7 +214,7 @@ bool
 DataStoreUtils::safe_atol (const std::string &val,
                            long &result)
 {
-  if (val.find_first_not_of ("0123456789") != std::string::npos)
+  if (val.find_first_not_of ("-0123456789") != std::string::npos)
     {
       LOG_ERROR ("string '"
                  << val.c_str ()
@@ -231,7 +231,7 @@ bool
 DataStoreUtils::safe_atof (const std::string &val,
                            double &result)
 {
-  if (val.find_first_not_of ("0123456789.") != std::string::npos)
+  if (val.find_first_not_of ("-0123456789.") != std::string::npos)
     {
       LOG_ERROR ("string '"
                  << val.c_str ()
