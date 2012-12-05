@@ -50,14 +50,22 @@ OriginalQueryStatementBuilder::build (void)
     this->addFilter (parser_.uri_, "uri", false)
     && this->addFilter (mime_type_, "mime_type", false)
     && this->addFilter (parser_.user_, "origin_user", false)
-    && this->addFilter (parser_.time_begin_, "tv_sec>=?", true, true)
-    && this->addFilter (parser_.time_end_, "tv_sec<=?", true, false);
+    && this->addFilter (parser_.time_begin_, "tv_sec", true, true)
+    && this->addFilter (parser_.time_end_, "tv_sec", true, false);
+    
+    LOG_TRACE("OriginalQueryStatmentBuilder: Statement built:");
+    LOG_TRACE("  URI: " << parser_.uri_);
+    LOG_TRACE("  type: " << mime_type_);
+    LOG_TRACE("  user: " << parser_.user_);
+    LOG_TRACE("  time_begin: " << parser_.time_begin_);
+    LOG_TRACE("  time_end: " << parser_.time_end_);
     
   if (!good_adds)
     {
       return false;
     }
 
+    LOG_TRACE("Query String: " << query_str_);
   int status = sqlite3_prepare (db_,
                                 query_str_.c_str (),
                                 query_str_.length (),
