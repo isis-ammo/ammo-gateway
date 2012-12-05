@@ -512,14 +512,16 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, si
       created_date Java Long (8)
     */
     {
+      std::string uuid = extractString(terse, cursor, terseLength);
       std::string originator = extractString(terse, cursor, terseLength);
       originUser = originator;
       std::string text = extractString(terse, cursor, terseLength);
-      int64_t created = extractInt64(terse, cursor, terseLength);
-      ACE_Utils::UUID *uuid = ACE_Utils::UUID_GENERATOR::instance ()->generate_UUID ();
+      uint32_t created = extractInt32(terse, cursor, terseLength);
+      uint64_t createdMillis = 1000 * static_cast<uint64_t>(created);
+      //ACE_Utils::UUID *uuid = ACE_Utils::UUID_GENERATOR::instance ()->generate_UUID ();
       // JSON
       // "{\"created_date\":\"1339572928976\",\"text\":\"Wwwww\",\"modified_date\":\"1339572928984\",\"status\":\"21\",\"receipts\":\"0\",\"group_id\":\"All\",\"media_count\":\"0\",\"longitude\":\"0\",\"uuid\":\"9bf10c58-9154-4be8-8f63-e6a79a5ecbc1\",\"latitude\":\"0\",\"originator\":\"mark\"}"
-      jsonStr << "{\"created_date\":\"" << created << "\",\"text\":\"" << text << "\",\"modified_date\":\"" << created << "\",\"status\":\"21\",\"receipts\":\"0\",\"group_id\":\"All\",\"media_count\":\"0\",\"longitude\":\"0\",\"uuid\":\"" << uuid->to_string()->c_str() << "\",\"latitude\":\"0\",\"originator\":\""<< originator << "\"}";
+      jsonStr << "{\"created_date\":\"" << createdMillis << "\",\"text\":\"" << text << "\",\"modified_date\":\"" << createdMillis << "\",\"status\":\"21\",\"receipts\":\"0\",\"group_id\":\"All\",\"media_count\":\"0\",\"longitude\":\"0\",\"uuid\":\"" << uuid << "\",\"latitude\":\"0\",\"originator\":\""<< originator << "\"}";
   }
 					     
     

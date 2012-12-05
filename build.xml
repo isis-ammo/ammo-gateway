@@ -19,6 +19,7 @@
     <property name="gatewayversion-mpb.out" value="gatewayversion.mpb" />
     <property name="rmcastplugin.dir" location="RMCastPlugin"/>
     <property name="mcastplugin.dir" location="MCastPlugin"/>
+    <property name="datastore.plugin.build.dir" location="DataStoreGatewayPlugin"/>
     
     <condition property="isWindows">
       <os family="windows" />
@@ -91,10 +92,16 @@
         <copy file="${gatewayversion.template}" tofile="${gatewayversion.out}" overwrite="true"/>
         <replace file="${gatewayversion.out}" token="&lt;VERSION&gt;" value="${gatewayversion}"/>
         <copy file="${gatewayversion-mpb.template}" tofile="${gatewayversion-mpb.out}" overwrite="true"/>
-        <replace file="${gatewayversion-mpb.out}" token="&lt;VERSION&gt;" value="${gatewayversion-stripped}"/>
+	<replace file="${gatewayversion-mpb.out}" token="&lt;VERSION&gt;" value="${gatewayversion-stripped}"/>
+	<copy file="${gatewayversion.file}" tofile="Manager\${gatewayversion.file}" overwrite="true"/>
     </target>
     
-    <target name="build-unix" if="isUnix" depends="configure, -java-plugin-connector">
+    <target name="gen-c++">
+        <ant antfile="build.xml" dir="${datastore.plugin.build.dir}" target="gen">
+        </ant>
+    </target>
+    
+    <target name="build-unix" if="isUnix" depends="configure, -java-plugin-connector, gen-c++">
         <echo message="Building ${project}..."/>
         <exec executable="make" dir="." searchpath="true" failonerror="true">
         </exec>
@@ -113,6 +120,9 @@
         </ant>
         <ant antfile="build.xml" dir="${mcastplugin.dir}" target="dist">
         </ant>
+        <exec executable="msbuild" dir="Manager" searchpath="true" failonerror="true">
+		<arg value="/p:Configuration=Release" />
+        </exec>
     </target>
 
     <target name="build" depends="configure, build-unix, build-windows, -java-plugin-connector"
@@ -190,10 +200,15 @@ Built on ${os.arch} ${os.name} ${os.version}
         <exec executable="msbuild" dir="." searchpath="true">
            <arg value="/t:clean"/>
         </exec>
+        <exec executable="msbuild" dir="Manager" searchpath="true">
+           <arg value="/t:clean"/>
+        </exec>
     </target>
 
     <target name="clean" depends="-clean-gatewayversion,clean-dist,clean-unix,clean-windows"
         description="clean ${build} and ${dist} dirs" >
+        <ant antfile="build.xml" dir="${datastore.plugin.build.dir}" target="clean">
+        </ant>
     </target>
     
     <target name="realclean-unix" depends="-clean-gatewayversion,clean-dist" if="isUnix">
@@ -205,6 +220,8 @@ Built on ${os.arch} ${os.name} ${os.version}
     
     <target name="realclean" depends="-clean-gatewayversion,clean-dist,realclean-unix,clean-windows"
         description="clean all build products and generated code" >
+        <ant antfile="build.xml" dir="${datastore.plugin.build.dir}" target="realclean">
+        </ant>
     </target>
     
     <target name="configure-unix" depends="update-gatewayversion" if="isUnix">
@@ -218,6 +235,10 @@ Built on ${os.arch} ${os.name} ${os.version}
         <exec executable="cmd" dir="." searchpath="true">
            <arg value="/c"/>
            <arg value="mwc.pl --type vc10 Gateway.mwc"/>
+        </exec>
+        <exec executable="cmd" dir="Manager" searchpath="true">
+           <arg value="/c"/>
+           <arg value="qmake -tp vc"/>
         </exec>
     </target>
 

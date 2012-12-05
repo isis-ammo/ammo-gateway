@@ -26,8 +26,8 @@ if __name__ == "__main__":
     connector.waitForAuthentication()
     
     print "Subscribing to type text/plain"
-    connector.push("someUri", "blah_asdf", "directed message from user " + userName)
-    connector.pullRequest("blah", ",,1302228081,,stuff", "", 0, 0, False)
+    #connector.push("someUri", "blah_asdf", "directed message from user " + userName)
+    connector.pullRequest("ammo/edu.vu.isis.ammo.dash.event", ",,-7300,,", "", 50, 0, False)
     
     while True:
       while(connector.isDataAvailable()):
