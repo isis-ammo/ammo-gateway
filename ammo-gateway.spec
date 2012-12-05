@@ -28,10 +28,9 @@ Android Middleware Server
 %build
 GATEWAY_ROOT=`pwd` ; export GATEWAY_ROOT
 ant configure
-mwc.pl --type make Gateway.mwc
-cat install.mk >> Makefile
-make PROTOBUF_ROOT=/usr GATEWAY_ROOT=`pwd`
-ant build -DGATEWAY_ROOT=`pwd`
+cat install.mk >> GNUmakefile
+/bin/bash -c "PROTOBUF_ROOT=/usr GATEWAY_ROOT=`pwd` make"
+/bin/bash -c "GATEWAY_ROOT=`pwd` ant build"
 
 %install
 make DESTDIR=%{buildroot} PROTOBUF_ROOT=/usr GATEWAY_ROOT=`pwd` install
