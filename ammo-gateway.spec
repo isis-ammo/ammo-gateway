@@ -26,6 +26,7 @@ Android Middleware Server
 %setup -q
 
 %build
+GATEWAY_ROOT=`pwd` ; export GATEWAY_ROOT
 ant configure
 mwc.pl --type make Gateway.mwc
 cat install.mk >> GNUmakefile
