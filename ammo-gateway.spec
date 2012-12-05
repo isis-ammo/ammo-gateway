@@ -76,6 +76,8 @@ rm -rf %{buildroot}
 /etc/ammo-gateway/LoggingConfig.json
 /etc/ammo-gateway/DataStorePluginConfig.json
 /etc/ammo-gateway/PassPluginConfig.json
+/etc/ammo-gateway/MCastPluginConfig.json
+/etc/ammo-gateway/RMCastPluginConfig.json
 /etc/ammo-gateway/keys
 /etc/ammo-gateway/jgroups/udp.xml
 /usr/bin/AndroidGatewayPlugin
@@ -85,6 +87,7 @@ rm -rf %{buildroot}
 /usr/bin/LdapGatewayPlugin
 /usr/bin/DataStoreGatewayPlugin
 /usr/bin/PassGatewayPlugin
+/usr/bin/SerialGatewayPlugin
 /usr/bin/SamplePushReceiverGatewayPlugin
 /usr/bin/SamplePushTestDriverPlugin
 /usr/bin/SpotPushReceiverGatewayPlugin
@@ -112,9 +115,16 @@ rm -rf %{buildroot}
 /usr/lib/libgeotrans-mgrs.so.AMMO_VERSION_STRING
 /usr/lib/libjson.so
 /usr/lib/libjson.so.AMMO_VERSION_STRING
+/usr/lib/libgatewaydatastore.so
+/usr/lib/libgatewaydatastore.so.AMMO_VERSION_STRING
 /usr/share/java/gatewaypluginapi.jar
 /usr/share/java/mcastplugin.jar
 /usr/share/java/rmcastplugin.jar
+/usr/share/java/jgroups-gw.jar
+/usr/share/java/json-20090211.jar
+/usr/share/java/protobuf-java-2.3.0.jar
+/usr/share/java/slf4j-api-1.6.4.jar
+/usr/share/java/slf4j-simple-1.6.4.jar
 /var/log/ammo-gateway
 /var/db/ammo-gateway
 /var/run/ammo-gateway
