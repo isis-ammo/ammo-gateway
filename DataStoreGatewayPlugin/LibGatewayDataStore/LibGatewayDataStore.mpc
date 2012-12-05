@@ -1,0 +1,17 @@
+project(LibGatewayDataStore) : acelib, protobuf, gatewaycommon, gatewayplugin {
+  includes += $(GATEWAY_ROOT)/LibJSON
+  libs += sqlite3
+  sharedname = gatewaydatastore
+  
+  specific(prop:windows) {
+    macros += LIBGATEWAYDATASTORE_BUILD_DLL
+  }
+
+  Source_Files {
+    DataStoreUtils.cpp
+    PushHandler.cpp
+    QueryHandler.cpp
+    QueryStatementBuilder.cpp
+    StringParser.cpp
+  }
+}

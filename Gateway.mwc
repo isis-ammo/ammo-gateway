@@ -4,7 +4,7 @@ workspace(AndroidGatewayPlugin) {
   LibJSON/
   GatewayCore/
   AndroidGatewayPlugin/
-  DataStoreGatewayPlugin/
+  DataStoreGatewayPlugin
   SerialGatewayPlugin/
   specific(!prop:windows) {
     LibGeotransMgrs/

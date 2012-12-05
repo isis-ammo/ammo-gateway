@@ -1,0 +1,81 @@
+{
+  "Services" : [
+    {
+      "HumanName"  : "Gateway Core",
+      "SvcName"    : "GatewayCore",
+      "ConfigName" : "GatewayConfig.json",
+      "LogName"    : "GatewayCore"
+    },
+    {
+      "HumanName"  : "Android Plugin",
+      "SvcName"    : "AndroidGatewayPlugin",
+      "ConfigName" : "AndroidPluginConfig.json",
+      "LogName"    : "AndroidGatewayPlugin"
+    },
+    {
+      "HumanName"  : "Data Store Plugin",
+      "SvcName"    : "DataStoreGatewayPlugin",
+      "ConfigName" : "DataStorePluginConfig.json",
+      "LogName"    : "DataStoreGatewayPlugin"
+    },
+    {
+      "HumanName"  : "Serial Plugin",
+      "SvcName"    : "SerialGatewayPlugin",
+      "ConfigName" : "SerialPluginConfig.json",
+      "LogName"    : "SerialGatewayPlugin"
+    },
+    {
+      "HumanName"  : "MCast Plugin",
+      "SvcName"    : "AMMO MCast Plugin",
+      "ConfigName" : "MCastPluginConfig.json",
+      "LogName"    : ""
+    },
+    {
+      "HumanName"  : "RMCast Plugin",
+      "SvcName"    : "AMMO RMCast Plugin",
+      "ConfigName" : "RMCastPluginConfig.json",
+      "LogName"    : ""
+    }
+
+    //-------------------------------------------
+    // Add third party Gateway Plugins below
+    //-------------------------------------------
+
+    //,{
+    //  "HumanName"  : "",  // Human name as it will appear in Manager's list
+    //  "SvcName"    : "",  // Name as it appears to Windows Service Mgr. ie net start MySvc
+    //  "ConfigName" : "",  // Name of the config file or empty if no config file
+    //  "LogName"    : ""   // Name of the log file as passed to setupLogging() or empty if no log file
+    //}
+
+    //,{
+    //  "HumanName"  : "",  // Human name as it will appear in Manager's list
+    //  "SvcName"    : "",  // Name as it appears to Windows Service Mgr. ie net start MySvc
+    //  "ConfigName" : "",  // Name of the config file or empty if no config file
+    //  "LogName"    : ""   // Name of the log file as passed to setupLogging() or empty if no log file
+    //}
+
+    //,{
+    //  "HumanName"  : "",  // Human name as it will appear in Manager's list
+    //  "SvcName"    : "",  // Name as it appears to Windows Service Mgr. ie net start MySvc
+    //  "ConfigName" : "",  // Name of the config file or empty if no config file
+    //  "LogName"    : ""   // Name of the log file as passed to setupLogging() or empty if no log file
+    //}
+
+    //,{
+    //  "HumanName"  : "",  // Human name as it will appear in Manager's list
+    //  "SvcName"    : "",  // Name as it appears to Windows Service Mgr. ie net start MySvc
+    //  "ConfigName" : "",  // Name of the config file or empty if no config file
+    //  "LogName"    : ""   // Name of the log file as passed to setupLogging() or empty if no log file
+    //}
+
+    //,{
+    //  "HumanName"  : "",  // Human name as it will appear in Manager's list
+    //  "SvcName"    : "",  // Name as it appears to Windows Service Mgr. ie net start MySvc
+    //  "ConfigName" : "",  // Name of the config file or empty if no config file
+    //  "LogName"    : ""   // Name of the log file as passed to setupLogging() or empty if no log file
+    //}
+  ]
+}
+//:mode=javascript: (jEdit modeline for syntax highlighting)
+

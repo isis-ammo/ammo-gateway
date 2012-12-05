@@ -13,6 +13,10 @@
   !define VC_ROOT "C:\Program Files\Microsoft Visual Studio 10.0\VC"
 !endif
 
+!ifndef QTDIR
+  !error "You must set QTDIR."
+!endif
+
 !ifndef VERSION
   !error "You must set VERSION."
 !endif
@@ -73,7 +77,7 @@ Caption "AMMO Gateway ${VERSION} Setup"
 !define MEMENTO_REGISTRY_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway"
 
 ;Icon setting
-;!define MUI_ICON path_to_icon.ico
+!define MUI_ICON "Manager\icons\manager.ico"
 
 ;Interface Settings
 !define MUI_ABORTWARNING
@@ -201,6 +205,9 @@ Page custom PageReinstall PageLeaveReinstall
 
   end_${UniqueID_FindJvmDll}:
 
+  ; Restore registry view to 32-bit
+  SetRegView 32
+
   !undef UniqueID_FindJvmDll
 !macroend
 
@@ -250,6 +257,10 @@ ${MementoSection} "Android Gateway Plugin (required)" SecAndPlug
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\AndroidGatewayPlugin.exe
+
+  SetShellVarContext all
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\win32\AndroidPluginConfig.json
 
   SimpleSC::InstallService "AndroidGatewayPlugin" "AMMO Android Gateway Plugin" 16 2 "$INSTDIR\bin\AndroidGatewayPlugin.exe" "GatewayCore" "" ""
 
@@ -317,6 +328,7 @@ ${MementoSection} "Serial Gateway Plugin (required)" SecSerPlug
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\SerialGatewayPlugin.exe
+  File build\lib\gatewaydatastore.dll
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\SerialPluginConfig.json
 
@@ -377,7 +389,7 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
                "AMMO MCast Plugin" \
                "$0" \
                -Djava.net.preferIPv4Stack=true \
-               "-Djava.class.path=$INSTDIR\bin\gatewaypluginapi.jar;$INSTDIR\bin\slf4j-api-1.6.4.jar;$INSTDIR\bin\slf4j-simple-1.6.4.jar;$INSTDIR\bin\json-20090211.jar;$INSTDIR\bin\jgroups-gw.jar;$INSTDIR\bin\protobuf-java-2.3.0.jar;$INSTDIR\bin\mcastplugin.jar" \
+               "-Djava.class.path=$INSTDIR\bin\gatewaypluginapi.jar;$INSTDIR\bin\slf4j-api-1.6.4.jar;$INSTDIR\bin\slf4j-simple-1.6.4.jar;$INSTDIR\bin\json-20090211.jar;$INSTDIR\bin\jgroups-gw.jar;$INSTDIR\bin\protobuf-java-2.4.1.jar;$INSTDIR\bin\mcastplugin.jar" \
                -start edu.vu.isis.ammo.mcastplugin.MCastPlugin \
                -depends "GatewayCore" \
                -description "AMMO MCast Plugin" ' $0
@@ -411,7 +423,7 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
   File RMCastPlugin\libs\jgroups-gw.jar
   ; jars from here down are also prereqs for mcastplugin
   File RMCastPlugin\libs\json-20090211.jar
-  File RMCastPlugin\libs\protobuf-java-2.3.0.jar
+  File RMCastPlugin\libs\protobuf-java-2.4.1.jar
   File RMCastPlugin\libs\slf4j-api-1.6.4.jar
   File RMCastPlugin\libs\slf4j-simple-1.6.4.jar
   SetOutPath $APPDATA\ammo-gateway
@@ -435,7 +447,7 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
                "AMMO RMCast Plugin" \
                "$0" \
                -Djava.net.preferIPv4Stack=true \
-               "-Djava.class.path=$INSTDIR\bin\gatewaypluginapi.jar;$INSTDIR\bin\slf4j-api-1.6.4.jar;$INSTDIR\bin\slf4j-simple-1.6.4.jar;$INSTDIR\bin\json-20090211.jar;$INSTDIR\bin\jgroups-gw.jar;$INSTDIR\bin\protobuf-java-2.3.0.jar;$INSTDIR\bin\rmcastplugin.jar" \
+               "-Djava.class.path=$INSTDIR\bin\gatewaypluginapi.jar;$INSTDIR\bin\slf4j-api-1.6.4.jar;$INSTDIR\bin\slf4j-simple-1.6.4.jar;$INSTDIR\bin\json-20090211.jar;$INSTDIR\bin\jgroups-gw.jar;$INSTDIR\bin\protobuf-java-2.4.1.jar;$INSTDIR\bin\rmcastplugin.jar" \
                -start edu.vu.isis.ammo.rmcastplugin.RMCastPlugin \
                -depends "GatewayCore" \
                -description "AMMO RMCast Plugin" ' $0
@@ -449,6 +461,29 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
   Goto rmcast_the_end
 
   rmcast_the_end:
+
+${MementoSectionEnd}
+
+${MementoSection} "Manager (required)" SecManager
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing Manager ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File "Manager\release\Manager.exe"
+  File "${QTDIR}\bin\QtCore4.dll"
+  File "${QTDIR}\bin\QtGui4.dll"
+
+  SetShellVarContext all
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\win32\ManagerConfig.json
+
+  CreateDirectory "$SMPROGRAMS\AMMO Gateway"
+  CreateShortcut "$SMPROGRAMS\AMMO Gateway\Manager.lnk" "$INSTDIR\bin\Manager.exe"
 
 ${MementoSectionEnd}
 
@@ -563,6 +598,9 @@ Section -post
 
   SetOutPath $INSTDIR
 
+  ; Make sure to use the 32-bit registry
+  SetRegView 32
+
   WriteRegStr HKLM "Software\ammo-gateway" "" $INSTDIR
 !ifdef VER_MAJOR & VER_MINOR & VER_REVISION & VER_BUILD
   WriteRegDword HKLM "Software\ammo-gateway" "VersionMajor" "${VER_MAJOR}"
@@ -574,7 +612,7 @@ Section -post
   WriteRegExpandStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway" "UninstallString" '"$INSTDIR\uninst-ammo-gateway.exe"'
   WriteRegExpandStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway" "InstallLocation" "$INSTDIR"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway" "DisplayName" "AMMO Gateway"
-  ;WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway" "DisplayIcon" "$INSTDIR\bin\GatewayCore.exe,0"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway" "DisplayIcon" "$INSTDIR\bin\Manager.exe,0"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway" "DisplayVersion" "${VERSION}"
 !ifdef VER_MAJOR & VER_MINOR & VER_REVISION & VER_BUILD
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway" "VersionMajor" "${VER_MAJOR}"
@@ -614,6 +652,7 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${SecJavaConn} "The Java Connector for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecMCastPlug} "The MCast Plugin Service for AMMO Gateway"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecRMCastPlug} "The RMCast Plugin Service for AMMO Gateway"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecManager} "The Gateway Manager"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecVcredist} "The VC redist dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAce} "The ACE networking dependency"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecSqlite} "The SQLite database dependency"
@@ -633,6 +672,9 @@ Function .onInit
     SetErrorLevel 740  ; ERROR_ELEVATION_REQUIRED
     Quit
   ${EndIf}
+
+  ; Make sure to use the 32-bit registry
+  SetRegView 32
 
   ReadRegStr $R0 HKLM \
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway" \
@@ -667,6 +709,9 @@ FunctionEnd
 ;Uninstaller Section
 
 Section Uninstall
+
+  ; Make sure to use the 32-bit registry
+  SetRegView 32
 
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway"
   DeleteRegKey HKLM "Software\ammo-gateway"
@@ -706,6 +751,7 @@ Section Uninstall
 
   ; Data Store Gateway Plugin
   Delete $INSTDIR\bin\DataStoreGatewayPlugin.exe
+  Delete $INSTDIR\bin\gatewaydatastore.dll
 
   ; Java Gateway Connector
   Delete $INSTDIR\bin\gatewaypluginapi.jar
@@ -720,9 +766,16 @@ Section Uninstall
   Delete $INSTDIR\bin\rmcastplugin.jar
   Delete $INSTDIR\bin\jgroups-gw.jar
   Delete $INSTDIR\bin\json-20090211.jar
-  Delete $INSTDIR\bin\protobuf-java-2.3.0.jar
+  Delete $INSTDIR\bin\protobuf-java-2.4.1.jar
   Delete $INSTDIR\bin\slf4j-api-1.6.4.jar
   Delete $INSTDIR\bin\slf4j-simple-1.6.4.jar
+
+  ; Manager
+  Delete "Manager\release\Manager.exe"
+  Delete "$INSTDIR\bin\QtCore4.dll"
+  Delete "$INSTDIR\bin\QtGui4.dll"
+  Delete "$APPDATA\ammo-gateway\ManagerConfig.json"
+  Delete "$SMPROGRAMS\AMMO Gateway\Manager.lnk"
 
   ; ACE
   Delete $INSTDIR\bin\ACE.dll
@@ -741,6 +794,7 @@ Section Uninstall
   ; directory cleanup
   RMDir /r $INSTDIR\bin
   RMDir $INSTDIR
+  RMDir "$SMPROGRAMS\AMMO Gateway"
 
   SetDetailsPrint both
 

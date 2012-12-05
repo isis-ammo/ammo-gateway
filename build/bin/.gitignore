@@ -9,6 +9,8 @@ SamplePushReceiverPlugin.exe
 DataStoreGatewayPlugin.exe
 LdapGatewayPlugin
 LdapGatewayPlugin.exe
+IncidentGatewayPlugin
+IncidentGatewayPlugin.exe
 TigrGatewayPlugin
 PassGatewayPlugin
 SpotPushReceiverGatewayPlugin

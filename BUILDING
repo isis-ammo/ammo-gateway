@@ -1,4 +1,4 @@
-Build prerequisites (tested version):
+Build prerequisites (tested version): 
   * Google Protocol Buffers (2.3.0)
   * ACE (6.0.3)
   * Perl (Linux: 5.10.1, Windows 5.12.1)
