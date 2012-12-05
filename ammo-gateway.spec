@@ -30,7 +30,7 @@ ant configure
 mwc.pl --type make Gateway.mwc
 cat install.mk >> GNUmakefile
 make PROTOBUF_ROOT=/usr GATEWAY_ROOT=`pwd`
-ant build
+ant build -DGATEWAY_ROOT=`pwd`
 
 %install
 make DESTDIR=%{buildroot} PROTOBUF_ROOT=/usr GATEWAY_ROOT=`pwd` install
