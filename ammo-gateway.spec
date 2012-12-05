@@ -33,6 +33,7 @@ cat install.mk >> GNUmakefile
 /bin/bash -c "GATEWAY_ROOT=`pwd` ant build"
 
 %install
+cat install.mk >> GNUmakefile
 make DESTDIR=%{buildroot} PROTOBUF_ROOT=/usr GATEWAY_ROOT=`pwd` install
 
 %pre
