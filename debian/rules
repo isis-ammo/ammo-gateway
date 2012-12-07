@@ -11,7 +11,7 @@
 
 
 Makefile: Gateway.mwc
-	mwc.pl --type make Gateway.mwc
+	touch Makefile #we don't actually use Makefile, so let's just touch it instead of generating it with MWC
 	cat install.mk >> GNUmakefile
 
 #.PHONY: build

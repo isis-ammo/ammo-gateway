@@ -13,6 +13,7 @@
 #include "GpsThread.h"
 #include <limits>
 #include <cmath>
+#include <ace/UUID.h>
 
 using namespace std;
 
@@ -119,12 +120,14 @@ void GatewayReceiver::onPushDataReceived(
       string originator = root["originator"].asString();
       string text = root["text"].asString();
       int64_t time = atoll(root["created_date"].asString().c_str());
+      ACE_Utils::UUID *uuid = ACE_Utils::UUID_GENERATOR::instance ()->generate_UUID ();
 
 
       ostringstream tersePayload;
+      appendString(tersePayload, string(uuid->to_string()->c_str()));
       appendString(tersePayload, originator);
       appendString(tersePayload, text);
-      appendInt64(tersePayload, time);
+      appendInt32(tersePayload, time / 1000);
 
       ammo::protocol::MessageWrapper msg;
       msg.set_type(ammo::protocol::MessageWrapper_MessageType_TERSE_MESSAGE);

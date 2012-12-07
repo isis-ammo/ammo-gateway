@@ -26,13 +26,13 @@
     },
     {
       "HumanName"  : "MCast Plugin",
-      "SvcName"    : "MCast Plugin",
+      "SvcName"    : "AMMO MCast Plugin",
       "ConfigName" : "MCastPluginConfig.json",
       "LogName"    : ""
     },
     {
       "HumanName"  : "RMCast Plugin",
-      "SvcName"    : "RMCast Plugin",
+      "SvcName"    : "AMMO RMCast Plugin",
       "ConfigName" : "RMCastPluginConfig.json",
       "LogName"    : ""
     }

@@ -62,6 +62,8 @@ install: all
 	echo "Installing libs ..."
 	install -m 644 build/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib
 	ln -s $(INSTALL_DIR_BASE)/lib/libgatewayconnector.so.$(VERSION) $(INSTALL_DIR)/lib/libgatewayconnector.so
+	install -m 644 build/lib/libgatewaydatastore.so.$(VERSION) $(INSTALL_DIR)/lib
+	ln -s $(INSTALL_DIR_BASE)/lib/libgatewaydatastore.so.$(VERSION) $(INSTALL_DIR)/lib/libgatewaydatastore.so
 	install -m 644 build/lib/libgeotrans-mgrs.so.$(VERSION) $(INSTALL_DIR)/lib
 	ln -s $(INSTALL_DIR_BASE)/lib/libgeotrans-mgrs.so.$(VERSION) $(INSTALL_DIR)/lib/libgeotrans-mgrs.so
 	install -m 644 build/lib/libjson.so.$(VERSION) $(INSTALL_DIR)/lib
@@ -72,7 +74,7 @@ install: all
 	install -m 644 RMCastPlugin/dist/lib/rmcastplugin.jar $(DESTDIR)/usr/share/java
 	install -m 644 RMCastPlugin/libs/jgroups-gw.jar $(DESTDIR)/usr/share/java
 	install -m 644 RMCastPlugin/libs/json-20090211.jar $(DESTDIR)/usr/share/java
-	install -m 644 RMCastPlugin/libs/protobuf-java-2.3.0.jar $(DESTDIR)/usr/share/java
+	install -m 644 RMCastPlugin/libs/protobuf-java-2.4.1.jar $(DESTDIR)/usr/share/java
 	install -m 644 RMCastPlugin/libs/slf4j-api-1.6.4.jar $(DESTDIR)/usr/share/java
 	install -m 644 RMCastPlugin/libs/slf4j-simple-1.6.4.jar $(DESTDIR)/usr/share/java
 	echo "Installing scripts ..."

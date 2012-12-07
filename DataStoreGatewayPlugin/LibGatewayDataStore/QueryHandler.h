@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "LibGatewayDataStore_Export.h"
+
 struct sqlite3;
 
 namespace Json
@@ -19,7 +21,7 @@ namespace ammo
   }
 }
 
-class QueryHandler
+class LibGatewayDataStore_Export QueryHandler
 {
 public:
   QueryHandler (sqlite3 *db,
