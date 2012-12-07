@@ -17,8 +17,10 @@ project(Manager) : qt4_core, qt4_gui, gatewaycommon {
     macros += JSON_DLL_BUILD WIN32 _WIN32 _WINDOWS WINDOWS
   }
 
-  //uacexecutionlevel = RequireAdministrator
-  //generatemanifest = true
+  specific(vc10) {
+    uacexecutionlevel = RequireAdministrator
+    generatemanifest = true
+  }
 
   Resource_Files {
     Manager.rc
