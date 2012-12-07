@@ -1,0 +1,72 @@
+project(Manager) : qt4_core, qt4_gui, gatewaycommon {
+  after+=LibJSON
+
+  exename=Manager
+
+  includes += $(GATEWAY_ROOT)/LibJSON
+
+  libpaths += $(GATEWAY_ROOT)/build/lib
+  libs += json
+
+  specific(prop:windows) {
+    libs += AdvApi32 Shell32
+  }
+
+  specific(prop:windows) {
+    macros += JSON_DLL_BUILD WIN32 _WIN32 _WINDOWS WINDOWS
+  }
+
+  //uacexecutionlevel = RequireAdministrator
+  //generatemanifest = true
+
+  Resource_Files {
+    Manager.rc
+  }
+
+  QRC_Files {
+    Resources.qrc
+  }
+
+  UIC_Files {
+    MainWindow.ui
+    LogFileWidget.ui
+    ServiceWidget.ui
+    ConfigFileWidget.ui
+    AboutDialog.ui
+  }
+
+  MOC_Files {
+    MainWindow.h
+    LogFileWidget.h
+    ServiceWidget.h
+    ManagerConfigurationManager.h
+    ConfigurationManager.h
+    ServiceDesc.h 
+    LogFileAction.h
+    ConfigFileWidget.h
+    TabWidget.h
+    ServiceController.h
+    AboutDialog.h
+  }
+
+  Source_Files {
+    main.cpp
+    MainWindow.cpp
+    MainWindow_moc.cpp
+    LogFileWidget.cpp
+    LogFileWidget_moc.cpp
+    ServiceWidget.cpp
+    ServiceWidget_moc.cpp
+    LogFileAction.cpp
+    LogFileAction_moc.cpp
+    ConfigFileWidget.cpp
+    ConfigFileWidget_moc.cpp
+    TabWidget.cpp
+    TabWidget_moc.cpp
+    ServiceController.cpp
+    AboutDialog.cpp
+    AboutDialog_moc.cpp
+    ServiceControllerWindows.cpp
+  }
+}
+
