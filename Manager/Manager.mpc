@@ -7,7 +7,7 @@ project(Manager) : qt4_core, qt4_gui, gatewaycommon {
   includes += $(GATEWAY_ROOT)/LibJSON $(QT4_INCDIR)/QtGui $(QT4_INCDIR)/QtCore
 
   libpaths += $(GATEWAY_ROOT)/build/lib
-  libs += json
+  libs += json qtmain
 
   specific(prop:windows) {
     lit_libs += AdvApi32 Shell32
@@ -18,6 +18,7 @@ project(Manager) : qt4_core, qt4_gui, gatewaycommon {
   }
 
   specific(vc10) {
+    subsystem = Windows
     uacexecutionlevel = RequireAdministrator
     generatemanifest = true
   }
