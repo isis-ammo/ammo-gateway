@@ -221,7 +221,6 @@ Built on ${os.arch} ${os.name} ${os.version}
     <target name="configure-unix" depends="update-gatewayversion" if="isUnix">
         <exec executable="mwc.pl" dir="." searchpath="true">
            <arg value="--type"/> <arg value="gnuace"/>
-           <arg value="--features"/> <arg value="qt4"/>
            <arg value="Gateway.mwc"/>
         </exec>
     </target>
@@ -229,7 +228,7 @@ Built on ${os.arch} ${os.name} ${os.version}
     <target name="configure-windows" description="build the  makefiles" depends="update-gatewayversion" if="isWindows">
         <exec executable="cmd" dir="." searchpath="true">
            <arg value="/c"/>
-           <arg value="mwc.pl --type vc10 Gateway.mwc"/>
+           <arg value="mwc.pl --type vc10 --features qt4=1 Gateway.mwc"/>
         </exec>
     </target>
 

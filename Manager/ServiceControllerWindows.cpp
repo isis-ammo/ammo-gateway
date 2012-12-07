@@ -209,6 +209,6 @@ QString ServiceControllerWindows::LPTSTR2QString(LPTSTR s)
 #ifdef UNICODE
     return QString::fromUtf16((const ushort*) s);
 #else
-    return QString::fromAscii(winMsg);
+    return QString::fromAscii(static_cast<const char *>(s));
 #endif
 }
