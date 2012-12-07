@@ -49,6 +49,7 @@ public:
   
 private:
   std::string deviceId; //not authenticated; just for pretty logging
+  std::string peerAddress;
   AndroidMessageProcessor *messageProcessor;
   
   ACE_Thread_Mutex receiveQueueMutex;
