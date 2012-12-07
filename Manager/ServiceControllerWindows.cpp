@@ -143,7 +143,8 @@ bool ServiceControllerWindows::openSvc(QString& errMsg)
 
 	this->_svc = OpenServiceA(
       _svcMan,                                   // SCM database
-	  this->systemName().toStdString().c_str(),  // name of service
+	  this->systemName().toLocal8Bit().data(),   // name of service
+	  //this->systemName().toStdString().c_str(),  // name of service
       SERVICE_ALL_ACCESS                         // full access rights
     );
 
