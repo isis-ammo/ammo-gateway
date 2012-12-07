@@ -327,7 +327,8 @@ inline std::string ConfigurationManager::findConfigFile(const std::string& confi
   }
 
   LOG_INFO("Using config file: " << filePath.absoluteFilePath().toLocal8Bit().data());
-  return filePath.absoluteFilePath().toStdString();
+  return std::string(filePath.absoluteFilePath().toLocal8Bit().data());
+  //return filePath.absoluteFilePath().toStdString();
 }
 #endif
 
