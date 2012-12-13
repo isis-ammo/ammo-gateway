@@ -17,11 +17,12 @@ project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin
     DataStoreConfigManager.cpp
     DataStoreDispatcher.cpp
     DataStoreReceiver.cpp
-    EventProjectionParser.cpp
-    EventQueryHandler.cpp
+//    EventProjectionParser.cpp
+//    EventQueryHandler.cpp
+    IncidentDataStoreQueryHandler.cpp
     main.cpp
-    MediaProjectionParser.cpp
-    MediaQueryHandler.cpp
+//    MediaProjectionParser.cpp
+//    MediaQueryHandler.cpp
     OriginalPushHandler.cpp
     OriginalQueryHandler.cpp
     OriginalQueryParamParser.cpp

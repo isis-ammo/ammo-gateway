@@ -2,7 +2,7 @@
 <project name="build incident" default="help" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
   <artifact:dependencies filesetId="contract.set">
-    <dependency groupId="edu.vu.isis" artifactId="dashlib" version="1.7.0-SNAPSHOT" classifier="contract" type="xml"/>
+    <dependency groupId="edu.vu.isis" artifactId="dashlib" version="1.7.1-SNAPSHOT" classifier="contract" type="xml"/>
   </artifact:dependencies>
 
   <property name="incident_plugin.dir" location="plugin/IncidentDataStorePlugin"/>
@@ -50,6 +50,12 @@ property="incident_serial.exists"/>
       <arg value="output=${incident_plugin.dir}"/>
       <classpath refid="generator.class.path"/>
     </java>
+    <move todir=".">
+      <filelist dir="${incident_plugin.dir}">
+        <file name="IncidentDataStoreQueryHandler.cpp"/>
+        <file name="IncidentDataStoreQueryHandler.h"/>
+      </filelist>
+    </move>
   </target>
 
   <target name="incident-serialization" if="incident_serial.regenerate">
@@ -70,6 +76,8 @@ property="incident_serial.exists"/>
   <target name="realclean-incident" depends="clean-incident" description="real clean up">
     <delete dir="${incident_plugin.dir}"/>
     <delete dir="${incident_serialization.dir}"/>
+    <delete file="IncidentDataStoreQueryHandler.cpp"/>
+    <delete file="IncidentDataStoreQueryHandler.h"/>
   </target>
 
 </project>

@@ -65,7 +65,6 @@ OriginalQueryStatementBuilder::build (void)
       return false;
     }
 
-    LOG_TRACE("Query String: " << query_str_);
   int status = sqlite3_prepare (db_,
                                 query_str_.c_str (),
                                 query_str_.length (),
@@ -80,7 +79,17 @@ OriginalQueryStatementBuilder::build (void)
       return false;
     }
 
-  return this->bind ();
+  bool good_bind = this->bind ();
+  
+  if (!good_bind)
+    {
+      LOG_ERROR ("Bind of values to query statement failed: "
+                 << sqlite3_errmsg (db_));
+      return false;
+    }
+    
+  LOG_TRACE("Query String: " << query_str_);
+  return true;
 }
 
 bool

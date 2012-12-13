@@ -8,7 +8,7 @@
            classpathref="maven-ant-tasks.classpath" />
            
   <artifact:dependencies pathId="generator.class.path">
-    <dependency groupId="edu.vu.isis" artifactId="ammogen" version="1.7.0-SNAPSHOT" scope="compile"/>
+    <dependency groupId="edu.vu.isis" artifactId="ammogen" version="1.7.1-SNAPSHOT" scope="compile"/>
     <dependency groupId="org.antlr" artifactId="stringtemplate" version="4.0.2" scope="compile"/>
     <dependency groupId="commons-lang" artifactId="commons-lang" version="2.1" scope="compile"/>
     <dependency groupId="org.antlr" artifactId="antlr-runtime" version="3.3" scope="compile"/>
