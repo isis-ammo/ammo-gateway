@@ -44,19 +44,19 @@ public:
 class App
 {
 public:
-  static App* instance();
-  static void destroy();
+  static App* instance (void);
+  static void destroy (void);
 private:
   static App* _instance;
 
 private:
-  App();
-  ~App();
+  App (void);
+  ~App (void);
 
 public:
-  bool init(int argc, char* argv[]);
-  void run();
-  void stop();
+  bool init (int argc, char* argv[]);
+  void run (void);
+  void stop (void);
 
 private:
   ACE_Sig_Action no_sigpipe;
@@ -70,29 +70,35 @@ private:
 
 App* App::_instance = NULL;
 
-App* App::instance()
+App*
+App::instance (void)
 {
-  if (!_instance) {
-    _instance = new App();
-  }
+  if (_instance == NULL)
+    {
+      _instance = new App ();
+    }
 
   return _instance;
 }
 
-void App::destroy()
+void
+App::destroy (void)
 {
   delete _instance;
   _instance = NULL;
 }
 
-App::App() : no_sigpipe((ACE_SignalHandler) SIG_IGN),  // Set signal handler for SIGPIPE (so we don't crash if a device disconnects during write)
-			 handleExit(NULL),
-			 receiver(NULL),
-			 gatewayConnector(NULL)
+App::App (void)
+   // Set signal handler for SIGPIPE (so we don't crash
+   // if a device disconnects during write).
+ : no_sigpipe ((ACE_SignalHandler) SIG_IGN),
+	 handleExit (NULL),
+	 receiver (NULL),
+	 gatewayConnector (NULL)
 {
 }
 
-App::~App()
+App::~App (void)
 {
   //if (this->receiver) {
   //  delete this->receiver;
@@ -102,30 +108,31 @@ App::~App()
   //}
 }
 
-bool App::init(int argc, char* argv[])
+bool
+App::init (int argc, char* argv[])
 {
-  dropPrivileges();
+  dropPrivileges ();
 
-  //Explicitly specify the ACE select reactor; on Windows, ACE defaults
-  //to the WFMO reactor, which has radically different semantics and
-  //violates assumptions we made in our code
+  // Explicitly specify the ACE select reactor; on Windows, ACE defaults
+  // to the WFMO reactor, which has radically different semantics and
+  // violates assumptions we made in our code.
   ACE_Select_Reactor *selectReactor = new ACE_Select_Reactor;
-  ACE_Reactor *newReactor = new ACE_Reactor(selectReactor);
-  auto_ptr<ACE_Reactor> delete_instance(ACE_Reactor::instance(newReactor));
+  ACE_Reactor *newReactor = new ACE_Reactor (selectReactor);
+  auto_ptr<ACE_Reactor> delete_instance (ACE_Reactor::instance (newReactor));
   
-  setupLogging("DataStoreGatewayPlugin");
-  LOG_FATAL("=========");
-  LOG_FATAL("AMMO Location Store Gateway Plugin ("
-            << VERSION
-            << " built on "
-            << __DATE__
-            << " at "
-            << __TIME__
-            << ")");
+  setupLogging ("DataStoreGatewayPlugin");
+  LOG_FATAL ("=========");
+  LOG_FATAL ("AMMO Location Store Gateway Plugin ("
+             << VERSION
+             << " built on "
+             << __DATE__
+             << " at "
+             << __TIME__
+             << ")");
   
-  handleExit = new SigintHandler();
-  ACE_Reactor::instance()->register_handler(SIGINT, handleExit);
-  ACE_Reactor::instance()->register_handler(SIGTERM, handleExit);
+  handleExit = new SigintHandler ();
+  ACE_Reactor::instance ()->register_handler (SIGINT, handleExit);
+  ACE_Reactor::instance ()->register_handler (SIGTERM, handleExit);
 
   LOG_DEBUG ("Creating location store receiver...");
   
@@ -141,97 +148,115 @@ bool App::init(int argc, char* argv[])
 
   // Make sure that the receiver and connector have been created and
   // passed to the config manager before calling this method.
-  if (!receiver->init ()) {
-    // Error msg already output, just exit w/o starting reactor.
-    return false;
-  }
+  if (!receiver->init ())
+    {
+      // Error msg already output, just exit w/o starting reactor.
+      return false;
+    }
 
   return true;
 }
 
-void App::run()
+void
+App::run (void)
 {
   ACE_Reactor *reactor = ACE_Reactor::instance ();
   LOG_DEBUG ("Starting event loop...");
   reactor->run_reactor_event_loop ();
 }
 
-void App::stop()
+void
+App::stop (void)
 {
-  ACE_Reactor::instance()->end_reactor_event_loop();
+  ACE_Reactor::instance ()->end_reactor_event_loop ();
 }
 
 #ifdef WIN32
 
-bool SvcInit(DWORD argc, LPTSTR* argv)
+bool
+SvcInit (DWORD argc, LPTSTR* argv)
 {
-  return App::instance()->init(argc, argv);
+  return App::instance ()->init (argc, argv);
 }
 
-void SvcRun()
+void
+SvcRun (void)
 {
-  App::instance()->run();
+  App::instance ()->run ();
 }
 
-void SvcStop()
+void
+SvcStop (void)
 {
-  App::instance()->stop();
+  App::instance ()->stop ();
 }
 
-int main(int argc, char* argv[])
+int
+main (int argc, char* argv[])
 {
   const std::string svcName = "DataStoreGatewayPlugin";
 
-  // Service installation command line option
-  if (argc == 2) {
-    if (lstrcmpi(argv[1], TEXT("install")) == 0) {
-      try
-      {
-        WinSvc::install(svcName);
-		return 0;
-      }
-      catch (WinSvcException e)
-	  {
-        cerr << e.what();
-		return 1;
-	  }
-	}
-	else if (lstrcmpi(argv[1], TEXT("-nowinsvc")) == 0) {
-      if (!App::instance()->init(argc, argv)) {
-        return 1;
-      }
-      App::instance()->run();
-      App::instance()->destroy();
-      return 0;
+  // Service installation command line option.
+  if (argc == 2)
+    {
+      if (lstrcmpi (argv[1], TEXT ("install")) == 0)
+        {
+          try
+            {
+              WinSvc::install (svcName);
+		          return 0;
+            }
+          catch (WinSvcException e)
+	          {
+              cerr << e.what ();
+		          return 1;
+	          }
+	      }
+	    else if (lstrcmpi (argv[1], TEXT ("-nowinsvc")) == 0)
+	      {
+          if (!App::instance ()->init (argc, argv))
+            {
+              return 1;
+            }
+          
+          App::instance ()->run ();
+          App::instance ()->destroy ();
+          return 0;
+        }
     }
-  }
 
-  // Normal service operation
-  WinSvc::callbacks_t callbacks(SvcInit, SvcRun, SvcStop);
+  // Normal service operation.
+  WinSvc::callbacks_t callbacks (SvcInit, SvcRun, SvcStop);
 
-  App::instance();
+  App::instance ();
+  
   try
-  {
-    WinSvc::instance(svcName, callbacks);
-    WinSvc::instance()->run();
-  }
+    {
+      WinSvc::instance (svcName, callbacks);
+      WinSvc::instance ()->run ();
+    }
   catch (WinSvcException e)
-  {
-    LOG_FATAL(e.what());
-  }
+    {
+      LOG_FATAL (e.what ());
+    }
 
-  App::destroy();
-
+  App::destroy ();
   return 0;
 }
-#else
-int main(int argc, char** argv)
+
+#else // #ifdef WIN32
+
+int
+main (int argc, char** argv)
 {
-  if (!App::instance()->init(argc, argv)) {
-    return 1;
-  }
-  App::instance()->run();
-  App::instance()->destroy();
+  if (!App::instance ()->init (argc, argv))
+    {
+      return 1;
+    }
+  
+  App::instance ()->run ();
+  App::instance ()->destroy ();
   return 0;
 }
-#endif
+
+#endif // #ifdef WIN32

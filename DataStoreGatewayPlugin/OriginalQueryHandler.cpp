@@ -39,7 +39,7 @@ OriginalQueryHandler::handleQuery (void)
   unsigned int skip = 0;
   
   sqlite3_stmt *stmt = builder_.query ();
-  
+
   while (sqlite3_step (stmt) == SQLITE_ROW
          && index < resultLimit)
     {
@@ -64,8 +64,8 @@ OriginalQueryHandler::handleQuery (void)
       // output even if no responses are sent.
       ++index;
         
-//      LOG_TRACE ("matched on: " << pr_.projection);
-//      LOG_TRACE (data);
+      LOG_TRACE ("matched on: " << pr_.projection);
+      LOG_TRACE (data);
         
       if (sender_ == 0)
         {
