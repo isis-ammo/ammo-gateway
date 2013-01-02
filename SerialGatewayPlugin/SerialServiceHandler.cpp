@@ -66,7 +66,7 @@ int SerialServiceHandler::open(void *ptr)
   //ACE-based serial initialization code
   int result = serialConnector.connect(serialDev, ACE_DEV_Addr(static_cast<char *>(ptr)));
   if(result == -1) {
-    LOG_ERROR(this->name << " - Couldn't open serial port " << ptr);
+    LOG_ERROR(this->name << " - Couldn't open serial port " <<static_cast<char *>(ptr) << "(" << errno << ": " << strerror(errno) << ")" );
     exit(-1);
   }
   

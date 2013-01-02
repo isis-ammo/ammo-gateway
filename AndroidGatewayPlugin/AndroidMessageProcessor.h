@@ -42,6 +42,7 @@ private:
   ammo::gateway::GatewayConnector *gatewayConnector;
   
   std::string deviceId;
+  std::string userId;
   bool deviceIdAuthenticated;
   
   bool isClosed();
