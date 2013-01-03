@@ -66,7 +66,7 @@ int SerialServiceHandler::open(void *ptr)
   //ACE-based serial initialization code
   int result = serialConnector.connect(serialDev, ACE_DEV_Addr(static_cast<char *>(ptr)));
   if(result == -1) {
-    LOG_ERROR(this->name << " - Couldn't open serial port " <<static_cast<char *>(ptr) << "(" << errno << ": " << strerror(errno) << ")" );
+    LOG_ERROR(this->name << " - Couldn't open serial port " <<static_cast<char *>(ptr) << " (" << errno << ": " << strerror(errno) << ")" );
     exit(-1);
   }
   
@@ -75,7 +75,11 @@ int SerialServiceHandler::open(void *ptr)
   params.xonlim = 0;
   params.xofflim = 0;
   params.readmincharacters = 0;
-  params.readtimeoutmsec = 1; //negative value means infinite timeout
+  #ifdef WIN32
+  params.readtimeoutmsec = 1;
+  #else
+  params.readtimeoutmsec = -1; //negative value means infinite timeout
+  #endif
   params.paritymode = "NONE";
   params.ctsenb = true;
   params.rtsenb = 1;
@@ -297,10 +301,11 @@ unsigned char SerialServiceHandler::read_a_char()
   unsigned char temp;
   
   ssize_t count = 0;
-  while(count == 0) {
+  while(count == 0 || (count == -1 && errno == ETIME)) {
     serialPortToken.acquire();
     ACE_Time_Value timeout(0, 10000); //10ms timeout; when this expires, we give the sender side an opportunity to send stuff
     count = serialDev.recv_n((void *) &temp, 1, &timeout);
+    ACE_Time_Value messageTime = ACE_OS::gettimeofday();
     serialPortToken.release();
   }
 
