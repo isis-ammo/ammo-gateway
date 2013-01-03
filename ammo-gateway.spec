@@ -75,6 +75,7 @@ rm -rf %{buildroot}
 /etc/ammo-gateway/LdapPluginConfig.json
 /etc/ammo-gateway/LoggingConfig.json
 /etc/ammo-gateway/DataStorePluginConfig.json
+/etc/ammo-gateway/SerialPluginConfig.json
 /etc/ammo-gateway/PassPluginConfig.json
 /etc/ammo-gateway/MCastPluginConfig.json
 /etc/ammo-gateway/RMCastPluginConfig.json
