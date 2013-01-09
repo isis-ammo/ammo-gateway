@@ -38,6 +38,23 @@ struct MessageHeader {
   unsigned int headerChecksum; //CRC32 checksum of the header, less this checksum.  Does *not* include data, or itself.
 };
 
+struct SerialHeader {
+  uint32_t magicNumber;     //magic number (3.5 bytes) and slot number (4 bits)
+  uint16_t size;            //size of the data (not including this header)
+  uint16_t payloadChecksum; //low two bytes of CRC32 checksum of data (doesn't include header)
+  uint8_t  slotIndex;       //the index of this packet within its slot
+  uint8_t  slotNumber;      //the slot number of the sending device
+  uint16_t hyperperiod;
+  uint8_t  packetType;      //The packet type (for resend functionality)
+  uint8_t  reserved;        //Reserved for future use
+  uint16_t headerChecksum;  //low two bytes of CRC32 checksum of header
+};
+
+//Valid values for SerialHeader::packetType
+const uint16_t PACKETTYPE_NORMAL = 0x0001;
+const uint16_t PACKETTYPE_RESEND = 0x0002;
+const uint16_t PACKETTYPE_ACK    = 0x0003;
+
 //error values for MessageHeader
 const char SS_NO_ERROR = 0;
 const char INVALID_MAGIC_NUMBER = 1;
