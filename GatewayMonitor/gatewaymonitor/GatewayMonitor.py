@@ -3,8 +3,30 @@
 import psutil
 import socket
 import time
+import json
+
+def getGatewayId():
+  gatewayId = "unknown"
+  with open('C:\\ProgramData\\ammo-gateway\\GatewayConfig.json') as f:
+    try:
+      # HACK: removing comments from JSON.  To be more robust, we should find
+      # a JSON parser that handles comments (this code will break if // is in
+      # a string somewhere)
+      jsonConfig = ""
+      for line in f:
+        (beginning, middle, end) = line.rpartition("//")
+        if middle != "": # we found a comment
+          jsonConfig = jsonConfig + beginning
+        else: # we didn't find a comment
+          jsonConfig = jsonConfig + end
+      gatewayConfig = json.loads(jsonConfig)
+      gatewayId = gatewayConfig["CrossGatewayId"]
+    except IOError:
+      pass
+  return gatewayId
 
 def getProcessInfo(process):
+  print "Gateway ID:", getGatewayId()
   print "Process", process.pid, ":", process.name
   processStartTime = process.create_time
   print "  Running since", processStartTime, "(uptime", time.time() - processStartTime, "sec)"
