@@ -1,8 +1,11 @@
 from setuptools import setup, find_packages
+
+import py2exe
 setup(
     name = "GatewayMonitor",
     version = "0.1",
     packages = find_packages(),
+    console = ['gatewaymonitor/GatewayMonitor.py'],
     entry_points = {
       'console_scripts': [
         'GatewayMonitor = gatewaymonitor.GatewayMonitor:main'
