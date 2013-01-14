@@ -4,6 +4,18 @@ import psutil
 import socket
 import time
 import json
+import pprint
+import urllib
+import urllib2
+import sys
+import contextlib
+
+# Set up default config (assuming everything goes well, this will be overwritten
+# by loadConfig in main())
+defaultConfig = { "processName": "AndroidGatewayPlugin.exe", # the process to inspect
+  "sampleInterval": 30, # number of seconds between samples/updates
+  "endpoint": "http://localhost/UploadStats" # endpoint to send sample data to
+}
 
 def getGatewayId():
   gatewayId = "unknown"
@@ -24,6 +36,24 @@ def getGatewayId():
   except IOError:
     pass
   return gatewayId
+  
+def loadConfig():
+  newConfig = None
+  config = None
+  try:
+    with open("C:\\ProgramData\\ammo-gateway\\MonitorConfig.json") as f:
+      newConfig = json.load(f)
+  except Exception as e:
+    print "Error occurred when loading config:", e
+    pass
+  if newConfig != None:
+    config = newConfig
+  else:
+    config = defaultConfig
+    print "An error occurred when reading the config file; using defaults"
+  
+  print "Configuration:", pprint.pformat(config, indent=2)
+  return config
 
 def getProcessInfo(process):
   processInfo = {}
@@ -77,9 +107,19 @@ def generateJson(processName, found, info):
   print ""
   print "JSON:", json.dumps(result, indent = 2)
   return jsonString
+  
+def submitSample(endpoint, jsonString):
+  uploadData = urllib.urlencode({"data": jsonString})
+  req = urllib2.Request(url = endpoint, data = uploadData)
+  try:
+    with contextlib.closing(urllib2.urlopen(req)) as f:
+      print "Successfully posted sample"
+  except Exception as e:
+    print "Error occurred when posting sample:", e
 
 def main():
-  searchProcess = "AndroidGatewayPlugin.exe"
+  config = loadConfig()
+  searchProcess = config["processName"]
   while True:
     found = False
     info = {}
@@ -92,9 +132,10 @@ def main():
         except psutil.error.NoSuchProcess:
           print "Process disappeared while we were gathering its stats"
     jsonToSend = generateJson(searchProcess, found, info)
+    submitSample(config["endpoint"], jsonToSend)
     print ""
           
-    time.sleep(10)
+    time.sleep(config["sampleInterval"])
       
 
 if __name__ == "__main__":
