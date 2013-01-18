@@ -9,6 +9,7 @@ import urllib
 import urllib2
 import sys
 import contextlib
+import threading
 
 # Set up default config (assuming everything goes well, this will be overwritten
 # by loadConfig in main())
@@ -73,7 +74,7 @@ def getProcessInfo(process):
   memoryInfo = process.get_memory_info()
   processInfo["memInfo"] = {}
   processInfo["memInfo"]["workingSet"] = memoryInfo.rss
-  processInfo["memInfo"]["privateBytes"] = memoryInfo.vms
+  processInfo["memInfo"]["vmSize"] = memoryInfo.vms
   processInfo["connections"] = len(process.get_connections("tcp"))
   
   # print "Gateway ID:", getGatewayId()
@@ -117,26 +118,48 @@ def submitSample(endpoint, jsonString):
   except Exception as e:
     print "Error occurred when posting sample:", e
 
-def main():
-  config = loadConfig()
-  searchProcess = config["processName"]
-  while True:
-    found = False
-    info = {}
-    for process in psutil.process_iter():
-      if process.name.lower() == searchProcess.lower():
-        try:
-          info = getProcessInfo(process)
-          found = True
-          break
-        except psutil.error.NoSuchProcess:
-          print "Process disappeared while we were gathering its stats"
-    jsonToSend = generateJson(searchProcess, found, info)
-    submitSample(config["endpoint"], jsonToSend)
-    print ""
-          
-    time.sleep(config["sampleInterval"])
+class GatewayMonitor(threading.Thread):
+  def __init__(self):
+    threading.Thread.__init__(self)
+    self.cancelled = False
+    self.cancelledLock = threading.Lock()
+    
+  def cancel(self):
+    self.cancelledLock.acquire()
+    self.cancelled = True
+    self.cancelledLock.release()
+    
+  def isCancelled(self):
+    result = False
+    self.cancelledLock.acquire()
+    result = self.cancelled
+    self.cancelledLock.release()
+    return result
+    
+  def run(self):
+    config = loadConfig()
+    searchProcess = config["processName"]
+    while not self.isCancelled():
+      found = False
+      info = {}
+      for process in psutil.process_iter():
+        if process.name.lower() == searchProcess.lower():
+          try:
+            info = getProcessInfo(process)
+            found = True
+            break
+          except psutil.error.NoSuchProcess:
+            print "Process disappeared while we were gathering its stats"
+      jsonToSend = generateJson(searchProcess, found, info)
+      submitSample(config["endpoint"], jsonToSend)
+      print ""
+      
+      sleepTime = 0
+      while sleepTime < config["sampleInterval"] and not self.isCancelled():
+        time.sleep(1)
+        sleepTime += 1
       
 
 if __name__ == "__main__":
-  main()
+  m = GatewayMonitor()
+  m.run() # Running directly on the main thread for testing; should run forever
