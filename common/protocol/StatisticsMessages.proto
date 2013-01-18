@@ -1,0 +1,23 @@
+package ammo.gateway.protocol.stats;
+
+message PeriodicStatistics {
+  optional uint64 total_bytes_sent = 1;
+  optional uint64 total_bytes_received = 2;
+  optional uint64 total_messages_sent = 3;
+  optional uint64 total_messages_received = 4;
+  optional uint64 active_device_count = 5;
+}
+
+message DeviceConnectedNotification {
+  required string device_id = 1;
+  optional uint64 last_connection_time_millis = 2;
+}
+
+message DeviceDisconnectedNotification {
+  required string device_id = 1;
+  optional uint64 connected_time_millis = 2;
+  optional uint64 bytes_sent = 3;
+  optional uint64 bytes_received = 4;
+  optional uint64 messages_sent = 5;
+  optional uint64 messages_received = 6;
+}
