@@ -47,6 +47,11 @@ public:
   ammo::protocol::MessageWrapper *getNextReceivedMessage();
   void addReceivedMessage(ammo::protocol::MessageWrapper *msg, char priority);
   
+  unsigned long long getBytesSent();
+  unsigned long long getBytesReceived();
+  unsigned long long getMessagesSent();
+  unsigned long long getMessagesReceived();
+  
 private:
   std::string deviceId; //not authenticated; just for pretty logging
   std::string peerAddress;
@@ -61,6 +66,16 @@ private:
   
   time_t latestMessageTime;
   unsigned int heartbeatTimeoutTime;
+  
+  unsigned long long bytesSent;
+  unsigned long long bytesReceived;
+  unsigned long long messagesSent;
+  unsigned long long messagesReceived;
+  
+  void setBytesSent(unsigned long long bytesSent);
+  void setBytesReceived(unsigned long long bytesSent);
+  void setMessagesSent(unsigned long long bytesSent);
+  void setMessagesReceived(unsigned long long bytesSent);
 };
 
 #endif

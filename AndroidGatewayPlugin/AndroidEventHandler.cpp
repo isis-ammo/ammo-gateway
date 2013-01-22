@@ -14,7 +14,11 @@ using namespace std;
 AndroidEventHandler::AndroidEventHandler() :
 messageProcessor(NULL),
 receiveQueueMutex(),
-receivedMessageCount(0) {
+receivedMessageCount(0),
+bytesSent(0),
+bytesReceived(0),
+messagesSent(0), 
+messagesReceived(0),{
   LOG_TRACE((long) this << " ctor AndroidEventHandler()");
   latestMessageTime = time(NULL);
   heartbeatTimeoutTime = AndroidPluginConfigurationManager::getInstance()->getHeartbeatTimeout();
