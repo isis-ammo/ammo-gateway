@@ -760,7 +760,7 @@ class NetworkConnector {
 
                     bbuf.compact();
                 } catch ( Exception ex ) {
-                    logger.warn("receiver threw exception {}", ex.getMessage());
+                    logger.error("receiver threw exception", ex);
 		    ex.printStackTrace();
 		    break;
                 }

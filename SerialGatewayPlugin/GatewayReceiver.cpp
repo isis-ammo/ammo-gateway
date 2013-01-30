@@ -60,10 +60,38 @@ void GatewayReceiver::onPushDataReceived(
     bool parsingSuccessful = reader.parse(pushData.data.c_str(), root);
 
     if(parsingSuccessful) {
-      string name = root["name"].asString();
-      int32_t lat = atoi(root["lat"].asString().c_str());
-      int32_t lon = atoi(root["lon"].asString().c_str());
-      uint32_t time = atoll(root["created"].asString().c_str()) / 1000;
+      string name = "";
+      int32_t lat = 0;
+      int32_t lon = 0;
+      uint32_t time = 0;
+      
+      if(root["name"].isString()) {
+        name = root["name"].asString();
+      } else {
+        LOG_ERROR("Received invalid PLI message from gateway... 'name' is not a string");
+        return;
+      }
+      
+      if(root["lat"].isString()) {
+        lat = atoi(root["lat"].asString().c_str());
+      } else {
+        LOG_ERROR("Received invalid PLI message from gateway... 'lat' is not a string");
+        return;
+      }
+      
+      if(root["lon"].isString()) {
+        lon = atoi(root["lon"].asString().c_str());
+      } else {
+        LOG_ERROR("Received invalid PLI message from gateway... 'lon' is not a string");
+        return;
+      }
+      
+      if(root["created"].isString()) {
+        time = atoll(root["created"].asString().c_str()) / 1000;
+      } else {
+        LOG_ERROR("Received invalid PLI message from gateway... 'created' is not a string");
+        return;
+      }
       LOG_DEBUG("XXX name=" << name << " lat=" << lat << " lon=" << lon << " time=" << time);
 
 #ifdef PLI_PASSTHROUGH
@@ -117,9 +145,30 @@ void GatewayReceiver::onPushDataReceived(
     bool parsingSuccessful = reader.parse(pushData.data.c_str(), root);
 
     if(parsingSuccessful) {
-      string originator = root["originator"].asString();
-      string text = root["text"].asString();
-      int64_t time = atoll(root["created_date"].asString().c_str());
+      string originator = "";
+      string text = "";
+      int64_t time = 0;
+      
+      if(root["originator"].isString()) {
+        originator = root["originator"].asString();
+      } else {
+        LOG_ERROR("Received invalid chat message from gateway... 'originator' is not a string");
+        return;
+      }
+      
+      if(root["text"].isString()) {
+        text = root["text"].asString();
+      } else {
+        LOG_ERROR("Received invalid chat message from gateway... 'text' is not a string");
+        return;
+      }
+      
+      if(root["time"].isString()) {
+        time = atoll(root["created_date"].asString().c_str());
+      } else {
+        LOG_ERROR("Received invalid chat message from gateway... 'time' is not a string");
+        return;
+      }
       ACE_Utils::UUID *uuid = ACE_Utils::UUID_GENERATOR::instance ()->generate_UUID ();
 
 
@@ -227,6 +276,7 @@ std::string GatewayReceiver::getNextPliRelayPacket() {
   
   if(gpsThread->getPosition(latDouble, lonDouble) == false) {
     LOG_WARN("Can't forward PLI; no GPS lock");
+    pliMapMutex.release();
     return "";
   }
   
