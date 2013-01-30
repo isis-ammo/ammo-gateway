@@ -276,6 +276,7 @@ std::string GatewayReceiver::getNextPliRelayPacket() {
   
   if(gpsThread->getPosition(latDouble, lonDouble) == false) {
     LOG_WARN("Can't forward PLI; no GPS lock");
+    pliMapMutex.release();
     return "";
   }
   
