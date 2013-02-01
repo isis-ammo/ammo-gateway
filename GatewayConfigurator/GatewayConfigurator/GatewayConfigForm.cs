@@ -49,17 +49,44 @@ namespace GatewayConfigurator
 
         private void GatewayConfigForm_Shown(object sender, EventArgs e)
         {
-            textBox1.Text = c.ToString();
         }
 
         private void textBoxValidated(object sender, EventArgs e)
         {
-            textBox1.Text = c.ToString();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            c.WriteConfig("C:\\ProgramData\\ammo-gateway\\SerialPluginConfig.json");
+            try
+            {
+                statusLabel.Text = "Saving...";
+                c.WriteConfig("C:\\ProgramData\\ammo-gateway\\SerialPluginConfig.json");
+                statusLabel.Text = "Saved.";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, "An error occurred while saving:\r\n" + e.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                statusLabel.Text = "Save failed.";
+            }
+        }
+
+        private void bindingSource1_BindingComplete(object sender, BindingCompleteEventArgs e)
+        {
+            if (e.BindingCompleteState == BindingCompleteState.DataError)
+            {
+                statusLabel.Text = "Data Error: " + e.ErrorText;
+                e.Binding.Control.ForeColor = Color.Red;
+            }
+            else if (e.BindingCompleteState == BindingCompleteState.Exception)
+            {
+                statusLabel.Text = "Invalid Data: " + e.Exception.Message;
+                e.Binding.Control.ForeColor = Color.Red;
+            }
+            else
+            {
+                statusLabel.Text = "Binding complete";
+                e.Binding.Control.ForeColor = SystemColors.WindowText;
+            }
         }
     }
 }

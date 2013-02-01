@@ -59,5 +59,12 @@ namespace GatewayConfigurator.Properties {
                 resourceCulture = value;
             }
         }
+        
+        internal static System.Drawing.Icon manager {
+            get {
+                object obj = ResourceManager.GetObject("manager", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
     }
 }
