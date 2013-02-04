@@ -31,6 +31,7 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GatewayConfigForm));
             this.textBox2 = new System.Windows.Forms.TextBox();
+            this.serialBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.label1 = new System.Windows.Forms.Label();
             this.textBox3 = new System.Windows.Forms.TextBox();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
@@ -63,21 +64,34 @@
             this.statusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
+            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.button2 = new System.Windows.Forms.Button();
+            this.textBox15 = new System.Windows.Forms.TextBox();
+            this.gatewayBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.label15 = new System.Windows.Forms.Label();
+            this.label14 = new System.Windows.Forms.Label();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            ((System.ComponentModel.ISupportInitialize)(this.serialBindingSource)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
+            this.tabPage2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.gatewayBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // textBox2
             // 
-            this.textBox2.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "ListenPort", true));
+            this.textBox2.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.serialBindingSource, "ListenPort", true));
             this.textBox2.Location = new System.Drawing.Point(106, 10);
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(100, 20);
             this.textBox2.TabIndex = 1;
             this.textBox2.Validated += new System.EventHandler(this.textBoxValidated);
+            // 
+            // serialBindingSource
+            // 
+            this.serialBindingSource.DataSource = typeof(GatewayConfigurator.SerialPluginConfig);
+            this.serialBindingSource.BindingComplete += new System.Windows.Forms.BindingCompleteEventHandler(this.bindingSource1_BindingComplete);
             // 
             // label1
             // 
@@ -90,8 +104,8 @@
             // 
             // textBox3
             // 
-            this.textBox3.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "GpsPort", true));
-            this.textBox3.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.bindingSource1, "SendEnabled", true));
+            this.textBox3.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.serialBindingSource, "GpsPort", true));
+            this.textBox3.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.serialBindingSource, "SendEnabled", true));
             this.textBox3.Location = new System.Drawing.Point(106, 62);
             this.textBox3.Name = "textBox3";
             this.textBox3.Size = new System.Drawing.Size(100, 20);
@@ -101,7 +115,7 @@
             // checkBox1
             // 
             this.checkBox1.AutoSize = true;
-            this.checkBox1.DataBindings.Add(new System.Windows.Forms.Binding("Checked", this.bindingSource1, "SendEnabled", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+            this.checkBox1.DataBindings.Add(new System.Windows.Forms.Binding("Checked", this.serialBindingSource, "SendEnabled", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
             this.checkBox1.Location = new System.Drawing.Point(106, 39);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(93, 17);
@@ -114,8 +128,8 @@
             // 
             // textBox4
             // 
-            this.textBox4.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "BaudRate", true));
-            this.textBox4.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.bindingSource1, "SendEnabled", true));
+            this.textBox4.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.serialBindingSource, "BaudRate", true));
+            this.textBox4.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.serialBindingSource, "SendEnabled", true));
             this.textBox4.Location = new System.Drawing.Point(106, 88);
             this.textBox4.Name = "textBox4";
             this.textBox4.Size = new System.Drawing.Size(100, 20);
@@ -124,8 +138,8 @@
             // 
             // textBox5
             // 
-            this.textBox5.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "SlotDuration", true));
-            this.textBox5.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.bindingSource1, "SendEnabled", true));
+            this.textBox5.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.serialBindingSource, "SlotDuration", true));
+            this.textBox5.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.serialBindingSource, "SendEnabled", true));
             this.textBox5.Location = new System.Drawing.Point(106, 115);
             this.textBox5.Name = "textBox5";
             this.textBox5.Size = new System.Drawing.Size(100, 20);
@@ -134,8 +148,8 @@
             // 
             // textBox6
             // 
-            this.textBox6.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "SlotNumber", true));
-            this.textBox6.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.bindingSource1, "SendEnabled", true));
+            this.textBox6.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.serialBindingSource, "SlotNumber", true));
+            this.textBox6.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.serialBindingSource, "SendEnabled", true));
             this.textBox6.Location = new System.Drawing.Point(106, 142);
             this.textBox6.Name = "textBox6";
             this.textBox6.Size = new System.Drawing.Size(100, 20);
@@ -144,8 +158,8 @@
             // 
             // textBox7
             // 
-            this.textBox7.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "NumberOfSlots", true));
-            this.textBox7.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.bindingSource1, "SendEnabled", true));
+            this.textBox7.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.serialBindingSource, "NumberOfSlots", true));
+            this.textBox7.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.serialBindingSource, "SendEnabled", true));
             this.textBox7.Location = new System.Drawing.Point(106, 169);
             this.textBox7.Name = "textBox7";
             this.textBox7.Size = new System.Drawing.Size(100, 20);
@@ -154,8 +168,8 @@
             // 
             // textBox8
             // 
-            this.textBox8.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "TransmitDuration", true));
-            this.textBox8.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.bindingSource1, "SendEnabled", true));
+            this.textBox8.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.serialBindingSource, "TransmitDuration", true));
+            this.textBox8.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.serialBindingSource, "SendEnabled", true));
             this.textBox8.Location = new System.Drawing.Point(106, 196);
             this.textBox8.Name = "textBox8";
             this.textBox8.Size = new System.Drawing.Size(100, 20);
@@ -164,8 +178,8 @@
             // 
             // textBox9
             // 
-            this.textBox9.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "GpsTimeOffset", true));
-            this.textBox9.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.bindingSource1, "SendEnabled", true));
+            this.textBox9.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.serialBindingSource, "GpsTimeOffset", true));
+            this.textBox9.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.serialBindingSource, "SendEnabled", true));
             this.textBox9.Location = new System.Drawing.Point(106, 223);
             this.textBox9.Name = "textBox9";
             this.textBox9.Size = new System.Drawing.Size(100, 20);
@@ -174,8 +188,8 @@
             // 
             // textBox10
             // 
-            this.textBox10.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "PliRelayPerCycle", true));
-            this.textBox10.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.bindingSource1, "PliRelayEnabled", true));
+            this.textBox10.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.serialBindingSource, "PliRelayPerCycle", true));
+            this.textBox10.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.serialBindingSource, "PliRelayEnabled", true));
             this.textBox10.Location = new System.Drawing.Point(348, 62);
             this.textBox10.Name = "textBox10";
             this.textBox10.Size = new System.Drawing.Size(100, 20);
@@ -185,7 +199,7 @@
             // checkBox2
             // 
             this.checkBox2.AutoSize = true;
-            this.checkBox2.DataBindings.Add(new System.Windows.Forms.Binding("Checked", this.bindingSource1, "PliRelayEnabled", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+            this.checkBox2.DataBindings.Add(new System.Windows.Forms.Binding("Checked", this.serialBindingSource, "PliRelayEnabled", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
             this.checkBox2.Location = new System.Drawing.Point(348, 39);
             this.checkBox2.Name = "checkBox2";
             this.checkBox2.Size = new System.Drawing.Size(114, 17);
@@ -197,8 +211,8 @@
             // 
             // textBox11
             // 
-            this.textBox11.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "PliSendFrequency", true));
-            this.textBox11.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.bindingSource1, "PliRelayEnabled", true));
+            this.textBox11.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.serialBindingSource, "PliSendFrequency", true));
+            this.textBox11.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.serialBindingSource, "PliRelayEnabled", true));
             this.textBox11.Location = new System.Drawing.Point(348, 88);
             this.textBox11.Name = "textBox11";
             this.textBox11.Size = new System.Drawing.Size(100, 20);
@@ -207,8 +221,8 @@
             // 
             // textBox12
             // 
-            this.textBox12.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "PliRelayNodeName", true));
-            this.textBox12.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.bindingSource1, "PliRelayEnabled", true));
+            this.textBox12.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.serialBindingSource, "PliRelayNodeName", true));
+            this.textBox12.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.serialBindingSource, "PliRelayEnabled", true));
             this.textBox12.Location = new System.Drawing.Point(348, 115);
             this.textBox12.Name = "textBox12";
             this.textBox12.Size = new System.Drawing.Size(100, 20);
@@ -217,8 +231,8 @@
             // 
             // textBox13
             // 
-            this.textBox13.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "RangeScale", true));
-            this.textBox13.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.bindingSource1, "PliRelayEnabled", true));
+            this.textBox13.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.serialBindingSource, "RangeScale", true));
+            this.textBox13.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.serialBindingSource, "PliRelayEnabled", true));
             this.textBox13.Location = new System.Drawing.Point(348, 142);
             this.textBox13.Name = "textBox13";
             this.textBox13.Size = new System.Drawing.Size(100, 20);
@@ -227,8 +241,8 @@
             // 
             // textBox14
             // 
-            this.textBox14.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "TimeScale", true));
-            this.textBox14.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.bindingSource1, "PliRelayEnabled", true));
+            this.textBox14.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.serialBindingSource, "TimeScale", true));
+            this.textBox14.DataBindings.Add(new System.Windows.Forms.Binding("Enabled", this.serialBindingSource, "PliRelayEnabled", true));
             this.textBox14.Location = new System.Drawing.Point(348, 169);
             this.textBox14.Name = "textBox14";
             this.textBox14.Size = new System.Drawing.Size(100, 20);
@@ -373,6 +387,7 @@
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
+            this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Location = new System.Drawing.Point(12, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -418,10 +433,69 @@
             this.tabPage1.Text = "Serial Plugin";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
-            // bindingSource1
+            // tabPage2
             // 
-            this.bindingSource1.DataSource = typeof(GatewayConfigurator.SerialPluginConfig);
-            this.bindingSource1.BindingComplete += new System.Windows.Forms.BindingCompleteEventHandler(this.bindingSource1_BindingComplete);
+            this.tabPage2.Controls.Add(this.button2);
+            this.tabPage2.Controls.Add(this.textBox15);
+            this.tabPage2.Controls.Add(this.label15);
+            this.tabPage2.Controls.Add(this.label14);
+            this.tabPage2.Controls.Add(this.textBox1);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(470, 252);
+            this.tabPage2.TabIndex = 1;
+            this.tabPage2.Text = "Gateway";
+            this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(150, 129);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(117, 45);
+            this.button2.TabIndex = 4;
+            this.button2.Text = "Save";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // textBox15
+            // 
+            this.textBox15.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.gatewayBindingSource, "CrossGatewayParentAddress", true));
+            this.textBox15.Location = new System.Drawing.Point(200, 79);
+            this.textBox15.Name = "textBox15";
+            this.textBox15.Size = new System.Drawing.Size(167, 20);
+            this.textBox15.TabIndex = 3;
+            // 
+            // gatewayBindingSource
+            // 
+            this.gatewayBindingSource.DataSource = typeof(GatewayConfigurator.GatewayConfig);
+            this.gatewayBindingSource.BindingComplete += new System.Windows.Forms.BindingCompleteEventHandler(this.bindingSource1_BindingComplete);
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(50, 82);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(144, 13);
+            this.label15.TabIndex = 2;
+            this.label15.Text = "Multigateway Parent Address";
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(131, 50);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(63, 13);
+            this.label14.TabIndex = 1;
+            this.label14.Text = "Gateway ID";
+            // 
+            // textBox1
+            // 
+            this.textBox1.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.gatewayBindingSource, "CrossGatewayId", true));
+            this.textBox1.Location = new System.Drawing.Point(200, 47);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(167, 20);
+            this.textBox1.TabIndex = 0;
             // 
             // GatewayConfigForm
             // 
@@ -438,12 +512,15 @@
             this.Text = "AMMO Gateway Configuration";
             this.Load += new System.EventHandler(this.GatewayConfigForm_Load);
             this.Shown += new System.EventHandler(this.GatewayConfigForm_Shown);
+            ((System.ComponentModel.ISupportInitialize)(this.serialBindingSource)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).EndInit();
+            this.tabPage2.ResumeLayout(false);
+            this.tabPage2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.gatewayBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -451,7 +528,7 @@
 
         #endregion
 
-        private System.Windows.Forms.BindingSource bindingSource1;
+        private System.Windows.Forms.BindingSource serialBindingSource;
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox textBox3;
@@ -485,6 +562,13 @@
         private System.Windows.Forms.ToolStripStatusLabel statusLabel;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.BindingSource gatewayBindingSource;
+        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.TextBox textBox15;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.TextBox textBox1;
     }
 }
 

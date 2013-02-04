@@ -12,34 +12,60 @@ namespace GatewayConfigurator
 {
     public partial class GatewayConfigForm : Form
     {
-        SerialPluginConfig c;
+        private SerialPluginConfig serialConfig;
+        private GatewayConfig gatewayConfig;
+
         public GatewayConfigForm()
         {
             InitializeComponent();
             statusLabel.Text = "Loading...";
             try
             {
-                c = SerialPluginConfig.loadConfig("C:\\ProgramData\\ammo-gateway\\SerialPluginConfig.json");
-                statusLabel.Text = "Config file loaded.";
+                serialConfig = SerialPluginConfig.loadConfig("C:\\ProgramData\\ammo-gateway\\SerialPluginConfig.json");
+                statusLabel.Text = "Serial config file loaded.";
             }
             catch (System.IO.FileNotFoundException e)
             {
-                statusLabel.Text = "Config file not found; using defaults (saving will create a new file).";
-                c = new SerialPluginConfig();
+                statusLabel.Text = "Serial config file not found; using defaults (saving will create a new file).";
+                serialConfig = new SerialPluginConfig();
             }
             catch (System.Runtime.Serialization.SerializationException e)
             {
-                MessageBox.Show(this, "Invalid content was found in the config file.\r\nDefault settings will be used;\r\nsaving will overwrite existing settings.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, "Invalid content was found in the serial config file.\r\nDefault settings will be used;\r\nsaving will overwrite existing settings.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 statusLabel.Text = "Defaults loaded.";
-                c = new SerialPluginConfig();
+                serialConfig = new SerialPluginConfig();
             }
             catch (Exception e)
             {
                 MessageBox.Show(this, "An error occurred while loading:\r\n" + e.ToString() + "\r\n\r\nDefault settings will be used;\r\nsaving will overwrite existing settings.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 statusLabel.Text = "Defaults loaded.";
-                c = new SerialPluginConfig();
+                serialConfig = new SerialPluginConfig();
             }
-            bindingSource1.Add(c);
+            serialBindingSource.Add(serialConfig);
+
+            try
+            {
+                gatewayConfig = GatewayConfig.loadConfig("C:\\ProgramData\\ammo-gateway\\GatewayConfig.json");
+                statusLabel.Text = "Gateway config file loaded.";
+            }
+            catch (System.IO.FileNotFoundException e)
+            {
+                statusLabel.Text = "Gateway config file not found; using defaults (saving will create a new file).";
+                gatewayConfig = new GatewayConfig();
+            }
+            catch (System.Runtime.Serialization.SerializationException e)
+            {
+                MessageBox.Show(this, "Invalid content was found in the gateway config file.\r\nDefault settings will be used;\r\nsaving will overwrite existing settings.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                statusLabel.Text = "Defaults loaded.";
+                gatewayConfig = new GatewayConfig();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(this, "An error occurred while loading:\r\n" + e.ToString() + "\r\n\r\nDefault settings will be used;\r\nsaving will overwrite existing settings.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                statusLabel.Text = "Defaults loaded.";
+                gatewayConfig = new GatewayConfig();
+            }
+            gatewayBindingSource.Add(gatewayConfig);
         }
 
         private void GatewayConfigForm_Load(object sender, EventArgs e)
@@ -60,7 +86,7 @@ namespace GatewayConfigurator
             try
             {
                 statusLabel.Text = "Saving...";
-                c.WriteConfig("C:\\ProgramData\\ammo-gateway\\SerialPluginConfig.json");
+                serialConfig.WriteConfig("C:\\ProgramData\\ammo-gateway\\SerialPluginConfig.json");
                 statusLabel.Text = "Saved.";
             }
             catch (Exception ex)
@@ -86,6 +112,21 @@ namespace GatewayConfigurator
             {
                 statusLabel.Text = "Binding complete";
                 e.Binding.Control.ForeColor = SystemColors.WindowText;
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                statusLabel.Text = "Saving...";
+                gatewayConfig.WriteConfig("C:\\ProgramData\\ammo-gateway\\GatewayConfig.json");
+                statusLabel.Text = "Saved.";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, "An error occurred while saving:\r\n" + e.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                statusLabel.Text = "Save failed.";
             }
         }
     }
