@@ -39,12 +39,13 @@ struct MessageHeader {
 };
 
 struct SerialHeader {
-  uint32_t magicNumber;     //magic number (3.5 bytes) and slot number (4 bits)
+  uint8_t  magic[3];
+  uint8_t  versionAndSlot; //first two bits set to 01 and next six bits encode phone ID
   uint16_t size;            //size of the data (not including this header)
   uint16_t payloadChecksum; //low two bytes of CRC32 checksum of data (doesn't include header)
   uint8_t  slotIndex;       //the index of this packet within its slot
   uint8_t  slotNumber;      //the slot number of the sending device
-  uint16_t hyperperiod;
+  uint16_t hyperperiod;     //current GPS time / cycle duration; low order 16 bits
   uint8_t  packetType;      //The packet type (for resend functionality)
   uint8_t  reserved;        //Reserved for future use
   uint16_t headerChecksum;  //low two bytes of CRC32 checksum of header
