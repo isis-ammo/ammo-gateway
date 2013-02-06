@@ -30,9 +30,9 @@
 
   <parent>
     <groupId>edu.vu.isis</groupId>
-    <artifactId>ammo-grandparent</artifactId>
+    <artifactId>ammo-common-parent</artifactId>
     <!-- TEMPLATE:BEGIN-->
-    <version>1.7.0-SNAPSHOT</version>
+    <version>1.7.1-SNAPSHOT</version>
     <!-- TEMPLATE:END -->
   </parent>
 
