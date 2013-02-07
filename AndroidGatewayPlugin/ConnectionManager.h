@@ -1,6 +1,8 @@
 #ifndef CONNECTION_MANAGER_H
 #define CONNECTION_MANAGER_H
 
+#include <set>
+
 class AndroidEventHandler;
 
 class ConnectionManager {
@@ -14,6 +16,9 @@ public:
 
 private:
   static ConnectionManager *sharedInstance;
+  
+  typedef std::set<AndroidEventHandler *> EventHandlerSet;
+  EventHandlerSet eventHandlers;
 };
 
 #endif //CONNECTION_MANAGER_H

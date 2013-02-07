@@ -1,5 +1,6 @@
 #include "ConnectionManager.h"
 #include "AndroidEventHandler.h"
+#include "log.h"
 
 ConnectionManager* ConnectionManager::sharedInstance = NULL;
 
@@ -11,14 +12,17 @@ ConnectionManager* ConnectionManager::getInstance() {
   return sharedInstance;
 }
 
-ConnectionManager::ConnectionManager() {
+ConnectionManager::ConnectionManager() : eventHandlers(){
 
 }
 
-void registerConnection(AndroidEventHandler *handler) {
-
+void ConnectionManager::registerConnection(AndroidEventHandler *handler) {
+  eventHandlers.insert(handler);
 }
 
-void unregisterConnection(AndroidEventHandler *handler) {
-
+void ConnectionManager::unregisterConnection(AndroidEventHandler *handler) {
+  EventHandlerSet::size_type numberRemoved = eventHandlers.erase(handler);
+  if(numberRemoved == 0) {
+    LOG_WARN("Event handler " << handler << " not found in connection manager map");
+  }
 }

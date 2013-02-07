@@ -9,6 +9,8 @@
 #include "protocol/AmmoMessages.pb.h"
 #include "AndroidMessageProcessor.h"
 
+#include "ConnectionManager.h"
+
 using namespace std;
 
 AndroidEventHandler::AndroidEventHandler() :
@@ -26,6 +28,8 @@ void AndroidEventHandler::onConnect(std::string &peerAddress) {
   
   this->peerAddress = peerAddress;
   
+  ConnectionManager::getInstance()->registerConnection(this);
+  
   messageProcessor = new AndroidMessageProcessor(this);
   messageProcessor->activate();
   latestMessageTime = time(NULL);
@@ -34,6 +38,8 @@ void AndroidEventHandler::onConnect(std::string &peerAddress) {
 void AndroidEventHandler::onDisconnect() {
   LOG_TRACE((long) this << " AndroidEventHandler::onDisconnect()");
   LOG_INFO((long) this << " Device at " << peerAddress << " disconnected");
+  
+  ConnectionManager::getInstance()->unregisterConnection(this);
   
   LOG_TRACE((long) this << " Closing Message Processor");
   messageProcessor->close(0);
