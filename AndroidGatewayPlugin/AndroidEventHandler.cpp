@@ -24,6 +24,8 @@ void AndroidEventHandler::onConnect(std::string &peerAddress) {
   LOG_TRACE((long) this << " AndroidEventHandler::onConnect(" << peerAddress << ")");
   LOG_INFO((long) this << " Got connection from device at " << peerAddress << ")");
   
+  this->peerAddress = peerAddress;
+  
   messageProcessor = new AndroidMessageProcessor(this);
   messageProcessor->activate();
   latestMessageTime = time(NULL);
@@ -31,6 +33,7 @@ void AndroidEventHandler::onConnect(std::string &peerAddress) {
 
 void AndroidEventHandler::onDisconnect() {
   LOG_TRACE((long) this << " AndroidEventHandler::onDisconnect()");
+  LOG_INFO((long) this << " Device at " << peerAddress << " disconnected");
   
   LOG_TRACE((long) this << " Closing Message Processor");
   messageProcessor->close(0);

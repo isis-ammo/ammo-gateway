@@ -1,6 +1,9 @@
 {
   "LogFile": "%T.%A.log", //log file name.  If not present or blank, will log to the console; otherwise, will log to the specified filename (after processing as specified below).
-  "LogLevel": "debug" //minimum logging level to show at runtime (can be trace, debug, info, warning, error, critical)
+  "LogLevel": "debug", //minimum logging level to show at runtime (can be trace, debug, info, warning, error, critical)
+  "LogFileMaxSize": 10000, //maximum size of log files in KB.  If 0, will create a single log file with no size limit
+  "LogFileSampleTime": 30, //period to sample log files for rotation, if rotation is enabled
+  "LogFileCount": 20 //maximum number of log files, if rotation is enabled.  When this number is reached, the oldest log file will be overwritten
 }
 
 // If a log file name is present, the following sequences will be expanded as

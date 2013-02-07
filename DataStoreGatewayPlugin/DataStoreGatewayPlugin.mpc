@@ -27,7 +27,7 @@ project(DataStoreGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin
     OriginalQueryParamParser.cpp
     OriginalQueryStatementBuilder.cpp
     ProjectionFilter.cpp
-    QueryStatementBuilder.cpp
+//    QueryStatementBuilder.cpp
     ReportProjectionParser.cpp
     ReportQueryHandler.cpp
     SMSProjectionParser.cpp

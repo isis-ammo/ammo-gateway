@@ -14,7 +14,8 @@ newMessageMutex(),
 newMessageAvailable(newMessageMutex),
 commsHandler(serviceHandler),
 gatewayConnector(NULL),
-deviceId(""),
+deviceId("(unidentified)"),
+userId("(unidentified)"),
 deviceIdAuthenticated(false)
 {
   //need to initialize GatewayConnector in the main thread; the constructor always
@@ -36,6 +37,7 @@ int AndroidMessageProcessor::open(void *args) {
 
 int AndroidMessageProcessor::close(unsigned long flags) {
   LOG_TRACE((long) commsHandler << " Closing MessageProcessor (in AndroidMessageProcessor.close())");
+  LOG_DEBUG((long) commsHandler << "   user " << this->userId << " disconnected");
   closeMutex.acquire();
   closed = true;
   closeMutex.release();
@@ -89,6 +91,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       ammo::protocol::AuthenticationMessage authMessage = msg.authentication_message();
       gatewayConnector->associateDevice(authMessage.device_id(), authMessage.user_id(), authMessage.user_key());
       this->deviceId = authMessage.device_id();
+      this->userId = authMessage.user_id();
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE) {
     LOG_DEBUG((long) commsHandler << " Received Data Message...");

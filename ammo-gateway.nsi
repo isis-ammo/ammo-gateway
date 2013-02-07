@@ -328,6 +328,7 @@ ${MementoSection} "Serial Gateway Plugin (required)" SecSerPlug
   SetOutPath $INSTDIR\bin
   SetOverwrite on
   File build\bin\SerialGatewayPlugin.exe
+  File build\lib\gatewaydatastore.dll
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\SerialPluginConfig.json
 
@@ -750,6 +751,7 @@ Section Uninstall
 
   ; Data Store Gateway Plugin
   Delete $INSTDIR\bin\DataStoreGatewayPlugin.exe
+  Delete $INSTDIR\bin\gatewaydatastore.dll
 
   ; Java Gateway Connector
   Delete $INSTDIR\bin\gatewaypluginapi.jar
