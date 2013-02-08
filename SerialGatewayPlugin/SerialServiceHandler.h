@@ -55,6 +55,7 @@ struct SerialHeader {
 const uint16_t PACKETTYPE_NORMAL = 0x0001;
 const uint16_t PACKETTYPE_RESEND = 0x0002;
 const uint16_t PACKETTYPE_ACK    = 0x0003;
+const uint16_t PACKETTYPE_RELAY  = 0x0004;
 
 //error values for MessageHeader
 const char SS_NO_ERROR = 0;

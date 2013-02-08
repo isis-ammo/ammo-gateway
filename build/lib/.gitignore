@@ -1,5 +1,8 @@
 libgatewayconnector.so*
 libgatewayconnector.dylib*
+libgatewaydatastore.so*
+libgatewaydatastore.dylib*
+
 libjson.so*
 libjson.dylib*
 libgeotrans-mgrs.so*
