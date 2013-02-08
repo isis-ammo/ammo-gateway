@@ -360,6 +360,8 @@ int SerialServiceHandler::processData(char *messageData, unsigned int messageSiz
     LOG_WARN("Received resend packet.  Packet will be dropped (not yet handled).");
   } else if(header->packetType == PACKETTYPE_ACK) {
     LOG_WARN("Received ack packet.  Packet will be dropped (not yet handled).");
+  } else if(header->packetType == PACKETTYPE_RELAY) {
+    LOG_WARN("Received relay packet.  Packet will be dropped (not yet handled).");
   } else {
     LOG_WARN("Dropping packet of unknown type (" << static_cast<int>(header->packetType) << ")");
   }
