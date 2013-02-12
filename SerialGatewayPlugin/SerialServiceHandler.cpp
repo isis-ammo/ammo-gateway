@@ -66,7 +66,7 @@ int SerialServiceHandler::open(void *ptr)
   //ACE-based serial initialization code
   int result = serialConnector.connect(serialDev, ACE_DEV_Addr(static_cast<char *>(ptr)));
   if(result == -1) {
-    LOG_ERROR(this->name << " - Couldn't open serial port " << ptr);
+    LOG_ERROR(this->name << " - Couldn't open serial port " <<static_cast<char *>(ptr) << " (" << errno << ": " << strerror(errno) << ")" );
     exit(-1);
   }
   
@@ -75,7 +75,11 @@ int SerialServiceHandler::open(void *ptr)
   params.xonlim = 0;
   params.xofflim = 0;
   params.readmincharacters = 0;
-  params.readtimeoutmsec = 1; //negative value means infinite timeout
+  #ifdef WIN32
+  params.readtimeoutmsec = 1;
+  #else
+  params.readtimeoutmsec = -1; //negative value means infinite timeout
+  #endif
   params.paritymode = "NONE";
   params.ctsenb = true;
   params.rtsenb = 1;
@@ -229,7 +233,7 @@ void SerialServiceHandler::receiveData() {
           LOG_DEBUG(this->name << " - Tdt(" << rts << "),Thh(" << ts << "),Tdel(" << rts - ts << ")");
 	    }
 	    
-	    processData(&buf[16], size, *(short  *)&buf[6], 0); // process the message
+	    processData(buf, size, *(short  *)&buf[6], 0); // process the message
 	    } else {
 	      LOG_ERROR(this->name << " - Received packet of invalid size: " << size);
 	    }
@@ -297,10 +301,11 @@ unsigned char SerialServiceHandler::read_a_char()
   unsigned char temp;
   
   ssize_t count = 0;
-  while(count == 0) {
+  while(count == 0 || (count == -1 && errno == ETIME)) {
     serialPortToken.acquire();
     ACE_Time_Value timeout(0, 10000); //10ms timeout; when this expires, we give the sender side an opportunity to send stuff
     count = serialDev.recv_n((void *) &temp, 1, &timeout);
+    ACE_Time_Value messageTime = ACE_OS::gettimeofday();
     serialPortToken.release();
   }
 
@@ -322,28 +327,44 @@ unsigned char SerialServiceHandler::read_a_char()
 }
 
 
-int SerialServiceHandler::processData(char *data, unsigned int messageSize, unsigned int messageChecksum, char priority) {
-  //Validate checksum
-  unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
-  if( (calculatedChecksum & 0xffff) != (messageChecksum & 0xffff) ) {
-    LOG_ERROR(this->name << " - " << (long) this << " Mismatched checksum " << std::hex << calculatedChecksum << " : " << messageChecksum);
-    LOG_ERROR(this->name << " - " << (long) this << " size " << std::dec << messageSize ); // << " payload: " < );
-    return -1;
-  }
+int SerialServiceHandler::processData(char *messageData, unsigned int messageSize, unsigned int messageChecksum, char priority) {
+  SerialHeader *header = reinterpret_cast<SerialHeader *>(messageData);
   
-  //checksum is valid; parse the data
-  ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper();
-  bool result = msg->ParseFromArray(data, messageSize);
-  if(result == false) {
-    LOG_ERROR(this->name << " - " << (long) this << " MessageWrapper could not be deserialized.");
-    LOG_ERROR(this->name << " - " << (long) this << " Client must have sent something that isn't a protocol buffer (or the wrong type).");
-    delete msg;
-    return -1;
-  }
-  addReceivedMessage(msg, priority);
-  messageProcessor->signalNewMessageAvailable();
+  LOG_TRACE("Processing packet: " << std::hex << header->hyperperiod << "-" << static_cast<int>(header->slotNumber) << "-" << static_cast<int>(header->slotIndex) << " (" << static_cast<int>(header->packetType) << ")" << std::hex);
   
-  return 0;
+  if(header->packetType == PACKETTYPE_NORMAL) {
+    char *data = messageData + 16;
+    
+    //Validate checksum
+    unsigned int calculatedChecksum = ACE::crc32(data, messageSize);
+    if( (calculatedChecksum & 0xffff) != (messageChecksum & 0xffff) ) {
+      LOG_ERROR(this->name << " - " << (long) this << " Mismatched checksum " << std::hex << calculatedChecksum << " : " << messageChecksum);
+      LOG_ERROR(this->name << " - " << (long) this << " size " << std::dec << messageSize ); // << " payload: " < );
+      return -1;
+    }
+    
+    //checksum is valid; parse the data
+    ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper();
+    bool result = msg->ParseFromArray(data, messageSize);
+    if(result == false) {
+      LOG_ERROR(this->name << " - " << (long) this << " MessageWrapper could not be deserialized.");
+      LOG_ERROR(this->name << " - " << (long) this << " Client must have sent something that isn't a protocol buffer (or the wrong type).");
+      delete msg;
+      return -1;
+    }
+    addReceivedMessage(msg, priority);
+    messageProcessor->signalNewMessageAvailable();
+    
+    return 0;
+  } else if(header->packetType == PACKETTYPE_RESEND) {
+    LOG_WARN("Received resend packet.  Packet will be dropped (not yet handled).");
+  } else if(header->packetType == PACKETTYPE_ACK) {
+    LOG_WARN("Received ack packet.  Packet will be dropped (not yet handled).");
+  } else if(header->packetType == PACKETTYPE_RELAY) {
+    LOG_WARN("Received relay packet.  Packet will be dropped (not yet handled).");
+  } else {
+    LOG_WARN("Dropping packet of unknown type (" << static_cast<int>(header->packetType) << ")");
+  }
 }
 
 void SerialServiceHandler::sendMessage(ammo::protocol::MessageWrapper *msg, char priority) {

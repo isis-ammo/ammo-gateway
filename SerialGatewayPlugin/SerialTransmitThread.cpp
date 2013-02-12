@@ -17,7 +17,7 @@
 
 const uint8_t MAGIC[] = { 0xef, 0xbe, 0xed };
 
-const uint8_t VERSION = 0x40; //gets OR'd with the slot number to produce TerseMessageHeader::versionAndSlot
+const uint8_t VERSION = 0x40; //gets OR'd with the slot number to produce SerialMessageHeader::versionAndSlot
 
 //Windows doesn't have usleep, so we'll define it locally here
 #ifdef WIN32
@@ -86,6 +86,7 @@ int SerialTransmitThread::svc() {
       bool slotTimeAvailable = true;
 
       while(slotTimeAvailable && (!sentPliRelayThisCycle || receiver->isMessageAvailable())) {
+        uint8_t slotIndex = 0;
         std::string relayMessage = "";
         int nextMessageLength = 0;
         if(!sentPliRelayThisCycle) {
@@ -94,14 +95,14 @@ int SerialTransmitThread::svc() {
           if(relayMessage == "") {
             //no pli relay to be sent
             if(receiver->isMessageAvailable()) {
-              nextMessageLength = receiver->getNextMessageSize() + sizeof(TerseMessageHeader);
+              nextMessageLength = receiver->getNextMessageSize() + sizeof(SerialHeader);
               sentPliRelayThisCycle = true;
             } else {
               break;
             }
           }
         } else {
-          nextMessageLength = receiver->getNextMessageSize() + sizeof(TerseMessageHeader);
+          nextMessageLength = receiver->getNextMessageSize() + sizeof(SerialHeader);
         }
 
         if(nextMessageLength > maxPayloadSize) {
@@ -129,7 +130,8 @@ int SerialTransmitThread::svc() {
               msg = receiver->getNextReceivedMessage();
             }
             LOG_TRACE("Sending message, length " << msg->length() << " + header");
-            sendMessage(msg);
+            sendMessage(msg, cycleDuration, slotNumber, slotIndex);
+            slotIndex++;
             thisSlotConsumed += nextMessageLength;
             if(!sentPliRelayThisCycle) {
               //PLI relay messages are stack allocated, don't delete them
@@ -161,23 +163,26 @@ int SerialTransmitThread::svc() {
   return 0;
 }
 
-void SerialTransmitThread::sendMessage(std::string *msg) {
+void SerialTransmitThread::sendMessage(std::string *msg, int cycleDuration, uint8_t slotNumber, uint8_t slotIndex) {
   //build the message header
-  TerseMessageHeader header;
+  SerialHeader header;
   header.magic[0] = MAGIC[0];
   header.magic[1] = MAGIC[1];
   header.magic[2] = MAGIC[2];
 
   header.versionAndSlot = VERSION | slotNumber;
-  header.payloadSize = msg->length();
+  header.size = msg->length();
 
   uint32_t fullChecksum = ACE::crc32(msg->data(), msg->length());
   header.payloadChecksum = static_cast<uint16_t>(fullChecksum);
+  
+  header.slotIndex = slotIndex;
+  header.slotNumber = slotNumber;
 
   int64_t systemTime = ACE_OS::gettimeofday().get_msec(); //gets system time in milliseconds
   int64_t gpsTime = systemTime - gpsThread->getTimeDelta() / 1000 + gpsTimeOffset;
-  int gpsTimeInt = static_cast<int>(gpsTime % 100000000);
-  header.timestamp = gpsTimeInt;
+  header.hyperperiod = static_cast<uint16_t>(gpsTime / slotDuration);
+  header.packetType = PACKETTYPE_NORMAL;
   header.reserved = 0;
 
   uint32_t headerChecksum = ACE::crc32(&header, sizeof(header) - sizeof(header.headerChecksum));
