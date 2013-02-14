@@ -192,10 +192,10 @@ bool GpsThread::processMessage(ACE_Time_Value msgTime, std::string msg) {
             tempLongitude = tempLongitude * -1;
           }
           
-          //LOG_INFO("Location: Lat: " << tempLatitude << " Lon:" << tempLongitude);
+          LOG_INFO("Location: Lat: " << tempLatitude << " Lon:" << tempLongitude);
           setPosition(true, tempLatitude, tempLongitude);
         } else {
-          //LOG_INFO("Inadequate GPS fix");
+          LOG_INFO("Inadequate GPS fix");
           setPosition(false, 0, 0);
         }
       } else {

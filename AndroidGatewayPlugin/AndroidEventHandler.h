@@ -51,6 +51,8 @@ public:
   unsigned long long getBytesReceived();
   unsigned long long getMessagesSent();
   unsigned long long getMessagesReceived();
+
+  bool checkTimeout();
   
 private:
   std::string deviceId; //not authenticated; just for pretty logging

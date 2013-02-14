@@ -483,7 +483,11 @@ public class GatewayConnector {
     
     protected void onAssociateResultReceived(final GatewayPrivateMessages.AssociateResult msg) {
 	if (delegate != null) {
-	    delegate.onAuthenticationResponse(this, msg.getResult() == GatewayPrivateMessages.AssociateResult.Status.SUCCESS );
+	    try {
+	        delegate.onAuthenticationResponse(this, msg.getResult() == GatewayPrivateMessages.AssociateResult.Status.SUCCESS );
+	    } catch(Exception ex) {
+	        logger.error("Authentication Response handler threw exception", ex);
+	    }
 	}
     }
 
@@ -503,7 +507,11 @@ public class GatewayConnector {
 	    pushData.ackThresholds = new AcknowledgementThresholds();
 	    pushData.ackThresholds.deviceDelivered = msg.getThresholds().getDeviceDelivered();
 	    pushData.ackThresholds.pluginDelivered = msg.getThresholds().getPluginDelivered();
-	    listener.onPushDataReceived(this, pushData);
+	    try {
+	        listener.onPushDataReceived(this, pushData);
+	    } catch(Exception ex) {
+	        logger.error("Push Data handler threw exception", ex);
+	    }
 	    // TODO: Auto-generate Acks here ...
 	}
     }
@@ -537,7 +545,11 @@ public class GatewayConnector {
 	}
 
 	if (delegate != null) {
-	    delegate.onPushAcknowledgementReceived(this, pushAck);
+	    try {
+	        delegate.onPushAcknowledgementReceived(this, pushAck);
+	    } catch(Exception ex) {
+	        logger.error("Push Acknowledgement handler threw exception", ex);
+	    }
 	}
     }
 
@@ -556,7 +568,11 @@ public class GatewayConnector {
 	    req.startFromCount = msg.getStartFromCount();
 	    req.liveQuery = msg.getLiveQuery();
 	    req.priority = messagePriority;
-	    listener.onPullRequestReceived(this, req);
+	    try {
+	        listener.onPullRequestReceived(this, req);
+	    } catch(Exception ex) {
+	        logger.error("Pull Request handler threw exception", ex);
+	    }
 	}
     }
 
@@ -573,18 +589,32 @@ public class GatewayConnector {
 	    resp.encoding = msg.getEncoding();
 	    resp.data = msg.getData().toByteArray();
 	    resp.priority = messagePriority;
-	    listener.onPullResponseReceived(this, resp);
+	    try {
+	        listener.onPullResponseReceived(this, resp);
+	    } catch(Exception ex) {
+	        logger.error("Pull Response handler threw exception", ex);
+	    }
 	}
     }
 
     void onConnect() {
-	if (delegate != null)
-	    delegate.onConnect(this);
+	if (delegate != null) {
+	    try {
+	        delegate.onConnect(this);
+	    } catch(Exception ex) {
+	        logger.error("On Connect handler threw exception", ex);
+	    }
+	}
     }
 
     void onDisconnect() {
-	if (delegate != null)
-	    delegate.onDisconnect(this);
+	if (delegate != null) {
+	    try {
+	        delegate.onDisconnect(this);
+	    } catch(Exception ex) {
+	        logger.error("On Disconnect handler threw exception", ex);
+	    }
+	}
     }
       
     private GatewayConnectorDelegate delegate;

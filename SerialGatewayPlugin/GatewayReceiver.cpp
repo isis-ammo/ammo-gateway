@@ -163,7 +163,7 @@ void GatewayReceiver::onPushDataReceived(
         return;
       }
       
-      if(root["time"].isString()) {
+      if(root["created_date"].isString()) {
         time = atoll(root["created_date"].asString().c_str());
       } else {
         LOG_ERROR("Received invalid chat message from gateway... 'time' is not a string");
@@ -276,6 +276,7 @@ std::string GatewayReceiver::getNextPliRelayPacket() {
   
   if(gpsThread->getPosition(latDouble, lonDouble) == false) {
     LOG_WARN("Can't forward PLI; no GPS lock");
+    pliMapMutex.release();
     return "";
   }
   
