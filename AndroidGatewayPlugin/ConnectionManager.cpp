@@ -30,6 +30,10 @@ void ConnectionManager::unregisterConnection(AndroidEventHandler *handler) {
   }
 }
 
+void ConnectionManager::deviceAuthenticated(AndroidEventHandler *handler, std::string deviceName) {
+  authenticatedDevices.insert(AuthenticatedDeviceMap::value_type(deviceName, handler));
+}
+
 void ConnectionManager::checkTimeouts() {
   LOG_DEBUG("Checking for timed-out connections...");
   for(EventHandlerSet::iterator it = eventHandlers.begin(); it != eventHandlers.end(); it++) {
