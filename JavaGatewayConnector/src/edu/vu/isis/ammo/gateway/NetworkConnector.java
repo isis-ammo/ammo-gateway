@@ -194,19 +194,18 @@ class NetworkConnector {
     //
     class SenderQueue
     {
-	class PriorityComparator implements Comparator<GatewayPrivateMessages.GatewayWrapper> {
-	    @Override
-		public int  compare(GatewayPrivateMessages.GatewayWrapper x, GatewayPrivateMessages.GatewayWrapper y)
-	    {
-		if (x.getMessagePriority() > y.getMessagePriority() )
-		    return 1;
-		else if (x.getMessagePriority() == y.getMessagePriority() )
-		    return 0;
+        class PriorityComparator implements Comparator<GatewayPrivateMessages.GatewayWrapper> {
+            public int  compare(GatewayPrivateMessages.GatewayWrapper x, GatewayPrivateMessages.GatewayWrapper y)
+            {
+            if (x.getMessagePriority() > y.getMessagePriority() )
+                return 1;
+            else if (x.getMessagePriority() == y.getMessagePriority() )
+                return 0;
 
-		return -1;
-	    }
-	    
-	}
+            return -1;
+            }
+
+        }
 
         public SenderQueue( NetworkConnector iChannel )
         {
