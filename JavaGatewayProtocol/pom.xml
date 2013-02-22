@@ -1,0 +1,119 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <parent>
+    <groupId>edu.vu.isis</groupId>
+    <artifactId>gateway-parent</artifactId>
+    <version>1.7.2-SNAPSHOT</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>gateway-protocol</artifactId>
+  <version>1.7.2-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>gateway protocol buffer message</name>
+  <url>http://ammo.isis.vanderbilt.edu/</url>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>pb24</id>
+      <activation>
+         <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <genClassifier>protoc24</genClassifier>
+      </properties>
+    </profile>
+  </profiles>
+
+  <build>
+      <plugins>
+       <plugin>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>generate-sources</id>
+              <phase>generate-sources</phase>
+              <configuration>
+                <tasks>
+                  <mkdir dir="target/generated-sources"/>
+                  <exec executable="protoc">
+                    <arg value="--java_out=target/generated-sources"/>
+                    <arg value="../common/protocol/GatewayPrivateMessages.proto"/>
+                  </exec>
+                </tasks>
+                <sourceRoot>target/generated-sources</sourceRoot>
+              </configuration>
+              <goals>
+                <goal>run</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <source>1.6</source>
+                <target>1.6</target>
+            </configuration>
+        </plugin>
+
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>2.4</version>
+            <configuration>
+                <classifier>${genClassifier}</classifier>
+                <archive>
+                    <index>true</index>
+                    <manifest>
+                        <classpathPrefix>lib/</classpathPrefix>
+                        <addClasspath>true</addClasspath>
+                    </manifest>
+                </archive>
+            </configuration>
+        </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.7</version>
+        <!--<executions>
+          <execution>
+            <id>attach-artifacts</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>${basedir}/../common/protocol/GatewayPrivateMessages.proto</file>
+                  <type>proto</type>
+                  <classifier>gateway-protocol</classifier>
+                </artifact>
+              </artifacts>
+            </configuration>
+          </execution>
+        </executions>-->
+      </plugin>
+            
+      </plugins>
+  </build>
+</project>
