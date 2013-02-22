@@ -53,6 +53,7 @@
                   <mkdir dir="target/generated-sources"/>
                   <exec executable="protoc">
                     <arg value="--java_out=target/generated-sources"/>
+                    <arg value="--proto_path=../common/protocol"/>
                     <arg value="../common/protocol/GatewayPrivateMessages.proto"/>
                   </exec>
                 </tasks>
