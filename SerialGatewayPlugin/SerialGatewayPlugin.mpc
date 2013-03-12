@@ -22,5 +22,6 @@ project(SerialGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
     GpsThread.cpp
     SerialTransmitThread.cpp
     GatewayReceiver.cpp
+    Retransmitter.cpp
   }
 }
