@@ -183,7 +183,7 @@ void SerialTransmitThread::sendMessage(std::string *msg, int cycleDuration, uint
   int64_t gpsTime = systemTime - gpsThread->getTimeDelta() / 1000 + gpsTimeOffset;
   header.hyperperiod = static_cast<uint16_t>(gpsTime / slotDuration);
   header.packetType = PACKETTYPE_NORMAL;
-  header.reserved = 0;
+  header.hopCount = 0;
 
   uint32_t headerChecksum = ACE::crc32(&header, sizeof(header) - sizeof(header.headerChecksum));
   header.headerChecksum = (uint16_t) headerChecksum;

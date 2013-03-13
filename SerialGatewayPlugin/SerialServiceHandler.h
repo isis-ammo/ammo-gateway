@@ -47,7 +47,7 @@ struct SerialHeader {
   uint8_t  slotNumber;      //the slot number of the sending device
   uint16_t hyperperiod;     //current GPS time / cycle duration; low order 16 bits
   uint8_t  packetType;      //The packet type (for resend functionality)
-  uint8_t  reserved;        //Reserved for future use
+  uint8_t  hopCount;        //Reserved for future use
   uint16_t headerChecksum;  //low two bytes of CRC32 checksum of header
 };
 
