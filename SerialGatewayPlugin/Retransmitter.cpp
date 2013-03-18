@@ -119,8 +119,45 @@ void SlotRecord::reset(int hyperperiod) {
   }
 }
 
-void SlotRecord::setAckBit(int slotId, int indexInSlot) {
+void SlotRecord::setAckBit(uint8_t slotId, uint8_t indexInSlot) {
   uint8_t bits = acks[slotId];
   bits |= (0x1 << indexInSlot);
   acks[slotId]  = bits;
+}
+
+SlotRecords::SlotRecords() :
+currentIndex(0)
+{
+  for(int i = 0; i < MAX_SLOT_HISTORY; i++) {
+    ringBuffer[i] = new SlotRecord();
+  }
+}
+
+SlotRecords::~SlotRecords() {
+  for(int i = 0; i < MAX_SLOT_HISTORY; i++) {
+    delete ringBuffer[i];
+  }
+}
+
+void SlotRecords::incrementSlot(const uint16_t hyperperiod) {
+  currentIndex = (currentIndex + 1) % MAX_SLOT_HISTORY;
+  ringBuffer[currentIndex]->reset(hyperperiod);
+}
+
+SlotRecord *SlotRecords::getPreviousSlotRecord() {
+  uint8_t previousIndex = currentIndex == 0 ? MAX_SLOT_HISTORY - 1 : currentIndex - 1;
+  return ringBuffer[previousIndex];
+}
+
+void SlotRecords::addPacketRecord(PacketRecord *pr) {
+  ringBuffer[currentIndex]->sentPackets[ringBuffer[currentIndex]->sendCount] = pr;
+  ringBuffer[currentIndex]->sendCount++;
+}
+
+uint8_t SlotRecords::getSlotIndexWithDelta(const uint8_t delta) {
+  int slotIndex = currentIndex - delta;
+  if(slotIndex < 0) {
+    slotIndex += MAX_SLOT_HISTORY;
+  }
+  return slotIndex;
 }

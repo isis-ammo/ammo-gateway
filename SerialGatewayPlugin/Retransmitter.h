@@ -9,6 +9,7 @@
 
 const size_t MAX_SLOTS = 16;
 const size_t MAX_PACKETS_PER_SLOT = 7;
+const size_t MAX_SLOT_HISTORY = 16;
 
 class ConnectivityMatrix {
 public:
@@ -56,9 +57,9 @@ public:
 struct SlotRecord {
 public:
   SlotRecord();
-  ~SlotRecord();
+  virtual ~SlotRecord();
   void reset(int hyperperiod);
-  void setAckBit(int slotId, int indexInSlot);
+  void setAckBit(uint8_t slotId, uint8_t indexInSlot);
   
   uint16_t hyperperiodId;
   PacketRecord *sentPackets[MAX_PACKETS_PER_SLOT];
@@ -66,4 +67,27 @@ public:
   uint8_t acks[MAX_SLOTS];
 };
 
-#endif //RETRANSMITTER_H
+class SlotRecords {
+public:
+  SlotRecords();
+  virtual ~SlotRecords();
+  
+  void incrementSlot(const uint16_t hyperperiod);
+  inline uint16_t getCurrentHyperperiod() { return ringBuffer[currentIndex]->hyperperiodId; }
+  inline uint16_t getPreviousIndex() { return currentIndex == 0 ? MAX_SLOT_HISTORY - 1 : currentIndex - 1; }
+  SlotRecord *getPreviousSlotRecord();
+  
+  inline void setAckBit(const uint8_t slotId, const uint8_t indexInSlot) { ringBuffer[currentIndex]->setAckBit(slotId, indexInSlot); }
+  inline void setAckBit(const uint8_t slotIndex, const uint8_t originalSlot, const uint8_t originalIndex) { ringBuffer[slotIndex]->acks[originalSlot] |= (0x1 << originalIndex); }
+  inline uint8_t getAckByte(const uint8_t slotIndex, const uint8_t originalSlot) { return ringBuffer[slotIndex]->acks[originalSlot]; }
+  inline unsigned int getCurrentSendCount() { return ringBuffer[currentIndex]->sendCount; }
+  
+  void addPacketRecord(PacketRecord *pr);
+  uint8_t getSlotIndexWithDelta(const uint8_t delta);
+  
+private:
+  SlotRecord *ringBuffer[MAX_SLOT_HISTORY];
+  uint8_t currentIndex;
+};
+
+#endif //RETRANSMITTER_H                                                     
