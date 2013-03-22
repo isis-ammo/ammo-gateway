@@ -22,7 +22,7 @@ public:
   bool coversMyConnectivity(const uint8_t theirSlotId);
   bool unionCoversMyConnectivity(const uint8_t theirSlotId, const uint8_t originalSlotId);
   
-  void provideAckInfo(uint8_t (&acks)[]);
+  void provideAckInfo(uint8_t (&acks)[MAX_SLOTS]);
   
   void cleanupExpired(const uint8_t hyperperiod);
   

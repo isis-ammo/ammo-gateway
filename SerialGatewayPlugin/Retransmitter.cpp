@@ -48,7 +48,7 @@ bool ConnectivityMatrix::unionCoversMyConnectivity(const uint8_t theirSlotId, co
     (connectivityMatrix[mySlotId] ^ connectivityUnion)) == 0;
 }
 
-void ConnectivityMatrix::provideAckInfo(uint8_t (&acks)[]) {
+void ConnectivityMatrix::provideAckInfo(uint8_t (&acks)[MAX_SLOTS]) {
   for ( int i = 0; i < MAX_SLOTS; ++i ) {
     acks[i] |= ((connectivityMatrix[mySlotId] >> i) & 0x1) << 7;
   }
