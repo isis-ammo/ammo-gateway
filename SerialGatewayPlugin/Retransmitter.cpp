@@ -1,6 +1,67 @@
 #include "Retransmitter.h"
 #include "log.h"
 
+Retransmitter::Retransmitter(uint8_t mySlot) :
+connMatrix(mySlot, DEFAULT_EXPIRATION_TIME),
+mySlotNumber(mySlot)
+{
+
+}
+
+void Retransmitter::switchHyperperiodsIfNeeded(uint16_t hyperperiod) {
+  if(hyperperiod != slotRecords.getCurrentHyperperiod()) {
+    LOG_TRACE("Switching hyperperiods " << slotRecords.getCurrentHyperperiod() << " -> " << hyperperiod);
+    if(abs(slotRecords.getCurrentHyperperiod() - hyperperiod) != 1) {
+      LOG_ERROR("Hyperperiods differ by more than one!");
+    }
+
+    processPreviousBeforeSwap();
+    connMatrix.cleanupExpired(hyperperiod);
+    slotRecords.incrementSlot(hyperperiod);
+  } else {
+    LOG_WARN("Hyperperiod swap called but same: " << hyperperiod);
+  }
+}
+
+void Retransmitter::processPreviousBeforeSwap() {
+  SlotRecord *previous = slotRecords.getPreviousSlotRecord();
+
+  LOG_TRACE("SWAP: previous is ring buffer index " << slotRecords.getPreviousIndex());
+
+  for(int i = 0; i < previous->sendCount; i++) {
+    PacketRecord *pr = previous->sentPackets[i];
+    if(pr->expectToHearFrom == 0) {
+      LOG_TRACE("Not requeuing packet not requiring ack");
+    } else if((pr->expectToHearFrom & pr->heardFrom) == pr->heardFrom) {
+      LOG_TRACE("Not requeuing fully acked packet");
+    } else {
+      LOG_TRACE("Requeueing");
+      if(pr->resends > 0) {
+        resendQueue.push(pr);
+        previous->sentPackets[i] = NULL; //transfer ownership of this PacketRecord to the resend queue, so we don't delete it when this SlotRecord gets destroyed next
+      }
+    }
+  }
+}
+
+void Retransmitter::processReceivedMessage(Message &msg, int hyperperiod) {
+
+}
+
+void Retransmitter::sendingPacket(Message &msg, std::string &data, uint16_t hyperperiod, uint8_t slotIndex, uint8_t indexInSlot) {
+
+}
+
+
+Message Retransmitter::createResendPacket(uint64_t bytesAvailable) {
+
+}
+
+Message Retransmitter::createAckPacket(uint16_t hyperperiod) {
+
+}
+
+
 ConnectivityMatrix::ConnectivityMatrix(const uint8_t mySlotId, const uint16_t expirationTime) :
 mySlotId(mySlotId),
 expirationTime(expirationTime)

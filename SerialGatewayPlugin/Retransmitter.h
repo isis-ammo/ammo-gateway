@@ -4,12 +4,42 @@
 #include <stdint.h>
 #include <vector>
 #include <string>
+#include <queue>
 
 #include "SerialServiceHandler.h"
 
 const size_t MAX_SLOTS = 16;
 const size_t MAX_PACKETS_PER_SLOT = 7;
 const size_t MAX_SLOT_HISTORY = 16;
+const size_t DEFAULT_EXPIRATION_TIME = 3;
+
+struct Message {
+public:
+  uint8_t packetType;
+
+  std::string data;
+};
+
+class Retransmitter {
+public:
+  Retransmitter(uint8_t mySlot);
+  void switchHyperperiodsIfNeeded(uint16_t hyperperiod);
+  void processPreviousBeforeSwap();
+  void processReceivedMessage(Message &msg, int hyperperiod);
+  void sendingPacket(Message &msg, std::string &data, uint16_t hyperperiod, uint8_t slotIndex, uint8_t indexInSlot);
+
+  Message createResendPacket(uint64_t bytesAvailable);
+  Message createAckPacket(uint16_t hyperperiod);
+
+private:
+  std::queue<PacketRecord *> resendQueue;
+  ConnectivityMatrix connMatrix;
+  SlotRecords slotRecords;
+
+  uint8_t mySlotNumber;
+
+  //TODO:  need to retain an object so we can send messages
+};
 
 class ConnectivityMatrix {
 public:
