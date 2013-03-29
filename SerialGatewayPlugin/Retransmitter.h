@@ -12,10 +12,17 @@ const size_t MAX_SLOTS = 16;
 const size_t MAX_PACKETS_PER_SLOT = 7;
 const size_t MAX_SLOT_HISTORY = 16;
 const size_t DEFAULT_EXPIRATION_TIME = 3;
+const size_t DEFAULT_RESENDS = 4;
 
 struct Message {
 public:
   uint8_t packetType;
+
+  uint8_t slotId;
+  uint8_t indexInSlot;
+  uint16_t hyperperiod;
+
+  uint8_t hopCount;
 
   std::string data;
 };
@@ -47,7 +54,7 @@ public:
   virtual ~ConnectivityMatrix();
   
   void receivedMessageFrom(const uint8_t theirSlotId, const uint16_t hyperperiod);
-  void processAckPacketPayload(const uint8_t theirSlotId, const std::vector<uint8_t> &payload);
+  void processAckPacketPayload(const uint8_t theirSlotId, const uint8_t (&payload)[MAX_SLOTS]);
   
   bool coversMyConnectivity(const uint8_t theirSlotId);
   bool unionCoversMyConnectivity(const uint8_t theirSlotId, const uint8_t originalSlotId);
@@ -68,7 +75,7 @@ private:
 
 struct PacketRecord {
 public:
-  PacketRecord(uint8_t slotIndex, uint8_t slotNumber, uint16_t hyperperiod, uint8_t hopCount, std::string &packet, uint32_t expectToHearFrom, uint32_t resends);
+  PacketRecord(uint8_t slotIndex, uint8_t slotNumber, uint16_t hyperperiod, Message &msg, uint32_t expectToHearFrom, uint32_t resends);
   
   uint32_t expectToHearFrom;
   uint32_t heardFrom;
@@ -81,7 +88,7 @@ public:
   
   uint8_t hopCount;
   uint16_t packetType;
-  std::string packet;
+  Message packet;
 };
 
 struct SlotRecord {

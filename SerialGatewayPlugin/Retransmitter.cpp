@@ -45,7 +45,115 @@ void Retransmitter::processPreviousBeforeSwap() {
 }
 
 void Retransmitter::processReceivedMessage(Message &msg, int hyperperiod) {
+  LOG_TRACE("Received packet type " << msg.packetType << " hyperperiod " << hyperperiod);
 
+  switchHyperperiodsIfNeeded(hyperperiod);
+
+  //set ack bit for current hyperperiod for providing an ack back to sender
+  slotRecords.setAckBit(msg.slotId, msg.indexInSlot);
+
+  if(msg.packetType == PACKETTYPE_ACK) {
+    LOG_TRACE("Received ack packet");
+
+    //verify that the ack packet's length matches what we think the ack packet's length should be
+    if(msg.data.length == MAX_SLOTS) {
+      uint8_t ackPayloadArray[MAX_SLOTS];
+      for(int i = 0; i <= MAX_SLOTS; i++) {
+        ackPayloadArray[i] = static_cast<uint8_t>(msg.data[i]);
+      }
+
+
+      uint8_t theirAckBitsForMe = ackPayloadArray[mySlotNumber] & 0x7F;
+      if(theirAckBitsForMe != 0) {
+        connMatrix.receivedMessageFrom(hyperperiod, msg.slotId);
+      }
+
+      connMatrix.processAckPacketPayload(msg.slotId, ackPayloadArray);
+
+      //can also use their ack information to tell which packets sent in the last hyperperiod were actually received by them
+      if(hyperperiod == msg.hyperperiod || hyperperiod == msg.hyperperiod + 1) {
+        SlotRecord *previous = slotRecords.getPreviousSlotRecord();
+
+        for(int i = 0; i < previous->sendCount; i++) {
+          if((theirAckBitsForMe & 0x1) != 0) {
+            //They received a packet in the position in the slot with index 'index'.  Record it in the map.
+            PacketRecord *stats = previous->sentPackets[i];
+            stats->heardFrom |= (0x1 << msg.slotId);
+          }
+
+          theirAckBitsForMe = theirAckBitsForMe >> 1;
+          //TODO: probably should generate a Gateway ack message here if we sent the original message
+        }
+      } else {
+        LOG_DEBUG("Spurious ack recieved in hyperperiod " << hyperperiod << "; sent in hyperperiod " << msg.hyperperiod << ".  Ignoring.");
+      }
+    } else {
+      LOG_ERROR("Ack packet length mismatch (is max slot size incorrect?).  Dropping ack.");
+    }
+  } else if(msg.packetType == PACKETTYPE_NORMAL) {
+    LOG_TRACE("Received normal packet");
+
+    //Save for relaying if original sender doesn't have the same connectivity matrix as we do
+    if(!connMatrix.coversMyConnectivity(msg.slotId)) {
+      PacketRecord *pr = new PacketRecord(msg.indexInSlot, msg.slotId, msg.hyperperiod, msg, connMatrix.expectToHearFrom(), DEFAULT_RESENDS);
+      --(pr->hopCount);
+      pr->packetType = PACKETTYPE_RELAY;
+      LOG_TRACE("Hopcount: Normal packet decrementing to " << pr->hopCount);
+      if(pr->hopCount > 0) {
+        LOG_TRACE("Adding message for relay");
+        resendQueue.push(pr);
+        LOG_TRACE("  Resend queue size: " << resendQueue.size());
+      } else {
+        //not actually going to do anything with this message, so trash it
+        delete pr;
+      }
+    }
+    //TODO: Deliver message
+  } else if(msg.packetType == PACKETTYPE_RESEND || msg.packetType == PACKETTYPE_RELAY) {
+    LOG_TRACE("Received resend/relay packet");
+    uint8_t originalSlot = msg.data[1];
+    uint8_t originalIndex = msg.data[0];
+
+    uint16_t originalHyperperiod = *(reinterpret_cast<uint16_t *>(&msg.data.data[2]));
+
+    LOG_TRACE("Resend packet:  original slot " << originalSlot << " index " << originalIndex << " HP " << originalHyperperiod << "...  current HP " << hyperperiod);
+
+    int16_t hpDelta = hyperperiod - originalHyperperiod;
+
+    if(hpDelta < MAX_SLOT_HISTORY) {
+      LOG_TRACE("Message is within dup window");
+
+      //find the ack record for that hyperperiod
+      uint8_t slotIndex = slotRecords.getSlotIndexWithDelta(hpDelta);
+      uint8_t ackByte = slotRecords.getAckByte(slotIndex, originalSlot);
+
+      //if it's not a packet from me, and I didn't ack it earlier, it's not a duplicate
+      if( (originalSlot != mySlotNumber) && (ackByte & (0x1 << originalIndex)) == 0) {
+        LOG_TRACE("Received packet I haven't seen before");
+        slotRecords.setAckBit(slotIndex, originalSlot, originalIndex);
+
+        //TODO: modify message to remove original UID and deliver it
+
+        //Add for further relay if union of connectivity vecotr of original sender and relayer is not a superset of my connectivty vector
+        if(!connMatrix.unionCoversMyConnectivity(msg.slotId, originalSlot)) {
+          //TODO: use modified message here (without original UID in message payload)
+          PacketRecord *pr = new PacketRecord(originalIndex, originalSlot, originalHyperperiod, msg, connMatrix.expectToHearFrom(), DEFAULT_RESENDS);
+          --(pr->hopCount);
+          LOG_TRACE("Hopcount: Normal packet decrementing to " << pr->hopCount);
+          if(pr->hopCount > 0) {
+            LOG_TRACE("Adding message for relay");
+            resendQueue.push(pr);
+            LOG_TRACE("  Resend queue size: " << resendQueue.size());
+          } else {
+            //not actually going to do anything with this message, so trash it
+            delete pr;
+          }
+        }
+      } else {
+        LOG_DEBUG("Filtered duplicate message (S: " << originalSlot << " I: " << originalIndex << " H: " << originalHyperperiod);
+      }
+    }
+  }
 }
 
 void Retransmitter::sendingPacket(Message &msg, std::string &data, uint16_t hyperperiod, uint8_t slotIndex, uint8_t indexInSlot) {
@@ -86,7 +194,7 @@ void ConnectivityMatrix::receivedMessageFrom(const uint8_t theirSlotId, const ui
   }
 }
 
-void ConnectivityMatrix::processAckPacketPayload(const uint8_t theirSlotId, const std::vector<uint8_t> &payload) {
+void ConnectivityMatrix::processAckPacketPayload(const uint8_t theirSlotId, const uint8_t (&payload)[MAX_SLOTS]) {
   for ( int i = 0; i < MAX_SLOTS; ++i ) {
     // remote is receiving directly from slot i, top bit in the ack
     // slot is set for receive info
@@ -129,14 +237,14 @@ uint32_t ConnectivityMatrix::expectToHearFrom() {
   return 0;
 }
 
-PacketRecord::PacketRecord(uint8_t slotIndex, uint8_t slotNumber, uint16_t hyperperiod, uint8_t hopCount, std::string &packet, uint32_t expectToHearFrom, uint32_t resends) :
+PacketRecord::PacketRecord(uint8_t slotIndex, uint8_t slotNumber, uint16_t hyperperiod, Message &packet, uint32_t expectToHearFrom, uint32_t resends) :
 expectToHearFrom(expectToHearFrom),
 heardFrom(0),
 resends(resends),
 slotIndex(slotIndex),
 slotNumber(slotNumber),
 hyperperiod(hyperperiod),
-hopCount(hopCount),
+hopCount(packet.hopCount),
 packetType(PACKETTYPE_RESEND),
 packet(packet)
 {
