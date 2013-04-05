@@ -44,14 +44,26 @@ public class GatewayConnector {
 	this.connector = null;
 	init(delegate, GatewayConfigurationManager.getInstance(configFile) );
     }
+
+    public void close() {
+        logger.debug("Closing GatewayConnector");
+        if(connector != null) {
+            connector.close();
+            connector = null;
+        }
+    }
     
 
       /**
       * Destroys a GatewayConnector.
       */
     public void finalize() {
-	connector.close();
-	connector = null;
+        logger.debug("Finalizing GatewayConnector");
+        if(connector != null) {
+            logger.debug("Connector wasn't closed prior to disposal; closing now anyways");
+            connector.close();
+            connector = null;
+        }
     }
 
 
