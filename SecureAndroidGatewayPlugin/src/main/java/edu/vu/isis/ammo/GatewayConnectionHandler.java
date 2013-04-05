@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  * Time: 11:14 AM
  * To change this template use File | Settings | File Templates.
  */
-public class GatewayConnectionHandler implements GatewayConnectorDelegate, DataPushReceiverListener, PullRequestReceiverListener, PullResponseReceiverListener {
+public class GatewayConnectionHandler implements GatewayConnectorDelegate, DataPushReceiverListener, PullResponseReceiverListener {
     private static final Logger logger = LoggerFactory.getLogger(GatewayConnectionHandler.class);
 
     GatewayConnector connector;
@@ -255,17 +255,67 @@ public class GatewayConnectionHandler implements GatewayConnectorDelegate, DataP
     }
 
     @Override
-    public void onPushAcknowledgementReceived(GatewayConnector gatewayConnector, PushAcknowledgement pushAcknowledgement) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
+    public void onPushAcknowledgementReceived(GatewayConnector gatewayConnector, PushAcknowledgement ack) {
+        logger.debug("Received push acknowledgement from gateway");
 
-    @Override
-    public void onPullRequestReceived(GatewayConnector gatewayConnector, PullRequest pullRequest) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        AmmoMessages.MessageWrapper.Builder msg = AmmoMessages.MessageWrapper.newBuilder();
+        AmmoMessages.PushAcknowledgement.Builder ackMsg = msg.getPushAcknowledgementBuilder();
+
+        ackMsg.setUri(ack.uid);
+        ackMsg.setDestinationDevice(ack.destinationDevice);
+        ackMsg.setAcknowledgingDevice(ack.acknowledgingDevice);
+        ackMsg.setDestinationUser(ack.destinationUser);
+        ackMsg.setAcknowledgingUser(ack.acknowledgingUser);
+
+        AmmoMessages.AcknowledgementThresholds.Builder thresholds = ackMsg.getThresholdBuilder();
+        thresholds.setDeviceDelivered(ack.deviceDelivered);
+        thresholds.setPluginDelivered(ack.pluginDelivered);
+        thresholds.setAndroidPluginReceived(false);
+
+        AmmoMessages.PushAcknowledgement.PushStatus status = AmmoMessages.PushAcknowledgement.PushStatus.RECEIVED;
+
+        switch (ack.status) {
+            case PUSH_RECEIVED:
+                status = AmmoMessages.PushAcknowledgement.PushStatus.RECEIVED;
+                break;
+            case PUSH_SUCCESS:
+                status = AmmoMessages.PushAcknowledgement.PushStatus.SUCCESS;
+                break;
+            case PUSH_FAIL:
+                status = AmmoMessages.PushAcknowledgement.PushStatus.FAIL;
+                break;
+            case PUSH_REJECTED:
+                status = AmmoMessages.PushAcknowledgement.PushStatus.REJECTED;
+                break;
+        }
+
+        ackMsg.setStatus(status);
+
+        msg.setType(AmmoMessages.MessageWrapper.MessageType.PUSH_ACKNOWLEDGEMENT);
+        msg.setMessagePriority(MessagePriority.PRIORITY_CTRL.getValue());
+
+        logger.debug("Sending push acknowledgement to device");
+        channel.write(msg.build());
     }
 
     @Override
     public void onPullResponseReceived(GatewayConnector gatewayConnector, PullResponse pullResponse) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        logger.debug("Received pull response from gateway");
+
+        AmmoMessages.MessageWrapper.Builder msg = AmmoMessages.MessageWrapper.newBuilder();
+        AmmoMessages.PullResponse.Builder pullMsg = msg.getPullResponseBuilder();
+
+        pullMsg.setRequestUid(pullResponse.requestUid);
+        pullMsg.setPluginId(pullResponse.pluginId);
+        pullMsg.setMimeType(pullResponse.mimeType);
+        pullMsg.setUri(pullResponse.uri);
+        pullMsg.setEncoding(pullResponse.encoding);
+        pullMsg.setData(ByteString.copyFrom(pullResponse.data));
+
+        msg.setType(AmmoMessages.MessageWrapper.MessageType.PULL_RESPONSE);
+        msg.setMessagePriority(pullResponse.priority);
+
+        logger.debug("Sending pull response to device");
+        channel.write(msg.build());
     }
 }
