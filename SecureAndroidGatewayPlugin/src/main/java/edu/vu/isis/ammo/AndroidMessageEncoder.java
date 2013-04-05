@@ -24,20 +24,20 @@ public class AndroidMessageEncoder extends MessageToByteEncoder<AmmoMessages.Mes
         //generate the header
         ByteBuf headerBuf = Unpooled.buffer(20);
         ByteBuf headerBufLittleEndian = headerBuf.order(ByteOrder.LITTLE_ENDIAN);
-        headerBufLittleEndian.writeInt(AndroidMessageDecoder.MAGIC_NUMBER);
-        headerBufLittleEndian.writeInt(messageData.length);
-        headerBufLittleEndian.writeByte(messageWrapper.getMessagePriority());
-        headerBufLittleEndian.writeByte(0); //TODO: implement error code
-        headerBufLittleEndian.writeByte(0);
-        headerBufLittleEndian.writeByte(0);
+        headerBufLittleEndian.writeInt(AndroidMessageDecoder.MAGIC_NUMBER);       //Magic number
+        headerBufLittleEndian.writeInt(messageData.length);                       //Data length (not including header)
+        headerBufLittleEndian.writeByte(messageWrapper.getMessagePriority());     //Message priority
+        headerBufLittleEndian.writeByte(0);                                       //Error code
+        headerBufLittleEndian.writeByte(0);                                       //Reserved byte
+        headerBufLittleEndian.writeByte(0);                                       //Reserved byte
 
         CRC32 dataCrc = new CRC32();
         dataCrc.update(messageData);
-        headerBufLittleEndian.writeInt((int) dataCrc.getValue());
+        headerBufLittleEndian.writeInt((int) dataCrc.getValue());                 //Data CRC32
 
         CRC32 headerCrc = new CRC32();
         headerCrc.update(headerBufLittleEndian.array(), 0, 16);
-        headerBufLittleEndian.writeInt((int) headerCrc.getValue());
+        headerBufLittleEndian.writeInt((int) headerCrc.getValue());               //Header CRC32 (all 16 bytes of the header, not including itself)
 
         //send the header, then send the data
         byteBuf.writeBytes(headerBufLittleEndian);
