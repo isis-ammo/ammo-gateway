@@ -1,5 +1,6 @@
 package edu.vu.isis.ammo;
 
+import com.google.protobuf.ByteString;
 import edu.vu.isis.ammo.core.pb.AmmoMessages;
 import edu.vu.isis.ammo.gateway.*;
 import io.netty.channel.Channel;
@@ -186,7 +187,7 @@ public class GatewayConnectionHandler implements GatewayConnectorDelegate, DataP
             }
             case UNSUBSCRIBE_MESSAGE: {
                 logger.debug("Received unsubscribe message");
-                AmmoMessages.UnsubscribeMessage unsubscribeMessage = msg.getUnubscribeMessage();
+                AmmoMessages.UnsubscribeMessage unsubscribeMessage = msg.getUnsubscribeMessage();
 
                 MessageScope scope;
                 if(unsubscribeMessage.getScope() == AmmoMessages.MessageScope.LOCAL) {
@@ -207,7 +208,26 @@ public class GatewayConnectionHandler implements GatewayConnectorDelegate, DataP
 
     @Override
     public void onPushDataReceived(GatewayConnector gatewayConnector, PushData pushData) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        logger.debug("Sending subscribed data to device");
+
+        AmmoMessages.MessageWrapper.Builder msg = AmmoMessages.MessageWrapper.newBuilder();
+        AmmoMessages.DataMessage.Builder dataMsg = msg.getDataMessageBuilder();
+        dataMsg.setUri(pushData.uri);
+        dataMsg.setMimeType(pushData.mimeType);
+        dataMsg.setEncoding(pushData.encoding);
+        dataMsg.setData(ByteString.copyFrom(pushData.data));
+        dataMsg.setOriginDevice(pushData.originDevice);
+        dataMsg.setUserId(pushData.originUserName);
+
+        dataMsg.getThresholdsBuilder().setDeviceDelivered(pushData.ackThresholds.deviceDelivered);
+        dataMsg.getThresholdsBuilder().setPluginDelivered(pushData.ackThresholds.pluginDelivered);
+        dataMsg.getThresholdsBuilder().setAndroidPluginReceived(false);
+
+        msg.setType(AmmoMessages.MessageWrapper.MessageType.DATA_MESSAGE);
+        msg.setMessagePriority(pushData.priority);
+
+        logger.debug("Sending Data Push message to connected device");
+        channel.write(msg.build());
     }
 
     @Override
@@ -226,6 +246,12 @@ public class GatewayConnectionHandler implements GatewayConnectorDelegate, DataP
         if(result == true) {
             deviceIdAuthenticated = true;
         }
+
+        AmmoMessages.MessageWrapper.Builder msg = AmmoMessages.MessageWrapper.newBuilder();
+        msg.setType(AmmoMessages.MessageWrapper.MessageType.AUTHENTICATION_RESULT);
+        msg.setMessagePriority(MessagePriority.PRIORITY_AUTH.getValue());
+        msg.getAuthenticationResultBuilder().setResult(result ? AmmoMessages.AuthenticationResult.Status.SUCCESS : AmmoMessages.AuthenticationResult.Status.FAILED);
+        channel.write(msg.build());
     }
 
     @Override

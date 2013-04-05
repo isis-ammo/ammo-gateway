@@ -27,5 +27,7 @@ public class GatewayServerInitializer extends ChannelInitializer<SocketChannel> 
 
         pipeline.addLast("decoder", new AndroidMessageDecoder());
         pipeline.addLast("handler", new AndroidMessageHandler());
+
+        pipeline.addLast("encoder", new AndroidMessageEncoder());
     }
 }

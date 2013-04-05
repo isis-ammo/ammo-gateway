@@ -30,6 +30,7 @@ public class AndroidMessageHandler extends ChannelInboundMessageHandlerAdapter<A
     public void messageReceived(ChannelHandlerContext channelHandlerContext, AmmoMessages.MessageWrapper messageWrapper) throws Exception {
         //To change body of implemented methods use File | Settings | File Templates.
         logger.error("{} Received message: {}", this.hashCode(), messageWrapper);
+        gatewayConnectionMap.get(channelHandlerContext.channel()).processMessage(messageWrapper);
     }
 
     @Override

@@ -20,7 +20,7 @@ import java.util.zip.CRC32;
  */
 public class AndroidMessageDecoder extends ByteToMessageDecoder {
     private static final Logger logger = LoggerFactory.getLogger(AndroidMessageDecoder.class);
-    final int MAGIC_NUMBER = 0xfeedbeef;
+    static final int MAGIC_NUMBER = 0xfeedbeef;
 
     @Override
     protected Object decode(ChannelHandlerContext channelHandlerContext, ByteBuf in) throws Exception {
