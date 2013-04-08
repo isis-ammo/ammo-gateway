@@ -1,5 +1,5 @@
 from twisted.protocols import stateful
-from twisted.internet import reactor, ssl, 
+from twisted.internet import reactor, ssl
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint, SSL4ClientEndpoint
 
@@ -113,7 +113,7 @@ class MessagePriority:
   NORMAL = 0
   BACKGROUND = -32
     
-class SecureAndroidConnectr(threading.Thread):
+class SecureAndroidConnector(threading.Thread):
   _address = ""
   _port = 0
   _deviceId = ""
@@ -148,12 +148,16 @@ class SecureAndroidConnectr(threading.Thread):
     self._protocol = p
     self._onConnect()
     
+  def _onError(self, failure):
+    print "Error: ", failure
+    
   def _connect(self):
     factory = Factory()
     factory.protocol = AndroidProtocol
     point = SSL4ClientEndpoint(reactor, self._address, self._port, ssl.ClientContextFactory())
     d = point.connect(factory)
     d.addCallback(self._gotProtocol)
+    d.addErrback(self._onError)
     
   def run(self):
     if reactor.running == False:
@@ -256,7 +260,7 @@ class SecureAndroidConnectr(threading.Thread):
     destinationDevice parameter should match the origin_device parameter from
     the push message which was received.
     
-    Scripts shouldn't normally need to call this directly; SecureAndroidConnectr
+    Scripts shouldn't normally need to call this directly; SecureAndroidConnector
     will automatically generate an acknowledgement if the message indicates
     that an acknowledgement is required.
     '''
@@ -297,7 +301,7 @@ class SecureAndroidConnectr(threading.Thread):
     Sends a pull request with the specified parameters.  Note that the request
     UID and device ID are automatically set to the correct values (request UID
     is a generated UUID, and device ID is the device ID passed to the
-    constructor of this SecureAndroidConnectr object).
+    constructor of this SecureAndroidConnector object).
     '''
     m = AmmoMessages_pb2.MessageWrapper()
     m.type = AmmoMessages_pb2.MessageWrapper.PULL_REQUEST
@@ -313,10 +317,10 @@ class SecureAndroidConnectr(threading.Thread):
     
   def waitForAuthentication(self):
     '''
-    Waits for the SecureAndroidConnectr to connect to the Android Gateway Plugin, and
+    Waits for the SecureAndroidConnector to connect to the Android Gateway Plugin, and
     waits for successful authentication.
     
-    This method MUST be called after the SecureAndroidConnectr's background thread
+    This method MUST be called after the SecureAndroidConnector's background thread
     is started.  Attempting to call any other member methods of this class
     before authentication is complete has undefined behavior.
     '''
@@ -333,8 +337,8 @@ class SecureAndroidConnectr(threading.Thread):
     expected to handle any synchronization issues which might result.
     
     Also note that registering this callback does not disable the message queue--
-    the consumer of SecureAndroidConnectr will want to either drain this queue or 
-    disable it with SecureAndroidConnectr.setMessageQueueEnabled(False) to avoid 
+    the consumer of SecureAndroidConnector will want to either drain this queue or 
+    disable it with SecureAndroidConnector.setMessageQueueEnabled(False) to avoid 
     memory leaks.
     '''
     self._messageCallback = callback
@@ -352,11 +356,11 @@ class SecureAndroidConnectr(threading.Thread):
     self._messageQueueEnabled = enabled
     
 # Main method for this class (not run when it's imported).
-# This is a usage example for the SecureAndroidConnectr--  it subscribes to a data
+# This is a usage example for the SecureAndroidConnector--  it subscribes to a data
 # type, then prints out any data that it receives with that type.
 if __name__ == "__main__":
   print "Android Gateway Tester"
-  connector = SecureAndroidConnectr("localhost", 33290, "device:test/pythonTestDriver1", "user:user/testPythonUser1", "")
+  connector = SecureAndroidConnector("localhost", 33290, "device:test/pythonTestDriver1", "user:user/testPythonUser1", "")
   
   try:
     connector.start()

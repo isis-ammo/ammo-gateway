@@ -1,12 +1,12 @@
 package edu.vu.isis.ammo;
 
 import edu.vu.isis.ammo.core.pb.AmmoMessages;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundMessageHandlerAdapter;
+import io.netty.channel.*;
+import io.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,8 +34,19 @@ public class AndroidMessageHandler extends ChannelInboundMessageHandlerAdapter<A
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(final ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
+
+        ctx.pipeline().get(SslHandler.class).handshake().addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                //TODO: Verify that handshake succeeded
+                deviceConnected(ctx);
+            }
+        });
+    }
+
+    private void deviceConnected(ChannelHandlerContext ctx) {
         logger.info("{} {} connected", this.hashCode(), ctx.channel().remoteAddress());
 
         //create new gateway connector for this connection

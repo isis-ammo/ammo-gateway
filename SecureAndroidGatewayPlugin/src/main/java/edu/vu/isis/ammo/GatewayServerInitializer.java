@@ -4,9 +4,12 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import java.nio.ByteOrder;
 
 /**
@@ -24,6 +27,28 @@ public class GatewayServerInitializer extends ChannelInitializer<SocketChannel> 
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         ChannelPipeline pipeline = socketChannel.pipeline();
+
+        SSLContext sslContext = SSLContext.getDefault();
+        SSLEngine sslEngine = sslContext.createSSLEngine();
+
+        sslEngine.setUseClientMode(false);
+        //sslEngine.setWantClientAuth(true);
+        //sslEngine.setNeedClientAuth(true);
+
+        logger.debug("SSL: Enabled protocols:");
+        for(String protocol : sslEngine.getEnabledProtocols()) {
+            logger.debug("    {}", protocol);
+        }
+
+        logger.debug("SSL: Enabled cipher suites:");
+        for(String cipher : sslEngine.getEnabledCipherSuites()) {
+            logger.debug("    {}", cipher);
+        }
+
+        logger.debug("SSL: Enabled protocols: {}", sslEngine.getEnabledProtocols().length);
+        logger.debug("SSL: Enabled Cipher Suites: {}", sslEngine.getEnabledCipherSuites().length);
+
+        pipeline.addLast("ssl", new SslHandler(sslEngine));
 
         pipeline.addLast("decoder", new AndroidMessageDecoder());
         pipeline.addLast("handler", new AndroidMessageHandler());
