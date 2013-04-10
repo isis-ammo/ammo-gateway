@@ -19,3 +19,4 @@ GNUmakefile*
 nbproject/
 gatewayversion.mpb
 !build/
+.DS_Store

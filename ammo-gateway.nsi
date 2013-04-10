@@ -371,6 +371,10 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
   ${EndIf}
   File MCastPlugin\mcastplugin.bat
   File MCastPlugin\dist\lib\mcastplugin.jar
+  
+  SetOutPath $INSTDR\bin\MCastPlugin
+  File MCastPlugin\config\win32\logback.xml
+  
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\MCastPluginConfig.json
 
@@ -389,7 +393,7 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
                "AMMO MCast Plugin" \
                "$0" \
                -Djava.net.preferIPv4Stack=true \
-               "-Djava.class.path=$INSTDIR\bin\gatewaypluginapi.jar;$INSTDIR\bin\slf4j-api-1.6.4.jar;$INSTDIR\bin\slf4j-simple-1.6.4.jar;$INSTDIR\bin\json-20090211.jar;$INSTDIR\bin\jgroups-gw.jar;$INSTDIR\bin\protobuf-java-2.4.1.jar;$INSTDIR\bin\mcastplugin.jar" \
+               "-Djava.class.path=$INSTDIR\bin\gatewaypluginapi.jar;$INSTDIR\bin\slf4j-api-1.6.4.jar;$INSTDIR\bin\slf4j-simple-1.6.4.jar;$INSTDIR\bin\json-20090211.jar;$INSTDIR\bin\jgroups-gw.jar;$INSTDIR\bin\protobuf-java-2.4.1.jar;$INSTDIR\bin\mcastplugin.jar;$INSTDIR\bin\MCastPlugin" \
                -start edu.vu.isis.ammo.mcastplugin.MCastPlugin \
                -depends "GatewayCore" \
                -description "AMMO MCast Plugin" ' $0
@@ -426,6 +430,10 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
   File RMCastPlugin\libs\protobuf-java-2.4.1.jar
   File RMCastPlugin\libs\slf4j-api-1.6.4.jar
   File RMCastPlugin\libs\slf4j-simple-1.6.4.jar
+  
+  SetOutPath $INSTDR\bin\RMCastPlugin
+  File RMCastPlugin\config\win32\logback.xml
+  
   SetOutPath $APPDATA\ammo-gateway
   File build\etc\win32\RMCastPluginConfig.json
 
@@ -447,7 +455,7 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
                "AMMO RMCast Plugin" \
                "$0" \
                -Djava.net.preferIPv4Stack=true \
-               "-Djava.class.path=$INSTDIR\bin\gatewaypluginapi.jar;$INSTDIR\bin\slf4j-api-1.6.4.jar;$INSTDIR\bin\slf4j-simple-1.6.4.jar;$INSTDIR\bin\json-20090211.jar;$INSTDIR\bin\jgroups-gw.jar;$INSTDIR\bin\protobuf-java-2.4.1.jar;$INSTDIR\bin\rmcastplugin.jar" \
+               "-Djava.class.path=$INSTDIR\bin\gatewaypluginapi.jar;$INSTDIR\bin\slf4j-api-1.6.4.jar;$INSTDIR\bin\slf4j-simple-1.6.4.jar;$INSTDIR\bin\json-20090211.jar;$INSTDIR\bin\jgroups-gw.jar;$INSTDIR\bin\protobuf-java-2.4.1.jar;$INSTDIR\bin\rmcastplugin.jar;$INSTDIR\bin\RMCastPlugin" \
                -start edu.vu.isis.ammo.rmcastplugin.RMCastPlugin \
                -depends "GatewayCore" \
                -description "AMMO RMCast Plugin" ' $0
