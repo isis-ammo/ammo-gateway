@@ -779,7 +779,9 @@ Section Uninstall
   Delete $INSTDIR\bin\json-20090211.jar
   Delete $INSTDIR\bin\protobuf-java-2.4.1.jar
   Delete $INSTDIR\bin\slf4j-api-1.6.4.jar
-  Delete $INSTDIR\bin\slf4j-simple-1.6.4.jar
+  Delete $INSTDIR\bin\logback-core-1.0.11.jar
+  Delete $INSTDIR\bin\logback-classic-1.0.11.jar
+  Delete $INSTDIR\bin\logback-access-1.0.11.jar
   Delete $INSTDIR\bin\RMCastPlugin\logback.xml
 
   ; Manager
