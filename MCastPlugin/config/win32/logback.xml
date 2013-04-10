@@ -1,7 +1,7 @@
 <configuration>
 
   <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${PROGRAMDATA}/ammo-gateway/MCastPlugin.txt</file>
+    <file>${PROGRAMDATA}/ammo-gateway/MCastPlugin.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- rollover daily -->
       <fileNamePattern>${PROGRAMDATA}/ammo-gateway/MCastPlugin-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
@@ -12,7 +12,7 @@
       </timeBasedFileNamingAndTriggeringPolicy>
     </rollingPolicy>
     <encoder>
-      <pattern>%msg%n</pattern>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
     </encoder>
   </appender>
   
