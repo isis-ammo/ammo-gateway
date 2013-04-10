@@ -372,7 +372,7 @@ ${MementoSection} "MCast Gateway Plugin (required)" SecMCastPlug
   File MCastPlugin\mcastplugin.bat
   File MCastPlugin\dist\lib\mcastplugin.jar
   
-  SetOutPath $INSTDR\bin\MCastPlugin
+  SetOutPath $INSTDIR\bin\MCastPlugin
   File MCastPlugin\config\win32\logback.xml
   
   SetOutPath $APPDATA\ammo-gateway
@@ -431,7 +431,7 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
   File RMCastPlugin\libs\slf4j-api-1.6.4.jar
   File RMCastPlugin\libs\slf4j-simple-1.6.4.jar
   
-  SetOutPath $INSTDR\bin\RMCastPlugin
+  SetOutPath $INSTDIR\bin\RMCastPlugin
   File RMCastPlugin\config\win32\logback.xml
   
   SetOutPath $APPDATA\ammo-gateway
@@ -768,6 +768,7 @@ Section Uninstall
   Delete $INSTDIR\bin\JavaService.exe
   Delete $INSTDIR\bin\mcastplugin.bat
   Delete $INSTDIR\bin\mcastplugin.jar
+  Delete $INSTDIR\bin\MCastPlugin\logback.xml
 
   ; RMCast Plugin
   Delete $INSTDIR\bin\rmcastplugin.bat
@@ -777,6 +778,7 @@ Section Uninstall
   Delete $INSTDIR\bin\protobuf-java-2.4.1.jar
   Delete $INSTDIR\bin\slf4j-api-1.6.4.jar
   Delete $INSTDIR\bin\slf4j-simple-1.6.4.jar
+  Delete $INSTDIR\bin\RMCastPlugin\logback.xml
 
   ; Manager
   Delete "Manager\release\Manager.exe"
