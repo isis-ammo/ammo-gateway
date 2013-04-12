@@ -634,6 +634,10 @@ Section -post
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ammo-gateway" "NoRepair" "1"
 
   WriteUninstaller $INSTDIR\uninst-ammo-gateway.exe
+  
+  SetDetailsPrint textonly
+  DetailPrint "Starting services..."
+  SetDetailsPrint listonly
 
   ; Start Windows services
   SimpleSC::StartService "GatewayCore" "" "30"
