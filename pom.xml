@@ -1,68 +1,98 @@
-<?xml version="1.0" encoding="utf-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <!--
- -
- -
- -
- -
- -  This pom is _.-*`EMPTY`*-._
- -
- -
- -
- -
- -->
-  <properties>
-    <!-- TEMPLATE2:BEGIN-->
-    <repo.addr>vanderbilt-snapshot/</repo.addr>
-    <!-- This field should read "Vanderbilt/" for releases -->
-    <!-- TEMPLATE2:END -->
-    <!-- else it should read "vanderbilt-snapshot/" for snapshots-->
-    <vandylib.release.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/Vanderbilt/</vandylib.release.url>
-    <vandylib.snapshot.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/vanderbilt-snapshot/</vandylib.snapshot.url>
-    <vandylib.eucleo.url>http://ammo.isis.vanderbilt.edu:8081/nexus/content/repositories/eucleo/</vandylib.eucleo.url>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <build>${basedir}/../build</build>
-  </properties>
-  <groupId>edu.vu.isis.ammo</groupId>
-  <artifactId>gateway</artifactId>
-  <packaging>pom</packaging>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-  <parent>
-    <groupId>edu.vu.isis</groupId>
-    <artifactId>ammo-common-parent</artifactId>
-    <!-- TEMPLATE:BEGIN-->
-    <version>1.7.1-SNAPSHOT</version>
-    <!-- TEMPLATE:END -->
-  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <groupId>edu.vu.isis</groupId>
+  <artifactId>gateway-parent</artifactId>
+  <packaging>pom</packaging>
+  <version>1.7.2-SNAPSHOT</version>
+  <name>ammo gateway parent project</name>
 
   <modules>
+    <module>JavaGatewayProtocol</module>
     <module>JavaGatewayConnector</module>
   </modules>
 
-  <name>Ammo Gateway (Main)</name>
-  <distributionManagement>
-    <repository>
-      <id>nexus-vanderbilt</id>
-      <url>${vandylib.release.url}</url>
-    </repository>
-    <snapshotRepository>
-      <id>nexus-snapshot</id>
-      <url>${vandylib.snapshot.url}</url>
-    </snapshotRepository>
-  </distributionManagement>
-  <repositories>
-    <repository>
-      <id>nexus-vanderbilt</id>
-      <url>${vandylib.release.url}</url>
-    </repository>
-    <repository>
-      <id>nexus-eucleo</id>
-      <url>${vandylib.eucleo.url}</url>
-    </repository>
-    <repository>
-      <id>nexus-snapshot</id>
-      <url>${vandylib.snapshot.url}</url>
-    </repository>
-  </repositories>
+ <organization>
+    <name>Vanderbilt ISIS</name>
+    <url>http://isis.vanderbilt.edu/</url>
+  </organization> 
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.2</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>1.0.9</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>1.0.9</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.11</version>
+      </dependency>
+      <dependency>
+        <groupId>junit-addons</groupId>
+        <artifactId>junit-addons</artifactId>
+        <version>1.4</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>2.4.1</version>
+        <!--Your installed version of protoc (protobuf-compiler) MUST match this version. -->
+        <!--You can change this version to match yours (maybe) but it's untested below 2.3.0. -->
+      </dependency>
+      <dependency>
+        <groupId>org.json</groupId>
+        <artifactId>json</artifactId>
+        <version>20090211</version>
+      </dependency>
+      <dependency>
+        <groupId>edu.vu.isis</groupId>
+        <artifactId>gateway-protocol</artifactId>
+        <version>1.7.2-SNAPSHOT</version>
+        <classifier>protoc24</classifier>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>1.9</version>
+        <configuration>
+          <links>
+            <link>http://commons.apache.org/lang/api</link>
+            <link>http://java.sun.com/j2se/1.5.0/docs/api</link>
+          </links>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+
 </project>
