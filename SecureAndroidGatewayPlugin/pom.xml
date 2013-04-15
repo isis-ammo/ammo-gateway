@@ -13,7 +13,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
   <parent>
     <groupId>edu.vu.isis</groupId>
     <artifactId>gateway-parent</artifactId>
-    <version>1.7.2-SNAPSHOT</version>
+    <version>1.7.3-SNAPSHOT</version>
   </parent>
 
   <artifactId>secure-gateway-plugin</artifactId>
@@ -30,7 +30,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
     <dependency>
       <groupId>edu.vu.isis</groupId>
       <artifactId>java-gateway-connector</artifactId>
-      <version>1.7.2-SNAPSHOT</version>
+      <version>1.7.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
