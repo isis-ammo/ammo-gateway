@@ -157,12 +157,42 @@ void Retransmitter::processReceivedMessage(Message &msg, int hyperperiod) {
 }
 
 void Retransmitter::sendingPacket(Message &msg, std::string &data, uint16_t hyperperiod, uint8_t slotIndex, uint8_t indexInSlot) {
+  LOG_TRACE("Sending packet");
 
+  if(msg.packetType != PACKETTYPE_RESEND && msg.packetType != PACKETTYPE_RELAY) {
+    if(slotRecords.getCurrentSendCount() < MAX_PACKETS_PER_SLOT) {
+      PacketRecord *pr = new PacketRecord(indexInSlot, slotIndex, hyperperiod, msg, connMatrix.expectToHearFrom(), DEFAULT_RESENDS);
+
+      if(!msg.needAck || msg.packetType == PACKETTYPE_ACK) {
+        pr->expectToHearFrom = 0;
+        pr->resends = 0;
+      }
+      slotRecords.addPacketRecord(pr);
+      
+      LOG_TRACE("Packets sent this slot: " << slotRecords.getCurrentSendCount());
+    } else {
+      LOG_ERROR("Number of packets in this slot = " << slotRecords.getCurrentSendCount << " >= MAX_PACKETS_PER_SLOT; not adding to slot record");
+    } 
+  } else {
+    LOG_TRACE("Resending a packet");
+  }
 }
 
 
 Message Retransmitter::createResendPacket(uint64_t bytesAvailable) {
+  while(!resendQueue.empty()) {
+    PacketRecord *pr = resendQueue.front();
+    if(pr->packet.data.length + RESEND_HEADER_LENGTH > bytesAvailable) {
+      break;
+    } else {
+      resendQueue.pop();
 
+      slotRecords.addPacketRecord(pr);
+      (pr->resends)--;
+
+      //TODO:  Create a new message from the old one with the original UID added to it, then return it
+    }
+  }
 }
 
 Message Retransmitter::createAckPacket(uint16_t hyperperiod) {

@@ -13,6 +13,7 @@ const size_t MAX_PACKETS_PER_SLOT = 7;
 const size_t MAX_SLOT_HISTORY = 16;
 const size_t DEFAULT_EXPIRATION_TIME = 3;
 const size_t DEFAULT_RESENDS = 4;
+const size_t RESEND_HEADER_LENGTH = 20;
 
 struct Message {
 public:
@@ -23,6 +24,8 @@ public:
   uint16_t hyperperiod;
 
   uint8_t hopCount;
+
+  bool needAck;
 
   std::string data;
 };
