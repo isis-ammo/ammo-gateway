@@ -1,7 +1,8 @@
-from twisted.protocols import stateful
+ from twisted.protocols import stateful
 from twisted.internet import reactor, ssl
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint, SSL4ClientEndpoint
+from OpenSSL import SSL
 
 from datetime import datetime
 
@@ -112,7 +113,16 @@ class MessagePriority:
   IMPORTANT = 32
   NORMAL = 0
   BACKGROUND = -32
-    
+  
+class CtxFactory(ssl.ClientContextFactory):
+  def getContext(self):
+      self.method = SSL.SSLv23_METHOD
+      ctx = ssl.ClientContextFactory.getContext(self)
+      ctx.use_certificate_file('device1cert.cer', SSL.FILETYPE_ASN1)
+      ctx.use_privatekey_file('device1key.pem')
+
+      return ctx
+  
 class SecureAndroidConnector(threading.Thread):
   _address = ""
   _port = 0
@@ -154,7 +164,7 @@ class SecureAndroidConnector(threading.Thread):
   def _connect(self):
     factory = Factory()
     factory.protocol = AndroidProtocol
-    point = SSL4ClientEndpoint(reactor, self._address, self._port, ssl.ClientContextFactory())
+    point = SSL4ClientEndpoint(reactor, self._address, self._port, CtxFactory())
     d = point.connect(factory)
     d.addCallback(self._gotProtocol)
     d.addErrback(self._onError)

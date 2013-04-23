@@ -32,8 +32,8 @@ public class GatewayServerInitializer extends ChannelInitializer<SocketChannel> 
         SSLEngine sslEngine = sslContext.createSSLEngine();
 
         sslEngine.setUseClientMode(false);
-        //sslEngine.setWantClientAuth(true);
-        //sslEngine.setNeedClientAuth(true);
+        sslEngine.setWantClientAuth(true);
+        sslEngine.setNeedClientAuth(true);
 
         logger.debug("SSL: Enabled protocols:");
         for(String protocol : sslEngine.getEnabledProtocols()) {

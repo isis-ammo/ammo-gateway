@@ -21,6 +21,8 @@ public class SecureGatewayPluginMain {
     public static void main(String[] args) throws Exception {
         logger.error("Hello world");
 
+        SecureGatewayPluginConfigurationManager config = SecureGatewayPluginConfigurationManager.getInstance();
+
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
@@ -30,7 +32,7 @@ public class SecureGatewayPluginMain {
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new GatewayServerInitializer());
 
-            b.bind(33290).sync().channel().closeFuture().sync();
+            b.bind(config.getListenAddress(), config.getListenPort()).sync().channel().closeFuture().sync();
 
         } finally {
             bossGroup.shutdown();
