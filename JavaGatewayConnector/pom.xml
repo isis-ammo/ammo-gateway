@@ -3,7 +3,7 @@
  <parent>
     <groupId>edu.vu.isis</groupId>
     <artifactId>gateway-parent</artifactId>
-    <version>1.7.2-SNAPSHOT</version>
+    <version>1.7.3-SNAPSHOT</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -63,23 +63,23 @@
   </dependencies>
 
   <build>
-    <resources>
+    <!--<resources>
       <resource>
         <directory>../ammogen-maven-plugin/src/main/resources</directory>
       </resource>
-    </resources>
-    <sourceDirectory>../ammogen-maven-plugin/src/main/java</sourceDirectory>
+    </resources>-->
+    <sourceDirectory>./src</sourceDirectory>
 
     <plugins>
-      <plugin>
+      <!--<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <includes><include>**/ammo/generator/**</include></includes>
         </configuration>
-      </plugin>
+      </plugin>-->
 
-      <plugin>
+      <!--<plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <executions>
@@ -100,9 +100,9 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
+      </plugin>-->
 
-      <plugin>
+      <!--<plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <archive>
@@ -123,7 +123,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
+      </plugin>-->
     </plugins>
   </build>
 </project>

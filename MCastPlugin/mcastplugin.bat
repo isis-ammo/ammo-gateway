@@ -23,7 +23,7 @@ if defined GATEWAY_ROOT (
   pushd "%GATEWAY_ROOT%\MCastPlugin"
 
   %JAVA_CMD% -cp ^
-      libs\gatewaypluginapi.jar;libs\slf4j-api-1.6.4.jar;libs\slf4j-simple-1.6.4.jar;libs\json-20090211.jar;libs\protobuf-java-2.3.0.jar;dist\lib\mcastplugin.jar ^
+      libs\gatewaypluginapi.jar;libs\slf4j-api-1.6.4.jar;libs\logback-core-1.0.11.jar;libs\logback-classic-1.0.11.jar;libs\logback-access-1.0.11.jar;libs\json-20090211.jar;libs\protobuf-java-2.4.1.jar;dist\lib\mcastplugin.jar;config/win32 ^
       edu.vu.isis.ammo.mcastplugin.MCastPlugin
 
   popd
@@ -42,7 +42,7 @@ if not defined programfiles(x86) (
 pushd "%PLUGIN_BASE%"
 
 %JAVA_CMD% -cp ^
-    gatewaypluginapi.jar;slf4j-api-1.6.4.jar;slf4j-simple-1.6.4.jar;json-20090211.jar;protobuf-java-2.3.0.jar;mcastplugin.jar ^
+    gatewaypluginapi.jar;slf4j-api-1.6.4.jar;logback-core-1.0.11.jar;logback-classic-1.0.11.jar;logback-access-1.0.11.jar;json-20090211.jar;protobuf-java-2.4.1.jar;mcastplugin.jar ^
     edu.vu.isis.ammo.mcastplugin.MCastPlugin
 
 popd
