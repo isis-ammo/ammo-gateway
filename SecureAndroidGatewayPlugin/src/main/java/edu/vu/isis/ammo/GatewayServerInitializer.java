@@ -3,14 +3,12 @@ package edu.vu.isis.ammo;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
-import java.nio.ByteOrder;
 
 /**
  * Created with IntelliJ IDEA.
@@ -26,16 +24,19 @@ public class GatewayServerInitializer extends ChannelInitializer<SocketChannel> 
 
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
+        SecureGatewayPluginConfigurationManager config = SecureGatewayPluginConfigurationManager.getInstance();
+
         ChannelPipeline pipeline = socketChannel.pipeline();
 
         SSLContext sslContext = SSLContext.getDefault();
         SSLEngine sslEngine = sslContext.createSSLEngine();
 
         sslEngine.setUseClientMode(false);
-        sslEngine.setWantClientAuth(true);
-        sslEngine.setNeedClientAuth(true);
 
-        logger.debug("SSL: Enabled protocols:");
+        sslEngine.setWantClientAuth(config.isClientAuthEnabled());
+        sslEngine.setNeedClientAuth(config.isClientAuthEnabled());
+
+        /*logger.debug("SSL: Enabled protocols:");
         for(String protocol : sslEngine.getEnabledProtocols()) {
             logger.debug("    {}", protocol);
         }
@@ -46,7 +47,7 @@ public class GatewayServerInitializer extends ChannelInitializer<SocketChannel> 
         }
 
         logger.debug("SSL: Enabled protocols: {}", sslEngine.getEnabledProtocols().length);
-        logger.debug("SSL: Enabled Cipher Suites: {}", sslEngine.getEnabledCipherSuites().length);
+        logger.debug("SSL: Enabled Cipher Suites: {}", sslEngine.getEnabledCipherSuites().length);*/
 
         pipeline.addLast("ssl", new SslHandler(sslEngine));
 

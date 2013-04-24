@@ -6,7 +6,13 @@ import io.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLSession;
 import java.net.InetAddress;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,7 +47,29 @@ public class AndroidMessageHandler extends ChannelInboundMessageHandlerAdapter<A
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 //TODO: Verify that handshake succeeded
-                deviceConnected(ctx);
+                if(future.isSuccess()) {
+                    SSLSession session = ctx.pipeline().get(SslHandler.class).engine().getSession();
+
+                    logger.info("SSL handshake complete; session established");
+                    logger.info("  Protocol: {}", session.getProtocol());
+                    logger.info("  Cipher suite: {}", session.getCipherSuite());
+
+                    Certificate[] certs = session.getPeerCertificates();
+                    if(certs.length > 0 && certs[0] instanceof X509Certificate) {
+                        X509Certificate peerCert = (X509Certificate) certs[0];
+                        logger.info("  Connected peer: DN: {}", peerCert.getSubjectX500Principal());
+                        logger.info("    Serial: {}", peerCert.getSerialNumber());
+                        logger.info("    Fingerprint: {}", getCertFingerprint(peerCert));
+
+                        deviceConnected(ctx);
+                    } else if(certs.length == 0) {
+                        logger.error("No certificates in peer certificate chain");
+                    } else {
+                        logger.error("Client authenticated with something that's not an X.509 certificate ({})", certs[0].getType());
+                    }
+                } else {
+                    logger.warn("SSL handshake failure");
+                }
             }
         });
     }
@@ -68,5 +96,24 @@ public class AndroidMessageHandler extends ChannelInboundMessageHandlerAdapter<A
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         super.exceptionCaught(ctx, cause);    //To change body of overridden methods use File | Settings | File Templates.
+    }
+
+    private static String getCertFingerprint(X509Certificate cert) throws NoSuchAlgorithmException, CertificateEncodingException {
+        MessageDigest md = MessageDigest.getInstance("SHA1");
+        md.update( cert.getEncoded() );
+        byte[] fp = md.digest();
+        return bytesToHex(fp);
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+        final char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','a', 'b','c','d','e','f'};
+        char[] hexChars = new char[bytes.length * 2];
+        int v;
+        for ( int j = 0; j < bytes.length; j++ ) {
+            v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
     }
 }

@@ -1,4 +1,4 @@
- from twisted.protocols import stateful
+from twisted.protocols import stateful
 from twisted.internet import reactor, ssl
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import TCP4ClientEndpoint, SSL4ClientEndpoint

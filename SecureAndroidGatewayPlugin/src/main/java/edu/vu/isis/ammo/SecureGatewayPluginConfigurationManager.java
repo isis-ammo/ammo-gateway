@@ -36,7 +36,7 @@ class SecureGatewayPluginConfigurationManager {
         clientAuthEnabled = true;
 
         String fileName = findConfigFile(configFile);
-        if (fileName != null) {
+        if (fileName != null && !fileName.isEmpty()) {
             try {
                 final JSONTokener tokener = new JSONTokener( new FileReader(fileName) );
                 final JSONObject input = new JSONObject( tokener );
