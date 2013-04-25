@@ -143,7 +143,9 @@ message AuthenticationResult {
 *                     returned with each item returned by the pull request.
 *  plugin_id        : The unique identifier for this plugin or connected device.
 *                     For devices, should be the same as the device ID used by
-*                     associateDevice.
+*                     associateDevice. Not used by connection-based transports,
+*                     but required for connectionless transports (i.e. JGroups
+*                     or multicast).
 *  mime_type        : The data type to request.  mimeType is used to determine
 *                     which plugin or plugins a request is routed to.
 *  query            : The query for this pull request.  Its format is defined
@@ -158,6 +160,7 @@ message AuthenticationResult {
 */
 message PullRequest {
   required string request_uid = 1;
+  required string plugin_id = 2;
   required string mime_type = 3;
   required string query = 4;
   optional string projection = 5;
