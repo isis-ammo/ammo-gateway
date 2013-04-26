@@ -130,7 +130,7 @@ class PluginServiceHandler implements
 
         PullRequest req = new PullRequest();
         req.requestUid = pullRequest.getRequestUid();
-        req.pluginId = pullRequest.getPluginId();
+        req.pluginId = "RMcastPlugin";
         req.mimeType = pullRequest.getMimeType();
         req.query = pullRequest.getQuery();
         req.projection = pullRequest.getProjection();
@@ -140,7 +140,7 @@ class PluginServiceHandler implements
         req.scope = scope;
         req.priority = message.getMessagePriority();
         mGatewayConnector.pullRequest(req);
-        logger.info("received pull request from: {} {}", pullRequest.getPluginId(), pullRequest.getQuery());
+        logger.info("received pull request: {}", pullRequest.getQuery());
 	} else if (false) { // TBD SKN message.getType() == AmmoMessages.MessageWrapper.MessageType.SUBSCRIBE_MESSAGE) {
 	    // subscribe message check the sub map to see if we are not already subscribed to this type
 	    AmmoMessages.SubscribeMessage subscribeMessage = message.getSubscribeMessage();
