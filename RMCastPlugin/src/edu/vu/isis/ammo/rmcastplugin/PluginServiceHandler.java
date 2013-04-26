@@ -13,6 +13,7 @@ package edu.vu.isis.ammo.rmcastplugin;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,18 +50,22 @@ class PluginServiceHandler implements
     private GatewayConnector mGatewayConnector = null;
 
     private HashMap<String,Integer> subscriptions = null;
+    
+    private final String pluginId;
 
     private static final Logger logger = LoggerFactory.getLogger(PluginServiceHandler.class);
 
     public PluginServiceHandler()
     {
-	subscriptions = new HashMap<String,Integer>();
-	// populate the subscriptions map with mimetypes read from config file
-	PluginConfigurationManager pConfig = PluginConfigurationManager.getInstance();
-	List<String> mimeTypes = pConfig.getMimeTypes();
-	for( String mimeType : mimeTypes ) {
-	    subscriptions.put(mimeType, 1);
-	}
+        subscriptions = new HashMap<String,Integer>();
+        // populate the subscriptions map with mimetypes read from config file
+        PluginConfigurationManager pConfig = PluginConfigurationManager.getInstance();
+        List<String> mimeTypes = pConfig.getMimeTypes();
+        for( String mimeType : mimeTypes ) {
+            subscriptions.put(mimeType, 1);
+        }
+        
+        pluginId = "MCastPlugin-" + UUID.randomUUID().toString();
     }
 
     public void setGatewayConnector(GatewayConnector gatewayConnector)
@@ -130,7 +135,7 @@ class PluginServiceHandler implements
 
         PullRequest req = new PullRequest();
         req.requestUid = pullRequest.getRequestUid();
-        req.pluginId = "RMcastPlugin";
+        req.pluginId = pluginId;
         req.mimeType = pullRequest.getMimeType();
         req.query = pullRequest.getQuery();
         req.projection = pullRequest.getProjection();
