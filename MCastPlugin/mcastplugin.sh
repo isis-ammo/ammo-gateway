@@ -33,7 +33,7 @@ else
   pushd /usr/share/java
 
   $JAVA_CMD -Djava.net.preferIPv4Stack=true -cp \
-    gatewaypluginapi.jar:slf4j-api-1.6.4.jar:logback-core-1.0.11.jar:logback-classic-1.0.11.jar:logback-access-1.0.11.jar:json-20090211.jar:jgroups-gw.jar:protobuf-java-2.3.0.jar:mcastplugin.jar \
+    gatewaypluginapi.jar:slf4j-api-1.6.4.jar:logback-core-1.0.11.jar:logback-classic-1.0.11.jar:logback-access-1.0.11.jar:json-20090211.jar:jgroups-gw.jar:protobuf-java-2.4.1.jar:mcastplugin.jar \
     edu.vu.isis.ammo.mcastplugin.MCastPlugin
 
   popd
