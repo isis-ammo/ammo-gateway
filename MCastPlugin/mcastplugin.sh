@@ -23,7 +23,7 @@ if [ -n "${GATEWAY_ROOT+x}" ]; then
 
   $JAVA_CMD -Djava.net.preferIPv4Stack=true -cp \
       libs/gatewaypluginapi.jar:libs/slf4j-api-1.6.4.jar:libs/logback-core-1.0.11.jar:libs/logback-classic-1.0.11.jar:libs/logback-access-1.0.11.jar:libs/json-20090211.jar:libs/jgroups-gw.jar:libs/protobuf-java-2.4.1.jar:dist/lib/mcastplugin.jar \
-      edu.vu.isis.ammo.mcastplugin.McastPlugin
+      edu.vu.isis.ammo.mcastplugin.MCastPlugin
 
   popd
 
@@ -34,7 +34,7 @@ else
 
   $JAVA_CMD -Djava.net.preferIPv4Stack=true -cp \
     gatewaypluginapi.jar:slf4j-api-1.6.4.jar:logback-core-1.0.11.jar:logback-classic-1.0.11.jar:logback-access-1.0.11.jar:json-20090211.jar:jgroups-gw.jar:protobuf-java-2.3.0.jar:mcastplugin.jar \
-    edu.vu.isis.ammo.mcastplugin.McastPlugin
+    edu.vu.isis.ammo.mcastplugin.MCastPlugin
 
   popd
 
