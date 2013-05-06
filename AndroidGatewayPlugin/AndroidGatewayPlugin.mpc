@@ -19,5 +19,6 @@ project(AndroidGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
     AndroidEventHandler.cpp
     AndroidMessageProcessor.cpp
     AndroidPluginConfigurationManager.cpp
+    ConnectionManager.cpp
   }
 }

@@ -47,6 +47,8 @@ public:
   ammo::protocol::MessageWrapper *getNextReceivedMessage();
   void addReceivedMessage(ammo::protocol::MessageWrapper *msg, char priority);
   
+  bool checkTimeout();
+  
 private:
   std::string deviceId; //not authenticated; just for pretty logging
   std::string peerAddress;

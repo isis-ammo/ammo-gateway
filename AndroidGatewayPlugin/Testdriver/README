@@ -22,27 +22,27 @@ configured):
    which one you've installed):
      http://python.org/download/
      
-3) Put python in your PATH.  Add (changing C:\python27 to your Python install
+2) Put python in your PATH.  Add (changing C:\python27 to your Python install
    directory if necessary):
      C:\python27;C:\python27\Scripts
      
-2) Download and install Twisted (make sure it matches your installed Python
+3) Download and install Twisted (make sure it matches your installed Python
    version):
      http://twistedmatrix.com/trac/wiki/Downloads
      
-3) Download and install python-setuptools:
+4) Download and install python-setuptools:
      http://pypi.python.org/pypi/setuptools
    (note that the install instructions for 64-bit and 32-bit versions of Python
    are different)
    
-4) Download and install the Python protobuf API:
+5) Download and install the Python protobuf API:
      1. Download and extract http://code.google.com/p/protobuf/downloads/detail?name=protobuf-2.3.0.zip
      2. In a command prompt window, go to {location you extracted protobuf)\protobuf
      3. In that directory, run:
            python setup.py install (may need to be an administrator for this
                                     command to work)
 
-5) Install AndroidConnector:
+6) Install AndroidConnector:
      cd %GATEWAY_ROOT%\AndroidGatewayPlugin\Testdriver\AndroidConnector
      python setup.py install (may need to run command prompt as an administrator)
 

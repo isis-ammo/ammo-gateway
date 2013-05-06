@@ -29,6 +29,7 @@
 #include "NetworkEnumerations.h"
 
 #include "AndroidPluginConfigurationManager.h"
+#include "ConnectionManager.h"
 
 using namespace std;
 using namespace ammo::gateway::internal;
@@ -177,6 +178,11 @@ bool App::init(int argc, char* argv[])
 								             androidPort);
 
   LOG_INFO("Listening on port " << androidPort << " on interface " << androidAddress);
+  
+  LOG_DEBUG("Creating connection manager...");
+  ConnectionManager *connManager = ConnectionManager::getInstance();
+  
+  ACE_Reactor::instance()->schedule_timer(connManager, NULL, ACE_Time_Value(ConnectionManager::TIMEOUT_TIME_SECONDS));
 
   return true;
 }

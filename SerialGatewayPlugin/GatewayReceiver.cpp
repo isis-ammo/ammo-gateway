@@ -163,7 +163,7 @@ void GatewayReceiver::onPushDataReceived(
         return;
       }
       
-      if(root["time"].isString()) {
+      if(root["created_date"].isString()) {
         time = atoll(root["created_date"].asString().c_str());
       } else {
         LOG_ERROR("Received invalid chat message from gateway... 'time' is not a string");

@@ -19,3 +19,6 @@ GNUmakefile*
 nbproject/
 gatewayversion.mpb
 !build/
+.DS_Store
+pom.xml.orig
+pom.xml.versionsbackup

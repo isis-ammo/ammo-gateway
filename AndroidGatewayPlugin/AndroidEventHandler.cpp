@@ -9,6 +9,8 @@
 #include "protocol/AmmoMessages.pb.h"
 #include "AndroidMessageProcessor.h"
 
+#include "ConnectionManager.h"
+
 using namespace std;
 
 AndroidEventHandler::AndroidEventHandler() :
@@ -26,6 +28,8 @@ void AndroidEventHandler::onConnect(std::string &peerAddress) {
   
   this->peerAddress = peerAddress;
   
+  ConnectionManager::getInstance()->registerConnection(this);
+  
   messageProcessor = new AndroidMessageProcessor(this);
   messageProcessor->activate();
   latestMessageTime = time(NULL);
@@ -34,6 +38,8 @@ void AndroidEventHandler::onConnect(std::string &peerAddress) {
 void AndroidEventHandler::onDisconnect() {
   LOG_TRACE((long) this << " AndroidEventHandler::onDisconnect()");
   LOG_INFO((long) this << " Device at " << peerAddress << " disconnected");
+  
+  ConnectionManager::getInstance()->unregisterConnection(this);
   
   LOG_TRACE((long) this << " Closing Message Processor");
   messageProcessor->close(0);
@@ -98,18 +104,14 @@ ammo::protocol::MessageWrapper *AndroidEventHandler::getNextReceivedMessage() {
 * want to cause that kind of performance impact everywhere.
 */
 void AndroidEventHandler::send(ammo::protocol::MessageWrapper *msg) {
-  //Check heartbeat time
-  time_t heartbeatDelta = time(NULL) - latestMessageTime;
-  if(heartbeatTimeoutTime != 0 && heartbeatDelta > heartbeatTimeoutTime) {
-    LOG_WARN((long) this << " Haven't received a message from device since " << latestMessageTime << " (" << heartbeatDelta << " seconds ago");
-    LOG_WARN((long) this << "   Dropping connection to device.");
-    this->scheduleDeferredClose();
-    delete msg; //we have ownership of msg, so we need to delete it (it isn't
-                //going into the send message queue if we drop the connection)
-    return;
-  }
+  //check for timeout and close if necessary
+  bool connectionTimedOut = checkTimeout();
   
-  //TODO: Check message queue length
+  if(connectionTimedOut) {
+    delete msg; 
+    return; //we have ownership of msg, so we need to delete it (it isn't
+            //going into the send message queue if we drop the connection)
+  }
   
   this->sendMessage(msg);
 }
@@ -128,4 +130,21 @@ void AndroidEventHandler::addReceivedMessage(ammo::protocol::MessageWrapper *msg
   receivedMessageCount++;
   receiveQueue.push(queuedMsg);
   receiveQueueMutex.release();
+}
+
+/**
+ * Checks to see if we've reached the connection timeout time (if we haven't
+ * received a message in a long time) and closes the connection if necessary)
+ */
+bool AndroidEventHandler::checkTimeout() {
+  //TODO: also check message queue length
+  time_t heartbeatDelta = time(NULL) - latestMessageTime;
+  if(heartbeatTimeoutTime != 0 && heartbeatDelta > heartbeatTimeoutTime) {
+    LOG_WARN((long) this << " Haven't received a message from device since " << latestMessageTime << " (" << heartbeatDelta << " seconds ago");
+    LOG_WARN((long) this << "   Dropping connection to device.");
+    this->scheduleDeferredClose();
+    return true;
+  } else {
+    return false;
+  }
 }
