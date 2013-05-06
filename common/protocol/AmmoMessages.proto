@@ -141,9 +141,6 @@ message AuthenticationResult {
 
 *  request_uid      : A unique identifier for this pull request.  It will be
 *                     returned with each item returned by the pull request.
-*  plugin_id        : The unique identifier for this plugin or connected device.
-*                     For devices, should be the same as the device ID used by
-*                     associateDevice.
 *  mime_type        : The data type to request.  mimeType is used to determine
 *                     which plugin or plugins a request is routed to.
 *  query            : The query for this pull request.  Its format is defined
