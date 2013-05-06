@@ -13,6 +13,7 @@ package edu.vu.isis.ammo.rmcastplugin;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,18 +50,22 @@ class PluginServiceHandler implements
     private GatewayConnector mGatewayConnector = null;
 
     private HashMap<String,Integer> subscriptions = null;
+    
+    private final String pluginId;
 
     private static final Logger logger = LoggerFactory.getLogger(PluginServiceHandler.class);
 
     public PluginServiceHandler()
     {
-	subscriptions = new HashMap<String,Integer>();
-	// populate the subscriptions map with mimetypes read from config file
-	PluginConfigurationManager pConfig = PluginConfigurationManager.getInstance();
-	List<String> mimeTypes = pConfig.getMimeTypes();
-	for( String mimeType : mimeTypes ) {
-	    subscriptions.put(mimeType, 1);
-	}
+        subscriptions = new HashMap<String,Integer>();
+        // populate the subscriptions map with mimetypes read from config file
+        PluginConfigurationManager pConfig = PluginConfigurationManager.getInstance();
+        List<String> mimeTypes = pConfig.getMimeTypes();
+        for( String mimeType : mimeTypes ) {
+            subscriptions.put(mimeType, 1);
+        }
+        
+        pluginId = "MCastPlugin-" + UUID.randomUUID().toString();
     }
 
     public void setGatewayConnector(GatewayConnector gatewayConnector)
@@ -116,7 +121,32 @@ class PluginServiceHandler implements
 		out.uid = in.getUri();
 		mGatewayConnector.pushAcknowledgement(out);
 		logger.info("received push ack from: {} {}", out.acknowledgingUser, out);
-	} else 	if (false) { // TBD SKN message.getType() == AmmoMessages.MessageWrapper.MessageType.SUBSCRIBE_MESSAGE) {
+	} else if(message.getType() == AmmoMessages.MessageWrapper.MessageType.PULL_REQUEST) {
+	    AmmoMessages.PullRequest pullRequest = message.getPullRequest();
+
+        mGatewayConnector.registerPullResponseInterest(pullRequest.getMimeType(), this);
+
+        MessageScope scope;
+        if(pullRequest.getScope() == AmmoMessages.MessageScope.LOCAL) {
+            scope = MessageScope.SCOPE_LOCAL;
+        } else {
+            scope = MessageScope.SCOPE_GLOBAL;
+        }
+
+        PullRequest req = new PullRequest();
+        req.requestUid = pullRequest.getRequestUid();
+        req.pluginId = pluginId;
+        req.mimeType = pullRequest.getMimeType();
+        req.query = pullRequest.getQuery();
+        req.projection = pullRequest.getProjection();
+        req.maxResults = pullRequest.getMaxResults();
+        req.startFromCount = pullRequest.getStartFromCount();
+        req.liveQuery = pullRequest.getLiveQuery();
+        req.scope = scope;
+        req.priority = message.getMessagePriority();
+        mGatewayConnector.pullRequest(req);
+        logger.info("received pull request: {}", pullRequest.getQuery());
+	} else if (false) { // TBD SKN message.getType() == AmmoMessages.MessageWrapper.MessageType.SUBSCRIBE_MESSAGE) {
 	    // subscribe message check the sub map to see if we are not already subscribed to this type
 	    AmmoMessages.SubscribeMessage subscribeMessage = message.getSubscribeMessage();
 	    
@@ -213,28 +243,28 @@ class PluginServiceHandler implements
 	public void onPushDataReceived(GatewayConnector sender, PushData pushData)
     {
 	
-	AmmoMessages.MessageWrapper.Builder msg =
-	    AmmoMessages.MessageWrapper.newBuilder();
-	AmmoMessages.DataMessage.Builder pushMsg =
-	    AmmoMessages.DataMessage.newBuilder();
-
-	pushMsg.setUri( pushData.uri );
-	pushMsg.setMimeType( pushData.mimeType );
-	pushMsg.setEncoding( pushData.encoding );
-	pushMsg.setUserId( pushData.originUserName );
-	pushMsg.setOriginDevice( pushData.originDevice );
-	pushMsg.setData( ByteString.copyFrom(pushData.data) );
-	AmmoMessages.AcknowledgementThresholds.Builder thresholds = 
-			AmmoMessages.AcknowledgementThresholds.newBuilder();
-	thresholds.setDeviceDelivered(pushData.ackThresholds.deviceDelivered);
-	thresholds.setPluginDelivered(pushData.ackThresholds.pluginDelivered);
-	pushMsg.setThresholds(thresholds.build());
-	pushMsg.setScope( pushData.scope == MessageScope.SCOPE_GLOBAL ? AmmoMessages.MessageScope.GLOBAL : AmmoMessages.MessageScope.LOCAL );
-
-	msg.setType( AmmoMessages.MessageWrapper.MessageType.DATA_MESSAGE );
-	msg.setDataMessage( pushMsg.build() );
-	// send to rmcastConnector
-	mRmcastConnector.sendMessage( msg.build() );
+        AmmoMessages.MessageWrapper.Builder msg =
+            AmmoMessages.MessageWrapper.newBuilder();
+        AmmoMessages.DataMessage.Builder pushMsg =
+            AmmoMessages.DataMessage.newBuilder();
+    
+        pushMsg.setUri( pushData.uri );
+        pushMsg.setMimeType( pushData.mimeType );
+        pushMsg.setEncoding( pushData.encoding );
+        pushMsg.setUserId( pushData.originUserName );
+        pushMsg.setOriginDevice( pushData.originDevice );
+        pushMsg.setData( ByteString.copyFrom(pushData.data) );
+        AmmoMessages.AcknowledgementThresholds.Builder thresholds = 
+                AmmoMessages.AcknowledgementThresholds.newBuilder();
+        thresholds.setDeviceDelivered(pushData.ackThresholds.deviceDelivered);
+        thresholds.setPluginDelivered(pushData.ackThresholds.pluginDelivered);
+        pushMsg.setThresholds(thresholds.build());
+        pushMsg.setScope( pushData.scope == MessageScope.SCOPE_GLOBAL ? AmmoMessages.MessageScope.GLOBAL : AmmoMessages.MessageScope.LOCAL );
+    
+        msg.setType( AmmoMessages.MessageWrapper.MessageType.DATA_MESSAGE );
+        msg.setDataMessage( pushMsg.build() );
+        // send to rmcastConnector
+        mRmcastConnector.sendMessage( msg.build() );
 	
     }
 
@@ -246,9 +276,25 @@ class PluginServiceHandler implements
     }
 
     @Override
-	public void onPullResponseReceived(GatewayConnector sender, PullResponse pullResp)
+	public void onPullResponseReceived(GatewayConnector sender, PullResponse pullResponse)
     {
-	// currently unsupported ...
+        logger.debug("Received pull response from gateway");
+        
+        AmmoMessages.MessageWrapper.Builder msg = AmmoMessages.MessageWrapper.newBuilder();
+        AmmoMessages.PullResponse.Builder pullMsg = msg.getPullResponseBuilder();
+        
+        pullMsg.setRequestUid(pullResponse.requestUid);
+        pullMsg.setPluginId(pullResponse.pluginId);
+        pullMsg.setMimeType(pullResponse.mimeType);
+        pullMsg.setUri(pullResponse.uri);
+        pullMsg.setEncoding(pullResponse.encoding);
+        pullMsg.setData(ByteString.copyFrom(pullResponse.data));
+        
+        msg.setType(AmmoMessages.MessageWrapper.MessageType.PULL_RESPONSE);
+        msg.setMessagePriority(pullResponse.priority);
+        
+        logger.debug("Sending pull response to device");
+        mRmcastConnector.sendMessage(msg.build());
     }
 
 

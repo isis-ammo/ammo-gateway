@@ -77,6 +77,9 @@ install: all
 	install -m 644 RMCastPlugin/libs/protobuf-java-2.4.1.jar $(DESTDIR)/usr/share/java
 	install -m 644 RMCastPlugin/libs/slf4j-api-1.6.4.jar $(DESTDIR)/usr/share/java
 	install -m 644 RMCastPlugin/libs/slf4j-simple-1.6.4.jar $(DESTDIR)/usr/share/java
+	install -m 644 RMCastPlugin/libs/logback-core-1.0.11.jar $(DESTDIR)/usr/share/java
+	install -m 644 RMCastPlugin/libs/logback-classic-1.0.11.jar $(DESTDIR)/usr/share/java
+	install -m 644 RMCastPlugin/libs/logback-access-1.0.11.jar $(DESTDIR)/usr/share/java
 	echo "Installing scripts ..."
 	install -m 755 debian/init.d $(DESTDIR)/etc/init.d/ammo-gateway
 	install -m 755 dist/template/bin/launch_ammo_gateway_headless.sh $(INSTALL_DIR)/bin
