@@ -9,4 +9,5 @@ build/
 dist/
 docs/
 target/
+gen/
 gatewaypluginapi-javadoc.jar
