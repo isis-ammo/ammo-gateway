@@ -123,9 +123,12 @@ rm -rf %{buildroot}
 /usr/share/java/rmcastplugin.jar
 /usr/share/java/jgroups-gw.jar
 /usr/share/java/json-20090211.jar
-/usr/share/java/protobuf-java-2.3.0.jar
+/usr/share/java/protobuf-java-2.4.1.jar
 /usr/share/java/slf4j-api-1.6.4.jar
 /usr/share/java/slf4j-simple-1.6.4.jar
+/usr/share/java/logback-core-1.0.11.jar
+/usr/share/java/logback-classic-1.0.11.jar
+/usr/share/java/logback-access-1.0.11.jar
 /var/log/ammo-gateway
 /var/db/ammo-gateway
 /var/run/ammo-gateway
