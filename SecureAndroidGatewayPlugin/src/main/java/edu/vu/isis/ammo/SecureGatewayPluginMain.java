@@ -35,8 +35,8 @@ public class SecureGatewayPluginMain {
             b.bind(config.getListenAddress(), config.getListenPort()).sync().channel().closeFuture().sync();
 
         } finally {
-            bossGroup.shutdown();
-            workerGroup.shutdown();
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
         }
     }
 }

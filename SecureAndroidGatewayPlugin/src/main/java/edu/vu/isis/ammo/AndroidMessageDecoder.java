@@ -2,6 +2,7 @@ package edu.vu.isis.ammo;
 
 import edu.vu.isis.ammo.core.pb.AmmoMessages;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.MessageBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -23,10 +24,10 @@ public class AndroidMessageDecoder extends ByteToMessageDecoder {
     static final int MAGIC_NUMBER = 0xfeedbeef;
 
     @Override
-    protected Object decode(ChannelHandlerContext channelHandlerContext, ByteBuf in) throws Exception {
+    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf in, MessageBuf<Object> out) throws Exception {
         if(in.readableBytes() < 20) {
             //haven't gotten a full header yet
-            return null;
+            return;
         }
 
         in.markReaderIndex();
@@ -55,7 +56,7 @@ public class AndroidMessageDecoder extends ByteToMessageDecoder {
                 //check and see if we have enough data to continue
                 if(in.readableBytes() < size) {
                     in.resetReaderIndex();
-                    return null;
+                    return;
                 }
 
                 byte[] data = new byte[size];
@@ -69,18 +70,18 @@ public class AndroidMessageDecoder extends ByteToMessageDecoder {
 
                 if(checksum == expectedDataChecksum) {
                     AmmoMessages.MessageWrapper msg = AmmoMessages.MessageWrapper.parseFrom(data);
-                    return msg;
+                    out.add(msg);
                 } else {
                     logger.error("Data checksum mismatch: {} != {} (expected)", expectedDataChecksum, checksum);
-                    return null;
+                    return;
                 }
             } else {
                 logger.error("Header checksum mismatch: {} != {} (expected)", expectedChecksum, headerChecksum);
-                return null;
+                return;
             }
         } else {
             logger.error("Magic number mismatch: {} != {} (expected)", magicNumber, MAGIC_NUMBER);
-            return null;
+            return;
         }
     }
 }

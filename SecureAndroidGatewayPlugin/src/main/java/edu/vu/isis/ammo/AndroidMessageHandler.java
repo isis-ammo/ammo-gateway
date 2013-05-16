@@ -3,6 +3,9 @@ package edu.vu.isis.ammo;
 import edu.vu.isis.ammo.core.pb.AmmoMessages;
 import io.netty.channel.*;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.FutureListener;
+import io.netty.util.concurrent.GenericFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +46,9 @@ public class AndroidMessageHandler extends ChannelInboundMessageHandlerAdapter<A
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
 
-        ctx.pipeline().get(SslHandler.class).handshake().addListener(new ChannelFutureListener() {
+        ctx.pipeline().get(SslHandler.class).handshakeFuture().addListener(new GenericFutureListener<Future<Channel>>() {
             @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
+            public void operationComplete(Future<Channel> future) throws Exception {
                 //TODO: Verify that handshake succeeded
                 if(future.isSuccess()) {
                     SSLSession session = ctx.pipeline().get(SslHandler.class).engine().getSession();
