@@ -69,8 +69,8 @@ public class AndroidMessageDecoder extends ByteToMessageDecoder {
                 int expectedDataChecksum = (int) dataCrc.getValue();
 
                 if(checksum == expectedDataChecksum) {
-                    AmmoMessages.MessageWrapper msg = AmmoMessages.MessageWrapper.parseFrom(data);
-                    out.add(msg);
+                    ByteBuf receivedData = Unpooled.wrappedBuffer(data);
+                    out.add(receivedData);
                 } else {
                     logger.error("Data checksum mismatch: {} != {} (expected)", expectedDataChecksum, checksum);
                     return;

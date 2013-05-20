@@ -1,8 +1,10 @@
 package edu.vu.isis.ammo;
 
+import edu.vu.isis.ammo.core.pb.AmmoMessages;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.protobuf.ProtobufDecoder;
 import io.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +54,7 @@ public class GatewayServerInitializer extends ChannelInitializer<SocketChannel> 
         pipeline.addLast("ssl", new SslHandler(sslEngine));
 
         pipeline.addLast("decoder", new AndroidMessageDecoder());
+        pipeline.addLast("protobuf", new ProtobufDecoder(AmmoMessages.MessageWrapper.getDefaultInstance()));
         pipeline.addLast("handler", new AndroidMessageHandler());
 
         pipeline.addLast("encoder", new AndroidMessageEncoder());
