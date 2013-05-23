@@ -89,11 +89,13 @@ public class AndroidMessageHandler extends ChannelInboundMessageHandlerAdapter<A
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        super.channelInactive(ctx);    //To change body of overridden methods use File | Settings | File Templates.
+        super.channelInactive(ctx); 
         logger.info("{} {} disconnected", this.hashCode(), ctx.channel().remoteAddress());
 
         GatewayConnectionHandler h = gatewayConnectionMap.remove(ctx.channel());
-        h.clientDisconnected();
+        if(h != null) {
+          h.clientDisconnected();
+        }
     }
 
     @Override
