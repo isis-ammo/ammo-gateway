@@ -23,11 +23,30 @@ public class GatewayConnectionHandler implements GatewayConnectorDelegate, DataP
     String deviceId;
     boolean deviceIdAuthenticated;
 
+    boolean gatewayConnected;
+
+    //temporary storage for authentication information if we're not connected to gateway prior to receving auth
+    //message from device
+    boolean authMessageReceived;
+    boolean authSentToGateway;
+    String authDeviceId;
+    String authUserId;
+    String authKey;
+
+
     public GatewayConnectionHandler(Channel channel) {
         this.channel = channel;
         this.connector = new GatewayConnector(this);
         deviceId = "";
         deviceIdAuthenticated = true;
+
+        gatewayConnected = false;
+
+        authMessageReceived = false;
+        authSentToGateway = false;
+        authDeviceId = "";
+        authUserId = "";
+        authKey = "";
     }
 
     public void clientDisconnected() {
@@ -89,9 +108,7 @@ public class GatewayConnectionHandler implements GatewayConnectorDelegate, DataP
                 logger.debug("Received authentication message");
 
                 AmmoMessages.AuthenticationMessage authMessage = msg.getAuthenticationMessage();
-                this.connector.associateDevice(authMessage.getDeviceId(), authMessage.getUserId(), authMessage.getUserKey());
-
-                deviceId = authMessage.getDeviceId();
+                receivedAuthenticationMessage(authMessage);
 
                 break;
             }
@@ -205,6 +222,27 @@ public class GatewayConnectionHandler implements GatewayConnectorDelegate, DataP
         }
     }
 
+    private void receivedAuthenticationMessage(AmmoMessages.AuthenticationMessage authMessage) {
+        if(isGatewayConnected()) {
+            this.connector.associateDevice(authMessage.getDeviceId(), authMessage.getUserId(), authMessage.getUserKey());
+
+            deviceId = authMessage.getDeviceId();
+
+            synchronized(this) {
+                authMessageReceived = true;
+                authSentToGateway = true;
+            }
+        } else {
+            synchronized(this) {
+                authMessageReceived = true;
+
+                authDeviceId = authMessage.getDeviceId();
+                authUserId = authMessage.getUserId();
+                authKey = authMessage.getUserKey();
+            }
+        }
+    }
+
 
     @Override
     public void onPushDataReceived(GatewayConnector gatewayConnector, PushData pushData) {
@@ -233,11 +271,23 @@ public class GatewayConnectionHandler implements GatewayConnectorDelegate, DataP
     @Override
     public void onConnect(GatewayConnector gatewayConnector) {
         logger.debug("Connected to gateway");
+        setGatewayConnected(true);
+
+        synchronized(this) {
+            if(authMessageReceived && !authSentToGateway) {
+                logger.debug("Sending delayed auth to gateway");
+                connector.associateDevice(authDeviceId, authUserId, authKey);
+                deviceId = authDeviceId;
+
+                authSentToGateway = true;
+            }
+        }
     }
 
     @Override
     public void onDisconnect(GatewayConnector gatewayConnector) {
         logger.debug("Disconnected from gateway");
+        setGatewayConnected(false);
     }
 
     @Override
@@ -317,5 +367,17 @@ public class GatewayConnectionHandler implements GatewayConnectorDelegate, DataP
 
         logger.debug("Sending pull response to device");
         channel.write(msg.build());
+    }
+
+    private boolean isGatewayConnected() {
+        synchronized(this) {
+            return this.gatewayConnected;
+        }
+    }
+
+    private void setGatewayConnected(boolean connected) {
+        synchronized(this) {
+            this.gatewayConnected = connected;
+        }
     }
 }

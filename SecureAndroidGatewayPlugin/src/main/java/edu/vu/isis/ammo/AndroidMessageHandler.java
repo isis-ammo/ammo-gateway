@@ -4,13 +4,11 @@ import edu.vu.isis.ammo.core.pb.AmmoMessages;
 import io.netty.channel.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.FutureListener;
 import io.netty.util.concurrent.GenericFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLSession;
-import java.net.InetAddress;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
@@ -49,6 +47,8 @@ public class AndroidMessageHandler extends ChannelInboundMessageHandlerAdapter<A
         ctx.pipeline().get(SslHandler.class).handshakeFuture().addListener(new GenericFutureListener<Future<Channel>>() {
             @Override
             public void operationComplete(Future<Channel> future) throws Exception {
+                SecureGatewayPluginConfigurationManager config = SecureGatewayPluginConfigurationManager.getInstance();
+
                 //TODO: Verify that handshake succeeded
                 if(future.isSuccess()) {
                     SSLSession session = ctx.pipeline().get(SslHandler.class).engine().getSession();
@@ -57,18 +57,22 @@ public class AndroidMessageHandler extends ChannelInboundMessageHandlerAdapter<A
                     logger.info("  Protocol: {}", session.getProtocol());
                     logger.info("  Cipher suite: {}", session.getCipherSuite());
 
-                    Certificate[] certs = session.getPeerCertificates();
-                    if(certs.length > 0 && certs[0] instanceof X509Certificate) {
-                        X509Certificate peerCert = (X509Certificate) certs[0];
-                        logger.info("  Connected peer: DN: {}", peerCert.getSubjectX500Principal());
-                        logger.info("    Serial: {}", peerCert.getSerialNumber());
-                        logger.info("    Fingerprint: {}", getCertFingerprint(peerCert));
+                    if(config.isClientAuthEnabled()) {
+                        Certificate[] certs = session.getPeerCertificates();
+                        if(certs.length > 0 && certs[0] instanceof X509Certificate) {
+                            X509Certificate peerCert = (X509Certificate) certs[0];
+                            logger.info("  Connected peer: DN: {}", peerCert.getSubjectX500Principal());
+                            logger.info("    Serial: {}", peerCert.getSerialNumber());
+                            logger.info("    Fingerprint: {}", getPrintableCertFingerprint(peerCert));
 
-                        deviceConnected(ctx);
-                    } else if(certs.length == 0) {
-                        logger.error("No certificates in peer certificate chain");
+                            deviceConnected(ctx);
+                        } else if(certs.length == 0) {
+                            logger.error("No certificates in peer certificate chain");
+                        } else {
+                            logger.error("Client authenticated with something that's not an X.509 certificate ({})", certs[0].getType());
+                        }
                     } else {
-                        logger.error("Client authenticated with something that's not an X.509 certificate ({})", certs[0].getType());
+                        deviceConnected(ctx);
                     }
                 } else {
                     logger.warn("SSL handshake failure");
@@ -103,7 +107,7 @@ public class AndroidMessageHandler extends ChannelInboundMessageHandlerAdapter<A
         super.exceptionCaught(ctx, cause);    //To change body of overridden methods use File | Settings | File Templates.
     }
 
-    private static String getCertFingerprint(X509Certificate cert) throws NoSuchAlgorithmException, CertificateEncodingException {
+    private static String getPrintableCertFingerprint(X509Certificate cert) throws NoSuchAlgorithmException, CertificateEncodingException {
         MessageDigest md = MessageDigest.getInstance("SHA1");
         md.update( cert.getEncoded() );
         byte[] fp = md.digest();
