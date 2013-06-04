@@ -199,7 +199,7 @@ public class GatewayConnectionHandler implements GatewayConnectorDelegate, DataP
                 heartbeatAck.setMessagePriority(MessagePriority.PRIORITY_CTRL.getValue());
 
                 logger.debug("Sending heartbeat ack to device");
-                channel.write(heartbeatAck);
+                channel.write(heartbeatAck.build());
                 break;
             }
             case UNSUBSCRIBE_MESSAGE: {

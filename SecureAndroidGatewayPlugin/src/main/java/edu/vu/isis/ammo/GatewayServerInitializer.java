@@ -38,7 +38,7 @@ public class GatewayServerInitializer extends ChannelInitializer<SocketChannel> 
         sslEngine.setWantClientAuth(config.isClientAuthEnabled());
         sslEngine.setNeedClientAuth(config.isClientAuthEnabled());
 
-        /*logger.debug("SSL: Enabled protocols:");
+        logger.debug("SSL: Enabled protocols:");
         for(String protocol : sslEngine.getEnabledProtocols()) {
             logger.debug("    {}", protocol);
         }
@@ -48,7 +48,7 @@ public class GatewayServerInitializer extends ChannelInitializer<SocketChannel> 
             logger.debug("    {}", cipher);
         }
 
-        logger.debug("SSL: Enabled protocols: {}", sslEngine.getEnabledProtocols().length);
+        /*logger.debug("SSL: Enabled protocols: {}", sslEngine.getEnabledProtocols().length);
         logger.debug("SSL: Enabled Cipher Suites: {}", sslEngine.getEnabledCipherSuites().length);*/
 
         pipeline.addLast("ssl", new SslHandler(sslEngine));

@@ -72,10 +72,15 @@ public class AndroidMessageHandler extends ChannelInboundMessageHandlerAdapter<A
                             logger.error("Client authenticated with something that's not an X.509 certificate ({})", certs[0].getType());
                         }
                     } else {
+                        logger.info("SSL handshake complete; session established");
+                        logger.info("  Protocol: {}", session.getProtocol());
+                        logger.info("  Cipher suite: {}", session.getCipherSuite());
+
                         deviceConnected(ctx);
                     }
                 } else {
                     logger.warn("SSL handshake failure");
+                    logger.warn("Cause: {}", future.cause());
                 }
             }
         });
