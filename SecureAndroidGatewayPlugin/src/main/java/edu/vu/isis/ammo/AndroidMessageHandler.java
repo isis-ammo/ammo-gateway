@@ -3,6 +3,7 @@ package edu.vu.isis.ammo;
 import edu.vu.isis.ammo.core.pb.AmmoMessages;
 import io.netty.channel.*;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import org.slf4j.Logger;
@@ -109,7 +110,12 @@ public class AndroidMessageHandler extends ChannelInboundMessageHandlerAdapter<A
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        super.exceptionCaught(ctx, cause);    //To change body of overridden methods use File | Settings | File Templates.
+        if(cause instanceof ReadTimeoutException) {
+            logger.warn("Reached read timeout; closing connection");
+            ctx.close();
+        } else {
+            super.exceptionCaught(ctx, cause);    //To change body of overridden methods use File | Settings | File Templates.
+        }
     }
 
     private static String getPrintableCertFingerprint(X509Certificate cert) throws NoSuchAlgorithmException, CertificateEncodingException {

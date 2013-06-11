@@ -6,6 +6,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.protobuf.ProtobufDecoder;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +53,10 @@ public class GatewayServerInitializer extends ChannelInitializer<SocketChannel> 
         logger.debug("SSL: Enabled Cipher Suites: {}", sslEngine.getEnabledCipherSuites().length);*/
 
         pipeline.addLast("ssl", new SslHandler(sslEngine));
+
+        if(config.getHeartbeatTimeout() > 0) {
+            pipeline.addLast("timeout", new ReadTimeoutHandler(config.getHeartbeatTimeout()));
+        }
 
         pipeline.addLast("decoder", new AndroidMessageDecoder());
         pipeline.addLast("protobuf", new ProtobufDecoder(AmmoMessages.MessageWrapper.getDefaultInstance()));

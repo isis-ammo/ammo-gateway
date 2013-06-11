@@ -1,5 +1,6 @@
 {
   "ListenAddress": "0.0.0.0",
   "ListenPort": 33290,
-  "ClientAuthEnabled": true
+  "ClientAuthEnabled": true,
+  "HeartbeatTimeout": 100
 }

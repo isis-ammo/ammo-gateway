@@ -59,6 +59,12 @@ class SecureGatewayPluginConfigurationManager {
                         logger.error("<constructor>: ClientAuthEnabled is missing or wrong type (should be boolean)");
                     }
 
+                    if(input.has("HeartbeatTimeout")) {
+                        heartbeatTimeout = input.getInt("HeartbeatTimeout");
+                    } else {
+                        logger.error("<constructor>: HeartbeatTimeout is missing or wrong type (should be int)");
+                    }
+
 
                 } else {
                     logger.error("<constructor> JSON parsing error in config file {}. using defaults", configFile);
@@ -194,7 +200,12 @@ class SecureGatewayPluginConfigurationManager {
         return clientAuthEnabled;
     }
 
+    int getHeartbeatTimeout() {
+        return heartbeatTimeout;
+    }
+
     private String listenAddress;
     private int listenPort;
     private boolean clientAuthEnabled;
+    private int heartbeatTimeout;
 }
