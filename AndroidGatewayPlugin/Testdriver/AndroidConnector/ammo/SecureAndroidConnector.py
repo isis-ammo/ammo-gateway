@@ -93,6 +93,11 @@ class AndroidProtocol(stateful.StatefulProtocol):
     
   def connectionMade(self):
     pass
+  
+  def connectionLost(self, reason):
+    print "Connection lost:"
+    reason.printTraceback()
+    #TODO: signal the authentication loop so it knows we disconnected too
     
   def setOnMessageAvailableCallback(self, callback):
     self._onMessageAvailableCallback = callback
@@ -133,6 +138,7 @@ class SecureAndroidConnector(threading.Thread):
   _protocol = None
   
   _authenticated = False
+  _cancelled = False
   _authCondition = None
   
   _messageQueueEnabled = True
@@ -148,6 +154,7 @@ class SecureAndroidConnector(threading.Thread):
     self._userKey = userKey
     
     self._authenticated = False
+    self._cancelled = False
     self._authCondition = threading.Condition()
     
     self._messageQueueEnabled = True
@@ -159,7 +166,14 @@ class SecureAndroidConnector(threading.Thread):
     self._onConnect()
     
   def _onError(self, failure):
-    print "Error: ", failure
+    failure.printTraceback()
+    
+    reactor.stop()
+    
+    self._authCondition.acquire()
+    self._cancelled = True
+    self._authCondition.notifyAll()
+    self._authCondition.release()
     
   def _connect(self):
     factory = Factory()
@@ -334,10 +348,12 @@ class SecureAndroidConnector(threading.Thread):
     is started.  Attempting to call any other member methods of this class
     before authentication is complete has undefined behavior.
     '''
-    self._authCondition.acquire()
-    if self._authenticated == False:
-      self._authCondition.wait()
-    self._authCondition.release()
+    with self._authCondition:
+      while not (self._cancelled or self._authenticated):
+        self._authCondition.wait(1)
+        
+      if self._authenticated == False:
+        raise AuthenticationFailure("Connection failure or interrupt during waitForAuthentication") 
     
   def registerMessageCallback(self, callback):
     '''
