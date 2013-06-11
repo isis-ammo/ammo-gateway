@@ -80,7 +80,15 @@ class SecureGatewayPluginConfigurationManager {
 
         }
 
+        logConfiguration();
+    }
 
+    public void logConfiguration() {
+        logger.info("Plugin configuration:");
+        logger.info("    ListenAddress: {}", getListenAddress());
+        logger.info("    ListenPort: {}", getListenPort());
+        logger.info("    ClientAuthEnabled: {}", isClientAuthEnabled());
+        logger.info("    HeartbeatTimeout: {}", getHeartbeatTimeout());
     }
 
     private String findConfigFile( String configFile ) {

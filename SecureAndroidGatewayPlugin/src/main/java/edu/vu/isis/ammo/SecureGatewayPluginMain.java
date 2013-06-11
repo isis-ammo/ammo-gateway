@@ -19,8 +19,6 @@ public class SecureGatewayPluginMain {
     private static final Logger logger = LoggerFactory.getLogger(SecureGatewayPluginMain.class);
 
     public static void main(String[] args) throws Exception {
-        logger.error("Hello world");
-
         SecureGatewayPluginConfigurationManager config = SecureGatewayPluginConfigurationManager.getInstance();
 
         EventLoopGroup bossGroup = new NioEventLoopGroup();
