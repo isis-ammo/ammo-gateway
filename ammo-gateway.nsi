@@ -474,6 +474,63 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
 
 ${MementoSectionEnd}
 
+${MementoSection} "Secure Android Gateway Plugin (required)" SecAndPlug
+
+  SetDetailsPrint textonly
+  DetailPrint "Secure Android Java Plugin ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+  ;SetOutPath $INSTDIR
+  ;RMDir /r $SMPROGRAMS\ammo-gateway
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  ${If} ${RunningX64}  ; also used by RMCastPlugin
+    File /oname=JavaService.exe JavaService\JavaService64.exe
+  ${Else}
+    File JavaService\JavaService.exe
+  ${EndIf}
+  File MCastPlugin\target\SecureGatewayPlugin.jar
+  
+  SetOutPath $INSTDIR\bin\SecureGatewayPlugin
+  File SecureAndroidGatewayPlugin\config\win32\logback.xml
+  
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\win32\SecureGatewayPluginConfig.json
+
+  SetShellVarContext all
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\win32\SecureGatewayPluginConfig.json
+
+  !insertmacro FindJvmDll
+  ${If} $0 == ""
+    Goto sgp_no_java
+  ${EndIf}
+
+  ExpandEnvStrings $1 "%COMSPEC%"
+  ExecWait '"$1" /C IF 1==1 "$INSTDIR\bin\JavaService.exe" \
+               -install \
+               "AMMO Secure Android Gateway Plugin" \
+               "$0" \
+               -Djava.net.preferIPv4Stack=true \
+               "-Djava.class.path=$INSTDIR\bin\SecureGatewayPlugin.jar;$INSTDIR\bin\SecureGatewayPlugin" \
+               -start edu.vu.isis.ammo.SecureGatewayPluginMain \
+               -depends "GatewayCore" \
+               -description "AMMO Secure Android Gateway Plugin" ' $0
+  ${If} $0 != "0"
+    MessageBox MB_OK|MB_ICONEXCLAMATION "SecureGatewayPlugin failed to install. Error Code: $0"
+  ${EndIf}
+  Goto sgp_the_end
+
+  sgp_no_java:
+  MessageBox MB_OK|MB_ICONEXCLAMATION "SecureGatewayPlugin failed to install. ERROR: Java was not found"
+  Goto sgp_the_end
+
+  sgp_the_end:
+
+${MementoSectionEnd}
+
 ${MementoSection} "Manager (required)" SecManager
 
   SetDetailsPrint textonly
@@ -742,6 +799,7 @@ Section Uninstall
   SimpleSC::StopService "SerialGatewayPlugin" "1" "30"
   SimpleSC::StopService "AMMO MCast Plugin" "1" "30"
   SimpleSC::StopService "AMMO RMCast Plugin" "1" "30"
+  SimpleSC::StopService "AMMO Secure Android Gateway Plugin" "1" "30"
   SimpleSC::RemoveService "GatewayCore"
   SimpleSC::RemoveService "AndroidGatewayPlugin"
   SimpleSC::RemoveService "DataStoreGatewayPlugin"
@@ -749,6 +807,7 @@ Section Uninstall
   SimpleSC::RemoveService "SerialGatewayPlugin"
   ExecWait '"$INSTDIR\bin\JavaService.exe" -uninstall "AMMO MCast Plugin"'
   ExecWait '"$INSTDIR\bin\JavaService.exe" -uninstall "AMMO RMCast Plugin"'
+  ExecWait '"$INSTDIR\bin\JavaService.exe" -uninstall "AMMO Secure Android Gateway Plugin"'
 
   ; Gateway Core
   Delete $INSTDIR\bin\GatewayCore.exe
@@ -787,6 +846,11 @@ Section Uninstall
   Delete $INSTDIR\bin\logback-classic-1.0.11.jar
   Delete $INSTDIR\bin\logback-access-1.0.11.jar
   Delete $INSTDIR\bin\RMCastPlugin\logback.xml
+  
+  ; Secure Gateway Plugin
+  Delete $INSTDIR\bin\JavaService.exe
+  Delete $INSTDIR\bin\SecureGatewayPlugin.jar
+  Delete $INSTDIR\bin\SecureGatewayPlugin\logback.xml
 
   ; Manager
   Delete "Manager\release\Manager.exe"

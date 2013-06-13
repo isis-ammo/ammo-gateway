@@ -9,6 +9,7 @@ Write-Host Building Gateway Version: $env:GATEWAY_VERSION
 Write-Host GATEWAY_ROOT: $env:GATEWAY_ROOT
 
 cd $env:GATEWAY_ROOT
+mvn clean install package
 ant configure
 ant build
 & "C:\Program Files\NSIS\makensis.exe" /DVERSION=$env:GATEWAY_VERSION /DACE_ROOT=$env:ACE_ROOT /DPROTOBUF_ROOT=$env:PROTOBUF_ROOT /DQTDIR="C:\Qt\4.8.3" ammo-gateway.nsi
