@@ -34,6 +34,12 @@ class SecureGatewayPluginConfigurationManager {
         listenAddress = "0.0.0.0";
         listenPort = 33290;
         clientAuthEnabled = true;
+        heartbeatTimeout = 100;
+
+        keystorePath = "keystore.jks";
+        keystorePassword = "changeit";
+        truststorePath = "truststore.jks";
+        truststorePassword = "changeit";
 
         String fileName = findConfigFile(configFile);
         if (fileName != null && !fileName.isEmpty()) {
@@ -65,6 +71,30 @@ class SecureGatewayPluginConfigurationManager {
                         logger.error("<constructor>: HeartbeatTimeout is missing or wrong type (should be int)");
                     }
 
+                    if(input.has("KeystorePath")) {
+                        keystorePath = input.getString("KeystorePath");
+                    } else {
+                        logger.error("<constructor>: KeystorePath is missing or wrong type (should be string)");
+                    }
+
+                    if(input.has("KeystorePassword")) {
+                        keystorePassword = input.getString("KeystorePassword");
+                    } else {
+                        logger.error("<constructor>: KeystorePassword is missing or wrong type (should be string)");
+                    }
+
+                    if(input.has("TruststorePath")) {
+                        truststorePath = input.getString("TruststorePath");
+                    } else {
+                        logger.error("<constructor>: TruststorePath is missing or wrong type (should be string)");
+                    }
+
+                    if(input.has("TruststorePassword")) {
+                        truststorePassword = input.getString("TruststorePassword");
+                    } else {
+                        logger.error("<constructor>: TruststorePassword is missing or wrong type (should be string)");
+                    }
+
 
                 } else {
                     logger.error("<constructor> JSON parsing error in config file {}. using defaults", configFile);
@@ -89,6 +119,8 @@ class SecureGatewayPluginConfigurationManager {
         logger.info("    ListenPort: {}", getListenPort());
         logger.info("    ClientAuthEnabled: {}", isClientAuthEnabled());
         logger.info("    HeartbeatTimeout: {}", getHeartbeatTimeout());
+        logger.info("    KeystorePath: {}", getKeystorePath());
+        logger.info("    TruststorePath: {}", getTruststorePath());
     }
 
     private String findConfigFile( String configFile ) {
@@ -212,8 +244,29 @@ class SecureGatewayPluginConfigurationManager {
         return heartbeatTimeout;
     }
 
+
+    String getKeystorePath() {
+        return keystorePath;
+    }
+
+    String getKeystorePassword() {
+        return keystorePassword;
+    }
+
+    String getTruststorePath() {
+        return truststorePath;
+    }
+
+    String getTruststorePassword() {
+        return truststorePassword;
+    }
+
     private String listenAddress;
     private int listenPort;
     private boolean clientAuthEnabled;
     private int heartbeatTimeout;
+    private String keystorePath;
+    private String keystorePassword;
+    private String truststorePath;
+    private String truststorePassword;
 }

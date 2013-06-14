@@ -10,8 +10,10 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
+import javax.net.ssl.*;
+import java.io.FileInputStream;
+import java.security.KeyStore;
+import java.security.Security;
 
 /**
  * Created with IntelliJ IDEA.
@@ -31,7 +33,7 @@ public class GatewayServerInitializer extends ChannelInitializer<SocketChannel> 
 
         ChannelPipeline pipeline = socketChannel.pipeline();
 
-        SSLContext sslContext = SSLContext.getDefault();
+        SSLContext sslContext = setupSslContext();
         SSLEngine sslEngine = sslContext.createSSLEngine();
 
         sslEngine.setUseClientMode(false);
@@ -63,5 +65,30 @@ public class GatewayServerInitializer extends ChannelInitializer<SocketChannel> 
         pipeline.addLast("handler", new AndroidMessageHandler());
 
         pipeline.addLast("encoder", new AndroidMessageEncoder());
+    }
+
+    private static SSLContext setupSslContext() throws Exception {
+        String algorithm = Security.getProperty("ssl.KeyManagerFactory.algorithm");
+        if (algorithm == null) {
+            algorithm = "SunX509";
+        }
+
+        SecureGatewayPluginConfigurationManager config = SecureGatewayPluginConfigurationManager.getInstance();
+
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(new FileInputStream(config.getKeystorePath()), config.getKeystorePassword().toCharArray());
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
+        kmf.init(ks, config.getKeystorePassword().toCharArray());
+
+        KeyStore ts = KeyStore.getInstance("JKS");
+        ts.load(new FileInputStream(config.getTruststorePath()), config.getTruststorePassword().toCharArray());
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(algorithm);
+        tmf.init(ts);
+
+        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null); //uses default randomness implementation
+
+        return sslContext;
     }
 }
