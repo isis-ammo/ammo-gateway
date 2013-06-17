@@ -474,7 +474,7 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
 
 ${MementoSectionEnd}
 
-${MementoSection} "Secure Android Gateway Plugin (required)" SecAndPlug
+${MementoSection} "Secure Android Gateway Plugin (required)" SecSSLPlug
 
   SetDetailsPrint textonly
   DetailPrint "Secure Android Java Plugin ..."
