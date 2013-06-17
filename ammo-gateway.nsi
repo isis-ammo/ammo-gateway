@@ -491,7 +491,7 @@ ${MementoSection} "Secure Android Gateway Plugin (required)" SecSSLPlug
   ${Else}
     File JavaService\JavaService.exe
   ${EndIf}
-  File MCastPlugin\target\SecureGatewayPlugin.jar
+  File SecureAndroidGatewayPlugin\target\SecureGatewayPlugin.jar
   
   SetOutPath $INSTDIR\bin\SecureGatewayPlugin
   File SecureAndroidGatewayPlugin\config\win32\logback.xml
