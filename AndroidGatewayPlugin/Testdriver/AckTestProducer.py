@@ -38,7 +38,7 @@ if __name__ == "__main__":
   deviceName = "device:test/" + uuid.uuid1().hex
   userName = "user:test/" + uuid.uuid1().hex
   
-  connector = AndroidConnector.AndroidConnector(options.gateway, options.port, deviceName, userName, "")
+  connector = AndroidConnector.AndroidConnector(options.gateway, options.port, deviceName, userName, "", options.heartbeatPeriod)
   connector.setMessageQueueEnabled(False)
   connector.registerMessageCallback(onDataReceived)
   

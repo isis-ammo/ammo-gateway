@@ -36,6 +36,9 @@ if __name__ == "__main__":
   parser.add_option("-s", "--scope", dest="scope",
                     help="Subscription scope (either local or global; default %default)",
                     default="global")
+  parser.add_option("-b", "--heartbeat-period", dest="heartbeatPeriod", type="float",
+                    help="Time between heartbeats (default %default)",
+                    default=30)
   
   (options, args) = parser.parse_args()
   
@@ -51,7 +54,7 @@ if __name__ == "__main__":
   deviceName = "device:test/" + uuid.uuid1().hex
   userName = "user:test/" + uuid.uuid1().hex
   
-  connector = AndroidConnector.AndroidConnector(options.gateway, options.port, deviceName, userName, "")
+  connector = AndroidConnector.AndroidConnector(options.gateway, options.port, deviceName, userName, "", options.heartbeatPeriod)
   connector.setMessageQueueEnabled(False)
   connector.registerMessageCallback(onDataReceived)
   
