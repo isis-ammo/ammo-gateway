@@ -504,7 +504,7 @@ ${MementoSection} "Secure Android Gateway Plugin (required)" SecSSLPlug
   ${EndIf}
 
   ExpandEnvStrings $1 "%COMSPEC%"
-  ExecWait '"$1" /K IF 1==1 "$INSTDIR\bin\JavaService.exe" \
+  ExecWait '"$1" /C IF 1==1 "$INSTDIR\bin\JavaService.exe" \
                -install \
                "AMMO Secure Android Gateway Plugin" \
                "$0" \
