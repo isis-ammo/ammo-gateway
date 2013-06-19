@@ -512,7 +512,8 @@ ${MementoSection} "Secure Android Gateway Plugin (required)" SecSSLPlug
                "-Djava.class.path=$INSTDIR\bin\SecureGatewayPlugin.jar;$INSTDIR\bin\SecureGatewayPlugin" \
                -start edu.vu.isis.ammo.SecureGatewayPluginMain \
                -depends "GatewayCore" \
-               -description "AMMO Secure Android Gateway Plugin" ' $0
+               -description "AMMO Secure Android Gateway Plugin \
+               -manual " ' $0
   ${If} $0 != "0"
     MessageBox MB_OK|MB_ICONEXCLAMATION "SecureGatewayPlugin failed to install. Error Code: $0"
   ${EndIf}
