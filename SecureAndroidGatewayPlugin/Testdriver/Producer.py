@@ -61,7 +61,7 @@ if __name__ == "__main__":
     while True:
       postTime = time.time()
       formattedTime = "{0:.6f}".format(postTime)
-      connector.push("item:" + str(sequenceNumber), "ammo/transapps.pli.locations", str(sequenceNumber) + "/" + formattedTime + "/" + os.urandom(options.size), scope)
+      connector.push("item:" + str(sequenceNumber), "ammo/edu.vu.isis.ammo.test.TestData", str(sequenceNumber) + "/" + formattedTime + "/" + os.urandom(options.size), scope)
       print "Pushed sequence number", sequenceNumber, "at", "{0:.6f}".format(time.time())
       sequenceNumber = sequenceNumber + 1
       time.sleep(options.rate)
