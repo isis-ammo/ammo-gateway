@@ -511,7 +511,6 @@ ${MementoSection} "Secure Android Gateway Plugin (required)" SecSSLPlug
                -Djava.net.preferIPv4Stack=true \
                "-Djava.class.path=$INSTDIR\bin\SecureGatewayPlugin.jar;$INSTDIR\bin\SecureGatewayPlugin" \
                -start edu.vu.isis.ammo.SecureGatewayPluginMain \
-               -manual \
                -depends "GatewayCore" \
                -description "AMMO Secure Android Gateway Plugin" ' $0
   ${If} $0 != "0"
