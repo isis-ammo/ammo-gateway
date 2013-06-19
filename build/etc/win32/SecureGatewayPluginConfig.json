@@ -2,5 +2,9 @@
   "ListenAddress": "0.0.0.0",
   "ListenPort": 33290,
   "ClientAuthEnabled": true,
-  "HeartbeatTimeout": 100
+  "HeartbeatTimeout": 100,
+  "KeystorePath": "keystore.jks",
+  "KeystorePassword": "changeme",
+  "TruststorePath": "trustchain.jks",
+  "TruststorePassword": "changeme"
 }

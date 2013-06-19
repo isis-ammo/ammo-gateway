@@ -474,7 +474,7 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
 
 ${MementoSectionEnd}
 
-${MementoSection} "Secure Android Gateway Plugin (required)" SecAndPlug
+${MementoSection} "Secure Android Gateway Plugin (required)" SecSSLPlug
 
   SetDetailsPrint textonly
   DetailPrint "Secure Android Java Plugin ..."
@@ -486,12 +486,7 @@ ${MementoSection} "Secure Android Gateway Plugin (required)" SecAndPlug
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
-  ${If} ${RunningX64}  ; also used by RMCastPlugin
-    File /oname=JavaService.exe JavaService\JavaService64.exe
-  ${Else}
-    File JavaService\JavaService.exe
-  ${EndIf}
-  File MCastPlugin\target\SecureGatewayPlugin.jar
+  File SecureAndroidGatewayPlugin\target\SecureGatewayPlugin.jar
   
   SetOutPath $INSTDIR\bin\SecureGatewayPlugin
   File SecureAndroidGatewayPlugin\config\win32\logback.xml
@@ -516,7 +511,6 @@ ${MementoSection} "Secure Android Gateway Plugin (required)" SecAndPlug
                -Djava.net.preferIPv4Stack=true \
                "-Djava.class.path=$INSTDIR\bin\SecureGatewayPlugin.jar;$INSTDIR\bin\SecureGatewayPlugin" \
                -start edu.vu.isis.ammo.SecureGatewayPluginMain \
-               -manual \
                -depends "GatewayCore" \
                -description "AMMO Secure Android Gateway Plugin" ' $0
   ${If} $0 != "0"

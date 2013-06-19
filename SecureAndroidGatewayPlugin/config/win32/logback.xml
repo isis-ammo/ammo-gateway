@@ -1,7 +1,7 @@
 <configuration>
 
   <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${PROGRAMDATA}/ammo-gateway/MCastPlugin.log</file>
+    <file>${PROGRAMDATA}/ammo-gateway/SecureGatewayPlugin.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- rollover daily -->
       <fileNamePattern>${PROGRAMDATA}/ammo-gateway/SecureGatewayPlugin-%d{yyyy-MM-dd}.%i.log</fileNamePattern>

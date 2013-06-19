@@ -45,13 +45,16 @@ if __name__ == "__main__":
   parser.add_option("-u", "--username", dest="username", 
                     help="Origin username for this emulated device",
                     default="user:test/" + uuid.uuid1().hex)
+  parser.add_option("-b", "--heartbeat-period", dest="heartbeatPeriod", type="float",
+                    help="Time between heartbeats (default %default)",
+                    default=30)
   
   (options, args) = parser.parse_args()
   
   deviceName = "device:test/" + uuid.uuid1().hex
   userName = options.username
   
-  connector = AndroidConnector.AndroidConnector(options.gateway, options.port, deviceName, userName, "")
+  connector = AndroidConnector.AndroidConnector(options.gateway, options.port, deviceName, userName, "", options.heartbeatPeriod)
   connector.setMessageQueueEnabled(False)
   connector.registerMessageCallback(onDataReceived)
   

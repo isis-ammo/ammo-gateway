@@ -52,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.vu.isis.ammo.core.pb.AmmoMessages;
+import edu.vu.isis.ammo.mcastplugin.PluginConfigurationManager;
 
 /**
  * Two long running threads and one short.
@@ -136,15 +137,18 @@ class MulticastConnector {
     
 
     public MulticastConnector(PluginServiceHandler plugin, String multicastAddr, int multicastPort) {
-	logger.info("Thread <{}>MulticastConnector::<constructor>", Thread.currentThread().getId());
-	this.mPlugin = plugin;
-	this.mMulticastAddress = multicastAddr;
-	this.mMulticastPort = multicastPort;
-	this.mMulticastTTL = 2;
-
-	this.connectorThread = new ConnectorThread(this);
-	mSenderQueue = new SenderQueue( this );
-	this.connectorThread.start();
+        logger.info("Thread <{}>MulticastConnector::<constructor>", Thread.currentThread().getId());
+        
+        PluginConfigurationManager config = PluginConfigurationManager.getInstance();
+        
+        this.mPlugin = plugin;
+        this.mMulticastAddress = multicastAddr;
+        this.mMulticastPort = multicastPort;
+        this.mMulticastTTL = config.getTtl();
+    
+        this.connectorThread = new ConnectorThread(this);
+        mSenderQueue = new SenderQueue( this );
+        this.connectorThread.start();
     }
 
     public boolean isConnected() { 
