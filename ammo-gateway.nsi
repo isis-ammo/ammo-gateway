@@ -486,11 +486,6 @@ ${MementoSection} "Secure Android Gateway Plugin (required)" SecSSLPlug
 
   SetOutPath $INSTDIR\bin
   SetOverwrite on
-  ${If} ${RunningX64}  ; also used by RMCastPlugin
-    File /oname=JavaService.exe JavaService\JavaService64.exe
-  ${Else}
-    File JavaService\JavaService.exe
-  ${EndIf}
   File SecureAndroidGatewayPlugin\target\SecureGatewayPlugin.jar
   
   SetOutPath $INSTDIR\bin\SecureGatewayPlugin
