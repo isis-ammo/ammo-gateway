@@ -34,8 +34,13 @@ class PluginConfigurationManager {
 	return mimeTypes;
     }
 
+    public List<String> getMediaMimeTypes() {
+	return mediaMimeTypes;
+    }
+
     private PluginConfigurationManager( String configFile ) {
     	mimeTypes = new ArrayList<String>();
+    	mediaMimeTypes = new ArrayList<String>();
 
     	String fileName = findConfigFile(configFile);
     	if (fileName != null) {
@@ -48,6 +53,14 @@ class PluginConfigurationManager {
     					mimeTypes.add( jsonArray.getString(i) );
     			} else {
     				logger.error("<constructor>: MimeTypes is missing or wrong type (should be string array)");
+    			}
+    			
+    			if(input.has("MediaMimeTypes")) {
+    				JSONArray jsonArray = input.getJSONArray("MediaMimeTypes");
+    				for(int i=0; i<jsonArray.length(); i++)
+				    mediaMimeTypes.add( jsonArray.getString(i) );
+    			} else {
+    				logger.error("<constructor>: MediaMimeTypes is missing or wrong type (should be string array)");
     			}
 
     		} catch (JSONException jsx) {
@@ -166,4 +179,5 @@ class PluginConfigurationManager {
     private static PluginConfigurationManager sharedInstance;
 
     private List<String> mimeTypes;
+    private List<String> mediaMimeTypes;
 }

@@ -26,22 +26,37 @@ import java.util.HashMap;
 
 public class RMCastPlugin 
 {
-    static ReliableMulticastConnector mRmcastConnector = null;
-    static GatewayConnector mGatewayConnector = null;
-    static PluginServiceHandler mServiceHandler = null;
+    static ReliableMulticastConnector mMsgRmcastConnector = null;
+    static GatewayConnector mMsgGatewayConnector = null;
+    static PluginServiceHandler mMsgServiceHandler = null;
+
+    static ReliableMulticastConnector mMediaRmcastConnector = null;
+    static GatewayConnector mMediaGatewayConnector = null;
+    static PluginServiceHandler mMediaServiceHandler = null;
 
     private static final Logger logger = LoggerFactory.getLogger(PluginServiceHandler.class);
 
     public static void main(String[] args)
     {
-	mServiceHandler = new PluginServiceHandler();
+	// message handler ....
+	mMsgServiceHandler = new PluginServiceHandler(false);
 
-	mGatewayConnector = new GatewayConnector( mServiceHandler );
-	mServiceHandler.setGatewayConnector( mGatewayConnector );
+	mMsgGatewayConnector = new GatewayConnector( mMsgServiceHandler );
+	mMsgServiceHandler.setGatewayConnector( mMsgGatewayConnector );
 
-	mRmcastConnector = new ReliableMulticastConnector(mServiceHandler, "", 1234);
-	mServiceHandler.setRmcastConnector( mRmcastConnector );
+	mMsgRmcastConnector = new ReliableMulticastConnector(mMsgServiceHandler, "", 1234, "rmcast", "udp.xml", "AmmoGroup");
+	mMsgServiceHandler.setRmcastConnector( mMsgRmcastConnector );
 	
+	// media handler 
+	mMediaServiceHandler = new PluginServiceHandler(true);
+
+	mMediaGatewayConnector = new GatewayConnector( mMediaServiceHandler );
+	mMediaServiceHandler.setGatewayConnector( mMediaGatewayConnector );
+
+	mMediaRmcastConnector = new ReliableMulticastConnector(mMediaServiceHandler, "", 1234, "mediaRmcast", "udpMedia.xml", "AmmoMedia");
+	mMediaServiceHandler.setRmcastConnector( mMediaRmcastConnector );
+
+
 	while(true) {
 	    try {
 		Thread.sleep(5);	// idle wait ...

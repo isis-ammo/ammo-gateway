@@ -1,8 +1,9 @@
 {
+ "MediaMimeTypes": [ "ammo/transapps.chat.media",
+                      "ammo/edu.vu.isis.ammo.dash.media" ],
  "MimeTypes": [ "ammo/edu.vu.isis.ammo.dash.event",
                 "ammo/edu.vu.isis.ammo.dash.media",
                 "ammo/edu.vu.isis.ammo.sms.message",
-                "ammo/transapps.chat.message",
-                "ammo/transapps.chat.media" ]
+                "ammo/transapps.chat.message" ]
 }
 //:mode=javascript: (jEdit modeline for syntax highlighting)
