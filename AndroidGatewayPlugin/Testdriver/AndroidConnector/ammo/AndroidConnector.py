@@ -92,6 +92,11 @@ class AndroidProtocol(stateful.StatefulProtocol):
     
   def connectionMade(self):
     pass
+  
+  def connectionLost(self, reason):
+    print "Connection lost:"
+    reason.printTraceback()
+    #TODO: signal the authentication loop so it knows we disconnected too
     
   def setOnMessageAvailableCallback(self, callback):
     self._onMessageAvailableCallback = callback
@@ -123,13 +128,14 @@ class AndroidConnector(threading.Thread):
   _protocol = None
   
   _authenticated = False
+  _cancelled = False
   _authCondition = None
   
   _messageQueueEnabled = True
   _messageQueue = None
   _messageCallback = None
   
-  def __init__(self, address, port, deviceId, userId, userKey):
+  def __init__(self, address, port, deviceId, userId, userKey, heartbeatPeriod = 30):
     threading.Thread.__init__(self)
     self._address = address
     self._port = port
@@ -137,7 +143,11 @@ class AndroidConnector(threading.Thread):
     self._userId = userId
     self._userKey = userKey
     
+    self._heartbeatNumber = 0
+    self._heartbeatPeriod = heartbeatPeriod
+    
     self._authenticated = False
+    self._cancelled = False
     self._authCondition = threading.Condition()
     
     self._messageQueueEnabled = True
@@ -148,12 +158,23 @@ class AndroidConnector(threading.Thread):
     self._protocol = p
     self._onConnect()
     
+  def _onError(self, failure):
+    failure.printTraceback()
+    
+    reactor.stop()
+    
+    self._authCondition.acquire()
+    self._cancelled = True
+    self._authCondition.notifyAll()
+    self._authCondition.release()
+    
   def _connect(self):
     factory = Factory()
     factory.protocol = AndroidProtocol
     point = TCP4ClientEndpoint(reactor, self._address, self._port)
     d = point.connect(factory)
     d.addCallback(self._gotProtocol)
+    d.addErrback(self._onError)
     
   def run(self):
     if reactor.running == False:
@@ -180,6 +201,9 @@ class AndroidConnector(threading.Thread):
           self._authenticated = True
           self._authCondition.notifyAll()
           self._authCondition.release()
+          
+          if(self._heartbeatPeriod > 0):
+            self._sendAndScheduleHeartbeat()
         else:
           print "Authentication failed."
           raise AuthenticationFailure("Auth failed: " + msg.authentication_result.message)
@@ -204,6 +228,11 @@ class AndroidConnector(threading.Thread):
     m.authentication_message.user_key = self._userKey
     print "Sending auth message"
     self._protocol.sendMessageWrapper(m)
+    
+  def _sendAndScheduleHeartbeat(self):
+    self.heartbeat()
+    if(self._heartbeatPeriod > 0):
+      reactor.callLater(self._heartbeatPeriod, self._sendAndScheduleHeartbeat)
     
   def dequeueMessage(self):
     '''
@@ -311,6 +340,15 @@ class AndroidConnector(threading.Thread):
     m.pull_request.live_query = liveQuery
     reactor.callFromThread(self._protocol.sendMessageWrapper, m)
     
+  def heartbeat(self):
+    m = AmmoMessages_pb2.MessageWrapper()
+    m.type = AmmoMessages_pb2.MessageWrapper.HEARTBEAT
+    m.message_priority = MessagePriority.NORMAL
+    m.heartbeat.sequence_number = self._heartbeatNumber
+    reactor.callFromThread(self._protocol.sendMessageWrapper, m)
+    
+    self._heartbeatNumber = self._heartbeatNumber + 1
+    
   def waitForAuthentication(self):
     '''
     Waits for the AndroidConnector to connect to the Android Gateway Plugin, and
@@ -320,10 +358,12 @@ class AndroidConnector(threading.Thread):
     is started.  Attempting to call any other member methods of this class
     before authentication is complete has undefined behavior.
     '''
-    self._authCondition.acquire()
-    if self._authenticated == False:
-      self._authCondition.wait()
-    self._authCondition.release()
+    with self._authCondition:
+      while not (self._cancelled or self._authenticated):
+        self._authCondition.wait(1)
+        
+      if self._authenticated == False:
+        raise AuthenticationFailure("Connection failure or interrupt during waitForAuthentication") 
     
   def registerMessageCallback(self, callback):
     '''

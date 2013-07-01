@@ -36,9 +36,14 @@ class PluginConfigurationManager {
     public List<String> getMimeTypes() {
 	return mimeTypes;
     }
+    
+    public int getTtl() {
+        return ttl;
+    }
 
     private PluginConfigurationManager( String configFile ) {
 	mimeTypes = new ArrayList<String>();
+	ttl = 7;
 
 	String fileName = findConfigFile(configFile);
 	if (fileName != null) {
@@ -47,12 +52,18 @@ class PluginConfigurationManager {
 		final JSONObject input = new JSONObject( tokener );
 		if (input != null) {
 		    if(input.has("MimeTypes")) {
-			JSONArray jsonArray = input.getJSONArray("MimeTypes");
-			for(int i=0; i<jsonArray.length(); i++)
-			    mimeTypes.add( jsonArray.getString(i) );
-		    } else {
-			logger.error("<constructor>: MimeTypes is missing or wrong type (should be string array)");
+                JSONArray jsonArray = input.getJSONArray("MimeTypes");
+                for(int i=0; i<jsonArray.length(); i++)
+                    mimeTypes.add( jsonArray.getString(i) );
+            } else {
+                logger.error("<constructor>: MimeTypes is missing or wrong type (should be string array)");
 		    }
+		    
+		    if(input.has("TTL")) {
+                ttl = input.getInt("TTL");
+            } else {
+                logger.error("<constructor>: TTL is missing or wrong type (should be int)");
+            }
       
 		} else {
 		    logger.error("<constructor> JSON parsing error in config file {}. using defaults", configFile);
@@ -177,4 +188,5 @@ class PluginConfigurationManager {
     private static PluginConfigurationManager sharedInstance;
 
     private List<String> mimeTypes;
+    private int ttl;
 }

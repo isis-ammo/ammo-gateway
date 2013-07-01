@@ -10,3 +10,5 @@ libgeotrans-mgrs.dylib*
 *.dll
 *.exp
 *.lib
+*.so
+*.dylib
