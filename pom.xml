@@ -10,7 +10,7 @@
   <groupId>edu.vu.isis</groupId>
   <artifactId>gateway-parent</artifactId>
   <packaging>pom</packaging>
-  <version>1.7.4-SNAPSHOT</version>
+  <version>1.7.5-SNAPSHOT</version>
   <name>ammo gateway parent project</name>
 
   <modules>
@@ -76,7 +76,7 @@
       <dependency>
         <groupId>edu.vu.isis</groupId>
         <artifactId>gateway-protocol</artifactId>
-        <version>1.7.4-SNAPSHOT</version>
+        <version>1.7.5-SNAPSHOT</version>
         <classifier>protoc24</classifier>
       </dependency>
     </dependencies>
