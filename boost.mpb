@@ -1,0 +1,17 @@
+project {
+  includes += $(BOOST_1_54_ROOT)/include
+  libpaths += $(BOOST_1_54_ROOT)/lib
+  
+  libs += boost_log boost_filesystem boost_system boost_thread
+  
+  macros += BOOST_ALL_DYN_LINK
+  
+  //We expect $BOOST_1_54_ROOT to be defined, but just in case it isn't,
+  //we default to /usr/ (this funkiness here is to keep it from defaulting to /,
+  //which would be very rare as an installation prefix)
+  
+  expand(BOOST_1_54_ROOT) {
+    $(BOOST_1_54_ROOT)
+    /usr/
+  }
+}

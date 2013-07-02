@@ -11,7 +11,13 @@
 
 #include "ace/Signal.h"
 #include <ace/OS_NS_sys_stat.h>
-#include <ace/Logging_Strategy.h>
+
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/sinks/text_file_backend.hpp>
+#include <boost/log/utility/setup/file.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
 
 #ifdef WIN32
 #include <Windows.h>
@@ -112,71 +118,56 @@ void setupLogging(std::string appName) {
       std::string expandedFilename = expandLogFileName(logFile, appName);
       LOG_INFO("Logging to logrolled file with base name " << expandedFilename);
       
-      std::ostringstream maxSizeStringStream;
-      maxSizeStringStream << logFileMaxSize;
-      std::string maxSizeString = maxSizeStringStream.str();
+      boost::log::add_file_log
+      (
+          boost::log::keywords::file_name = expandedFilename + ".%N",                                        
+          boost::log::keywords::rotation_size = logFileMaxSize * 1024,
+          boost::log::keywords::max_size = logFileMaxSize * 1024 * logFileCount,
+          boost::log::keywords::auto_flush = true,
+          boost::log::keywords::scan_method = boost::log::sinks::file::scan_matching,
+          boost::log::keywords::target = "."
+      );
+  
       
-      std::ostringstream sampleTimeStringStream;
-      sampleTimeStringStream << logFileSampleTime;
-      std::string sampleTimeString = sampleTimeStringStream.str();
-      
-      std::ostringstream countStringStream;
-      countStringStream << logFileCount;
-      std::string countString = countStringStream.str();
-      ACE_TCHAR *l_argv[610]; 
-      l_argv[0] = (ACE_TCHAR *) ACE_TEXT ("-s"); //log file basename 
-      l_argv[1] = (ACE_TCHAR *) ACE_TEXT (expandedFilename.c_str());
-      l_argv[2] = (ACE_TCHAR *) ACE_TEXT ("-o");      //order files 
-      l_argv[3] = (ACE_TCHAR *) ACE_TEXT ("-m");  //max size = ~1MB (1000 KB) 
-      l_argv[4] = (ACE_TCHAR *) ACE_TEXT (maxSizeString.c_str()); 
-      l_argv[5] = (ACE_TCHAR *) ACE_TEXT ("-i");    //logfile size is sampled every 30 seconds 
-      l_argv[6] = (ACE_TCHAR *) ACE_TEXT (sampleTimeString.c_str());
-      l_argv[7] = (ACE_TCHAR *) ACE_TEXT ("-N");     //support 2 files 
-      l_argv[8] = (ACE_TCHAR *) ACE_TEXT (countString.c_str());
-      l_argv[9] = 0;
-      
-      int ls_argc = 9; 
-      ACE_Auto_Basic_Ptr<ACE_TCHAR *> ls_argv (new ACE_TCHAR *[ls_argc]); 
-      for (int c = 0; c < ls_argc; ++c) 
-              (ls_argv.get ())[c] = l_argv[c];
-      
-      //Allocate the logging strategy on the heap, because if it's stack allocated,
-      //it will be deleted when it goes out of scope and horrible things will happen
-      //(yes, that means we leak it)
-      ACE_Logging_Strategy *logging_strategy = new ACE_Logging_Strategy(); 
-      int result = logging_strategy->init (ls_argc, ls_argv.get ());
-      
-      if(result != 0) {
-        LOG_WARN("Error creating logging strategy and/or log file...  does the directory exist?");
-        LOG_WARN("Logging to console instead.");
-      }
     } else {
-      std::string expandedFilename = expandLogFileName(logFile, appName);
-      LOG_INFO("Logging to single file " << expandedFilename);
-      ACE_OSTREAM_TYPE *output = new std::ofstream(expandedFilename.c_str(), std::ofstream::out | std::ofstream::app);
-      if(*output) {
-        ACE_LOG_MSG->msg_ostream(output, 1);
-        ACE_LOG_MSG->set_flags(ACE_Log_Msg::OSTREAM);
-        ACE_LOG_MSG->clr_flags(ACE_Log_Msg::STDERR);
-      } else {
-        LOG_WARN("Couldn't create log file...  does the directory exist?");
-        LOG_WARN("Logging to console instead.");
-      }
+      boost::log::add_file_log
+      (
+          boost::log::keywords::file_name = expandLogFileName(logFile, appName),
+          boost::log::keywords::auto_flush = true
+      );
     }
   }
   
   if(logLevel == "trace") {
-    ACE_LOG_MSG->priority_mask (LM_TRACE | LM_DEBUG | LM_INFO | LM_WARNING | LM_ERROR | LM_CRITICAL, ACE_Log_Msg::PROCESS);
+    boost::log::core::get()->set_filter
+    (
+        boost::log::trivial::severity >= boost::log::trivial::trace
+    );
   } else if(logLevel == "debug") {
-    ACE_LOG_MSG->priority_mask (LM_DEBUG | LM_INFO | LM_WARNING | LM_ERROR | LM_CRITICAL, ACE_Log_Msg::PROCESS);
+    boost::log::core::get()->set_filter
+    (
+        boost::log::trivial::severity >= boost::log::trivial::debug
+    );
   } else if(logLevel == "info") {
-    ACE_LOG_MSG->priority_mask (LM_INFO | LM_WARNING | LM_ERROR | LM_CRITICAL, ACE_Log_Msg::PROCESS);
+    boost::log::core::get()->set_filter
+    (
+        boost::log::trivial::severity >= boost::log::trivial::info
+    );
   } else if(logLevel == "warning") {
-    ACE_LOG_MSG->priority_mask (LM_WARNING | LM_ERROR | LM_CRITICAL, ACE_Log_Msg::PROCESS);
+    boost::log::core::get()->set_filter
+    (
+        boost::log::trivial::severity >= boost::log::trivial::warning
+    );
   } else if(logLevel == "error") {
-    ACE_LOG_MSG->priority_mask (LM_ERROR | LM_CRITICAL, ACE_Log_Msg::PROCESS);
+    boost::log::core::get()->set_filter
+    (
+        boost::log::trivial::severity >= boost::log::trivial::error
+    );
   } else if(logLevel == "critical") {
-    ACE_LOG_MSG->priority_mask (LM_CRITICAL, ACE_Log_Msg::PROCESS);
+    boost::log::core::get()->set_filter
+    (
+        boost::log::trivial::severity >= boost::log::trivial::fatal
+    );
   } else {
     LOG_ERROR("Unknown logging level... using default configuration.");
   }
