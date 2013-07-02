@@ -120,20 +120,18 @@ void setupLogging(std::string appName) {
       
       boost::log::add_file_log
       (
-          boost::log::keywords::file_name = expandedFilename + ".%N",                                        
-          boost::log::keywords::rotation_size = logFileMaxSize * 1024,
-          boost::log::keywords::max_size = logFileMaxSize * 1024 * logFileCount,
-          boost::log::keywords::auto_flush = true,
-          boost::log::keywords::scan_method = boost::log::sinks::file::scan_matching,
-          boost::log::keywords::target = "."
+        boost::log::keywords::file_name = expandedFilename + ".%N",                                        
+        boost::log::keywords::rotation_size = logFileMaxSize * 1024,
+        boost::log::keywords::max_size = logFileMaxSize * 1024 * logFileCount,
+        boost::log::keywords::auto_flush = true,
+        boost::log::keywords::scan_method = boost::log::sinks::file::scan_matching,
+        boost::log::keywords::target = "."
       );
-  
-      
     } else {
       boost::log::add_file_log
       (
-          boost::log::keywords::file_name = expandLogFileName(logFile, appName),
-          boost::log::keywords::auto_flush = true
+        boost::log::keywords::file_name = expandLogFileName(logFile, appName),
+        boost::log::keywords::auto_flush = true
       );
     }
   }
@@ -141,32 +139,32 @@ void setupLogging(std::string appName) {
   if(logLevel == "trace") {
     boost::log::core::get()->set_filter
     (
-        boost::log::trivial::severity >= boost::log::trivial::trace
+      boost::log::trivial::severity >= boost::log::trivial::trace
     );
   } else if(logLevel == "debug") {
     boost::log::core::get()->set_filter
     (
-        boost::log::trivial::severity >= boost::log::trivial::debug
+      boost::log::trivial::severity >= boost::log::trivial::debug
     );
   } else if(logLevel == "info") {
     boost::log::core::get()->set_filter
     (
-        boost::log::trivial::severity >= boost::log::trivial::info
+      boost::log::trivial::severity >= boost::log::trivial::info
     );
   } else if(logLevel == "warning") {
     boost::log::core::get()->set_filter
     (
-        boost::log::trivial::severity >= boost::log::trivial::warning
+      boost::log::trivial::severity >= boost::log::trivial::warning
     );
   } else if(logLevel == "error") {
     boost::log::core::get()->set_filter
     (
-        boost::log::trivial::severity >= boost::log::trivial::error
+      boost::log::trivial::severity >= boost::log::trivial::error
     );
   } else if(logLevel == "critical") {
     boost::log::core::get()->set_filter
     (
-        boost::log::trivial::severity >= boost::log::trivial::fatal
+      boost::log::trivial::severity >= boost::log::trivial::fatal
     );
   } else {
     LOG_ERROR("Unknown logging level... using default configuration.");
