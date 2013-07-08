@@ -78,6 +78,7 @@ rm -rf %{buildroot}
 /etc/ammo-gateway/PassPluginConfig.json
 /etc/ammo-gateway/keys
 /etc/ammo-gateway/jgroups/udp.xml
+/etc/ammo-gateway/jgroups/udpMedia.xml
 /usr/bin/AndroidGatewayPlugin
 /usr/bin/AtsGatewayPlugin
 /usr/bin/GatewayCore
