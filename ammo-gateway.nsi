@@ -445,6 +445,7 @@ ${MementoSection} "RMCast Gateway Plugin (required)" SecRMCastPlug
 
   SetOutPath $APPDATA\ammo-gateway\jgroups
   File RMCastPlugin\jgroups\udp.xml
+  File RMCastPlugin\jgroups\udpMedia.xml
 
   !insertmacro FindJvmDll
   ${If} $0 == ""
