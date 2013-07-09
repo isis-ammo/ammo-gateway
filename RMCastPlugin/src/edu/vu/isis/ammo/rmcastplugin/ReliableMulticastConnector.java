@@ -296,6 +296,7 @@ class ReliableMulticastConnector {
 	    this.parent = parent;
 	    this.state = new State();
 	    mIsConnected = new AtomicBoolean( false );
+      CONFIG_FILE = "jgroups/" + mConfigFile;
 	}
 
 	private class State {
@@ -473,7 +474,7 @@ class ReliableMulticastConnector {
         }
 
         private final static String CONFIG_DIRECTORY = "ammo-gateway";
-        private final static String CONFIG_FILE = "jgroups/udp.xml";
+        private String CONFIG_FILE = "jgroups/udp.xml";
 
         private String findConfigFile( String configFile ) {
             final String os = System.getProperty("os.name").toLowerCase();
