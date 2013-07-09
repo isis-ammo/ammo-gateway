@@ -1,0 +1,7 @@
+Makefile*
+GNUmakefile*
+*.o
+.depend*
+SatcomGatewayPlugin
+SatcomGatewayPlugin.exe
+Debug\

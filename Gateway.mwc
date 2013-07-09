@@ -6,6 +6,7 @@ workspace(AndroidGatewayPlugin) {
   AndroidGatewayPlugin/
   DataStoreGatewayPlugin
   SerialGatewayPlugin/
+  SatcomGatewayPlugin/
   specific(!prop:windows) {
     LibGeotransMgrs/
     SamplePushReceiverGatewayPlugin/
