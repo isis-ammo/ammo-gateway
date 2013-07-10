@@ -15,7 +15,16 @@ struct SatcomHeader {
   uint16_t reserved;
   uint16_t payloadChecksum;
   uint16_t headerChecksum;
-}
+};
+
+const uint8_t MESSAGE_TYPE_DATA = 0;
+const uint8_t MESSAGE_TYPE_ACK_TOKEN = 1;
+
+struct DataMessage {
+  uint16_t sequenceNumber;
+  uint16_t index;
+  uint16_t count;
+};
 
 
 
@@ -32,6 +41,6 @@ private:
   
   ACE_TTY_IO serialDevice;
   ACE_DEV_Connector serialConnector;
-}
+};
 
 #endif //SERIAL_CONNECTOR_H

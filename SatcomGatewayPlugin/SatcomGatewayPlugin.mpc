@@ -17,5 +17,7 @@ project(SatcomGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
   Source_Files {
     main.cpp
     SatcomConfigurationManager.cpp
+    SerialConnector.cpp
+    SerialReaderThread.cpp
   }
 }
