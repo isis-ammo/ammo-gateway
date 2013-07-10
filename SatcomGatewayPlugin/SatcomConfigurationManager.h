@@ -13,6 +13,8 @@ public:
   
   std::string getListenPort() { return listenPort; }
   
+  int getBaudRate() { return baudRate; }
+
   int getTokenTimeout() { return tokenTimeout; }
   int getDataTimeout() { return dataTimeout; }
 
@@ -25,6 +27,7 @@ private:
   
   std::string listenPort;
   
+  int baudRate;
   int tokenTimeout;
   int dataTimeout;
 };

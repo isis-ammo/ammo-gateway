@@ -6,6 +6,7 @@
 #include "ace/DEV_Connector.h"
 #include "ace/TTY_IO.h"
 #include "ace/Copy_Disabled.h"
+#include <ace/Task.h>
 
 const uint32_t MAGIC_NUMBER = 0xabad1dea;
 
@@ -28,16 +29,21 @@ struct DataMessage {
 
 
 
-class SerialConnector : public ACE_Copy_Disabled {
+class SerialConnector : public ACE_Task<ACE_MT_SYNCH>, public ACE_Copy_Disabled {
 public:
   SerialConnector();
-  ~SerialConnector();
+  virtual ~SerialConnector();
   
-  void run();
+  virtual int svc();
   void stop();
   
 private:
-  bool running;
+  bool connect();
+
+  typedef ACE_Guard<ACE_Thread_Mutex> ThreadMutexGuard;
+  ACE_Thread_Mutex closeMutex;
+  bool closed;
+  bool isClosed();
   
   ACE_TTY_IO serialDevice;
   ACE_DEV_Connector serialConnector;

@@ -14,7 +14,7 @@ SerialWriterThread::~SerialWriterThread() {
   if(!isClosed()) {
     LOG_ERROR("SerialWriterThread: Entered destructor before stop()");
     stop();
-    this->wait(); //don't finish destroying until we're not running anything in background
+    this->wait(); //don't finish destroying until our thread terminates
   }
 }
 
@@ -27,15 +27,24 @@ int SerialWriterThread::svc() {
 }
 
 void SerialWriterThread::stop() {
-  closeMutex.acquire();
-  closed = true;
-  closeMutex.release();
+  ThreadMutexGuard g(closeMutex);
+  if(g.locked()) {
+    closed = true;
+  } else {
+    LOG_ERROR("Error acquiring lock in SerialWriterThread::stop()")
+  }
 }
 
 bool SerialWriterThread::isClosed() {
   volatile bool temp;
-  closeMutex.acquire();
-  temp = closed;
-  closeMutex.release();
+  {
+    ThreadMutexGuard g(closeMutex);
+    if(g.locked()) {
+      temp = closed;
+    } else {
+      temp = false;
+      LOG_ERROR("Error acquiring lock in SerialWriterThread::isClosed()")
+    }
+  }
   return temp;
 }

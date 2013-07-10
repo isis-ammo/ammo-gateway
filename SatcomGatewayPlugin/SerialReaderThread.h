@@ -18,6 +18,7 @@ public:
 private:
   SerialConnector *connector;
 
+  typedef ACE_Guard<ACE_Thread_Mutex> ThreadMutexGuard;
   ACE_Thread_Mutex closeMutex;
   bool closed;
   bool isClosed();

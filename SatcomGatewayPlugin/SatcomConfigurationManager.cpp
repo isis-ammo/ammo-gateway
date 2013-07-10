@@ -26,6 +26,7 @@ void SatcomConfigurationManager::init()
   listenPort = "/dev/ttyUSB0";
 #endif
 
+  baudRate = 2400;
   tokenTimeout = 5000;
   dataTimeout = 5000;
 }
@@ -33,11 +34,13 @@ void SatcomConfigurationManager::init()
 void SatcomConfigurationManager::decode(const Json::Value& root)
 {
   CM_DecodeString ( root, "listenPort", listenPort );
+  CM_DecodeInt    ( root, "baudRate", baudRate);
   CM_DecodeInt    ( root, "tokenTimeout", tokenTimeout);
   CM_DecodeInt    ( root, "dataTimeout", dataTimeout);
 
   LOG_INFO("Serial Plugin Configuration: ");
   LOG_INFO("  Listen Port: " << listenPort);
+  LOG_INFO("  Baud Rate: " << baudRate);
   LOG_INFO("  Token Timeout: " << tokenTimeout);
   LOG_INFO("  Data Timeout: " << dataTimeout);
 }
