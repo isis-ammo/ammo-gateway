@@ -10,6 +10,8 @@
 
 const uint32_t MAGIC_NUMBER = 0xabad1dea;
 
+const uint8_t * const MAGIC_NUMBER_BYTES = reinterpret_cast<const uint8_t *>(&MAGIC_NUMBER);
+
 struct SatcomHeader {
   uint32_t magicNumber;
   uint16_t size;
@@ -36,10 +38,12 @@ public:
   
   virtual int svc();
   void stop();
+
+  char readChar();
   
 private:
   bool connect();
-
+  
   typedef ACE_Guard<ACE_Thread_Mutex> ThreadMutexGuard;
   ACE_Thread_Mutex closeMutex;
   bool closed;

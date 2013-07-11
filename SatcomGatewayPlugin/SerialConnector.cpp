@@ -19,13 +19,15 @@ SerialConnector::~SerialConnector() {
 }
 
 int SerialConnector::svc() {
-  bool status = connect();
+  LOG_ERROR("MAGIC NUMBER: " << std::hex << MAGIC_NUMBER << "::" << +MAGIC_NUMBER_BYTES[0] << " " << +MAGIC_NUMBER_BYTES[1] << " " << +MAGIC_NUMBER_BYTES[2] << " " << +MAGIC_NUMBER_BYTES[3])
 
-  if(status == false) {
-    return 1;
-  }
+  //bool status = connect();
 
-  return 0;
+  //if(status == false) {
+  //  return 1;
+  //}
+
+  //return 0;
 }
 
 bool SerialConnector::connect() {

@@ -3,8 +3,10 @@
 
 #include <ace/Task.h>
 #include <ace/Copy_Disabled.h>
+#include <vector>
 
 class SerialConnector;
+struct SatcomHeader;
 
 class SerialReaderThread : public ACE_Task<ACE_MT_SYNCH>, public ACE_Copy_Disabled {
 public:
@@ -16,6 +18,16 @@ public:
   void stop();
 
 private:
+  enum ReaderThreadState {
+    STATE_READING_MAGIC,
+    STATE_READING_HEADER,
+    STATE_READING_DATA
+  };
+
+  bool validateHeaderChecksum(const SatcomHeader &header);
+
+  void processData(const SatcomHeader &header, const std::vector<uint8_t> &payload);
+
   SerialConnector *connector;
 
   typedef ACE_Guard<ACE_Thread_Mutex> ThreadMutexGuard;

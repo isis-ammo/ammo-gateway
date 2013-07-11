@@ -21,6 +21,7 @@
 #include "LogConfig.inl"
 
 #include "SatcomConfigurationManager.h"
+#include "SerialConnector.h"
 
 #ifdef WIN32
 #include "WinSvc.inl"
@@ -118,6 +119,9 @@ bool App::init(int argc, char* argv[])
 
   //initialize configuration manager here, while we're single-threaded
   SatcomConfigurationManager::getInstance();
+
+  SerialConnector s;
+  s.svc();
 
   return true;
 }
