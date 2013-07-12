@@ -98,4 +98,5 @@ install: all
 	install -m 644 build/etc/MCastPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/RMCastPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 755 RMCastPlugin/jgroups/udp.xml $(DESTDIR)/etc/ammo-gateway/jgroups
+	install -m 755 RMCastPlugin/jgroups/udpMedia.xml $(DESTDIR)/etc/ammo-gateway/jgroups
 

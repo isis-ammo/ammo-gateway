@@ -55,16 +55,28 @@ class PluginServiceHandler implements
 
     private static final Logger logger = LoggerFactory.getLogger(PluginServiceHandler.class);
 
-    public PluginServiceHandler()
+    private boolean mediaSvcHandler = false;
+
+    public PluginServiceHandler(boolean mediaSvc)
     {
+	mediaSvcHandler = mediaSvc;
         subscriptions = new HashMap<String,Integer>();
         // populate the subscriptions map with mimetypes read from config file
         PluginConfigurationManager pConfig = PluginConfigurationManager.getInstance();
-        List<String> mimeTypes = pConfig.getMimeTypes();
+        
+        List<String> mimeTypes = null;
+	
+    	logger.info("Inside the pluginservicehandler");
+	if (mediaSvcHandler)
+	    mimeTypes = pConfig.getMediaMimeTypes();
+	else
+	    mimeTypes = pConfig.getMimeTypes();
+
         for( String mimeType : mimeTypes ) {
             subscriptions.put(mimeType, 1);
         }
         
+    	logger.info("Inside the pluginservicehandler");
         pluginId = "MCastPlugin-" + UUID.randomUUID().toString();
     }
 
