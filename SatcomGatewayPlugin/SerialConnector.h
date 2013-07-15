@@ -40,6 +40,7 @@ public:
   void stop();
 
   char readChar();
+  void writeMessageFragment(const std::string &message);
   
 private:
   bool connect();

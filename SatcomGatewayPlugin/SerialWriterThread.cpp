@@ -6,7 +6,9 @@
 SerialWriterThread::SerialWriterThread(SerialConnector *connector) : 
 connector(connector),
 closeMutex(),
-closed(true) {
+closed(true),
+sendQueueMutex(),
+newMessageAvailable(sendQueueMutex) {
 
 }
 
@@ -21,6 +23,15 @@ SerialWriterThread::~SerialWriterThread() {
 int SerialWriterThread::svc() {
   while(!isClosed()) {
     //do stuff
+    QueuedMessagePointer messageToSend;
+    while((messageToSend = getNextMessage())) {
+      connector.writeMessageFragment(*messageToSend);
+    }
+
+    {
+      ThreadMutexGuard g(sendQueueMutex);
+      newMessageAvailable.wait();
+    }
   }
 
   return 0;
@@ -47,4 +58,17 @@ bool SerialWriterThread::isClosed() {
     }
   }
   return temp;
+}
+
+void SerialWriterThread::queueMessage(QueuedMessagePtr message) {
+  ThreadMutexGuard g(sendQueueMutex);
+  sendQueue.push(message);
+}
+
+QueuedMessagePointer SerialWriterThread::getNextMessage() {
+  ThreadMutexGuard g(sendQueueMutex);
+  QueuedMessagePointer nextMessage = sendQueue.front();
+  sendQueue.pop();
+  return nextMessage;
+}
 }
