@@ -2,11 +2,16 @@
 #define SERIAL_CONNECTOR_H
 
 #include <stdint.h>
+#include <vector>
+#include <queue>
+#include <tr1/unordered_map>
+#include <tr1/memory>
 
 #include "ace/DEV_Connector.h"
 #include "ace/TTY_IO.h"
 #include "ace/Copy_Disabled.h"
 #include <ace/Task.h>
+
 
 const uint32_t MAGIC_NUMBER = 0xabad1dea;
 
@@ -29,9 +34,38 @@ struct DataMessage {
   uint16_t count;
 };
 
+class FragmentedMessage {
+public:
+  typedef std::tr1::shared_ptr<const std::string> FragmentedMessageDataPtr;
+
+  FragmentedMessage(uint16_t startingSequenceNumber, uint16_t fragmentsCount) : startingSequenceNumber(startingSequenceNumber), fragmentsCount(fragmentsCount), receivedFragmentsCount(0), fragments(fragmentsCount) {};
+
+  void gotMessageFragment(const DataMessage dataHeader, const std::string &data);
+
+  bool isMessageComplete() {
+    return receivedFragmentsCount == fragmentsCount;
+  }
+
+  /**
+  * Precondition: complete message has been received (isMessageComplete() is true).
+  * Behavior is undefined if it hasn't.
+  */
+  std::string reconstructCompleteMessage();
+private:
+  uint16_t startingSequenceNumber;
+  uint16_t fragmentsCount;
+  uint16_t receivedFragmentsCount;
+
+  typedef std::vector<FragmentedMessageDataPtr> FragmentVector;
+  FragmentVector fragments;
+};
+
 
 
 class SerialConnector : public ACE_Task<ACE_MT_SYNCH>, public ACE_Copy_Disabled {
+private:
+  typedef std::queue<uint16_t> SequenceNumberQueue;
+
 public:
   SerialConnector();
   virtual ~SerialConnector();
@@ -40,10 +74,15 @@ public:
   void stop();
 
   char readChar();
-  void writeMessageFragment(const std::string &message);
+  bool writeMessageFragment(const std::string &message);
+
+  void receivedMessageFragment(const DataMessage dataHeader, const std::string &data);
+  SequenceNumberQueue getSequenceNumbersToAck();
   
 private:
   bool connect();
+
+  void processMessage(std::string &message);
   
   typedef ACE_Guard<ACE_Thread_Mutex> ThreadMutexGuard;
   ACE_Thread_Mutex closeMutex;
@@ -52,6 +91,12 @@ private:
   
   ACE_TTY_IO serialDevice;
   ACE_DEV_Connector serialConnector;
+
+  SequenceNumberQueue sequenceNumbersToAck;
+  ACE_Thread_Mutex sequenceNumbersToAckMutex;
+
+  typedef std::tr1::unordered_map<uint16_t, FragmentedMessage> IncompleteMessageMap;
+  IncompleteMessageMap incompleteMessages; //indexed by first sequence number in message
 };
 
 #endif //SERIAL_CONNECTOR_H

@@ -5,7 +5,6 @@
 
 #include <tr1/memory>
 
-using namespace std::tr1;
 using namespace std;
 
 SerialReaderThread::SerialReaderThread(SerialConnector *connector) : 
