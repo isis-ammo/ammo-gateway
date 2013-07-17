@@ -38,12 +38,16 @@ class FragmentedMessage {
 public:
   typedef std::tr1::shared_ptr<const std::string> FragmentedMessageDataPtr;
 
-  FragmentedMessage(uint16_t startingSequenceNumber, uint16_t fragmentsCount) : startingSequenceNumber(startingSequenceNumber), fragmentsCount(fragmentsCount), receivedFragmentsCount(0), fragments(fragmentsCount) {};
+  FragmentedMessage(uint16_t startingSequenceNumber, uint16_t fragmentsCount, uint8_t dataType) : startingSequenceNumber(startingSequenceNumber), fragmentsCount(fragmentsCount), receivedFragmentsCount(0), dataType(dataType), fragments(fragmentsCount) {};
 
   void gotMessageFragment(const DataMessage dataHeader, const std::string &data);
 
   bool isMessageComplete() {
     return receivedFragmentsCount == fragmentsCount;
+  }
+
+  uint8_t getDataType() {
+    return dataType;
   }
 
   /**
@@ -52,9 +56,11 @@ public:
   */
   std::string reconstructCompleteMessage();
 private:
+
   uint16_t startingSequenceNumber;
   uint16_t fragmentsCount;
   uint16_t receivedFragmentsCount;
+  uint8_t dataType;
 
   typedef std::vector<FragmentedMessageDataPtr> FragmentVector;
   FragmentVector fragments;
@@ -76,7 +82,7 @@ public:
   char readChar();
   bool writeMessageFragment(const std::string &message);
 
-  void receivedMessageFragment(const DataMessage dataHeader, const std::string &data);
+  void receivedMessageFragment(const DataMessage dataHeader, const uint8_t shouldAck, const uint8_t dataType, const std::string &data);
   SequenceNumberQueue getSequenceNumbersToAck();
   
 private:

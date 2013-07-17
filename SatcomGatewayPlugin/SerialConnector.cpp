@@ -163,13 +163,13 @@ bool SerialConnector::writeMessageFragment(const std::string &message) {
   return bytesWritten;
 }
 
-void SerialConnector::receivedMessageFragment(const DataMessage dataHeader, const std::string &data) {
+void SerialConnector::receivedMessageFragment(const DataMessage dataHeader, const uint8_t shouldAck, const uint8_t dataType, const std::string &data) {
   uint16_t firstMessageSequenceNumber = dataHeader.sequenceNumber - dataHeader.count;
 
   IncompleteMessageMap::iterator messageIt = incompleteMessages.find(firstMessageSequenceNumber);
 
   if(messageIt == incompleteMessages.end()) {
-    FragmentedMessage newMessage(firstMessageSequenceNumber, dataHeader.count);
+    FragmentedMessage newMessage(firstMessageSequenceNumber, dataHeader.count, dataType);
     std::pair<IncompleteMessageMap::iterator, bool> result = incompleteMessages.insert(IncompleteMessageMap::value_type(firstMessageSequenceNumber, newMessage));
 
     if(result.second == true) {
@@ -187,7 +187,7 @@ void SerialConnector::receivedMessageFragment(const DataMessage dataHeader, cons
     incompleteMessages.erase(messageIt);
   }
 
-  {
+  if(shouldAck == 1) {
     ThreadMutexGuard g(sequenceNumbersToAckMutex);
     sequenceNumbersToAck.push(dataHeader.sequenceNumber);
   }
