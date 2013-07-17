@@ -19,5 +19,10 @@ project(SatcomGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
     SatcomConfigurationManager.cpp
     SerialConnector.cpp
     SerialReaderThread.cpp
+	SerialWriterThread.cpp
+  }
+
+  Header_Files {
+    Typedefs.h
   }
 }

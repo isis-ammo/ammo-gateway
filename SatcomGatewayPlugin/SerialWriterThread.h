@@ -3,10 +3,11 @@
 
 #include <queue>
 #include <string>
-#include <tr1/memory>
 
 #include <ace/Task.h>
 #include <ace/Copy_Disabled.h>
+
+#include "Typedefs.h"
 
 class SerialConnector;
 
@@ -26,7 +27,6 @@ public:
 private:
   SerialConnector *connector;
 
-  typedef ACE_Guard<ACE_Thread_Mutex> ThreadMutexGuard;
   ACE_Thread_Mutex closeMutex;
   bool closed;
   bool isClosed();

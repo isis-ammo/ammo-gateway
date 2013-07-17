@@ -3,8 +3,6 @@
 #include "SerialConnector.h"
 #include "log.h"
 
-#include <tr1/memory>
-
 using namespace std;
 
 SerialReaderThread::SerialReaderThread(SerialConnector *connector) : 

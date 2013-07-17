@@ -4,13 +4,13 @@
 #include <stdint.h>
 #include <vector>
 #include <queue>
-#include <tr1/unordered_map>
-#include <tr1/memory>
 
-#include "ace/DEV_Connector.h"
-#include "ace/TTY_IO.h"
-#include "ace/Copy_Disabled.h"
+#include <ace/DEV_Connector.h>
+#include <ace/TTY_IO.h>
+#include <ace/Copy_Disabled.h>
 #include <ace/Task.h>
+
+#include "Typedefs.h"
 
 
 const uint32_t MAGIC_NUMBER = 0xabad1dea;

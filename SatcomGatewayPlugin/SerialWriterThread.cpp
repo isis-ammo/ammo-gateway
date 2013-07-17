@@ -23,9 +23,9 @@ SerialWriterThread::~SerialWriterThread() {
 int SerialWriterThread::svc() {
   while(!isClosed()) {
     //do stuff
-    QueuedMessagePointer messageToSend;
+    QueuedMessagePtr messageToSend;
     while((messageToSend = getNextMessage())) {
-      connector.writeMessageFragment(*messageToSend);
+      connector->writeMessageFragment(*messageToSend);
     }
 
     {
@@ -65,10 +65,9 @@ void SerialWriterThread::queueMessage(QueuedMessagePtr message) {
   sendQueue.push(message);
 }
 
-QueuedMessagePointer SerialWriterThread::getNextMessage() {
+SerialWriterThread::QueuedMessagePtr SerialWriterThread::getNextMessage() {
   ThreadMutexGuard g(sendQueueMutex);
-  QueuedMessagePointer nextMessage = sendQueue.front();
+  QueuedMessagePtr nextMessage = sendQueue.front();
   sendQueue.pop();
   return nextMessage;
-}
 }
