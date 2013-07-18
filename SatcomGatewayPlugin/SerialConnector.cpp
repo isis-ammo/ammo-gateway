@@ -193,6 +193,10 @@ void SerialConnector::receivedMessageFragment(const DataMessage dataHeader, cons
   }
 }
 
+void SerialConnector::receivedAckPacket(const bool isToken, const std::vector<uint16_t> &acks) {
+  //TODO: implement me
+}
+
 void SerialConnector::processMessage(std::string &message) {
   //TODO:  do terse decoding and forward on to gateway
 }

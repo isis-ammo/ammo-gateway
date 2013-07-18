@@ -83,6 +83,8 @@ public:
   bool writeMessageFragment(const std::string &message);
 
   void receivedMessageFragment(const DataMessage dataHeader, const uint8_t shouldAck, const uint8_t dataType, const std::string &data);
+  void receivedAckPacket(const bool isToken, const std::vector<uint16_t> &acks);
+
   SequenceNumberQueue getSequenceNumbersToAck();
   
 private:

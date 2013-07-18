@@ -1,5 +1,7 @@
 #include "SerialReaderThread.h"
 
+#include <sstream>
+
 #include "SerialConnector.h"
 #include "log.h"
 
@@ -26,7 +28,7 @@ int SerialReaderThread::svc() {
 
   SatcomHeader header;
 
-  std::vector<uint8_t> payload;
+  std:string payload;
 
 
   while(!isClosed()) {
@@ -119,7 +121,7 @@ bool SerialReaderThread::validateHeaderChecksum(const SatcomHeader &header) {
 * c: should ack (0 = don't ack; 1 = do ack)
 * d dddd: Datatype-specific identifier (set to 0 for ack/token packets)
 */
-bool SerialReaderThread::processData(const SatcomHeader &header, const vector<uint8_t> &payload) {
+bool SerialReaderThread::processData(const SatcomHeader &header, const std::string &payload) {
   if(payload.size() > 0) {
     //get packet type (in the high bit of the first byte of the payload)
     uint8_t payloadInfoByte = payload[0];
@@ -143,6 +145,31 @@ bool SerialReaderThread::processData(const SatcomHeader &header, const vector<ui
         break;
       }
       case MESSAGE_TYPE_ACK_TOKEN: {
+        if((payload.size() - sizeof(payloadInfoByte)) >= sizeof(uint16_t)) {
+          uint16_t ackCountShort = * reinterpret_cast<const uint16_t *>(&payload[sizeof(payloadInfoByte)]);
+          bool isToken = (ackCountShort >> 15) == 1;
+          uint16_t ackCount = ackCountShort & 0x7f;
+
+          size_t expectedPayloadSize = ackCount * sizeof(uint16_t) + sizeof(ackCountShort) + sizeof(payloadInfoByte);
+
+          if(expectedPayloadSize == payload.size()) {
+            vector<uint16_t> ackSequenceNumbers;
+            ackSequenceNumbers.reserve(ackCount);
+            for(int i = 0; i < ackCount; i++) {
+              uint16_t newAckSequenceNumber = payload[i*sizeof(uint16_t) + sizeof(ackCountShort) + sizeof(payloadInfoByte)];
+              ackSequenceNumbers.push_back(newAckSequenceNumber);
+            }
+
+            connector->receivedAckPacket(isToken, ackSequenceNumbers);
+            return true;
+          } else {
+            LOG_ERROR("Ack packet is not the correct size...  (expected = " << expectedPayloadSize << " actual = " << payload.size() << ")");
+            return false;
+          }
+        } else {
+          LOG_ERROR("Not enough data to read ack byte");
+          return false;
+        }
         break;
       }
       default: {
