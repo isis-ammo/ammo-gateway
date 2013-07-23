@@ -88,14 +88,34 @@ public:
   SequenceNumberQueue getSequenceNumbersToAck();
   
 private:
+  enum SerialConnectorState {
+    STATE_RECEIVING,
+    STATE_SENDING,
+    STATE_WAITING_FOR_ACK
+  };
+
+  enum SerialConnectorEvent {
+    EVENT_NONE,
+    EVENT_MESSAGE_RECEIVED,
+    EVENT_TOKEN_RECEIVED,
+    EVENT_RESET_RECEIVED,
+    EVENT_TIMEOUT,
+    EVENT_CLOSE
+  };
+
   bool connect();
 
   void processMessage(std::string &message);
-  
-  typedef ACE_Guard<ACE_Thread_Mutex> ThreadMutexGuard;
+
   ACE_Thread_Mutex closeMutex;
   bool closed;
   bool isClosed();
+
+  ACE_Thread_Mutex eventMutex;
+  ACE_Condition_Thread_Mutex eventCondition;
+  volatile SerialConnectorEvent lastSignaledEvent;
+  void signalEvent(SerialConnectorEvent ev);
+  SerialConnectorEvent waitForEventSignal(int timeoutMilliseconds = 0); //0 timeout will wait forever
   
   ACE_TTY_IO serialDevice;
   ACE_DEV_Connector serialConnector;

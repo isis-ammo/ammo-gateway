@@ -31,6 +31,9 @@ std::string FragmentedMessage::reconstructCompleteMessage() {
 
 SerialConnector::SerialConnector() :
 closed(true),
+eventMutex(),
+eventCondition(eventMutex),
+lastSignaledEvent(EVENT_NONE),
 serialDevice(),
 serialConnector()
 {
@@ -52,8 +55,23 @@ int SerialConnector::svc() {
    return 1;
   }
 
+  SerialConnectorState state = STATE_RECEIVING;
   while(!isClosed()) {
-
+    switch(state) {
+      case STATE_RECEIVING: {
+        break;
+      }
+      case STATE_SENDING: {
+        break;
+      }
+      case STATE_WAITING_FOR_ACK: {
+        break;
+      }
+      default: {
+        LOG_ERROR("Unknown connector state");
+        break;
+      }
+    }
   }
 
   return 0;
@@ -122,6 +140,40 @@ bool SerialConnector::isClosed() {
     }
   }
   return temp;
+}
+
+void SerialConnector::signalEvent(SerialConnectorEvent ev) {
+  ThreadMutexGuard g(eventMutex);
+  lastSignaledEvent = ev;
+  eventCondition.signal();
+}
+
+SerialConnector::SerialConnectorEvent SerialConnector::waitForEventSignal(int timeoutMilliseconds) {
+  volatile SerialConnectorEvent result = EVENT_NONE;
+  ThreadMutexGuard g(eventMutex);
+  if(timeoutMilliseconds != 0) {
+    ACE_Time_Value now = ACE_OS::gettimeofday();
+    ACE_Time_Value offset;
+    offset.set_msec(timeoutMilliseconds);
+    ACE_Time_Value timeoutTime = now + offset;
+    int status = eventCondition.wait(&timeoutTime);
+    if(status == -1 && errno == ETIME) {
+      return EVENT_TIMEOUT;
+    } else if(status == -1) {
+      LOG_ERROR("Unknown error while waiting for event signal" << strerror(errno) << " (" << errno << ")");
+      return EVENT_NONE;
+    } else {
+      return lastSignaledEvent;
+    }
+  } else {
+    int status = eventCondition.wait();
+    if(status == -1) {
+      LOG_ERROR("Unknown error while waiting for event signal" << strerror(errno) << " (" << errno << ")");
+      return EVENT_NONE;
+    } else {
+      return lastSignaledEvent;
+    }
+  }
 }
 
 char SerialConnector::readChar() {
