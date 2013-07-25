@@ -271,7 +271,7 @@ void SerialConnector::receivedMessageFragment(const DataMessage dataHeader, cons
 
   if(messageIt->second.isMessageComplete()) {
     std::string completeMessage = messageIt->second.reconstructCompleteMessage();
-    processMessage(completeMessage);
+    processMessage(dataType, completeMessage);
     incompleteMessages.erase(messageIt);
   }
 
@@ -293,7 +293,7 @@ void SerialConnector::receivedReset() {
   signalEvent(EVENT_RESET_RECEIVED);
 }
 
-void SerialConnector::processMessage(std::string &message) {
+void SerialConnector::processMessage(const uint8_t dataType, const std::string &message) {
   //TODO:  do terse decoding and forward on to gateway
 }
 

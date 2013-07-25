@@ -18,6 +18,9 @@ public:
   int getTokenTimeout() { return tokenTimeout; }
   int getDataTimeout() { return dataTimeout; }
 
+  int getPliRelayRangeScale() { return pliRelayRangeScale; }
+  int getPliRelayTimeScale() { return pliRelayTimeScale; }
+
 protected:
   void init();
   void decode(const Json::Value& root);
@@ -30,6 +33,9 @@ private:
   int baudRate;
   int tokenTimeout;
   int dataTimeout;
+
+  int pliRelayRangeScale;
+  int pliRelayTimeScale;
 };
 
 #endif //SATCOM_CONFIGURATION_MANAGER_H

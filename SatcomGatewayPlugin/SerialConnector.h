@@ -109,7 +109,7 @@ private:
 
   bool connect();
 
-  void processMessage(std::string &message);
+  void processMessage(const uint8_t dataType, const std::string &message);
 
   SerialReaderThread reader;
   SerialWriterThread writer;

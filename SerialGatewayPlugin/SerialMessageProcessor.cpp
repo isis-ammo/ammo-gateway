@@ -30,20 +30,20 @@ const int DASH_EVENT_TYPEID = 3;
 const int CHAT_MESSAGE_ALL_TYPEID = 4;
 
 SerialMessageProcessor::SerialMessageProcessor(SerialServiceHandler *serviceHandler) :
-closed(false),
-closeMutex(),
-newMessageMutex(),
-newMessageAvailable(newMessageMutex),
-commsHandler(serviceHandler),
-receiver(NULL),
-gatewayConnector(NULL),
-deviceId(""),
-deviceIdAuthenticated(false)
+  closed(false),
+  closeMutex(),
+  newMessageMutex(),
+  newMessageAvailable(newMessageMutex),
+  commsHandler(serviceHandler),
+  receiver(NULL),
+  gatewayConnector(NULL),
+  deviceId(""),
+  deviceIdAuthenticated(false)
 {
   //need to initialize GatewayConnector in the main thread; the constructor always
   //happens in the main thread
   gatewayConnector = new GatewayConnector(this);
-  
+
   SerialConfigurationManager *config = SerialConfigurationManager::getInstance();
   rangeScale = config->getRangeScale();
   timeScale = config->getTimeScale();
@@ -70,7 +70,7 @@ int SerialMessageProcessor::close(unsigned long flags) {
   closeMutex.acquire();
   closed = true;
   closeMutex.release();
-  
+
   signalNewMessageAvailable();
   return 0;
 }
@@ -81,7 +81,7 @@ bool SerialMessageProcessor::isClosed() {
   closeMutex.acquire();
   ret = closed;
   closeMutex.release();
-  
+
   return ret;
 }
 
@@ -113,7 +113,7 @@ void SerialMessageProcessor::signalNewMessageAvailable() {
 
 void SerialMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg) {
   LOG_TRACE((long) commsHandler << " Message Received: " << msg.DebugString());
-  
+
   if(msg.type() == ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_MESSAGE) {
     LOG_DEBUG((long) commsHandler << " Received Authentication Message...");
     if(gatewayConnector != NULL) {
@@ -131,7 +131,7 @@ void SerialMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg)
       } else {
         scope = SCOPE_GLOBAL;
       }
-      
+
       PushData pushData;
       pushData.uri = dataMessage.uri();
       pushData.mimeType = dataMessage.mime_type();
@@ -146,25 +146,25 @@ void SerialMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg)
       LOG_DEBUG(commsHandler << " Sending push acknowledgment to connected device...");
       ackMsg->set_message_priority(DEFAULT_PRIORITY);
       commsHandler->sendMessage(ackMsg, DEFAULT_PRIORITY);
-      
+
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_TERSE_MESSAGE) {
     LOG_DEBUG((long) commsHandler << " Received Terse Message...");
     if(gatewayConnector != NULL) {
       ammo::protocol::TerseMessage dataMessage = msg.terse_message();
       MessageScope scope = SCOPE_GLOBAL;
-      
+
       PushData pushData;
-std::string originUser;
+      std::string originUser;
       switch( dataMessage.mime_type() ) {
       case SMS_TYPEID:			// SMS - not implemented
-	return;
+        return;
       case NEVADA_PLI_TYPEID:			// PLI
         pushData.mimeType = NEVADA_PLI_MIMETYPE;
         pushData.data = parseTerseData(2, dataMessage.data().c_str(), dataMessage.data().length(), originUser );
-	pushData.uri = "serial-pli";
+        pushData.uri = "serial-pli";
         pushData.originUsername = originUser;
-	break;
+        break;
       case TRANSAPPS_PLI_TYPEID:			// New Transapps PLI
         pushData.mimeType = TRANSAPPS_PLI_MIMETYPE;
         pushData.data = parseTerseData(5, dataMessage.data().c_str(), dataMessage.data().length(), originUser );
@@ -174,9 +174,9 @@ std::string originUser;
       case DASH_EVENT_TYPEID:			// Dash
         pushData.mimeType = DASH_EVENT_MIMETYPE;
         pushData.data = parseTerseData(3, dataMessage.data().c_str(), dataMessage.data().length(), originUser );
-	pushData.uri = "serial-dash-event";
+        pushData.uri = "serial-dash-event";
         pushData.originUsername = originUser;
-	break;
+        break;
       case CHAT_MESSAGE_ALL_TYPEID:			// Chat
         pushData.mimeType = CHAT_MESSAGE_ALL_MIMETYPE;
         pushData.data = parseTerseData(4, dataMessage.data().c_str(), dataMessage.data().length(), originUser );
@@ -197,10 +197,10 @@ std::string originUser;
     } else {
       scope = SCOPE_GLOBAL;
     }
-    
+
     if(gatewayConnector != NULL) {
       ammo::protocol::SubscribeMessage subscribeMessage = msg.subscribe_message();
-      
+
       gatewayConnector->registerDataInterest(subscribeMessage.mime_type(), this, scope);
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_UNSUBSCRIBE_MESSAGE) {
@@ -211,10 +211,10 @@ std::string originUser;
     } else {
       scope = SCOPE_GLOBAL;
     }
-    
+
     if(gatewayConnector != NULL) {
       ammo::protocol::UnsubscribeMessage unsubscribeMessage = msg.unsubscribe_message();
-      
+
       gatewayConnector->unregisterDataInterest(unsubscribeMessage.mime_type(), scope);
     }
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_PULL_REQUEST) {
@@ -242,13 +242,13 @@ std::string originUser;
   } else if(msg.type() == ammo::protocol::MessageWrapper_MessageType_HEARTBEAT) {
     LOG_DEBUG((long) commsHandler << " Received Heartbeat from device...");
     ammo::protocol::Heartbeat heartbeat = msg.heartbeat();
-    
+
     ammo::protocol::MessageWrapper *heartbeatAck = new ammo::protocol::MessageWrapper();
     ammo::protocol::Heartbeat *ack = heartbeatAck->mutable_heartbeat();
     ack->set_sequence_number(heartbeat.sequence_number());
     heartbeatAck->set_type(ammo::protocol::MessageWrapper_MessageType_HEARTBEAT);
     heartbeatAck->set_message_priority(DEFAULT_PRIORITY);
-    
+
     LOG_DEBUG((long) commsHandler << " Sending heartbeat acknowledgement to connected device...");
     commsHandler->sendMessage(heartbeatAck, DEFAULT_PRIORITY);
   }
@@ -258,13 +258,13 @@ void SerialMessageProcessor::onConnect(GatewayConnector *sender) {
 }
 
 void SerialMessageProcessor::onDisconnect(GatewayConnector *sender) {
-  
+
 }
 
 void SerialMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo::gateway::PushData &pushData) {
   LOG_DEBUG((long) commsHandler << " Sending subscribed data to device...");
   LOG_DEBUG((long) commsHandler << "    " << pushData);
-  
+
   std::string dataString(pushData.data.begin(), pushData.data.end());
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper;
   ammo::protocol::DataMessage *dataMsg = msg->mutable_data_message();
@@ -272,10 +272,10 @@ void SerialMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo::
   dataMsg->set_mime_type(pushData.mimeType);
   dataMsg->set_encoding(pushData.encoding);
   dataMsg->set_data(dataString);
-  
+
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_DATA_MESSAGE);
   msg->set_message_priority(DEFAULT_PRIORITY);
-  
+
   LOG_DEBUG((long) commsHandler << " Sending Data Push message to connected device");
   commsHandler->sendMessage(msg, DEFAULT_PRIORITY);
 }
@@ -283,7 +283,7 @@ void SerialMessageProcessor::onPushDataReceived(GatewayConnector *sender, ammo::
 void SerialMessageProcessor::onPullResponseReceived(GatewayConnector *sender, ammo::gateway::PullResponse &response) {
   LOG_DEBUG((long) commsHandler << " Sending pull response to device...");
   LOG_DEBUG((long) commsHandler << "    URI: " << response.uri << ", Type: " << response.mimeType);
-  
+
   std::string dataString(response.data.begin(), response.data.end());
   ammo::protocol::MessageWrapper *msg = new ammo::protocol::MessageWrapper();
   ammo::protocol::PullResponse *pullMsg = msg->mutable_pull_response();
@@ -294,10 +294,10 @@ void SerialMessageProcessor::onPullResponseReceived(GatewayConnector *sender, am
   pullMsg->set_uri(response.uri);
   pullMsg->set_encoding(response.encoding);
   pullMsg->set_data(dataString);
-  
+
   msg->set_type(ammo::protocol::MessageWrapper_MessageType_PULL_RESPONSE);
   msg->set_message_priority(DEFAULT_PRIORITY);
-  
+
   LOG_DEBUG((long) commsHandler << " Sending Pull Response message to connected device");
   commsHandler->sendMessage(msg, DEFAULT_PRIORITY);
 }
@@ -309,7 +309,7 @@ void SerialMessageProcessor::onAuthenticationResponse(GatewayConnector *sender, 
   if(result == true) {
     deviceIdAuthenticated = true;
   }
-  
+
   ammo::protocol::MessageWrapper *newMsg = new ammo::protocol::MessageWrapper();
   newMsg->set_type(ammo::protocol::MessageWrapper_MessageType_AUTHENTICATION_RESULT);
   newMsg->set_message_priority(DEFAULT_PRIORITY);
@@ -354,7 +354,7 @@ std::string SerialMessageProcessor::extractOldStyleString(const char *terse, siz
   }
   uint32_t nlen = ntohl ( *(uint32_t *)&(terse[cursor]) );
   cursor += sizeof(uint32_t);
-  
+
   if(cursor + nlen * 2 > length) {
     LOG_ERROR("Not enough data to get string (cursor=" << cursor << ", strlen=" << nlen << ", length=" << length << ")");
     return "";
@@ -378,14 +378,14 @@ std::string SerialMessageProcessor::extractBlob(const char *terse, size_t& curso
   uint16_t blobLength = ntohs ( *(uint16_t *)&(terse[cursor]) );
   LOG_TRACE("Blob length: " << blobLength);
   cursor += sizeof(uint16_t);
-  
+
   if(cursor + blobLength  > length) {
     LOG_ERROR("Not enough data to get blob (cursor=" << cursor << ", strlen=" << blobLength << ", length=" << length << ")");
     return "";
   }
   std::string blob(&terse[cursor], blobLength);
   cursor += blobLength;
-  
+
   //LOG_TRACE("Got blob: " << blob);
   return blob;
 }
@@ -469,7 +469,7 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, si
         << "\"}";
       latestPliTimestamps[originUser] = created;
     }
-    
+
     break;
   case TRANSAPPS_PLI_TYPEID:			// Transapps (Sandeep mod...) PLI
     /*
@@ -486,7 +486,7 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, si
       uint32_t created  = extractInt32(terse, cursor, terseLength);
       std::string groupPliBlob = extractBlob(terse, cursor, terseLength);
       parseGroupPliBlob(groupPliBlob, lat, lon, created);
-      
+
       //update timestamp of last received PLI, so we know what the last 
       //received time is for delta PLI
       latestPliTimestamps[originUser] = created;
@@ -500,16 +500,16 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, si
         receiver->addPli(originUser, lat, lon, created);
       }
     }
-    
+
     break;
 
   case DASH_EVENT_TYPEID:			// Dash-Event
     break;
   case CHAT_MESSAGE_ALL_TYPEID:			// Group-chat
     /*
-      originator - Text : Int (2), UTF Char (1 byte per)
-      text - Text : Int (2), UTF Char (1 byte per)
-      created_date Java Long (8)
+    originator - Text : Int (2), UTF Char (1 byte per)
+    text - Text : Int (2), UTF Char (1 byte per)
+    created_date Java Long (8)
     */
     {
       std::string uuid = extractString(terse, cursor, terseLength);
@@ -522,12 +522,12 @@ std::string SerialMessageProcessor::parseTerseData(int mt, const char *terse, si
       // JSON
       // "{\"created_date\":\"1339572928976\",\"text\":\"Wwwww\",\"modified_date\":\"1339572928984\",\"status\":\"21\",\"receipts\":\"0\",\"group_id\":\"All\",\"media_count\":\"0\",\"longitude\":\"0\",\"uuid\":\"9bf10c58-9154-4be8-8f63-e6a79a5ecbc1\",\"latitude\":\"0\",\"originator\":\"mark\"}"
       jsonStr << "{\"created_date\":\"" << createdMillis << "\",\"text\":\"" << text << "\",\"modified_date\":\"" << createdMillis << "\",\"status\":\"21\",\"receipts\":\"0\",\"group_id\":\"All\",\"media_count\":\"0\",\"longitude\":\"0\",\"uuid\":\"" << uuid << "\",\"latitude\":\"0\",\"originator\":\""<< originator << "\"}";
-  }
-					     
-    
+    }
+
+
   }
   LOG_TRACE((long) this << jsonStr.str() );
-  
+
   return jsonStr.str();
 }
 
@@ -543,11 +543,11 @@ void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t
     int16_t dLon = extractInt16(groupPliBlobArray, cursor, groupPliBlobLength);
     int8_t dCreatedTime = extractInt8(groupPliBlobArray, cursor, groupPliBlobLength);
     int8_t hopCount = extractInt8(groupPliBlobArray, cursor, groupPliBlobLength);
-    
+
     int32_t latitude = (baseLat - dLat) * rangeScale;
     int32_t longitude = (baseLon - dLon) * rangeScale;
     uint32_t createdTime = (baseTime - dCreatedTime) * timeScale;
-    
+
     TimestampMap::iterator it = latestPliTimestamps.find(originUsername);
     if(it != latestPliTimestamps.end() && createdTime < it->second) {
       //received delta PLI is older than the one we already have; discard it
@@ -557,14 +557,14 @@ void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t
       //one before, update map and send it
       latestPliTimestamps[originUsername] = createdTime;
       std::string pliString = generateTransappsPli(originUsername, latitude, longitude, createdTime, hopCount);
-      
+
       PushData pushData;
       pushData.mimeType = TRANSAPPS_PLI_MIMETYPE;
-    	pushData.data = pliString;
-    	pushData.uri = "serial-pli";
+      pushData.data = pliString;
+      pushData.uri = "serial-pli";
       pushData.originUsername = originUsername;
       pushData.scope = SCOPE_GLOBAL;
-      
+
       LOG_TRACE("Sending group PLI relay message: " << pushData.data);
       gatewayConnector->pushData(pushData);
 
@@ -579,58 +579,58 @@ void SerialMessageProcessor::parseGroupPliBlob(std::string groupPliBlob, int32_t
 std::string SerialMessageProcessor::generateTransappsPli(std::string originUser, int32_t lat, int32_t lon, uint32_t created, int8_t hopCount) {
   std::ostringstream jsonStr;
   jsonStr << "{\"name\":\"" << originUser
-	        << "\",\"lat\":\"" << lat << "\",\"lon\":\"" << lon
-	        << "\",\"altitude\":\"" << 0 << "\",\"accuracy\":\"" << 0
-	        << "\",\"created\":\"" << 1000*(uint64_t)created << "\",\"modified\":\"" << 1000*(uint64_t)created
-	        << "\",\"hops\":\"" << (int) hopCount
-	        << "\"}";
+    << "\",\"lat\":\"" << lat << "\",\"lon\":\"" << lon
+    << "\",\"altitude\":\"" << 0 << "\",\"accuracy\":\"" << 0
+    << "\",\"created\":\"" << 1000*(uint64_t)created << "\",\"modified\":\"" << 1000*(uint64_t)created
+    << "\",\"hops\":\"" << (int) hopCount
+    << "\"}";
   return jsonStr.str();
 }
 
 
 /*void testParseTerse() {
-  SerialMessageProcessor test( (SerialServiceHandler *)0 );
-  struct t1 {
-    uint64_t l;
-    uint64_t u;
-    uint64_t un;
-    uint32_t  nl;
-    uint16_t nm[8];
-    uint64_t lat;
-    uint64_t lon;
-    uint64_t cre;
-    uint64_t mod;
-  } td = {
-    0,
-    0x12,
-    0x1234,
-    0x8,
-    { 't', 'a', '1', '5', '2', '-', '1', '4' },
-    0xaabbccdd11223344ull,
-    0x56781234,
-    0x43218765,
-    0x87654321
-  };
-  
-  char terseBe[]={
-    0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0x12,
-    0,0,0,0,0,0,0x12,0x34,
-    0,0,0,8,
-    0,'t',0,'a',0,'1',0,'5',0,'2',0,'-',0,'1',0,'4',
-    0xaa,0xbb,0xcc,0xdd,0x11,0x22,0x33,0x44,
-    0,0,0,0,0x56,0x78,0x12,0x34,
-    0,0,0,0,0x43,0x21,0x87,0x65,
-    0,0,0,0,0x87,0x65,0x43,0x21
-  };
-  const char *tds = (const char *)&td;
-  for (size_t i=0; i<sizeof(td); i++) {
-    std::cout << std::hex << (static_cast<int>(tds[i]) & 0xff);
-  }
-  std::cout << std::endl;
-  
-  std::string originUser;
-  test.parseTerseData(2, (const char *)&td, originUser);
-  test.parseTerseData(2, (const char *)&terseBe[0], originUser);
+SerialMessageProcessor test( (SerialServiceHandler *)0 );
+struct t1 {
+uint64_t l;
+uint64_t u;
+uint64_t un;
+uint32_t  nl;
+uint16_t nm[8];
+uint64_t lat;
+uint64_t lon;
+uint64_t cre;
+uint64_t mod;
+} td = {
+0,
+0x12,
+0x1234,
+0x8,
+{ 't', 'a', '1', '5', '2', '-', '1', '4' },
+0xaabbccdd11223344ull,
+0x56781234,
+0x43218765,
+0x87654321
+};
+
+char terseBe[]={
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0x12,
+0,0,0,0,0,0,0x12,0x34,
+0,0,0,8,
+0,'t',0,'a',0,'1',0,'5',0,'2',0,'-',0,'1',0,'4',
+0xaa,0xbb,0xcc,0xdd,0x11,0x22,0x33,0x44,
+0,0,0,0,0x56,0x78,0x12,0x34,
+0,0,0,0,0x43,0x21,0x87,0x65,
+0,0,0,0,0x87,0x65,0x43,0x21
+};
+const char *tds = (const char *)&td;
+for (size_t i=0; i<sizeof(td); i++) {
+std::cout << std::hex << (static_cast<int>(tds[i]) & 0xff);
+}
+std::cout << std::endl;
+
+std::string originUser;
+test.parseTerseData(2, (const char *)&td, originUser);
+test.parseTerseData(2, (const char *)&terseBe[0], originUser);
 }*/
 
