@@ -5,6 +5,8 @@
 #include "SerialConnector.h"
 #include "log.h"
 
+using namespace std;
+
 SerialReaderThread::SerialReaderThread(SerialConnector *connector) : 
 connector(connector),
 closeMutex(),
