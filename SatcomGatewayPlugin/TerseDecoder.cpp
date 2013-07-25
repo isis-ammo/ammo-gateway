@@ -1,3 +1,9 @@
+/**
+* This logic is derived from the logic in the serial plugin's
+* SerialMessageProcessor.  It should probably eventually be moved
+* out into a shared library which both plugins use.
+*/
+
 #include "TerseDecoder.h"
 #include "SatcomConfigurationManager.h"
 

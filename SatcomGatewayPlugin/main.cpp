@@ -66,6 +66,8 @@ private:
   ACE_Sig_Action original_action;
 
   SigintHandler* handleExit;
+
+  SerialConnector connector;
 };
 
 App* App::_instance = NULL;
@@ -86,7 +88,8 @@ void App::destroy()
 }
 
 App::App() : no_sigpipe((ACE_SignalHandler) SIG_IGN),  // Set signal handler for SIGPIPE (so we don't crash if a device disconnects during write)
-             handleExit(NULL)
+             handleExit(NULL),
+             connector()
 {
 }
 
@@ -120,19 +123,23 @@ bool App::init(int argc, char* argv[])
   //initialize configuration manager here, while we're single-threaded
   SatcomConfigurationManager::getInstance();
 
-  SerialConnector s;
-  s.svc();
-
   return true;
 }
 
 void App::run()
 {
+  connector.activate();
+
   //Get the process-wide ACE_Reactor (the one the acceptor should have registered with)
   ACE_Reactor *reactor = ACE_Reactor::instance();
   LOG_DEBUG("Starting event loop...");
   reactor->run_reactor_event_loop();
   LOG_DEBUG("Event loop terminated.");
+
+  LOG_DEBUG("Stopping serial connector...");
+  connector.stop();
+  LOG_DEBUG("Waiting for serial connector to terminate...");
+  connector.wait();
 }
 
 void App::stop()

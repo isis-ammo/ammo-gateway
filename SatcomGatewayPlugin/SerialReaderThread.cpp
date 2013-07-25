@@ -5,8 +5,6 @@
 #include "SerialConnector.h"
 #include "log.h"
 
-using namespace std;
-
 SerialReaderThread::SerialReaderThread(SerialConnector *connector) : 
 connector(connector),
 closeMutex(),
@@ -117,7 +115,7 @@ bool SerialReaderThread::validateHeaderChecksum(const SatcomHeader &header) {
 * abcd dddd
 * 
 * a: Packet type (0 = data, 1 = ack or token)
-* b: Reserved (set to 0)
+* b: Reset (0 = normal, 1 = reset)
 * c: should ack (0 = don't ack; 1 = do ack)
 * d dddd: Datatype-specific identifier (set to 0 for ack/token packets)
 */

@@ -31,8 +31,10 @@ std::string FragmentedMessage::reconstructCompleteMessage() {
 }
 
 SerialConnector::SerialConnector() :
+gatewayConnector(this),
 reader(this),
 writer(this),
+terseDecoder(&gatewayConnector),
 closed(true),
 eventMutex(),
 eventCondition(eventMutex),
@@ -58,6 +60,9 @@ int SerialConnector::svc() {
   if(status == false) {
    return 1;
   }
+
+  reader.activate();
+  writer.activate();
 
   SerialConnectorState state = STATE_RECEIVING;
   while(!isClosed()) {
@@ -109,6 +114,12 @@ int SerialConnector::svc() {
       }
     }
   }
+
+  reader.stop();
+  reader.wait();
+
+  writer.stop();
+  writer.wait();
 
   return 0;
 }
@@ -294,7 +305,8 @@ void SerialConnector::receivedReset() {
 }
 
 void SerialConnector::processMessage(const uint8_t dataType, const std::string &message) {
-  //TODO:  do terse decoding and forward on to gateway
+  LOG_DEBUG("Received data message of type " << dataType);
+  terseDecoder.processMessage(dataType, message);
 }
 
 SerialConnector::SequenceNumberQueue SerialConnector::getSequenceNumbersToAck() {
@@ -415,4 +427,13 @@ void SerialConnector::appendUInt8(std::ostream &stream, const uint8_t val) {
 
 void SerialConnector::appendUInt16(std::ostream &stream, const uint16_t val) {
   stream.write(reinterpret_cast<const char *>(&val), sizeof(val));
+}
+
+//GatewayConnectorDelegate methods
+void SerialConnector::onConnect(ammo::gateway::GatewayConnector *sender) {
+  //do nothing
+}
+
+void SerialConnector::onDisconnect(ammo::gateway::GatewayConnector *sender) {
+  //do nothing
 }

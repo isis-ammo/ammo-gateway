@@ -11,9 +11,12 @@
 #include <ace/Copy_Disabled.h>
 #include <ace/Task.h>
 
+#include <GatewayConnector.h>
+
 #include "Typedefs.h"
 #include "SerialReaderThread.h"
 #include "SerialWriterThread.h"
+#include "TerseDecoder.h"
 
 
 const uint32_t MAGIC_NUMBER = 0xabad1dea;
@@ -71,7 +74,7 @@ private:
 
 
 
-class SerialConnector : public ACE_Task<ACE_MT_SYNCH>, public ACE_Copy_Disabled {
+class SerialConnector : public ACE_Task<ACE_MT_SYNCH>, public ACE_Copy_Disabled, public ammo::gateway::GatewayConnectorDelegate {
 private:
   typedef std::queue<uint16_t> SequenceNumberQueue;
 
@@ -90,6 +93,10 @@ public:
   void receivedReset();
 
   SequenceNumberQueue getSequenceNumbersToAck();
+
+  //GatewayConnectorDelegate methods
+  virtual void onConnect(ammo::gateway::GatewayConnector *sender);
+  virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
   
 private:
   enum SerialConnectorState {
@@ -111,8 +118,12 @@ private:
 
   void processMessage(const uint8_t dataType, const std::string &message);
 
+  ammo::gateway::GatewayConnector gatewayConnector;
+
   SerialReaderThread reader;
   SerialWriterThread writer;
+
+  TerseDecoder terseDecoder;
 
   ACE_Thread_Mutex closeMutex;
   bool closed;
