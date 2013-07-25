@@ -1,10 +1,11 @@
 #ifndef TERSE_DECODER_H
 #define TERSE_DECODER_H
 
-#include <cstdint>
 #include <string>
 
 #include <GatewayConnector.h>
+
+#include "Typedefs.h"
 
 
 class TerseDecoder

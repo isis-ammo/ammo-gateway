@@ -9,7 +9,7 @@
 #include <unordered_map>
 #endif
 
-#include <cstdint>
+#include <stdint.h>
 
 #include <ace/Thread_Mutex.h>
 #include <ace/Guard_T.h>

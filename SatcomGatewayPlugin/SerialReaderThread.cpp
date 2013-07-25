@@ -28,7 +28,7 @@ int SerialReaderThread::svc() {
 
   SatcomHeader header;
 
-  std:string payload;
+  std::string payload;
 
 
   while(!isClosed()) {
