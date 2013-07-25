@@ -1,5 +1,5 @@
-#ifndef SERIAL_READER_THREAD_H
-#define SERIAL_READER_THREAD_H
+#ifndef SERIAL_WRITER_THREAD_H
+#define SERIAL_WRITER_THREAD_H
 
 #include <queue>
 #include <string>
@@ -14,6 +14,7 @@ class SerialConnector;
 class SerialWriterThread : public ACE_Task<ACE_MT_SYNCH>, public ACE_Copy_Disabled {
 public:
   typedef std::tr1::shared_ptr<const std::string> QueuedMessagePtr;
+  typedef std::tr1::shared_ptr<std::string> MutableQueuedMessagePtr; //convenience for consumers of this class
 
   SerialWriterThread(SerialConnector *connector);
   virtual ~SerialWriterThread();
@@ -37,4 +38,4 @@ private:
   QueuedMessagePtr getNextMessage();
 };
 
-#endif //SERIAL_READER_THREAD_H
+#endif //SERIAL_WRITER_THREAD_H

@@ -126,8 +126,17 @@ bool SerialReaderThread::processData(const SatcomHeader &header, const std::stri
     //get packet type (in the high bit of the first byte of the payload)
     uint8_t payloadInfoByte = payload[0];
     uint8_t payloadType = payloadInfoByte >> 7;
+    uint8_t isReset = (payloadInfoByte >> 6) & 0x01;
+
+    if(isReset) {
+      LOG_TRACE("Received reset packet");
+      connector->receivedReset();
+      return true;
+    }
+
     switch(payloadType) {
       case MESSAGE_TYPE_DATA: {
+        LOG_TRACE("Received data packet");
         if((payload.size() - sizeof(payloadInfoByte)) >= sizeof(DataMessage)) {
           uint8_t shouldAck = (payloadInfoByte >> 5) & 0x01;
           uint8_t dataType = payloadInfoByte & 0x1f;
@@ -145,6 +154,7 @@ bool SerialReaderThread::processData(const SatcomHeader &header, const std::stri
         break;
       }
       case MESSAGE_TYPE_ACK_TOKEN: {
+        LOG_TRACE("Received ack/token packet");
         if((payload.size() - sizeof(payloadInfoByte)) >= sizeof(uint16_t)) {
           uint16_t ackCountShort = * reinterpret_cast<const uint16_t *>(&payload[sizeof(payloadInfoByte)]);
           bool isToken = (ackCountShort >> 15) == 1;

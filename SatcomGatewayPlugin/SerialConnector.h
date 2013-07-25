@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <vector>
 #include <queue>
+#include <iostream>
 
 #include <ace/DEV_Connector.h>
 #include <ace/TTY_IO.h>
@@ -11,6 +12,8 @@
 #include <ace/Task.h>
 
 #include "Typedefs.h"
+#include "SerialReaderThread.h"
+#include "SerialWriterThread.h"
 
 
 const uint32_t MAGIC_NUMBER = 0xabad1dea;
@@ -84,6 +87,7 @@ public:
 
   void receivedMessageFragment(const DataMessage dataHeader, const uint8_t shouldAck, const uint8_t dataType, const std::string &data);
   void receivedAckPacket(const bool isToken, const std::vector<uint16_t> &acks);
+  void receivedReset();
 
   SequenceNumberQueue getSequenceNumbersToAck();
   
@@ -107,6 +111,9 @@ private:
 
   void processMessage(std::string &message);
 
+  SerialReaderThread reader;
+  SerialWriterThread writer;
+
   ACE_Thread_Mutex closeMutex;
   bool closed;
   bool isClosed();
@@ -123,8 +130,69 @@ private:
   SequenceNumberQueue sequenceNumbersToAck;
   ACE_Thread_Mutex sequenceNumbersToAckMutex;
 
+  int tokenTimeout;
+
+  void reset();
+
+  void sendResetAck();
+  void sendAckPacket();
+  void sendTokenPacket();
+
   typedef std::tr1::unordered_map<uint16_t, FragmentedMessage> IncompleteMessageMap;
   IncompleteMessageMap incompleteMessages; //indexed by first sequence number in message
+
+  void appendUInt8(std::ostream &stream, const uint8_t val);
+  void appendUInt16(std::ostream &stream, const uint16_t val);
+
+  friend std::ostream& operator<<( std::ostream& stream, const SerialConnector::SerialConnectorEvent &ev );
+  friend std::ostream& operator<<( std::ostream& stream, const SerialConnector::SerialConnectorState &ev );
 };
+
+inline std::ostream& operator<<( std::ostream& stream, const SerialConnector::SerialConnectorEvent &ev )
+{
+    switch(ev) {
+    case SerialConnector::EVENT_NONE:
+      stream << "EVENT_NONE";
+      break;
+    case SerialConnector::EVENT_MESSAGE_RECEIVED:
+      stream << "EVENT_MESSAGE_RECEIVED";
+      break;
+    case SerialConnector::EVENT_TOKEN_RECEIVED:
+      stream << "EVENT_TOKEN_RECEIVED";
+      break;
+    case SerialConnector::EVENT_RESET_RECEIVED:
+      stream << "EVENT_RESET_RECEIVED";
+      break;
+    case SerialConnector::EVENT_TIMEOUT:
+      stream << "EVENT_TIMEOUT";
+      break;
+    case SerialConnector::EVENT_CLOSE:
+      stream << "EVENT_CLOSE";
+      break;
+    default:
+      stream << "Unknown Event (" << ev << ")";
+      break;
+    }
+    return stream;
+}
+
+inline std::ostream& operator<<( std::ostream& stream, const SerialConnector::SerialConnectorState &ev )
+{
+    switch(ev) {
+    case SerialConnector::STATE_RECEIVING:
+      stream << "Receiving";
+      break;
+    case SerialConnector::STATE_SENDING:
+      stream << "Sending";
+      break;
+    case SerialConnector::STATE_WAITING_FOR_ACK:
+      stream << "Waiting for ack";
+      break;
+    default:
+      stream << "Unknown state (" << ev << ")";
+      break;
+    }
+    return stream;
+}
 
 #endif //SERIAL_CONNECTOR_H

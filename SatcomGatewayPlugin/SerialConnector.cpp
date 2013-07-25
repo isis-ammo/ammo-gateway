@@ -1,6 +1,7 @@
 #include "SerialConnector.h"
 
 #include <sstream>
+#include <limits>
 
 #include "SatcomConfigurationManager.h"
 
@@ -30,12 +31,15 @@ std::string FragmentedMessage::reconstructCompleteMessage() {
 }
 
 SerialConnector::SerialConnector() :
+reader(this),
+writer(this),
 closed(true),
 eventMutex(),
 eventCondition(eventMutex),
 lastSignaledEvent(EVENT_NONE),
 serialDevice(),
-serialConnector()
+serialConnector(),
+tokenTimeout(SatcomConfigurationManager::getInstance().getTokenTimeout())
 {
   
 }
@@ -57,14 +61,46 @@ int SerialConnector::svc() {
 
   SerialConnectorState state = STATE_RECEIVING;
   while(!isClosed()) {
+    LOG_DEBUG("SerialConnector loop state: " << state);
     switch(state) {
       case STATE_RECEIVING: {
+        //wait for token packet
+        SerialConnectorEvent ev = waitForEventSignal();
+        if(ev == EVENT_TOKEN_RECEIVED) {
+          state = STATE_SENDING;
+        } else if(ev == EVENT_RESET_RECEIVED) {
+          reset();
+          sendResetAck();
+          state = STATE_RECEIVING;
+        } else if(ev == EVENT_MESSAGE_RECEIVED) {
+          //no-op
+        } else {
+          LOG_WARN("Invalid event received in receiving state (" << ev << ")");
+        }
         break;
       }
       case STATE_SENDING: {
+        sendAckPacket();
+        //TODO: send some data packets
+        state = STATE_WAITING_FOR_ACK;
         break;
       }
       case STATE_WAITING_FOR_ACK: {
+        sendTokenPacket();
+        SerialConnectorEvent ev = waitForEventSignal(tokenTimeout);
+        if(ev == EVENT_TIMEOUT) {
+          //no-op; loop around and resend the token packet
+        } else if(ev == EVENT_MESSAGE_RECEIVED) {
+          state = STATE_RECEIVING;
+        } else if(ev == EVENT_TOKEN_RECEIVED) {
+          state = STATE_SENDING;
+        } else if(ev == EVENT_RESET_RECEIVED) {
+          reset();
+          sendResetAck();
+          state = STATE_RECEIVING;
+        } else {
+          LOG_WARN("Invalid event received in waiting for ack state (" << ev << ")");
+        }
         break;
       }
       default: {
@@ -246,16 +282,137 @@ void SerialConnector::receivedMessageFragment(const DataMessage dataHeader, cons
 }
 
 void SerialConnector::receivedAckPacket(const bool isToken, const std::vector<uint16_t> &acks) {
-  //TODO: implement me
+  if(isToken) {
+    signalEvent(EVENT_TOKEN_RECEIVED);
+  } else {
+    LOG_WARN("Received ack; not yet implemented");
+  }
+}
+
+void SerialConnector::receivedReset() {
+  signalEvent(EVENT_RESET_RECEIVED);
 }
 
 void SerialConnector::processMessage(std::string &message) {
   //TODO:  do terse decoding and forward on to gateway
 }
 
-// SequenceNumberQueue SerialConnector::getSequenceNumbersToAck() {
+SerialConnector::SequenceNumberQueue SerialConnector::getSequenceNumbersToAck() {
+  SequenceNumberQueue result;
 
-// }
+  ThreadMutexGuard g(sequenceNumbersToAckMutex);
+
+  size_t count = 0;
+  size_t sequenceNumberLimit = (std::numeric_limits<uint16_t>::max()) / 2;
+  while(!sequenceNumbersToAck.empty() && count < sequenceNumberLimit) {
+    result.push(sequenceNumbersToAck.front());
+    sequenceNumbersToAck.pop();
+    count++;
+  }
+
+  return result;
+}
+
+void SerialConnector::reset() {
+  incompleteMessages.clear();
+
+  {
+    ThreadMutexGuard g(sequenceNumbersToAckMutex);
+    while(!sequenceNumbersToAck.empty()) {
+      sequenceNumbersToAck.pop();
+    }
+  }
+}
+
+/*
+* Message Type bitfield structure:
+* abcd dddd
+* 
+* a: Packet type (0 = data, 1 = ack or token)
+* b: Reset (0 = normal, 1 = reset)
+* c: should ack (0 = don't ack; 1 = do ack)
+* d dddd: Datatype-specific identifier (set to 0 for ack/token packets)
+*/
+
+void SerialConnector::sendResetAck() {
+  SatcomHeader header;
+  header.magicNumber = MAGIC_NUMBER;
+  header.size = 1;
+  header.reserved = 0;
+
+  uint8_t messageTypeByte = 0xc0; //1100 0000
+
+  header.payloadChecksum = ACE::crc32(&messageTypeByte, sizeof(messageTypeByte));
+  header.headerChecksum = ACE::crc32(&header, sizeof(header) - sizeof(header.headerChecksum));
+
+  SerialWriterThread::MutableQueuedMessagePtr messageToSend(new std::string);
+  messageToSend->reserve(sizeof(header) + sizeof(messageTypeByte));
+  messageToSend->append(reinterpret_cast<char *>(&header), sizeof(header));
+  messageToSend->append(reinterpret_cast<char *>(&messageTypeByte), sizeof(messageTypeByte));
+
+  writer.queueMessage(messageToSend);
+}
+
+void SerialConnector::sendAckPacket() {
+  SequenceNumberQueue sequenceNumbers = getSequenceNumbersToAck();
+
+  SatcomHeader header;
+  header.magicNumber = MAGIC_NUMBER;
+  header.reserved = 0;
+
+  std::ostringstream ackPacketDataStream; //first byte is message type; second two bytes are ack info
+  appendUInt8(ackPacketDataStream, 0x80); //1000 0000; ack or token packet
+  appendUInt16(ackPacketDataStream, sequenceNumbers.size() & 0xefff); //mask off high byte; if it's set, this is a token (which it isn't)
+
+  while(!sequenceNumbers.empty()) {
+    appendUInt16(ackPacketDataStream, sequenceNumbers.front());
+    sequenceNumbers.pop();
+  }
+
+  std::string ackPacketData = ackPacketDataStream.str();
+
+  header.size = ackPacketData.length();
+  header.payloadChecksum = ACE::crc32(ackPacketData.data(), ackPacketData.length());
+  header.headerChecksum = ACE::crc32(&header, sizeof(header) - sizeof(header.headerChecksum));
+
+  SerialWriterThread::MutableQueuedMessagePtr messageToSend(new std::string);
+  messageToSend->reserve(sizeof(header) + ackPacketData.length());
+  messageToSend->append(reinterpret_cast<char *>(&header), sizeof(header));
+  messageToSend->append(ackPacketData);
+
+  writer.queueMessage(messageToSend);
+}
+
+void SerialConnector::sendTokenPacket() {
+  SequenceNumberQueue sequenceNumbers = getSequenceNumbersToAck();
+
+  SatcomHeader header;
+  header.magicNumber = MAGIC_NUMBER;
+  header.reserved = 0;
+
+  std::ostringstream ackPacketDataStream; //first byte is message type; second two bytes are ack info
+  appendUInt8(ackPacketDataStream, 0x80); //1000 0000; ack or token packet
+  appendUInt16(ackPacketDataStream, 0x8000); //1000 0000 0000 0000; high byte set indicates that this is a token packet; no acks included
+
+  std::string ackPacketData = ackPacketDataStream.str();
+
+  header.size = ackPacketData.length();
+  header.payloadChecksum = ACE::crc32(ackPacketData.data(), ackPacketData.length());
+  header.headerChecksum = ACE::crc32(&header, sizeof(header) - sizeof(header.headerChecksum));
+
+  SerialWriterThread::MutableQueuedMessagePtr messageToSend(new std::string);
+  messageToSend->reserve(sizeof(header) + ackPacketData.length());
+  messageToSend->append(reinterpret_cast<char *>(&header), sizeof(header));
+  messageToSend->append(ackPacketData);
+
+  writer.queueMessage(messageToSend);
+}
+
+void SerialConnector::appendUInt8(std::ostream &stream, const uint8_t val) {
+  stream.write(reinterpret_cast<const char *>(&val), sizeof(val));
+}
 
 
-
+void SerialConnector::appendUInt16(std::ostream &stream, const uint16_t val) {
+  stream.write(reinterpret_cast<const char *>(&val), sizeof(val));
+}
