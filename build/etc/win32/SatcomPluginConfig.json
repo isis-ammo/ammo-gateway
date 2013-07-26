@@ -1,0 +1,8 @@
+{
+  "listenPort": "COM1",
+  "baudRate": 2400,
+  "tokenTimeout": 5000,
+  "dataTimeout": 5000,
+  "pliRelayRangeScale": 4,
+  "pliRelayTimeScale": 4
+}

@@ -3,7 +3,7 @@
 #include "log.h"
 #include <sstream>
 
-static const char* CONFIG_FILE = "SerialPluginConfig.json";
+static const char* CONFIG_FILE = "SatcomPluginConfig.json";
 
 SatcomConfigurationManager &SatcomConfigurationManager::getInstance()
 {
