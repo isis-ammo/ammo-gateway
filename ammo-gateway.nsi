@@ -764,7 +764,7 @@ Section Uninstall
   SimpleSC::StopService "DataStoreGatewayPlugin" "1" "30"
   ;SimpleSC::StopService "LdapGatewayPlugin" "1" "30"
   SimpleSC::StopService "SerialGatewayPlugin" "1" "30"
-  impleSC::StopService "SatcomGatewayPlugin" "1" "30"
+  SimpleSC::StopService "SatcomGatewayPlugin" "1" "30"
   SimpleSC::StopService "AMMO MCast Plugin" "1" "30"
   SimpleSC::StopService "AMMO RMCast Plugin" "1" "30"
   SimpleSC::RemoveService "GatewayCore"
