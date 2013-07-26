@@ -25,6 +25,12 @@
       "LogName"    : "SerialGatewayPlugin"
     },
     {
+      "HumanName"  : "Satcom Plugin",
+      "SvcName"    : "SatcomGatewayPlugin",
+      "ConfigName" : "SatcomPluginConfig.json",
+      "LogName"    : "SatcomGatewayPlugin"
+    },
+    {
       "HumanName"  : "MCast Plugin",
       "SvcName"    : "AMMO MCast Plugin",
       "ConfigName" : "MCastPluginConfig.json",

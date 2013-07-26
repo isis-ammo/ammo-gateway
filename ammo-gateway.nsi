@@ -336,6 +336,29 @@ ${MementoSection} "Serial Gateway Plugin (required)" SecSerPlug
 
 ${MementoSectionEnd}
 
+${MementoSection} "Satcom Gateway Plugin (required)" SecSatPlug
+
+  SetDetailsPrint textonly
+  DetailPrint "Installing Satcom Plugin ..."
+  SetDetailsPrint listonly
+
+  SectionIn 1 2 3 RO
+  ;SetOutPath $INSTDIR
+  ;RMDir /r $SMPROGRAMS\ammo-gateway
+
+  SimpleSC::StopService "SatcomGatewayPlugin" "1" "30"
+  SimpleSC::RemoveService "SatcomGatewayPlugin"
+
+  SetOutPath $INSTDIR\bin
+  SetOverwrite on
+  File build\bin\SatcomGatewayPlugin.exe
+  SetOutPath $APPDATA\ammo-gateway
+  File build\etc\win32\SatcomPluginConfig.json
+
+  SimpleSC::InstallService "SatcomGatewayPlugin" "AMMO Satcom Gateway Plugin" 16 2 "$INSTDIR\bin\SatcomGatewayPlugin.exe" "GatewayCore" "" ""
+
+${MementoSectionEnd}
+
 ${MementoSection} "Java Gateway Connector (required)" SecJavaConn
 
   SetDetailsPrint textonly
@@ -741,6 +764,7 @@ Section Uninstall
   SimpleSC::StopService "DataStoreGatewayPlugin" "1" "30"
   ;SimpleSC::StopService "LdapGatewayPlugin" "1" "30"
   SimpleSC::StopService "SerialGatewayPlugin" "1" "30"
+  impleSC::StopService "SatcomGatewayPlugin" "1" "30"
   SimpleSC::StopService "AMMO MCast Plugin" "1" "30"
   SimpleSC::StopService "AMMO RMCast Plugin" "1" "30"
   SimpleSC::RemoveService "GatewayCore"
@@ -748,6 +772,7 @@ Section Uninstall
   SimpleSC::RemoveService "DataStoreGatewayPlugin"
   ;SimpleSC::RemoveService "LdapGatewayPlugin"
   SimpleSC::RemoveService "SerialGatewayPlugin"
+  SimpleSC::RemoveService "SatcomGatewayPlugin"
   ExecWait '"$INSTDIR\bin\JavaService.exe" -uninstall "AMMO MCast Plugin"'
   ExecWait '"$INSTDIR\bin\JavaService.exe" -uninstall "AMMO RMCast Plugin"'
 
@@ -763,6 +788,9 @@ Section Uninstall
 
   ; Serial Gateway Plugin
   Delete $INSTDIR\bin\SerialGatewayPlugin.exe
+
+  ; Satcom Gateway Plugin
+  Delete $INSTDIR\bin\SatcomGatewayPlugin.exe
 
   ; Data Store Gateway Plugin
   Delete $INSTDIR\bin\DataStoreGatewayPlugin.exe
