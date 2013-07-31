@@ -55,12 +55,16 @@ SerialConnector::~SerialConnector() {
 }
 
 int SerialConnector::svc() {
+  closed = false;
+
+  LOG_DEBUG("Connecting to serial port");
   bool status = connect();
 
   if(status == false) {
    return 1;
   }
 
+  LOG_DEBUG("Activating reader and writer threads");
   reader.activate();
   writer.activate();
 
@@ -169,6 +173,7 @@ bool SerialConnector::connect() {
 void SerialConnector::stop() {
   ThreadMutexGuard g(closeMutex);
   if(g.locked()) {
+    signalEvent(EVENT_CLOSE);
     closed = true;
   } else {
     LOG_ERROR("Error acquiring lock in SerialConnector::stop()")
