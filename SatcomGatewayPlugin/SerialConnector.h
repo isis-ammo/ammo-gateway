@@ -142,6 +142,7 @@ private:
   ACE_Thread_Mutex sequenceNumbersToAckMutex;
 
   int tokenTimeout;
+  std::string initialState;
 
   void reset();
 

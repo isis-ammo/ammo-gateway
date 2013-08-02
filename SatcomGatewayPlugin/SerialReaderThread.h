@@ -4,6 +4,7 @@
 #include <ace/Task.h>
 #include <ace/Copy_Disabled.h>
 #include <vector>
+#include <iostream>
 
 #include "Typedefs.h"
 
@@ -35,6 +36,27 @@ private:
   ACE_Thread_Mutex closeMutex;
   bool closed;
   bool isClosed();
+
+  friend std::ostream& operator<<( std::ostream& stream, const SerialReaderThread::ReaderThreadState &state );
 };
+
+inline std::ostream& operator<<( std::ostream& stream, const SerialReaderThread::ReaderThreadState &state )
+{
+    switch(state) {
+    case SerialReaderThread::STATE_READING_MAGIC:
+      stream << "Reading magic";
+      break;
+    case SerialReaderThread::STATE_READING_HEADER:
+      stream << "Reading header";
+      break;
+    case SerialReaderThread::STATE_READING_DATA:
+      stream << "Reading data";
+      break;
+    default:
+      stream << "Unknown state (" << state << ")";
+      break;
+    }
+    return stream;
+}
 
 #endif //SERIAL_READER_THREAD_H

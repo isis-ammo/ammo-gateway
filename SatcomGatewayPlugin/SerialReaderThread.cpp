@@ -23,6 +23,7 @@ SerialReaderThread::~SerialReaderThread() {
 }
 
 int SerialReaderThread::svc() {
+  closed = false;
   ReaderThreadState state = STATE_READING_MAGIC;
   size_t bytesRead = 0;
 
@@ -32,6 +33,7 @@ int SerialReaderThread::svc() {
 
 
   while(!isClosed()) {
+    LOG_TRACE("Receiver looping in svc(), state " << state);
     uint8_t readChar = connector->readChar();
 
     if(state == STATE_READING_MAGIC) {
@@ -51,10 +53,12 @@ int SerialReaderThread::svc() {
       reinterpret_cast<uint8_t *>(&header)[bytesRead] = readChar;
       bytesRead++;
       if(bytesRead >= sizeof(header)) {
+        LOG_TRACE("Validating header checksum");
         bool headerChecksumValid = validateHeaderChecksum(header);
         if(headerChecksumValid) {
           state = STATE_READING_DATA;
           payload.clear();
+          LOG_TRACE("Header checksum valid; allocationg buffer of size " << header.size);
           payload.resize(header.size);
           bytesRead = 0;
         } else {
@@ -63,18 +67,21 @@ int SerialReaderThread::svc() {
           state = STATE_READING_MAGIC;
           bytesRead = 0;
         }
-      } else if(state == STATE_READING_DATA) {
-        payload[bytesRead] = readChar;
-        bytesRead++;
-
-        if(bytesRead >= header.size) {
-          //got the whole message; pass it on to the processor
-          processData(header, payload);
-          state = STATE_READING_MAGIC;
-          bytesRead = 0;
-        }
-
       }
+    } else if(state == STATE_READING_DATA) {
+      payload[bytesRead] = readChar;
+      bytesRead++;
+      LOG_TRACE("Read " << bytesRead << " bytes");
+
+      if(bytesRead >= header.size) {
+        //got the whole message; pass it on to the processor
+        processData(header, payload);
+        state = STATE_READING_MAGIC;
+        bytesRead = 0;
+      }
+
+    } else {
+      LOG_ERROR("*** Unknown state " << state << " ***");
     }
   }
 
@@ -122,6 +129,7 @@ bool SerialReaderThread::validateHeaderChecksum(const SatcomHeader &header) {
 * d dddd: Datatype-specific identifier (set to 0 for ack/token packets)
 */
 bool SerialReaderThread::processData(const SatcomHeader &header, const std::string &payload) {
+  LOG_TRACE("in processData()");
   if(payload.size() > 0) {
     //get packet type (in the high bit of the first byte of the payload)
     uint8_t payloadInfoByte = payload[0];
@@ -156,7 +164,9 @@ bool SerialReaderThread::processData(const SatcomHeader &header, const std::stri
       case MESSAGE_TYPE_ACK_TOKEN: {
         LOG_TRACE("Received ack/token packet");
         if((payload.size() - sizeof(payloadInfoByte)) >= sizeof(uint16_t)) {
+          
           uint16_t ackCountShort = * reinterpret_cast<const uint16_t *>(&payload[sizeof(payloadInfoByte)]);
+          LOG_TRACE("Ack count short: " << std::hex << ackCountShort);
           bool isToken = (ackCountShort >> 15) == 1;
           uint16_t ackCount = ackCountShort & 0x7f;
 

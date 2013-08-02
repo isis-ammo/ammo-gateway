@@ -8,10 +8,10 @@
 void FragmentedMessage::gotMessageFragment(const DataMessage dataHeader, const std::string &data) {
   //Validate message count
   if(dataHeader.count != fragmentsCount) {
-    LOG_ERROR("Fragment count mismatch; dropping (header = " << dataHeader.count << " stored = " << fragmentsCount << ")");
+    LOG_ERROR("DEFRAGMENTER: Fragment count mismatch; dropping (header = " << dataHeader.count << " stored = " << fragmentsCount << ")");
   } else {
     if(fragments[dataHeader.index]) {
-      LOG_ERROR("Received duplicate fragment " << dataHeader.index << " of " << fragmentsCount);
+      LOG_ERROR("DEFRAGMENTER: Received duplicate fragment " << dataHeader.index << " of " << fragmentsCount);
     } else {
       fragments[dataHeader.index] = FragmentedMessageDataPtr(new std::string(data)); //fragments is an array of shared_ptrs; this new string
                                                 //will be destroyed when fragments is destroyed
@@ -41,14 +41,15 @@ eventCondition(eventMutex),
 lastSignaledEvent(EVENT_NONE),
 serialDevice(),
 serialConnector(),
-tokenTimeout(SatcomConfigurationManager::getInstance().getTokenTimeout())
+tokenTimeout(SatcomConfigurationManager::getInstance().getTokenTimeout()),
+initialState(SatcomConfigurationManager::getInstance().getInitialState())
 {
   
 }
 
 SerialConnector::~SerialConnector() {
   if(!isClosed()) {
-    LOG_ERROR("SerialReaderThread: Entered destructor before stop()");
+    LOG_ERROR("CONNECTOR: SerialReaderThread: Entered destructor before stop()");
     stop();
     this->wait();
   }
@@ -57,20 +58,23 @@ SerialConnector::~SerialConnector() {
 int SerialConnector::svc() {
   closed = false;
 
-  LOG_DEBUG("Connecting to serial port");
+  LOG_DEBUG("CONNECTOR: Connecting to serial port");
   bool status = connect();
 
   if(status == false) {
    return 1;
   }
 
-  LOG_DEBUG("Activating reader and writer threads");
+  LOG_DEBUG("CONNECTOR: Activating reader and writer threads");
   reader.activate();
   writer.activate();
 
   SerialConnectorState state = STATE_RECEIVING;
+  if(initialState == "sending") {
+    state = STATE_SENDING;
+  }
   while(!isClosed()) {
-    LOG_DEBUG("SerialConnector loop state: " << state);
+    LOG_DEBUG("CONNECTOR: *** SerialConnector loop state: " << state);
     switch(state) {
       case STATE_RECEIVING: {
         //wait for token packet
@@ -84,7 +88,7 @@ int SerialConnector::svc() {
         } else if(ev == EVENT_MESSAGE_RECEIVED) {
           //no-op
         } else {
-          LOG_WARN("Invalid event received in receiving state (" << ev << ")");
+          LOG_WARN("CONNECTOR: Invalid event received in receiving state (" << ev << ")");
         }
         break;
       }
@@ -108,12 +112,12 @@ int SerialConnector::svc() {
           sendResetAck();
           state = STATE_RECEIVING;
         } else {
-          LOG_WARN("Invalid event received in waiting for ack state (" << ev << ")");
+          LOG_WARN("CONNECTOR: Invalid event received in waiting for ack state (" << ev << ")");
         }
         break;
       }
       default: {
-        LOG_ERROR("Unknown connector state");
+        LOG_ERROR("CONNECTOR: Unknown connector state");
         break;
       }
     }
@@ -134,7 +138,7 @@ bool SerialConnector::connect() {
   //ACE-based serial initialization code
   int result = serialConnector.connect(serialDevice, ACE_DEV_Addr(listenPort.c_str()));
   if(result == -1) {
-    LOG_ERROR("Couldn't open serial port " << listenPort << " (" << errno << ": " << strerror(errno) << ")" );
+    LOG_ERROR("CONNECTOR: Couldn't open serial port " << listenPort << " (" << errno << ": " << strerror(errno) << ")" );
     return false;
   }
   
@@ -163,7 +167,7 @@ bool SerialConnector::connect() {
   result = serialDevice.control(ACE_TTY_IO::SETPARAMS, &params);
 
   if(result == -1) {
-    LOG_ERROR("Couldn't configure serial port");
+    LOG_ERROR("CONNECTOR: Couldn't configure serial port");
     return false;
   }
 
@@ -176,7 +180,7 @@ void SerialConnector::stop() {
     signalEvent(EVENT_CLOSE);
     closed = true;
   } else {
-    LOG_ERROR("Error acquiring lock in SerialConnector::stop()")
+    LOG_ERROR("CONNECTOR: Error acquiring lock in SerialConnector::stop()")
   }
 }
 
@@ -188,7 +192,7 @@ bool SerialConnector::isClosed() {
       temp = closed;
     } else {
       temp = false;
-      LOG_ERROR("Error acquiring lock in SerialConnector::isClosed()")
+      LOG_ERROR("CONNECTOR: Error acquiring lock in SerialConnector::isClosed()")
     }
   }
   return temp;
@@ -212,7 +216,7 @@ SerialConnector::SerialConnectorEvent SerialConnector::waitForEventSignal(int ti
     if(status == -1 && errno == ETIME) {
       return EVENT_TIMEOUT;
     } else if(status == -1) {
-      LOG_ERROR("Unknown error while waiting for event signal" << strerror(errno) << " (" << errno << ")");
+      LOG_ERROR("CONNECTOR: Unknown error while waiting for event signal" << strerror(errno) << " (" << errno << ")");
       return EVENT_NONE;
     } else {
       return lastSignaledEvent;
@@ -229,11 +233,13 @@ SerialConnector::SerialConnectorEvent SerialConnector::waitForEventSignal(int ti
 }
 
 char SerialConnector::readChar() {
+  //LOG_TRACE("In SerialConnector::readChar()");
   unsigned char temp;
   
   ssize_t count = 0;
   while(count == 0 || (count == -1 && errno == ETIME)) {
     ACE_Time_Value timeout(0, 10000);
+    //LOG_TRACE("Calling recv_n");
     count = serialDevice.recv_n((void *) &temp, 1, &timeout);
   }
 
@@ -251,10 +257,20 @@ char SerialConnector::readChar() {
     LOG_ERROR("Read returned 0" );
     exit( -1 );
   }
+
+  //LOG_TRACE("Serial Received " << std::hex << (int) temp);
   return temp;
 }
 
 bool SerialConnector::writeMessageFragment(const std::string &message) {
+  std::ostringstream hexOutput;
+
+  for(size_t i = 0; i < message.length(); i++) {
+    hexOutput << std::hex << ((unsigned int) message[i] & 0xff) << " ";
+  }
+
+  LOG_TRACE("Sending message: " << hexOutput.str());
+
   ssize_t bytesWritten = serialDevice.send_n(message.data(), message.length());
 
   if(bytesWritten == -1) {
@@ -268,6 +284,13 @@ bool SerialConnector::writeMessageFragment(const std::string &message) {
 }
 
 void SerialConnector::receivedMessageFragment(const DataMessage dataHeader, const uint8_t shouldAck, const uint8_t dataType, const std::string &data) {
+  LOG_DEBUG("Received message fragment");
+  LOG_DEBUG("   Seq Number: " << dataHeader.sequenceNumber);
+  LOG_DEBUG("        Count: " << dataHeader.count);
+  LOG_DEBUG("        Index: " << dataHeader.index);
+  LOG_DEBUG("   Should Ack: " << (int) shouldAck);
+  LOG_DEBUG("    Data Type: " << (int) dataType);
+
   uint16_t firstMessageSequenceNumber = dataHeader.sequenceNumber - dataHeader.count;
 
   IncompleteMessageMap::iterator messageIt = incompleteMessages.find(firstMessageSequenceNumber);
@@ -301,6 +324,7 @@ void SerialConnector::receivedAckPacket(const bool isToken, const std::vector<ui
   if(isToken) {
     signalEvent(EVENT_TOKEN_RECEIVED);
   } else {
+    signalEvent(EVENT_MESSAGE_RECEIVED);
     LOG_WARN("Received ack; not yet implemented");
   }
 }
@@ -414,14 +438,18 @@ void SerialConnector::sendTokenPacket() {
   std::string ackPacketData = ackPacketDataStream.str();
 
   header.size = ackPacketData.length();
-  header.payloadChecksum = ACE::crc32(ackPacketData.data(), ackPacketData.length());
-  header.headerChecksum = ACE::crc32(&header, sizeof(header) - sizeof(header.headerChecksum));
+  header.payloadChecksum = static_cast<uint16_t>(ACE::crc32(ackPacketData.data(), ackPacketData.length()) & 0x0000ffff);
+  header.headerChecksum = static_cast<uint16_t>(ACE::crc32(&header, sizeof(header) - sizeof(header.headerChecksum)) & 0x0000ffff);
+
+  LOG_TRACE("Payload checksum " << std::hex << header.payloadChecksum);
+  LOG_TRACE("Header checksum " << std::hex << header.headerChecksum);
 
   SerialWriterThread::MutableQueuedMessagePtr messageToSend(new std::string);
   messageToSend->reserve(sizeof(header) + ackPacketData.length());
   messageToSend->append(reinterpret_cast<char *>(&header), sizeof(header));
   messageToSend->append(ackPacketData);
 
+  LOG_TRACE("Sending token packet");
   writer.queueMessage(messageToSend);
 }
 

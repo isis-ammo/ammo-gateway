@@ -18,6 +18,8 @@ public:
   int getTokenTimeout() { return tokenTimeout; }
   int getDataTimeout() { return dataTimeout; }
 
+  std::string getInitialState() { return initialState; }
+
   int getPliRelayRangeScale() { return pliRelayRangeScale; }
   int getPliRelayTimeScale() { return pliRelayTimeScale; }
 
@@ -33,6 +35,8 @@ private:
   int baudRate;
   int tokenTimeout;
   int dataTimeout;
+
+  std::string initialState;
 
   int pliRelayRangeScale;
   int pliRelayTimeScale;

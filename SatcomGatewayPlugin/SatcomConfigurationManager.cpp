@@ -29,6 +29,7 @@ void SatcomConfigurationManager::init()
   baudRate = 2400;
   tokenTimeout = 5000;
   dataTimeout = 5000;
+  initialState = "receiving";
   pliRelayRangeScale = 4;
   pliRelayTimeScale = 4;
 }
@@ -39,6 +40,7 @@ void SatcomConfigurationManager::decode(const Json::Value& root)
   CM_DecodeInt    ( root, "baudRate", baudRate);
   CM_DecodeInt    ( root, "tokenTimeout", tokenTimeout);
   CM_DecodeInt    ( root, "dataTimeout", dataTimeout);
+  CM_DecodeString ( root, "initialState", initialState);
   CM_DecodeInt    ( root, "pliRelayRangeScale", pliRelayRangeScale);
   CM_DecodeInt    ( root, "pliRelayTimeScale", pliRelayTimeScale);
 
@@ -47,6 +49,7 @@ void SatcomConfigurationManager::decode(const Json::Value& root)
   LOG_INFO("  Baud Rate: " << baudRate);
   LOG_INFO("  Token Timeout: " << tokenTimeout);
   LOG_INFO("  Data Timeout: " << dataTimeout);
+  LOG_INFO("  Initial State: " << initialState);
   LOG_INFO("  PLI Relay Range Scale: " << pliRelayRangeScale);
   LOG_INFO("  PLI Relay Time Scale: " << pliRelayTimeScale);
 }
