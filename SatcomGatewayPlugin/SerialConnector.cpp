@@ -3,6 +3,8 @@
 #include <sstream>
 #include <limits>
 
+#include <protocol/AmmoMessages.pb.h>
+
 #include "SatcomConfigurationManager.h"
 
 void FragmentedMessage::gotMessageFragment(const DataMessage dataHeader, const std::string &data) {
@@ -335,7 +337,22 @@ void SerialConnector::receivedReset() {
 
 void SerialConnector::processMessage(const uint8_t dataType, const std::string &message) {
   LOG_DEBUG("Received data message of type " << dataType);
-  terseDecoder.processMessage(dataType, message);
+
+  //do protobuf decoding to get actual data type and data
+  ammo::protocol::MessageWrapper protobufMessage;
+  bool success = protobufMessage.ParseFromString(message);
+
+  if(success) {
+    if(protobufMessage.type() == ammo::protocol::MessageWrapper_MessageType_TERSE_MESSAGE) {
+      uint8_t actualType = protobufMessage.terse_message().mime_type();
+      std::string actualData = protobufMessage.terse_message().data();
+      terseDecoder.processMessage(actualType, actualData);
+    } else {
+      LOG_ERROR("Invalid protobuf message type " << protobufMessage.type());
+    }
+  } else {
+    LOG_ERROR("Couldn't deserialize protobuf message");
+  }
 }
 
 SerialConnector::SequenceNumberQueue SerialConnector::getSequenceNumbersToAck() {
