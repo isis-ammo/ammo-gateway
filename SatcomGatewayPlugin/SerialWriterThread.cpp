@@ -25,13 +25,14 @@ int SerialWriterThread::svc() {
 
   while(!isClosed()) {
     //do stuff
+    ThreadMutexGuard g(sendQueueMutex);
     QueuedMessagePtr messageToSend;
     while((messageToSend = getNextMessage())) {
       connector->writeMessageFragment(*messageToSend);
     }
 
     {
-      ThreadMutexGuard g(sendQueueMutex);
+      //ThreadMutexGuard g(sendQueueMutex);
       newMessageAvailable.wait();
     }
   }
@@ -70,7 +71,7 @@ void SerialWriterThread::queueMessage(QueuedMessagePtr message) {
 }
 
 SerialWriterThread::QueuedMessagePtr SerialWriterThread::getNextMessage() {
-  ThreadMutexGuard g(sendQueueMutex);
+  //ThreadMutexGuard g(sendQueueMutex);
   if(!sendQueue.empty()) {
     QueuedMessagePtr nextMessage = sendQueue.front();
     sendQueue.pop();
@@ -78,6 +79,6 @@ SerialWriterThread::QueuedMessagePtr SerialWriterThread::getNextMessage() {
     return nextMessage;
   } else {
     LOG_TRACE("SENDER: Sender queue is empty.");
-    return NULL;
+    return QueuedMessagePtr();
   }
 }

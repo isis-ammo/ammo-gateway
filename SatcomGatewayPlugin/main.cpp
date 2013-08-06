@@ -89,7 +89,7 @@ void App::destroy()
 
 App::App() : no_sigpipe((ACE_SignalHandler) SIG_IGN),  // Set signal handler for SIGPIPE (so we don't crash if a device disconnects during write)
              handleExit(NULL),
-             connector(NULL)
+             connector()
 {
 }
 
