@@ -29,6 +29,8 @@ private:
 
   bool validateHeaderChecksum(const SatcomHeader &header);
 
+  bool readAChar(uint8_t &result);
+
   bool processData(const SatcomHeader &header, const std::string &payload);
 
   SerialConnector *connector;

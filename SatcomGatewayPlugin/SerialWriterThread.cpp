@@ -44,6 +44,11 @@ void SerialWriterThread::stop() {
   ThreadMutexGuard g(closeMutex);
   if(g.locked()) {
     closed = true;
+    {
+      //unblocks the service handler thread
+      ThreadMutexGuard g(sendQueueMutex);
+      newMessageAvailable.signal();
+    }
   } else {
     LOG_ERROR("Error acquiring lock in SerialWriterThread::stop()")
   }

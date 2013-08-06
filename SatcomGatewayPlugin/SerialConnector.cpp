@@ -125,10 +125,14 @@ int SerialConnector::svc() {
     }
   }
 
+  LOG_DEBUG("Stopping reader thread");
   reader.stop();
+  LOG_DEBUG("Waiting for reader thread to terminate...");
   reader.wait();
 
+  LOG_DEBUG("Stopping writer thread");
   writer.stop();
+  LOG_DEBUG("Waiting for writer thread to terminate...");
   writer.wait();
 
   return 0;
@@ -232,36 +236,6 @@ SerialConnector::SerialConnectorEvent SerialConnector::waitForEventSignal(int ti
       return lastSignaledEvent;
     }
   }
-}
-
-char SerialConnector::readChar() {
-  //LOG_TRACE("In SerialConnector::readChar()");
-  unsigned char temp;
-  
-  ssize_t count = 0;
-  while(count == 0 || (count == -1 && errno == ETIME)) {
-    ACE_Time_Value timeout(0, 10000);
-    //LOG_TRACE("Calling recv_n");
-    count = serialDevice.recv_n((void *) &temp, 1, &timeout);
-  }
-
-  if ( count == -1 )
-  {
-    LOG_ERROR("Read returned -1" );
-    exit( -1 );
-  }
-  else if ( count >= 1 )
-  {
-
-  }
-  else if ( count == 0 )
-  {
-    LOG_ERROR("Read returned 0" );
-    exit( -1 );
-  }
-
-  //LOG_TRACE("Serial Received " << std::hex << (int) temp);
-  return temp;
 }
 
 bool SerialConnector::writeMessageFragment(const std::string &message) {

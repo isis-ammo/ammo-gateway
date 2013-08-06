@@ -34,54 +34,59 @@ int SerialReaderThread::svc() {
 
   while(!isClosed()) {
     LOG_TRACE("Receiver looping in svc(), state " << state);
-    uint8_t readChar = connector->readChar();
+    uint8_t readChar = 0;
+    bool result = readAChar(readChar);
 
-    if(state == STATE_READING_MAGIC) {
-      if(readChar == MAGIC_NUMBER_BYTES[bytesRead]) {
-        reinterpret_cast<uint8_t *>(&header)[bytesRead] = readChar;
-        bytesRead++;
-        if(bytesRead >= sizeof(MAGIC_NUMBER)) {
-          state = STATE_READING_HEADER;
-        }
-      } else {
-        //got an invalid byte; reset and start over
-        LOG_WARN("Received bad magic number");
-        state = STATE_READING_MAGIC;
-        bytesRead = 0;
-      }
-    } else if(state == STATE_READING_HEADER) {
-      reinterpret_cast<uint8_t *>(&header)[bytesRead] = readChar;
-      bytesRead++;
-      if(bytesRead >= sizeof(header)) {
-        LOG_TRACE("Validating header checksum");
-        bool headerChecksumValid = validateHeaderChecksum(header);
-        if(headerChecksumValid) {
-          state = STATE_READING_DATA;
-          payload.clear();
-          LOG_TRACE("Header checksum valid; allocationg buffer of size " << header.size);
-          payload.resize(header.size);
-          bytesRead = 0;
+    if(result == true) {
+      if(state == STATE_READING_MAGIC) {
+        if(readChar == MAGIC_NUMBER_BYTES[bytesRead]) {
+          reinterpret_cast<uint8_t *>(&header)[bytesRead] = readChar;
+          bytesRead++;
+          if(bytesRead >= sizeof(MAGIC_NUMBER)) {
+            state = STATE_READING_HEADER;
+          }
         } else {
-          //received header was corrupt; start over
-          LOG_WARN("Received corrupt header");
+          //got an invalid byte; reset and start over
+          LOG_WARN("Received bad magic number");
           state = STATE_READING_MAGIC;
           bytesRead = 0;
         }
-      }
-    } else if(state == STATE_READING_DATA) {
-      payload[bytesRead] = readChar;
-      bytesRead++;
-      LOG_TRACE("Read " << bytesRead << " bytes");
+      } else if(state == STATE_READING_HEADER) {
+        reinterpret_cast<uint8_t *>(&header)[bytesRead] = readChar;
+        bytesRead++;
+        if(bytesRead >= sizeof(header)) {
+          LOG_TRACE("Validating header checksum");
+          bool headerChecksumValid = validateHeaderChecksum(header);
+          if(headerChecksumValid) {
+            state = STATE_READING_DATA;
+            payload.clear();
+            LOG_TRACE("Header checksum valid; allocationg buffer of size " << header.size);
+            payload.resize(header.size);
+            bytesRead = 0;
+          } else {
+            //received header was corrupt; start over
+            LOG_WARN("Received corrupt header");
+            state = STATE_READING_MAGIC;
+            bytesRead = 0;
+          }
+        }
+      } else if(state == STATE_READING_DATA) {
+        payload[bytesRead] = readChar;
+        bytesRead++;
+        LOG_TRACE("Read " << bytesRead << " bytes");
 
-      if(bytesRead >= header.size) {
-        //got the whole message; pass it on to the processor
-        processData(header, payload);
-        state = STATE_READING_MAGIC;
-        bytesRead = 0;
-      }
+        if(bytesRead >= header.size) {
+          //got the whole message; pass it on to the processor
+          processData(header, payload);
+          state = STATE_READING_MAGIC;
+          bytesRead = 0;
+        }
 
+      } else {
+        LOG_ERROR("*** Unknown state " << state << " ***");
+      }
     } else {
-      LOG_ERROR("*** Unknown state " << state << " ***");
+      LOG_DEBUG("readChar returned false; didn't receive any data");
     }
   }
 
@@ -109,6 +114,40 @@ bool SerialReaderThread::isClosed() {
     }
   }
   return temp;
+}
+
+bool SerialReaderThread::readAChar(uint8_t &result) {
+  //LOG_TRACE("In SerialReaderThread::readChar()");
+  uint8_t temp;
+  
+  ssize_t count = 0;
+  while(!isClosed() && (count == 0 || (count == -1 && errno == ETIME))) {
+    ACE_Time_Value timeout(0, 10000);
+    //LOG_TRACE("Calling recv_n");
+    count = connector->receiveN((void *) &temp, 1, &timeout);
+  }
+
+  if(isClosed()) {
+    return false;
+  }
+
+  if ( count == -1 )
+  {
+    return false;
+  }
+  else if ( count >= 1 )
+  {
+
+  }
+  else if ( count == 0 )
+  {
+    LOG_ERROR("Read returned 0" );
+    return false;
+  }
+
+  //LOG_TRACE("Serial Received " << std::hex << (int) temp);
+  result = temp;
+  return true;
 }
 
 bool SerialReaderThread::validateHeaderChecksum(const SatcomHeader &header) {

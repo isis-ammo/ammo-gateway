@@ -85,7 +85,8 @@ public:
   virtual int svc();
   void stop();
 
-  char readChar();
+  ssize_t receiveN(void *buf, size_t n, ACE_Time_Value *timeout);
+
   bool writeMessageFragment(const std::string &message);
 
   void receivedMessageFragment(const DataMessage dataHeader, const uint8_t shouldAck, const uint8_t dataType, const std::string &data);
@@ -159,6 +160,10 @@ private:
   friend std::ostream& operator<<( std::ostream& stream, const SerialConnector::SerialConnectorEvent &ev );
   friend std::ostream& operator<<( std::ostream& stream, const SerialConnector::SerialConnectorState &ev );
 };
+
+inline ssize_t SerialConnector::receiveN(void *buf, size_t n, ACE_Time_Value *timeout) {
+  return serialDevice.recv_n(buf, n, timeout);
+}
 
 inline std::ostream& operator<<( std::ostream& stream, const SerialConnector::SerialConnectorEvent &ev )
 {
