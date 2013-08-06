@@ -369,18 +369,23 @@ void SerialConnector::reset() {
 void SerialConnector::sendResetAck() {
   SatcomHeader header;
   header.magicNumber = MAGIC_NUMBER;
-  header.size = 1;
   header.reserved = 0;
 
-  uint8_t messageTypeByte = 0xc0; //1100 0000
+  std::ostringstream resetPacketDataStream;
+  appendUInt8(resetPacketDataStream, 0xc0); //1100 0000
+  appendUInt16(resetPacketDataStream, 0); //reset packet always has a payload of a 16-bit integer, set to 0 for consistency with ack/token messages
 
-  header.payloadChecksum = ACE::crc32(&messageTypeByte, sizeof(messageTypeByte));
+  std::string resetPacketData = resetPacketDataStream.str();
+
+  header.size = resetPacketData.length();
+  header.payloadChecksum = ACE::crc32(resetPacketData.data(), resetPacketData.length());
   header.headerChecksum = ACE::crc32(&header, sizeof(header) - sizeof(header.headerChecksum));
 
   SerialWriterThread::MutableQueuedMessagePtr messageToSend(new std::string);
   messageToSend->reserve(sizeof(header) + sizeof(messageTypeByte));
   messageToSend->append(reinterpret_cast<char *>(&header), sizeof(header));
-  messageToSend->append(reinterpret_cast<char *>(&messageTypeByte), sizeof(messageTypeByte));
+  messageToSend->append(resetPacketData);
+
 
   writer.queueMessage(messageToSend);
 }

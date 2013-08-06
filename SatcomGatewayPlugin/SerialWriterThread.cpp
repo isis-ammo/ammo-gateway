@@ -26,14 +26,16 @@ int SerialWriterThread::svc() {
   while(!isClosed()) {
     //do stuff
     ThreadMutexGuard g(sendQueueMutex);
-    QueuedMessagePtr messageToSend;
-    while((messageToSend = getNextMessage())) {
-      connector->writeMessageFragment(*messageToSend);
-    }
 
-    {
-      //ThreadMutexGuard g(sendQueueMutex);
+    if(g.locked()) {
+      QueuedMessagePtr messageToSend;
+      while((messageToSend = getNextMessage())) {
+        connector->writeMessageFragment(*messageToSend);
+      }
+
       newMessageAvailable.wait();
+    } else {
+      LOG_ERROR("Error acquiring lock in SerialWriterThread.svc()");
     }
   }
 
@@ -45,12 +47,12 @@ void SerialWriterThread::stop() {
   if(g.locked()) {
     closed = true;
     {
-      //unblocks the service handler thread
+      //unblocks the svc() loop so we can terminate
       ThreadMutexGuard g(sendQueueMutex);
       newMessageAvailable.signal();
     }
   } else {
-    LOG_ERROR("Error acquiring lock in SerialWriterThread::stop()")
+    LOG_ERROR("Error acquiring lock in SerialWriterThread::stop()");
   }
 }
 
@@ -62,7 +64,7 @@ bool SerialWriterThread::isClosed() {
       temp = closed;
     } else {
       temp = false;
-      LOG_ERROR("Error acquiring lock in SerialWriterThread::isClosed()")
+      LOG_ERROR("Error acquiring lock in SerialWriterThread::isClosed()");
     }
   }
   return temp;
@@ -70,9 +72,14 @@ bool SerialWriterThread::isClosed() {
 
 void SerialWriterThread::queueMessage(QueuedMessagePtr message) {
   ThreadMutexGuard g(sendQueueMutex);
-  sendQueue.push(message);
-  LOG_TRACE("SENDER: queued message to send; " << sendQueue.size() << " messages in queue");
-  newMessageAvailable.signal();
+
+  if(g.locked()) {
+    sendQueue.push(message);
+    LOG_TRACE("SENDER: queued message to send; " << sendQueue.size() << " messages in queue");
+    newMessageAvailable.signal();
+  } else {
+    LOG_ERROR("Error acquiring lock in SerialWriterThread::queueMessage()");
+  }
 }
 
 SerialWriterThread::QueuedMessagePtr SerialWriterThread::getNextMessage() {
