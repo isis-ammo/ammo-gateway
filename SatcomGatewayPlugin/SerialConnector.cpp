@@ -382,7 +382,7 @@ void SerialConnector::sendResetAck() {
   header.headerChecksum = ACE::crc32(&header, sizeof(header) - sizeof(header.headerChecksum));
 
   SerialWriterThread::MutableQueuedMessagePtr messageToSend(new std::string);
-  messageToSend->reserve(sizeof(header) + sizeof(messageTypeByte));
+  messageToSend->reserve(sizeof(header) + resetPacketData.length());
   messageToSend->append(reinterpret_cast<char *>(&header), sizeof(header));
   messageToSend->append(resetPacketData);
 
