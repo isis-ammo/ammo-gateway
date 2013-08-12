@@ -35,8 +35,7 @@ Building on Linux:
      i.e. ln -s platform_linux.GNU platform_macros.GNU
      (If platform_macros.GNU already exists you will need to remove it.)
         
-  6) Build ACE (you may also build TAO and CIAO at this point, but they are not
-     currently required for the gateway):
+  6) Build ACE:
         cd $ACE_ROOT
         make
         
