@@ -260,6 +260,8 @@ bool SerialConnector::writeMessageFragment(const std::string &message) {
 }
 
 void SerialConnector::receivedMessageFragment(const DataMessage dataHeader, const uint8_t shouldAck, const uint8_t dataType, const std::string &data) {
+  signalEvent(EVENT_MESSAGE_RECEIVED);
+
   LOG_DEBUG("Received message fragment");
   LOG_DEBUG("   Seq Number: " << dataHeader.sequenceNumber);
   LOG_DEBUG("        Count: " << dataHeader.count);
