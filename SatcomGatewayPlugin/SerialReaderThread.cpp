@@ -160,12 +160,13 @@ bool SerialReaderThread::validateHeaderChecksum(const SatcomHeader &header) {
 
 /*
 * Message Type bitfield structure:
-* abcd dddd
+* abcd eeee
 * 
 * a: Packet type (0 = data, 1 = ack or token)
 * b: Reset (0 = normal, 1 = reset)
 * c: should ack (0 = don't ack; 1 = do ack)
-* d dddd: Datatype-specific identifier (set to 0 for ack/token packets)
+* d: sender ID (0 = gateway; 1 = device); messages from gateway should be ignored (over these radios, everything we send is echoed back)
+* eeee: Unused (set to 0)
 */
 bool SerialReaderThread::processData(const SatcomHeader &header, const std::string &payload) {
   LOG_TRACE("in processData()");
@@ -174,67 +175,70 @@ bool SerialReaderThread::processData(const SatcomHeader &header, const std::stri
     uint8_t payloadInfoByte = payload[0];
     uint8_t payloadType = payloadInfoByte >> 7;
     uint8_t isReset = (payloadInfoByte >> 6) & 0x01;
+    uint8_t senderId = (payloadInfoByte >> 4) & 0x01;
 
-    if(isReset) {
-      LOG_TRACE("Received reset packet");
-      connector->receivedReset();
-      return true;
-    }
-
-    switch(payloadType) {
-      case MESSAGE_TYPE_DATA: {
-        LOG_TRACE("Received data packet");
-        if((payload.size() - sizeof(payloadInfoByte)) >= sizeof(DataMessage)) {
-          uint8_t shouldAck = (payloadInfoByte >> 5) & 0x01;
-          uint8_t dataType = payloadInfoByte & 0x1f;
-
-          DataMessage header = * reinterpret_cast<const DataMessage *>((&payload[sizeof(payloadInfoByte)]));
-          const string data(payload.begin() + sizeof(payloadInfoByte) + sizeof(DataMessage), payload.end());
-
-          connector->receivedMessageFragment(header, shouldAck, dataType, data);
-
-          return true;
-        } else {
-          LOG_ERROR("Payload doesn't contain enough data to extract DataHeader");
-          return false;
-        }
-        break;
+    if(senderId != GATEWAY_SENDER_ID) {
+      if(isReset) {
+        LOG_TRACE("Received reset packet");
+        connector->receivedReset();
+        return true;
       }
-      case MESSAGE_TYPE_ACK_TOKEN: {
-        LOG_TRACE("Received ack/token packet");
-        if((payload.size() - sizeof(payloadInfoByte)) >= sizeof(uint16_t)) {
-          
-          uint16_t ackCountShort = * reinterpret_cast<const uint16_t *>(&payload[sizeof(payloadInfoByte)]);
-          LOG_TRACE("Ack count short: " << std::hex << ackCountShort);
-          bool isToken = (ackCountShort >> 15) == 1;
-          uint16_t ackCount = ackCountShort & 0x7f;
 
-          size_t expectedPayloadSize = ackCount * sizeof(uint16_t) + sizeof(ackCountShort) + sizeof(payloadInfoByte);
+      switch(payloadType) {
+        case MESSAGE_TYPE_DATA: {
+          LOG_TRACE("Received data packet");
+          if((payload.size() - sizeof(payloadInfoByte)) >= sizeof(DataMessage)) {
+            uint8_t shouldAck = (payloadInfoByte >> 5) & 0x01;
+            uint8_t dataType = payloadInfoByte & 0x1f;
 
-          if(expectedPayloadSize == payload.size()) {
-            vector<uint16_t> ackSequenceNumbers;
-            ackSequenceNumbers.reserve(ackCount);
-            for(int i = 0; i < ackCount; i++) {
-              uint16_t newAckSequenceNumber = payload[i*sizeof(uint16_t) + sizeof(ackCountShort) + sizeof(payloadInfoByte)];
-              ackSequenceNumbers.push_back(newAckSequenceNumber);
-            }
+            DataMessage header = * reinterpret_cast<const DataMessage *>((&payload[sizeof(payloadInfoByte)]));
+            const string data(payload.begin() + sizeof(payloadInfoByte) + sizeof(DataMessage), payload.end());
 
-            connector->receivedAckPacket(isToken, ackSequenceNumbers);
+            connector->receivedMessageFragment(header, shouldAck, dataType, data);
+
             return true;
           } else {
-            LOG_ERROR("Ack packet is not the correct size...  (expected = " << expectedPayloadSize << " actual = " << payload.size() << ")");
+            LOG_ERROR("Payload doesn't contain enough data to extract DataHeader");
             return false;
           }
-        } else {
-          LOG_ERROR("Not enough data to read ack byte");
+          break;
+        }
+        case MESSAGE_TYPE_ACK_TOKEN: {
+          LOG_TRACE("Received ack/token packet");
+          if((payload.size() - sizeof(payloadInfoByte)) >= sizeof(uint16_t)) {
+            
+            uint16_t ackCountShort = * reinterpret_cast<const uint16_t *>(&payload[sizeof(payloadInfoByte)]);
+            LOG_TRACE("Ack count short: " << std::hex << ackCountShort);
+            bool isToken = (ackCountShort >> 15) == 1;
+            uint16_t ackCount = ackCountShort & 0x7f;
+
+            size_t expectedPayloadSize = ackCount * sizeof(uint16_t) + sizeof(ackCountShort) + sizeof(payloadInfoByte);
+
+            if(expectedPayloadSize == payload.size()) {
+              vector<uint16_t> ackSequenceNumbers;
+              ackSequenceNumbers.reserve(ackCount);
+              for(int i = 0; i < ackCount; i++) {
+                uint16_t newAckSequenceNumber = payload[i*sizeof(uint16_t) + sizeof(ackCountShort) + sizeof(payloadInfoByte)];
+                ackSequenceNumbers.push_back(newAckSequenceNumber);
+              }
+
+              connector->receivedAckPacket(isToken, ackSequenceNumbers);
+              return true;
+            } else {
+              LOG_ERROR("Ack packet is not the correct size...  (expected = " << expectedPayloadSize << " actual = " << payload.size() << ")");
+              return false;
+            }
+          } else {
+            LOG_ERROR("Not enough data to read ack byte");
+            return false;
+          }
+          break;
+        }
+        default: {
+          //shouldn't be possible; we're only working with one bit here...
+          LOG_ERROR("Invalid message type: " << payloadType);
           return false;
         }
-        break;
-      }
-      default: {
-        //shouldn't be possible; we're only working with one bit here...
-        LOG_ERROR("Invalid message type: " << payloadType);
-        return false;
       }
     }
   } else {

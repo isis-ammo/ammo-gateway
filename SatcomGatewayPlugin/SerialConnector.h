@@ -23,6 +23,8 @@ const uint32_t MAGIC_NUMBER = 0xabad1dea;
 
 const uint8_t * const MAGIC_NUMBER_BYTES = reinterpret_cast<const uint8_t *>(&MAGIC_NUMBER);
 
+const uint8_t GATEWAY_SENDER_ID = 0;
+
 struct SatcomHeader {
   uint32_t magicNumber;
   uint16_t size;

@@ -358,12 +358,13 @@ void SerialConnector::reset() {
 
 /*
 * Message Type bitfield structure:
-* abcd dddd
+* abcd eeee
 * 
 * a: Packet type (0 = data, 1 = ack or token)
 * b: Reset (0 = normal, 1 = reset)
 * c: should ack (0 = don't ack; 1 = do ack)
-* d dddd: Datatype-specific identifier (set to 0 for ack/token packets)
+* d: sender ID (0 = gateway; 1 = device); messages from gateway should be ignored (over these radios, everything we send is echoed back)
+* eeee: Unused (set to 0)
 */
 
 void SerialConnector::sendResetAck() {
