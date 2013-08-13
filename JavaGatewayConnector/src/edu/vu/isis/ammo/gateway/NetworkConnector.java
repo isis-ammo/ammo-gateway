@@ -70,7 +70,6 @@ class NetworkConnector {
      * 
      */
     private static final int TCP_RECV_BUFF_SIZE = 0x15554; // the maximum receive buffer size
-    private static final int MAX_MESSAGE_SIZE = 0x100000000;  // arbitrary max size
 
     private SocketChannel mSocketChannel;
 
