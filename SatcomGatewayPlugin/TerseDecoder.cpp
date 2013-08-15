@@ -72,6 +72,8 @@ bool TerseDecoder::processMessage(const uint8_t dataType, const std::string &ter
       pushData.uri = "serial-chat";
       pushData.originUsername = originUser;
       break;
+    default:
+      LOG_ERROR("Unsupported terse data type: " << dataType);
     }
 
     pushData.scope = scope;

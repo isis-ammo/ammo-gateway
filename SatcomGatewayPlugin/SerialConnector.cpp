@@ -159,8 +159,8 @@ bool SerialConnector::connect() {
   params.readtimeoutmsec = -1; //negative value means infinite timeout
   #endif
   params.paritymode = "NONE";
-  params.ctsenb = false;
-  params.rtsenb = 0;
+  params.ctsenb = true;
+  params.rtsenb = 1;
   params.xinenb = false;
   params.xoutenb = false;
   params.modem = false;

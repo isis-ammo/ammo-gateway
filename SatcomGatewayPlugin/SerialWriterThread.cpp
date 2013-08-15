@@ -7,8 +7,8 @@ SerialWriterThread::SerialWriterThread(SerialConnector *connector) :
 connector(connector),
 closeMutex(),
 closed(true),
-sendQueueMutex(),
-newMessageAvailable(sendQueueMutex) {
+newMessagesAvailableCount(0),
+sendQueueMutex() {
 
 }
 
@@ -24,19 +24,11 @@ int SerialWriterThread::svc() {
   closed = false;
 
   while(!isClosed()) {
-    //do stuff
-    ThreadMutexGuard g(sendQueueMutex);
-
-    if(g.locked()) {
-      QueuedMessagePtr messageToSend;
-      while((messageToSend = getNextMessage())) {
-        connector->writeMessageFragment(*messageToSend);
-      }
-
-      newMessageAvailable.wait();
-    } else {
-      LOG_ERROR("Error acquiring lock in SerialWriterThread.svc()");
-    }
+    //decrement the semaphore containing the count of new messages; if this is zero, we should block
+    newMessagesAvailableCount.acquire();
+    QueuedMessagePtr messageToSend;
+    messageToSend = getNextMessage();
+    connector->writeMessageFragment(*messageToSend);
   }
 
   return 0;
@@ -48,8 +40,8 @@ void SerialWriterThread::stop() {
     closed = true;
     {
       //unblocks the svc() loop so we can terminate
-      ThreadMutexGuard g(sendQueueMutex);
-      newMessageAvailable.signal();
+      //ThreadMutexGuard g(newMessageAvailableMutex);
+      //newMessageAvailable.signal();
     }
   } else {
     LOG_ERROR("Error acquiring lock in SerialWriterThread::stop()");
@@ -71,19 +63,23 @@ bool SerialWriterThread::isClosed() {
 }
 
 void SerialWriterThread::queueMessage(QueuedMessagePtr message) {
-  ThreadMutexGuard g(sendQueueMutex);
+  {
+    ThreadMutexGuard g(sendQueueMutex);
 
-  if(g.locked()) {
-    sendQueue.push(message);
-    LOG_TRACE("SENDER: queued message to send; " << sendQueue.size() << " messages in queue");
-    newMessageAvailable.signal();
-  } else {
-    LOG_ERROR("Error acquiring lock in SerialWriterThread::queueMessage()");
+    if(g.locked()) {
+      sendQueue.push(message);
+      LOG_TRACE("SENDER: queued message to send; " << sendQueue.size() << " messages in queue");
+    } else {
+      LOG_ERROR("Error acquiring lock in SerialWriterThread::queueMessage()");
+    }
   }
+
+  //using this semaphore as a count of messages we have to send; release() increments it
+  newMessagesAvailableCount.release();
 }
 
 SerialWriterThread::QueuedMessagePtr SerialWriterThread::getNextMessage() {
-  //ThreadMutexGuard g(sendQueueMutex);
+  ThreadMutexGuard g(sendQueueMutex);
   if(!sendQueue.empty()) {
     QueuedMessagePtr nextMessage = sendQueue.front();
     sendQueue.pop();

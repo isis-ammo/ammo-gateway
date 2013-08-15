@@ -6,6 +6,7 @@
 
 #include <ace/Task.h>
 #include <ace/Copy_Disabled.h>
+#include <ace/Thread_Semaphore.h>
 
 #include "Typedefs.h"
 
@@ -32,10 +33,13 @@ private:
   bool closed;
   bool isClosed();
 
+  ACE_Thread_Semaphore newMessagesAvailableCount;
+
   ACE_Thread_Mutex sendQueueMutex;
-  ACE_Condition_Thread_Mutex newMessageAvailable;
   std::queue<QueuedMessagePtr> sendQueue;
   QueuedMessagePtr getNextMessage();
+
+  
 };
 
 #endif //SERIAL_WRITER_THREAD_H
