@@ -28,7 +28,13 @@ int SerialWriterThread::svc() {
     newMessagesAvailableCount.acquire();
     QueuedMessagePtr messageToSend;
     messageToSend = getNextMessage();
-    connector->writeMessageFragment(*messageToSend);
+    if(messageToSend) {
+      connector->writeMessageFragment(*messageToSend);
+    } else {
+      if(!isClosed()) { //this is the normal path if we're in the process of closing, so don't print the warning
+        LOG_WARN("Tried to send empty fragment");
+      }
+    }
   }
 
   return 0;
@@ -40,8 +46,7 @@ void SerialWriterThread::stop() {
     closed = true;
     {
       //unblocks the svc() loop so we can terminate
-      //ThreadMutexGuard g(newMessageAvailableMutex);
-      //newMessageAvailable.signal();
+      newMessagesAvailableCount.release();
     }
   } else {
     LOG_ERROR("Error acquiring lock in SerialWriterThread::stop()");
