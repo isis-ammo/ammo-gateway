@@ -312,7 +312,6 @@ void SerialConnector::receivedReset() {
 }
 
 void SerialConnector::processMessage(const uint8_t dataType, const std::string &message) {
-  LOG_DEBUG("Received data message of type " << dataType);
 
   //do protobuf decoding to get actual data type and data
   ammo::protocol::MessageWrapper protobufMessage;
@@ -321,6 +320,7 @@ void SerialConnector::processMessage(const uint8_t dataType, const std::string &
   if(success) {
     if(protobufMessage.type() == ammo::protocol::MessageWrapper_MessageType_TERSE_MESSAGE) {
       uint8_t actualType = protobufMessage.terse_message().mime_type();
+      LOG_DEBUG("Received message of type " << (int) actualType);
       std::string actualData = protobufMessage.terse_message().data();
       terseDecoder.processMessage(actualType, actualData);
     } else {

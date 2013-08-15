@@ -7,6 +7,8 @@
 #include "TerseDecoder.h"
 #include "SatcomConfigurationManager.h"
 
+#include <fstream>
+
 using namespace ammo::gateway;
 
 const char DEFAULT_PRIORITY = 50;
@@ -22,6 +24,7 @@ const int SMS_TYPEID = 1;
 const int NEVADA_PLI_TYPEID = 2;
 const int TRANSAPPS_PLI_TYPEID = 5;
 const int DASH_EVENT_TYPEID = 3;
+const int DASH_MEDIA_TYPEID = 8;
 const int CHAT_MESSAGE_ALL_TYPEID = 4;
 
 #define ntohll(x) ( ( (int64_t)  (ntohl((int)((x << 32) >> 32))) << 32) | (uint32_t)ntohl(((int)(x >> 32)))  ) //By Runner
@@ -72,14 +75,34 @@ bool TerseDecoder::processMessage(const uint8_t dataType, const std::string &ter
       pushData.uri = "serial-chat";
       pushData.originUsername = originUser;
       break;
+    case DASH_MEDIA_TYPEID:
+      //temporary hack for large media file testing; don't send anything
+      LOG_WARN("Received Dash Media; not forwarding to gateway");
+      processDash(terseData);
+      return false;
     default:
-      LOG_ERROR("Unsupported terse data type: " << dataType);
+      LOG_ERROR("Unsupported terse data type: " << (int) dataType);
+      return false;
     }
 
     pushData.scope = scope;
     connector->pushData(pushData);
   }
   return true;
+}
+
+void TerseDecoder::processDash(const std::string &terseData) {
+  const char *data = terseData.data();
+  size_t cursor = 0;
+  size_t length = terseData.length();
+
+  std::string eventId = extractString(data, cursor, length);
+  std::tr1::shared_ptr<const std::string> fileData = extractFile(data, cursor, length);
+
+  //write the file out to a file on disk (in the current working directory for now)
+  std::ofstream eventFile(eventId.data());
+  eventFile.write(fileData->data(), fileData->length());
+  eventFile.close();
 }
 
 std::string TerseDecoder::extractString(const char *terse, size_t& cursor, size_t length)
@@ -131,6 +154,27 @@ std::string TerseDecoder::extractOldStyleString(const char *terse, size_t& curso
     oname << static_cast<uint8_t>(uchar & 0xff);
   }
   return oname.str();
+}
+
+std::tr1::shared_ptr<const std::string> TerseDecoder::extractFile(const char *terse, size_t &cursor, size_t length) {
+  LOG_TRACE("Getting file...");
+  if(cursor + sizeof(uint32_t) > length) {
+    LOG_ERROR("Not enough data to get file length (cursor=" << cursor << ", length=" << length << ")");
+    return std::tr1::shared_ptr<const std::string>();
+  }
+  uint32_t fileLength = ntohl ( *(uint32_t *)&(terse[cursor]) );
+  LOG_TRACE("File length: " << fileLength);
+  cursor += sizeof(uint32_t);
+
+  if(cursor + fileLength  > length) {
+    LOG_ERROR("Not enough data to get file (cursor=" << cursor << ", strlen=" << fileLength << ", length=" << length << ")");
+    return std::tr1::shared_ptr<std::string>();
+  }
+  std::tr1::shared_ptr<const std::string> file(new std::string(&terse[cursor], fileLength));
+  cursor += fileLength;
+
+  //LOG_TRACE("Got blob: " << blob);
+  return file;
 }
 
 std::string TerseDecoder::extractBlob(const char *terse, size_t& cursor, size_t length)

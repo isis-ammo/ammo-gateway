@@ -25,10 +25,13 @@ private:
   int rangeScale;
   int timeScale;
 
+  void processDash(const std::string &terseData);
+
   std::string parseTerseData(int mt, const char *data, size_t terseLength, std::string &originUser );
   void parseGroupPliBlob(std::string groupPliBlob, int32_t baseLat, int32_t baseLon, uint32_t baseTime);
   std::string extractString(const char *terse, size_t& cursor, size_t length);
   std::string extractOldStyleString(const char *terse, size_t& cursor, size_t length);
+  std::tr1::shared_ptr<const std::string> extractFile(const char *terse, size_t &cursor, size_t length);
   std::string extractBlob(const char *terse, size_t& cursor, size_t length);
   int8_t extractInt8(const char *terse, size_t& cursor, size_t length);
   int16_t extractInt16(const char *terse, size_t& cursor, size_t length);
