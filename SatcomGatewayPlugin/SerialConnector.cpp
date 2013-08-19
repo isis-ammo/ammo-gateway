@@ -15,11 +15,19 @@ void FragmentedMessage::gotMessageFragment(const DataMessage dataHeader, const s
     if(fragments[dataHeader.index]) {
       LOG_ERROR("DEFRAGMENTER: Received duplicate fragment " << dataHeader.index << " of " << fragmentsCount);
     } else {
+      std::ostringstream loggingStream;
+
+      for(std::string::const_iterator it = data.begin(); it != data.end(); it++) {
+        loggingStream << std::hex << (((unsigned int) *it) & 0xff) << " ";
+      }
+
+      LOG_TRACE("Fragment " << dataHeader.index << ": " << loggingStream.str());
       fragments[dataHeader.index] = FragmentedMessageDataPtr(new std::string(data)); //fragments is an array of shared_ptrs; this new string
                                                 //will be destroyed when fragments is destroyed
       receivedFragmentsCount++;
     }
   }
+  LOG_TRACE("DEFRAGMENTER: Have received total " << receivedFragmentsCount << " of " << fragmentsCount);
 }
 
 std::string FragmentedMessage::reconstructCompleteMessage() {
@@ -269,11 +277,12 @@ void SerialConnector::receivedMessageFragment(const DataMessage dataHeader, cons
   LOG_DEBUG("   Should Ack: " << (int) shouldAck);
   LOG_DEBUG("    Data Type: " << (int) dataType);
 
-  uint16_t firstMessageSequenceNumber = dataHeader.sequenceNumber - dataHeader.count;
+  uint16_t firstMessageSequenceNumber = dataHeader.sequenceNumber - dataHeader.index;
 
   IncompleteMessageMap::iterator messageIt = incompleteMessages.find(firstMessageSequenceNumber);
 
   if(messageIt == incompleteMessages.end()) {
+    LOG_TRACE("Got first fragment of a new message, creating new FragmentedMessage");
     FragmentedMessage newMessage(firstMessageSequenceNumber, dataHeader.count, dataType);
     std::pair<IncompleteMessageMap::iterator, bool> result = incompleteMessages.insert(IncompleteMessageMap::value_type(firstMessageSequenceNumber, newMessage));
 

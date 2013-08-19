@@ -33,7 +33,7 @@ int SerialReaderThread::svc() {
 
 
   while(!isClosed()) {
-    LOG_TRACE("Receiver looping in svc(), state " << state);
+    //LOG_TRACE("Receiver looping in svc(), state " << state);
     uint8_t readChar = 0;
     bool result = readAChar(readChar);
 
@@ -73,7 +73,7 @@ int SerialReaderThread::svc() {
       } else if(state == STATE_READING_DATA) {
         payload[bytesRead] = readChar;
         bytesRead++;
-        LOG_TRACE("Read " << bytesRead << " bytes");
+        //LOG_TRACE("Read " << bytesRead << " bytes");
 
         if(bytesRead >= header.size) {
           //got the whole message; pass it on to the processor

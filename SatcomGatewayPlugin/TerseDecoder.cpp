@@ -97,10 +97,11 @@ void TerseDecoder::processDash(const std::string &terseData) {
   size_t length = terseData.length();
 
   std::string eventId = extractString(data, cursor, length);
+  std::string filename = eventId + ".jpg";
   std::tr1::shared_ptr<const std::string> fileData = extractFile(data, cursor, length);
 
   //write the file out to a file on disk (in the current working directory for now)
-  std::ofstream eventFile(eventId.data());
+  std::ofstream eventFile(filename.data(), std::ofstream::out | std::ofstream::binary);
   eventFile.write(fileData->data(), fileData->length());
   eventFile.close();
 }
