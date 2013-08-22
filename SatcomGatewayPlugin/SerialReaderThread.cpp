@@ -170,14 +170,20 @@ bool SerialReaderThread::validateHeaderChecksum(const SatcomHeader &header) {
 */
 bool SerialReaderThread::processData(const SatcomHeader &header, const std::string &payload) {
   LOG_TRACE("in processData()");
-  if(payload.size() > 0) {
-    //get packet type (in the high bit of the first byte of the payload)
-    uint8_t payloadInfoByte = payload[0];
-    uint8_t payloadType = payloadInfoByte >> 7;
-    uint8_t isReset = (payloadInfoByte >> 6) & 0x01;
-    uint8_t senderId = (payloadInfoByte >> 4) & 0x01;
 
-    if(senderId != GATEWAY_SENDER_ID) {
+  if(payload.size() > 0) {
+    uint32_t expectedChecksum = header.payloadChecksum;
+    uint32_t calculatedChecksum = ACE::crc32(payload.data(), payload.length());
+
+    bool payloadChecksumValid = (calculatedChecksum & 0xffff) == (expectedChecksum & 0xffff);
+
+    if(payloadChecksumValid) {
+      //get packet type (in the high bit of the first byte of the payload)
+      uint8_t payloadInfoByte = payload[0];
+      uint8_t payloadType = payloadInfoByte >> 7;
+      uint8_t isReset = (payloadInfoByte >> 6) & 0x01;
+      uint8_t senderId = (payloadInfoByte >> 4) & 0x01;
+
       if(isReset) {
         LOG_TRACE("Received reset packet");
         connector->receivedReset();
@@ -240,6 +246,9 @@ bool SerialReaderThread::processData(const SatcomHeader &header, const std::stri
           return false;
         }
       }
+    } else {
+      LOG_ERROR("Incorrect payload checksum (received a corrupt packet) (Expected: " << std::hex << expectedChecksum << ", Calculated: " << calculatedChecksum << ")");
+      return false;
     }
   } else {
     LOG_ERROR("Message with empty payload...");

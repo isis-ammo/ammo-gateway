@@ -12,19 +12,23 @@ void FragmentedMessage::gotMessageFragment(const DataMessage dataHeader, const s
   if(dataHeader.count != fragmentsCount) {
     LOG_ERROR("DEFRAGMENTER: Fragment count mismatch; dropping (header = " << dataHeader.count << " stored = " << fragmentsCount << ")");
   } else {
-    if(fragments[dataHeader.index]) {
-      LOG_ERROR("DEFRAGMENTER: Received duplicate fragment " << dataHeader.index << " of " << fragmentsCount);
-    } else {
-      std::ostringstream loggingStream;
+    if(dataHeader.index < fragmentsCount) {
+      if(fragments[dataHeader.index]) {
+        LOG_ERROR("DEFRAGMENTER: Received duplicate fragment " << dataHeader.index << " of " << fragmentsCount);
+      } else {
+        std::ostringstream loggingStream;
 
-      for(std::string::const_iterator it = data.begin(); it != data.end(); it++) {
-        loggingStream << std::hex << (((unsigned int) *it) & 0xff) << " ";
+        for(std::string::const_iterator it = data.begin(); it != data.end(); it++) {
+          loggingStream << std::hex << (((unsigned int) *it) & 0xff) << " ";
+        }
+
+        LOG_TRACE("Fragment " << dataHeader.index << ": " << loggingStream.str());
+        fragments[dataHeader.index] = FragmentedMessageDataPtr(new std::string(data)); //fragments is an array of shared_ptrs; this new string
+                                                  //will be destroyed when fragments is destroyed
+        receivedFragmentsCount++;
       }
-
-      LOG_TRACE("Fragment " << dataHeader.index << ": " << loggingStream.str());
-      fragments[dataHeader.index] = FragmentedMessageDataPtr(new std::string(data)); //fragments is an array of shared_ptrs; this new string
-                                                //will be destroyed when fragments is destroyed
-      receivedFragmentsCount++;
+    } else {
+      LOG_ERROR("DEFRAGMENTER: Received invalid index (i=" << dataHeader.index << ", c=" << fragmentsCount << ")");
     }
   }
   LOG_TRACE("DEFRAGMENTER: Have received total " << receivedFragmentsCount << " of " << fragmentsCount);
