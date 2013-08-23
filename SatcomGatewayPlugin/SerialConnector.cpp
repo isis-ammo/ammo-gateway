@@ -465,12 +465,12 @@ void SerialConnector::sendTokenPacket() {
   writer.queueMessage(messageToSend);
 }
 
-void SerialConnector::appendUInt8(std::ostream &stream, const uint8_t val) {
+void appendUInt8(std::ostream &stream, const uint8_t val) {
   stream.write(reinterpret_cast<const char *>(&val), sizeof(val));
 }
 
 
-void SerialConnector::appendUInt16(std::ostream &stream, const uint16_t val) {
+void appendUInt16(std::ostream &stream, const uint16_t val) {
   stream.write(reinterpret_cast<const char *>(&val), sizeof(val));
 }
 

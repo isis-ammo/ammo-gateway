@@ -25,6 +25,10 @@ const uint8_t * const MAGIC_NUMBER_BYTES = reinterpret_cast<const uint8_t *>(&MA
 
 const uint8_t GATEWAY_SENDER_ID = 0;
 
+//binary serialization helper methods; used in a couple classes here
+void appendUInt8(std::ostream &stream, const uint8_t val);
+void appendUInt16(std::ostream &stream, const uint16_t val);
+
 struct SatcomHeader {
   uint32_t magicNumber;
   uint16_t size;
@@ -40,6 +44,20 @@ struct DataMessage {
   uint16_t sequenceNumber;
   uint16_t index;
   uint16_t count;
+};
+
+struct MessageFragment {
+public:
+  uint16_t sequenceNumber;
+  uint16_t index;
+  uint16_t count;
+
+  bool shouldAck;
+
+  typedef std::tr1::shared_ptr<const std::string> MessageDataPtr;
+  MessageDataPtr messageData;
+
+  std::tr1::shared_ptr<const std::string> serializeFragment();
 };
 
 class FragmentedMessage {
@@ -156,8 +174,7 @@ private:
   typedef std::tr1::unordered_map<uint16_t, FragmentedMessage> IncompleteMessageMap;
   IncompleteMessageMap incompleteMessages; //indexed by first sequence number in message
 
-  void appendUInt8(std::ostream &stream, const uint8_t val);
-  void appendUInt16(std::ostream &stream, const uint16_t val);
+  
 
   friend std::ostream& operator<<( std::ostream& stream, const SerialConnector::SerialConnectorEvent &ev );
   friend std::ostream& operator<<( std::ostream& stream, const SerialConnector::SerialConnectorState &ev );
