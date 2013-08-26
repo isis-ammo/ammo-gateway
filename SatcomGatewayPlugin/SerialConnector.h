@@ -46,18 +46,21 @@ struct DataMessage {
   uint16_t count;
 };
 
-struct MessageFragment {
+struct DataMessageFragment {
 public:
+  typedef std::tr1::shared_ptr<const std::string> MessageDataPtr;
+
+  DataMessageFragment();
+
+  MessageDataPtr serializeFragment();
+
   uint16_t sequenceNumber;
   uint16_t index;
   uint16_t count;
 
   bool shouldAck;
 
-  typedef std::tr1::shared_ptr<const std::string> MessageDataPtr;
   MessageDataPtr messageData;
-
-  std::tr1::shared_ptr<const std::string> serializeFragment();
 };
 
 class FragmentedMessage {

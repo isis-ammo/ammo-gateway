@@ -69,3 +69,7 @@ void BinaryOutputStream::appendUInt32(const uint32_t value) {
 void BinaryOutputStream::appendBytes(const std::string &bytes) {
   stream << bytes;
 }
+
+void BinaryOutputStream::appendBytes(const char *data, size_t length) {
+  stream.write(data, length);
+}

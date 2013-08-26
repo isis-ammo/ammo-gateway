@@ -31,6 +31,7 @@ public:
   void appendUInt32(const uint32_t value);
 
   void appendBytes(const std::string &bytes);
+  void appendBytes(const char *data, size_t length);
 
 private:
   std::ostringstream stream;
