@@ -165,8 +165,15 @@ private:
   SequenceNumberQueue sequenceNumbersToAck;
   ACE_Thread_Mutex sequenceNumbersToAckMutex;
 
+  ACE_Thread_Mutex sendDataMapMutex;
+  typedef std::map<uint16_t, DataMessageFragment> SendDataMap;
+  SendDataMap sendDataMap;
+  uint16_t nextSequenceNumber;
+  void enqueueDataMessage(const std::string &message, const bool shouldAck);
+
   int tokenTimeout;
   std::string initialState;
+  uint16_t fragmentSize;
 
   void reset();
 

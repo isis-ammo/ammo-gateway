@@ -99,8 +99,10 @@ eventCondition(eventMutex),
 lastSignaledEvent(EVENT_NONE),
 serialDevice(),
 serialConnector(),
+nextSequenceNumber(0),
 tokenTimeout(SatcomConfigurationManager::getInstance().getTokenTimeout()),
-initialState(SatcomConfigurationManager::getInstance().getInitialState())
+initialState(SatcomConfigurationManager::getInstance().getInitialState()),
+fragmentSize(1024) //TODO: make configurable
 {
   
 }
@@ -366,12 +368,53 @@ void SerialConnector::receivedMessageFragment(const DataMessage dataHeader, cons
   }
 }
 
+void SerialConnector::enqueueDataMessage(const std::string &message, const bool shouldAck) {
+  ThreadMutexGuard g(sendDataMapMutex);
+  unsigned int numberOfFragments = message.length() / fragmentSize;
+  if(message.length() % fragmentSize != 0) {
+    ++numberOfFragments;
+  }
+
+  if(numberOfFragments < std::numeric_limits<uint16_t>::max()) {
+    for(unsigned int i = 0; i < numberOfFragments; ++i) {
+      size_t startIndex = i * fragmentSize;
+      
+      //std::string's substr function will give us all characters until the end of
+      //the string if we ask it for too many (shouldn't run off the end of the string)
+      DataMessageFragment::MessageDataPtr fragmentData(new std::string(message.substr(startIndex, fragmentSize)));
+
+      DataMessageFragment newFragment;
+      newFragment.sequenceNumber = nextSequenceNumber;
+      newFragment.index = i;
+      newFragment.count = numberOfFragments;
+      newFragment.shouldAck = shouldAck;
+      newFragment.messageData = fragmentData;
+
+      sendDataMap[nextSequenceNumber] = newFragment;
+
+      ++nextSequenceNumber;
+    }
+  } else {
+    LOG_ERROR("Tried to send a message with too many fragments");
+  }
+}
+
 void SerialConnector::receivedAckPacket(const bool isToken, const std::vector<uint16_t> &acks) {
   if(isToken) {
     signalEvent(EVENT_TOKEN_RECEIVED);
   } else {
     signalEvent(EVENT_MESSAGE_RECEIVED);
-    LOG_WARN("Received ack; not yet implemented");
+    LOG_DEBUG("Received ack");
+
+    {
+      ThreadMutexGuard g(sendDataMapMutex);
+      for(std::vector<uint16_t>::const_iterator it = acks.begin(); it != acks.end(); ++it) {
+        size_t result = sendDataMap.erase(*it);
+        if(result < 1) {
+          LOG_WARN("Couldn't find acknowledged message.  Received duplicate ack?");
+        }
+      }
+    }
   }
 }
 
