@@ -102,7 +102,8 @@ serialConnector(),
 nextSequenceNumber(0),
 tokenTimeout(SatcomConfigurationManager::getInstance().getTokenTimeout()),
 initialState(SatcomConfigurationManager::getInstance().getInitialState()),
-fragmentSize(1024) //TODO: make configurable
+fragmentSize(1024), //TODO: make configurable
+fragmentsToSendPerCycle(3)
 {
   
 }
@@ -154,7 +155,7 @@ int SerialConnector::svc() {
       }
       case STATE_SENDING: {
         sendAckPacket();
-        //TODO: send some data packets
+        sendDataFragments();
         state = STATE_WAITING_FOR_ACK;
         break;
       }
@@ -506,6 +507,22 @@ void SerialConnector::sendTokenPacket() {
 
   LOG_TRACE("Sending token packet");
   writer.queueMessage(messageToSend);
+}
+
+void SerialConnector::sendDataFragments() {
+  ThreadMutexGuard g(sendDataMapMutex);
+
+  int sentFragments = 0;
+  SendDataMap::iterator it = sendDataMap.begin();
+  while(it != sendDataMap.end() && sentFragments < fragmentsToSendPerCycle) {
+    LOG_DEBUG("Sending message fragment " << it->second.sequenceNumber << "(" << it->second.index << "/" << it->second.count << ")");
+    writer.queueMessage(it->second.serializeFragment());
+    SendDataMap::iterator previousItem = it++;
+    if(!previousItem->second.shouldAck) {
+      //we don't require an ack for this item, so delete it from the map
+      sendDataMap.erase(previousItem); //invalidates previousItem, but not other iterators (like it)
+    }
+  }
 }
 
 void appendUInt8(std::ostream &stream, const uint8_t val) {

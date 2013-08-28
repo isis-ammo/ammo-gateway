@@ -174,12 +174,14 @@ private:
   int tokenTimeout;
   std::string initialState;
   uint16_t fragmentSize;
+  int fragmentsToSendPerCycle;
 
   void reset();
 
   void sendResetAck();
   void sendAckPacket();
   void sendTokenPacket();
+  void sendDataFragments();
 
   typedef std::tr1::unordered_map<uint16_t, FragmentedMessage> IncompleteMessageMap;
   IncompleteMessageMap incompleteMessages; //indexed by first sequence number in message
