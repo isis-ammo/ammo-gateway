@@ -537,7 +537,8 @@ void appendUInt16(std::ostream &stream, const uint16_t val) {
 
 //GatewayConnectorDelegate methods
 void SerialConnector::onConnect(ammo::gateway::GatewayConnector *sender) {
-  //do nothing
+  sender->registerDataInterest("ammo/transapps.pli.locations", this);
+  sender->registerDataInterest("ammo/transapps.chat.message_groupAll", this);
 }
 
 void SerialConnector::onDisconnect(ammo::gateway::GatewayConnector *sender) {
