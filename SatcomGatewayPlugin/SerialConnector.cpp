@@ -7,6 +7,7 @@
 
 #include "SatcomConfigurationManager.h"
 #include "BinaryOutputStream.h"
+#include "TerseEncoder.h"
 
 DataMessageFragment::DataMessageFragment() : 
 sequenceNumber(0),
@@ -541,4 +542,17 @@ void SerialConnector::onConnect(ammo::gateway::GatewayConnector *sender) {
 
 void SerialConnector::onDisconnect(ammo::gateway::GatewayConnector *sender) {
   //do nothing
+}
+
+//DataPushReceiverListener methods
+void SerialConnector::onPushDataReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PushData &pushData) {
+  TerseEncoder encoder;
+  std::string terseOutput;
+
+  bool result = encoder.encodeTerseFromJson(pushData.mimeType, pushData.data, terseOutput);
+  if(result == true) {
+    enqueueDataMessage(terseOutput, false); //todo: figure out which types should be acked
+  } else {
+    LOG_ERROR("Terse encoding failed");
+  }
 }

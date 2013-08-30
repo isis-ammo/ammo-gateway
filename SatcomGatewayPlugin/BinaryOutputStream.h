@@ -33,6 +33,13 @@ public:
   void appendBytes(const std::string &bytes);
   void appendBytes(const char *data, size_t length);
 
+  //Helpers for terse-specific compound types.  Stream
+  //should be in big-endian mode for these to work correctly
+  //(terse-encoded data is always big-endian)
+  void appendTerseString(const std::string &str);
+  void appendTerseBlob(const std::string &data);
+  void appendTerseFile(const std::string &data);
+
 private:
   std::ostringstream stream;
   StreamByteOrder order;

@@ -21,6 +21,7 @@ project(SatcomGatewayPlugin) : aceexe, protobuf, gatewaycommon, gatewayplugin {
     SerialReaderThread.cpp
 	  SerialWriterThread.cpp
 	  TerseDecoder.cpp
+    TerseEncoder.cpp
     BinaryOutputStream.cpp
   }
 

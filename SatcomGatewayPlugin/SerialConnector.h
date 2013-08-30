@@ -97,7 +97,7 @@ private:
 
 
 
-class SerialConnector : public ACE_Task<ACE_MT_SYNCH>, public ACE_Copy_Disabled, public ammo::gateway::GatewayConnectorDelegate {
+class SerialConnector : public ACE_Task<ACE_MT_SYNCH>, public ACE_Copy_Disabled, public ammo::gateway::GatewayConnectorDelegate, public ammo::gateway::DataPushReceiverListener {
 private:
   typedef std::queue<uint16_t> SequenceNumberQueue;
 
@@ -121,6 +121,9 @@ public:
   //GatewayConnectorDelegate methods
   virtual void onConnect(ammo::gateway::GatewayConnector *sender);
   virtual void onDisconnect(ammo::gateway::GatewayConnector *sender);
+
+  //DataPushReceiverListener methods
+  virtual void onPushDataReceived(ammo::gateway::GatewayConnector *sender, ammo::gateway::PushData &pushData);
   
 private:
   enum SerialConnectorState {

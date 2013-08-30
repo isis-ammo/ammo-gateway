@@ -1,5 +1,9 @@
 #include "BinaryOutputStream.h"
 
+#include <limits>
+
+#include <log.h>
+
 /*
  * TODO: This stream makes the assumption that we're on a little-endian
  * machine.  Eventually, we should fix that.
@@ -72,4 +76,30 @@ void BinaryOutputStream::appendBytes(const std::string &bytes) {
 
 void BinaryOutputStream::appendBytes(const char *data, size_t length) {
   stream.write(data, length);
+}
+
+void BinaryOutputStream::appendTerseString(const std::string &str) {
+  if(str.length() > std::numeric_limits<uint16_t>::max()) {
+    LOG_WARN("String too long; putting zero-length string instead");
+    appendUInt16(0);
+  } else {
+    appendUInt16(str.length());
+    appendBytes(str);
+  }
+}
+
+void BinaryOutputStream::appendTerseBlob(const std::string &data) {
+  //blob format is currently identical to terse string format (it might
+  //change later, which is why this method exists)
+  appendTerseString(data);
+}
+
+void BinaryOutputStream::appendTerseFile(const std::string &data) {
+  if(data.length() > std::numeric_limits<uint32_t>::max()) {
+    LOG_WARN("File data too long; putting zero-length file instead");
+    appendUInt32(0);
+  } else {
+    appendUInt32(data.length());
+    appendBytes(data);
+  }
 }
