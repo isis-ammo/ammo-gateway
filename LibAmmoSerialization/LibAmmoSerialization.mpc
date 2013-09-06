@@ -1,0 +1,15 @@
+project(LibAmmoSerialization) : aceexe, gatewaycommon {
+  after += LibJSON
+  
+  sharedname = ammoserialization
+  
+  dynamicflags += LIBAMMOSERIALIZATION_BUILD_DLL
+  
+  includes += $(GATEWAY_ROOT)/LibJSON
+
+  libs += json
+  
+  Source_Files {
+    Contract.cpp
+  }
+}
