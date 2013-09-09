@@ -1,0 +1,7 @@
+Makefile*
+GNUmakefile*
+*.o
+.depend*
+LibAmmoSerializationTest
+LibAmmoSerializationTest.exe
+Debug\

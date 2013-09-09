@@ -1,0 +1,16 @@
+project(LibAmmoSerializationTest) : aceexe, protobuf, gatewaycommon {
+  after += LibJSON LibAmmoSerialization
+
+  exename=LibAmmoSerializationTest
+  
+  includes += $(GATEWAY_ROOT)/LibJSON $(GATEWAY_ROOT)/LibAmmoSerialization
+  libs += json ammoserialization cppunit
+  
+  specific(prop:windows) {
+    macros += JSON_DLL
+  }
+  
+  Source_Files {
+    main.cpp
+  }
+}

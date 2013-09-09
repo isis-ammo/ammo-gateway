@@ -2,6 +2,7 @@ workspace(AndroidGatewayPlugin) {
   LDAPPlugin/
   LibGatewayConnector/
   LibJSON/
+  LibAmmoSerialization
   GatewayCore/
   AndroidGatewayPlugin/
   DataStoreGatewayPlugin

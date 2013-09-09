@@ -6,8 +6,6 @@
 #include <set>
 #include <map>
 
-#include "Typedefs.h"
-
 namespace ammo {
   namespace gateway {
     enum FieldType {
@@ -30,78 +28,6 @@ namespace ammo {
 
     FieldType fieldTypeFromString(std::string typeString);
 
-    class Contract {
-    public:
-      typedef std::map<Relation> RelationMap;
-
-      /*
-      * Gets the sponsor name for this contract.
-      */
-      std::string getSponsor() const { return sponsor; }
-
-      /*
-      * These functions get the iterators required to iterate across
-      * all relations in the contract.
-      */
-      const RelationMap &getRelations() const { return relations; }
-    private:
-      std::string sponsor;
-      RelationMap relations;
-    };
-
-    class Relation {
-    public:
-      typedef std::list<Field> FieldList;
-      typedef std::set<Message> MessageSet;
-
-      Name getName() const { return name; }
-
-      const FieldList &getFields() const { return fields; }
-      const MessageList &getMessages() const { return messages; }
-
-    private:
-      Name name;
-      FieldList fields;
-      MessageList messages;
-    };
-
-    class Field {
-    public:
-      FieldType getType() const { return type; }
-      Name getName() const { return name; }
-      const std::string &getDefaultValue() const { return defaultValue; }
-      const bool getAllowNull() const { return allowNull };
-    private:
-      FieldType type;
-      Name name;
-      std::string defaultValue;
-      bool allowNull;
-    };
-
-    class Message {
-    public:
-      typedef std::list<FieldRef> FieldRefList;
-
-      const std::string &getEncoding() const { return encoding; }
-      const FieldRefList &getFieldRefs() const { return fieldRefs; }
-
-    private:
-      std::string encoding;
-      FieldRefList fieldRefs;
-    };
-
-    class FieldRef {
-    public:
-      Name getRefName() const { return refName; }
-      FieldType getConvertToType() const { return convertToType; }
-      bool isConvertToTypeSet() const { return convertToTypeSet; }
-
-    private:
-      Name refName;
-      FieldType convertToType;
-      bool convertToTypeSet;
-    };
-
     class Name {
     public:
       Name(std::string unformattedName);
@@ -116,6 +42,78 @@ namespace ammo {
       std::string camelCaseName;
       std::string snakeCaseName;
       std::string cobraCaseName;
+    };
+
+    class FieldRef {
+    public:
+      Name getRefName() const { return refName; }
+      FieldType getConvertToType() const { return convertToType; }
+      bool isConvertToTypeSet() const { return convertToTypeSet; }
+
+    private:
+      Name refName;
+      FieldType convertToType;
+      bool convertToTypeSet;
+    };
+
+    class Message {
+    public:
+      typedef std::list<FieldRef> FieldRefList;
+
+      const std::string &getEncoding() const { return encoding; }
+      const FieldRefList &getFieldRefs() const { return fieldRefs; }
+
+    private:
+      std::string encoding;
+      FieldRefList fieldRefs;
+    };
+
+    class Field {
+    public:
+      FieldType getType() const { return type; }
+      Name getName() const { return name; }
+      const std::string &getDefaultValue() const { return defaultValue; }
+      const bool getAllowNull() const { return allowNull; }
+    private:
+      FieldType type;
+      Name name;
+      std::string defaultValue;
+      bool allowNull;
+    };
+
+    class Relation {
+    public:
+      typedef std::list<Field> FieldList;
+      typedef std::set<Message> MessageSet;
+
+      Name getName() const { return name; }
+
+      const FieldList &getFields() const { return fields; }
+      const MessageSet &getMessages() const { return messages; }
+
+    private:
+      Name name;
+      FieldList fields;
+      MessageSet messages;
+    };
+
+    class Contract {
+    public:
+      typedef std::map<std::string, Relation> RelationMap;
+
+      /*
+      * Gets the sponsor name for this contract.
+      */
+      std::string getSponsor() const { return sponsor; }
+
+      /*
+      * These functions get the iterators required to iterate across
+      * all relations in the contract.
+      */
+      const RelationMap &getRelations() const { return relations; }
+    private:
+      std::string sponsor;
+      RelationMap relations;
     };
   };
 };
