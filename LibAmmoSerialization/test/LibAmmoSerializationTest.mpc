@@ -12,5 +12,6 @@ project(LibAmmoSerializationTest) : aceexe, protobuf, gatewaycommon {
   
   Source_Files {
     main.cpp
+    ContractTest.cpp
   }
 }

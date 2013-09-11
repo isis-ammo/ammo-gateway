@@ -32,16 +32,20 @@ namespace ammo {
     public:
       Name(std::string unformattedName);
 
-      std::string getName() const;
-      std::string toCamelCase() const;
-      std::string toSnakeCase() const;
-      std::string toCobraCase() const;
+      std::string getName() const { return unformattedName; };
+      std::string toCamelCase() const { return camelCaseName; };
+      std::string toSnakeCase() const { return snakeCaseName; };
+      std::string toCobraCase() const { return cobraCaseName; };
 
     private:
       std::string unformattedName;
       std::string camelCaseName;
       std::string snakeCaseName;
       std::string cobraCaseName;
+
+      static std::string makeCamelCase(std::string name);
+      static std::string makeSnakeCase(std::string name);
+      static std::string makeCobraCase(std::string name);
     };
 
     class FieldRef {
