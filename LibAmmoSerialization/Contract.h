@@ -2,9 +2,13 @@
 #define CONTRACT_H
 
 #include <string>
-#include <list>
+#include <vector>
 #include <set>
 #include <map>
+
+#include <tr1/memory>
+
+#include "pugixml.hpp"
 
 namespace ammo {
   namespace gateway {
@@ -50,6 +54,8 @@ namespace ammo {
 
     class FieldRef {
     public:
+      FieldRef(pugi::xml_node *fieldRefNode);
+
       Name getRefName() const { return refName; }
       FieldType getConvertToType() const { return convertToType; }
       bool isConvertToTypeSet() const { return convertToTypeSet; }
@@ -62,18 +68,22 @@ namespace ammo {
 
     class Message {
     public:
-      typedef std::list<FieldRef> FieldRefList;
+      typedef std::vector<FieldRef> FieldRefVector;
+
+      Message(pugi::xml_node *messageNode);
 
       const std::string &getEncoding() const { return encoding; }
-      const FieldRefList &getFieldRefs() const { return fieldRefs; }
+      const FieldRefVector &getFieldRefs() const { return fieldRefs; }
 
     private:
       std::string encoding;
-      FieldRefList fieldRefs;
+      FieldRefVector fieldRefs;
     };
 
     class Field {
     public:
+      Field(pugi::xml_node *fieldNode);
+
       FieldType getType() const { return type; }
       Name getName() const { return name; }
       const std::string &getDefaultValue() const { return defaultValue; }
@@ -87,23 +97,27 @@ namespace ammo {
 
     class Relation {
     public:
-      typedef std::list<Field> FieldList;
-      typedef std::set<Message> MessageSet;
+      typedef std::vector<Field> FieldVector;
+      typedef std::map<std::string, Message> MessageMap;
+
+      Relation(pugi::xml_node *relationNode);
 
       Name getName() const { return name; }
 
-      const FieldList &getFields() const { return fields; }
-      const MessageSet &getMessages() const { return messages; }
+      const FieldVector &getFields() const { return fields; }
+      const MessageMap &getMessages() const { return messages; }
 
     private:
       Name name;
-      FieldList fields;
-      MessageSet messages;
+      FieldVector fields;
+      MessageMap messages;
     };
 
     class Contract {
     public:
       typedef std::map<std::string, Relation> RelationMap;
+
+      Contract(pugi::xml_node *contractRoot);
 
       /*
       * Gets the sponsor name for this contract.
@@ -119,6 +133,12 @@ namespace ammo {
       std::string sponsor;
       RelationMap relations;
     };
+
+    /*
+    * Parses an XML document (contained in a string) and returns the root.
+    * This is intended as a helper for unit testing.
+    */
+    std::tr1::shared_ptr<pugi::xml_node> parseXml(const std::string &xmlString);
   };
 };
 

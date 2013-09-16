@@ -6,7 +6,6 @@
 
 class ContractTest : public CPPUNIT_NS::TestFixture {
   CPPUNIT_TEST_SUITE(ContractTest);
-  CPPUNIT_TEST(testEmptyContract);
   CPPUNIT_TEST(testNameEmptyUnformatted);
   CPPUNIT_TEST(testNameEmptyCamel);
   CPPUNIT_TEST(testNameEmptySnake);
@@ -21,6 +20,22 @@ class ContractTest : public CPPUNIT_NS::TestFixture {
   CPPUNIT_TEST(testNameMultiWordCamel);
   CPPUNIT_TEST(testNameMultiWordSnake);
   CPPUNIT_TEST(testNameMultiWordCobra);
+
+  CPPUNIT_TEST(testEmptyContract);
+
+  CPPUNIT_TEST(testFieldRefNoConvert);
+  CPPUNIT_TEST(testFieldRefConvert);
+
+  CPPUNIT_TEST(testMessageNoFieldRefs);
+  CPPUNIT_TEST(testMessageWithFieldRefs);
+
+  CPPUNIT_TEST(testField);
+  CPPUNIT_TEST(testFieldImplicitAllowNull);
+  CPPUNIT_TEST(testFieldExplicitAllowNull);
+
+  CPPUNIT_TEST(testRelation);
+
+  CPPUNIT_TEST(testContract);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -46,6 +61,20 @@ public:
   void testNameMultiWordCobra();
 
   void testEmptyContract();
+
+  void testFieldRefNoConvert();
+  void testFieldRefConvert();
+
+  void testMessageNoFieldRefs();
+  void testMessageWithFieldRefs();
+
+  void testField();
+  void testFieldImplicitAllowNull();
+  void testFieldExplicitAllowNull();
+
+  void testRelation();
+
+  void testContract();
 
 private:
   ContractTest( const ContractTest &copy);
