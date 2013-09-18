@@ -8,7 +8,7 @@
 
 #include <tr1/memory>
 
-#include "pugixml.hpp"
+#include "tinyxml2.h"
 
 namespace ammo {
   namespace gateway {
@@ -30,10 +30,11 @@ namespace ammo {
       FIELD_TYPE_FILE = 14
     };
 
-    FieldType fieldTypeFromString(std::string typeString);
+    FieldType fieldTypeFromString(const std::string &typeString);
 
     class Name {
     public:
+      Name();
       Name(std::string unformattedName);
 
       std::string getName() const { return unformattedName; };
@@ -54,7 +55,7 @@ namespace ammo {
 
     class FieldRef {
     public:
-      FieldRef(pugi::xml_node *fieldRefNode);
+      FieldRef(tinyxml2::XMLElement *fieldRefNode);
 
       Name getRefName() const { return refName; }
       FieldType getConvertToType() const { return convertToType; }
@@ -70,7 +71,7 @@ namespace ammo {
     public:
       typedef std::vector<FieldRef> FieldRefVector;
 
-      Message(pugi::xml_node *messageNode);
+      Message(tinyxml2::XMLElement *messageNode);
 
       const std::string &getEncoding() const { return encoding; }
       const FieldRefVector &getFieldRefs() const { return fieldRefs; }
@@ -82,7 +83,7 @@ namespace ammo {
 
     class Field {
     public:
-      Field(pugi::xml_node *fieldNode);
+      Field(tinyxml2::XMLElement *fieldNode);
 
       FieldType getType() const { return type; }
       Name getName() const { return name; }
@@ -100,7 +101,7 @@ namespace ammo {
       typedef std::vector<Field> FieldVector;
       typedef std::map<std::string, Message> MessageMap;
 
-      Relation(pugi::xml_node *relationNode);
+      Relation(tinyxml2::XMLElement *relationNode);
 
       Name getName() const { return name; }
 
@@ -117,7 +118,7 @@ namespace ammo {
     public:
       typedef std::map<std::string, Relation> RelationMap;
 
-      Contract(pugi::xml_node *contractRoot);
+      Contract(tinyxml2::XMLElement *contractRoot);
 
       /*
       * Gets the sponsor name for this contract.
@@ -138,7 +139,7 @@ namespace ammo {
     * Parses an XML document (contained in a string) and returns the root.
     * This is intended as a helper for unit testing.
     */
-    std::tr1::shared_ptr<pugi::xml_node> parseXml(const std::string &xmlString);
+    std::tr1::shared_ptr<tinyxml2::XMLDocument> parseXml(const std::string &xmlString);
   };
 };
 

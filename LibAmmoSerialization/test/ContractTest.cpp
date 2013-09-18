@@ -97,46 +97,46 @@ void ContractTest::testNameMultiWordCobra() {
   CPPUNIT_ASSERT_EQUAL(std::string("TestMultipleWords"), n.toCobraCase());
 }
 
-void testFieldRefNoConvert() {
+void ContractTest::testFieldRefNoConvert() {
   const std::string testXml = "<field ref=\"sender\" />";
 
-  std::tr1::shared_ptr<pugi::xml_node> fieldRefNode = parseXml(testXml);
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> fieldRefDocument = parseXml(testXml);
 
-  FieldRef fieldRef(fieldRefNode.get());
+  FieldRef fieldRef(fieldRefDocument->FirstChildElement());
 
   CPPUNIT_ASSERT_EQUAL(std::string("sender"), fieldRef.getRefName().getName());
   CPPUNIT_ASSERT_EQUAL(false, fieldRef.isConvertToTypeSet());
 }
 
-void testFieldRefConvert() {
+void ContractTest::testFieldRefConvert() {
   const std::string testXml = "<field ref=\"sender\" type=\"INTEGER\"/>";
 
-  std::tr1::shared_ptr<pugi::xml_node> fieldRefNode = parseXml(testXml);
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> fieldRefDocument = parseXml(testXml);
 
-  FieldRef fieldRef(fieldRefNode.get());
+  FieldRef fieldRef(fieldRefDocument->FirstChildElement());
 
   CPPUNIT_ASSERT_EQUAL(std::string("sender"), fieldRef.getRefName().getName());
   CPPUNIT_ASSERT_EQUAL(true, fieldRef.isConvertToTypeSet());
   CPPUNIT_ASSERT_EQUAL(FIELD_TYPE_INTEGER, fieldRef.getConvertToType());
 }
 
-void testMessageNoFieldRefs() {
+void ContractTest::testMessageNoFieldRefs() {
   const std::string testXml = "<message encoding=\"terse\"></message>";
 
-  std::tr1::shared_ptr<pugi::xml_node> messageNode = parseXml(testXml);
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> messageDocument = parseXml(testXml);
 
-  Message message(messageNode.get());
+  Message message(messageDocument->FirstChildElement());
 
   CPPUNIT_ASSERT_EQUAL(std::string("terse"), message.getEncoding());
   CPPUNIT_ASSERT_EQUAL(true, message.getFieldRefs().empty());
 }
 
-void testMessageWithFieldRefs() {
+void ContractTest::testMessageWithFieldRefs() {
   const std::string testXml = "<message encoding=\"json\"><field ref=\"field a\" /><field ref=\"field b\" /></message>";
 
-  std::tr1::shared_ptr<pugi::xml_node> messageNode = parseXml(testXml);
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> messageDocument = parseXml(testXml);
 
-  Message message(messageNode.get());
+  Message message(messageDocument->FirstChildElement());
 
   CPPUNIT_ASSERT_EQUAL(std::string("terse"), message.getEncoding());
   CPPUNIT_ASSERT_EQUAL(2UL, message.getFieldRefs().size());
@@ -144,12 +144,12 @@ void testMessageWithFieldRefs() {
   CPPUNIT_ASSERT_EQUAL(std::string("field_b"), message.getFieldRefs()[1].getRefName().toSnakeCase());
 }
 
-void testField() {
+void ContractTest::testField() {
   const std::string testXml = "<field type=\"TEXT\" name=\"test field\" default=\"default value\" null=\"no\" />";
 
-  std::tr1::shared_ptr<pugi::xml_node> fieldNode = parseXml(testXml);
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> fieldDocument = parseXml(testXml);
 
-  Field field(fieldNode.get());
+  Field field(fieldDocument->FirstChildElement());
 
   CPPUNIT_ASSERT_EQUAL(FIELD_TYPE_TEXT, field.getType());
   CPPUNIT_ASSERT_EQUAL(std::string("test_field"), field.getName().toSnakeCase());
@@ -157,12 +157,12 @@ void testField() {
   CPPUNIT_ASSERT_EQUAL(false, field.getAllowNull());
 }
 
-void testFieldImplicitAllowNull() {
+void ContractTest::testFieldImplicitAllowNull() {
   const std::string testXml = "<field type=\"TEXT\" name=\"test field\" default=\"default value\" />";
 
-  std::tr1::shared_ptr<pugi::xml_node> fieldNode = parseXml(testXml);
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> fieldDocument = parseXml(testXml);
 
-  Field field(fieldNode.get());
+  Field field(fieldDocument->FirstChildElement());
 
   CPPUNIT_ASSERT_EQUAL(FIELD_TYPE_TEXT, field.getType());
   CPPUNIT_ASSERT_EQUAL(std::string("test_field"), field.getName().toSnakeCase());
@@ -170,12 +170,12 @@ void testFieldImplicitAllowNull() {
   CPPUNIT_ASSERT_EQUAL(true, field.getAllowNull());
 }
 
-void testFieldExplicitAllowNull() {
+void ContractTest::testFieldExplicitAllowNull() {
   const std::string testXml = "<field type=\"TEXT\" name=\"test field\" default=\"default value\" null=\"yes\" />";
 
-  std::tr1::shared_ptr<pugi::xml_node> fieldNode = parseXml(testXml);
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> fieldDocument = parseXml(testXml);
 
-  Field field(fieldNode.get());
+  Field field(fieldDocument->FirstChildElement());
 
   CPPUNIT_ASSERT_EQUAL(FIELD_TYPE_TEXT, field.getType());
   CPPUNIT_ASSERT_EQUAL(std::string("test_field"), field.getName().toSnakeCase());
@@ -183,7 +183,7 @@ void testFieldExplicitAllowNull() {
   CPPUNIT_ASSERT_EQUAL(true, field.getAllowNull());
 }
 
-void testRelation() {
+void ContractTest::testRelation() {
   const std::string testXml = "<relation name=\"test relation\">"
                                 "<field type=\"INTEGER\" name=\"test field 1\" />"
                                 "<field type=\"INTEGER\" name=\"test field 2\" />"
@@ -191,9 +191,9 @@ void testRelation() {
                                 "<message encoding=\"json\"></message>"
                               "</relation>";
 
-  std::tr1::shared_ptr<pugi::xml_node> relationNode = parseXml(testXml);
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> relationDocument = parseXml(testXml);
 
-  Relation relation(relationNode.get());
+  Relation relation(relationDocument->FirstChildElement());
 
   CPPUNIT_ASSERT_EQUAL(std::string("testRelation"), relation.getName().toCamelCase());
 
@@ -224,7 +224,7 @@ void testRelation() {
   CPPUNIT_ASSERT_EQUAL(std::string("json"), relation.getMessages().at("json").getEncoding());
 }
 
-void testContract() {
+void ContractTest::testContract() {
   const std::string testXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                               "<content-provider name=\"test\">"
                                 "<sponsor name=\"edu.vu.isis.ammo.gateway.test\" />"
@@ -232,9 +232,9 @@ void testContract() {
                                 "<relation name=\"test relation 2\"></relation>"
                               "</content-provider>";
 
-  std::tr1::shared_ptr<pugi::xml_node> contractNode = parseXml(testXml);
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> contractDocument = parseXml(testXml);
 
-  Contract contract(contractNode.get());
+  Contract contract(contractDocument->FirstChildElement());
 
   CPPUNIT_ASSERT_EQUAL(std::string("edu.vu.isis.ammo.gateway.test"), contract.getSponsor());
 

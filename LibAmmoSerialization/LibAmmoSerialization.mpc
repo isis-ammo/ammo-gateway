@@ -11,5 +11,6 @@ project(LibAmmoSerialization) : aceexe, gatewaycommon {
   
   Source_Files {
     Contract.cpp
+    tinyxml2.cpp
   }
 }
