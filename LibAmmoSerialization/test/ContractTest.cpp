@@ -138,7 +138,7 @@ void ContractTest::testMessageWithFieldRefs() {
 
   Message message(messageDocument->FirstChildElement());
 
-  CPPUNIT_ASSERT_EQUAL(std::string("terse"), message.getEncoding());
+  CPPUNIT_ASSERT_EQUAL(std::string("json"), message.getEncoding());
   CPPUNIT_ASSERT_EQUAL(2UL, message.getFieldRefs().size());
   CPPUNIT_ASSERT_EQUAL(std::string("field_a"), message.getFieldRefs()[0].getRefName().toSnakeCase());
   CPPUNIT_ASSERT_EQUAL(std::string("field_b"), message.getFieldRefs()[1].getRefName().toSnakeCase());
@@ -207,19 +207,7 @@ void ContractTest::testRelation() {
   fieldIt++;
   CPPUNIT_ASSERT(fieldIt == relation.getFields().end());
 
-  //test iteration across messages
-  Relation::MessageMap::const_iterator messageIt = relation.getMessages().begin();
-  CPPUNIT_ASSERT(messageIt != relation.getMessages().end());
-  CPPUNIT_ASSERT_EQUAL(std::string("terse"), messageIt->first);
-  CPPUNIT_ASSERT_EQUAL(std::string("terse"), messageIt->second.getEncoding());
-  messageIt++;
-  CPPUNIT_ASSERT(messageIt != relation.getMessages().end());
-  CPPUNIT_ASSERT_EQUAL(std::string("json"), messageIt->first);
-  CPPUNIT_ASSERT_EQUAL(std::string("json"), messageIt->second.getEncoding());
-  messageIt++;
-  CPPUNIT_ASSERT(messageIt == relation.getMessages().end());
-
-  //test direct access to messages
+  //test direct access to messages 
   CPPUNIT_ASSERT_EQUAL(std::string("terse"), relation.getMessages().at("terse").getEncoding());
   CPPUNIT_ASSERT_EQUAL(std::string("json"), relation.getMessages().at("json").getEncoding());
 }

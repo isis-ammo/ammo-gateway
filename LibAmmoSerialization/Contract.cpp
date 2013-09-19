@@ -5,9 +5,11 @@
 #include <cctype>
 #include <iostream>
 
+#include <log.h>
+
 using namespace ammo::gateway;
 
-FieldType fieldTypeFromString(const std::string &typeString) {
+FieldType ammo::gateway::fieldTypeFromString(const std::string &typeString) {
   if(typeString == "NULL") {
     return FIELD_TYPE_NULL;
   } else if(typeString == "BOOL") {
@@ -39,6 +41,7 @@ FieldType fieldTypeFromString(const std::string &typeString) {
   } else if(typeString == "FILE") {
     return FIELD_TYPE_FILE;
   } else {
+    LOG_WARN("Invalid field type; assuming NULL");
     return FIELD_TYPE_NULL;
   }
 }
@@ -170,32 +173,115 @@ std::string Name::makeCobraCase(std::string name) {
   return camelCaseStream.str();
 }
 
-FieldRef::FieldRef(tinyxml2::XMLElement *fieldRefNode) {
+FieldRef::FieldRef(tinyxml2::XMLElement *fieldRefNode) : refName(""), convertToType(FIELD_TYPE_NULL), convertToTypeSet(false) {
+  const char *newRefName = fieldRefNode->Attribute("ref");
+  if(newRefName != NULL) {
+    refName = Name(std::string(newRefName));
+  } else {
+    LOG_ERROR("FieldRef found with no ref name");
+  }
 
+  const char *newType = fieldRefNode->Attribute("type");
+  if(newType != NULL) {
+    convertToTypeSet = true;
+    convertToType = fieldTypeFromString(newType);
+  } else {
+    convertToTypeSet = false;
+  }
 }
 
-Message::Message(tinyxml2::XMLElement *messageNode) {
+Message::Message(tinyxml2::XMLElement *messageNode) : encoding(""), fieldRefs() {
+  const char *newEncoding = messageNode->Attribute("encoding");
+  if(newEncoding != NULL) {
+    encoding = newEncoding;
+  } else {
+    LOG_ERROR("Encoding found with no encoding type");
+  }
 
+  for(tinyxml2::XMLElement *fieldRefChild = messageNode->FirstChildElement("field"); fieldRefChild != NULL; fieldRefChild = fieldRefChild->NextSiblingElement("field")) {
+    FieldRef newFieldRef(fieldRefChild);
+    fieldRefs.push_back(newFieldRef);
+  }
 }
 
-Field::Field(tinyxml2::XMLElement *fieldNode) {
+Field::Field(tinyxml2::XMLElement *fieldNode) : type(FIELD_TYPE_NULL), name(""), defaultValue(""), allowNull(true) {
+  const char *newType = fieldNode->Attribute("type");
+  if(newType != NULL) {
+    type = fieldTypeFromString(std::string(newType));
+  } else {
+    LOG_ERROR("Field found with no type");
+  }
 
+  const char *newName = fieldNode->Attribute("name");
+  if(newName != NULL) {
+    name = Name(std::string(newName));
+  } else {
+    LOG_ERROR("Field found with no name");
+  }
+
+  const char *newDefault = fieldNode->Attribute("default");
+  if(newDefault != NULL) {
+    defaultValue = newDefault;
+  } else {
+    defaultValue = "";
+  }
+
+  const char *newAllowNull = fieldNode->Attribute("null");
+  if(newAllowNull != NULL) {
+    if(std::string(newAllowNull) == "yes") {
+      allowNull = true;
+    } else if(std::string(newAllowNull) == "no") {
+      allowNull = false;
+    } else {
+      LOG_WARN("Invalid value for 'null' attribute (can be 'yes' or 'no'");
+    }
+  } else {
+    allowNull = true;
+  }
 }
 
-Relation::Relation(tinyxml2::XMLElement *relationNode) {
+Relation::Relation(tinyxml2::XMLElement *relationNode) : name(""), fields(), messages() {
+  const char *newName = relationNode->Attribute("name");
+  if(newName != NULL) {
+    name = Name(std::string(newName));
+  } else {
+    LOG_ERROR("Field found with no name");
+  }
 
+  for(tinyxml2::XMLElement *fieldChild = relationNode->FirstChildElement("field"); fieldChild != NULL; fieldChild = fieldChild->NextSiblingElement("field")) {
+    Field newField(fieldChild);
+    fields.push_back(newField);
+  }
+
+  for(tinyxml2::XMLElement *messageChild = relationNode->FirstChildElement("message"); messageChild != NULL; messageChild = messageChild->NextSiblingElement("message")) {
+    Message newMessage(messageChild);
+    messages.insert(MessageMap::value_type(newMessage.getEncoding(), newMessage));
+  }
 }
 
-Contract::Contract(tinyxml2::XMLElement *contractRoot) {
+Contract::Contract(tinyxml2::XMLElement *contractRoot) : sponsor(""), relations() {
+  tinyxml2::XMLElement *sponsorChild = contractRoot->FirstChildElement("sponsor");
+  if(sponsorChild != NULL) {
+    const char *sponsorName = sponsorChild->Attribute("name");
+    if(sponsorName != NULL) {
+      sponsor = sponsorName;
+    } else {
+      LOG_ERROR("Sponsor element contained no name");
+    }
+  } else {
+    LOG_ERROR("Contract was missing sponsor");
+  }
 
+  for(tinyxml2::XMLElement *relationChild = contractRoot->FirstChildElement("relation"); relationChild != NULL; relationChild = relationChild->NextSiblingElement("relation")) {
+    Relation newRelation(relationChild);
+    relations.insert(RelationMap::value_type(newRelation.getName().getName(), newRelation));
+  }
 }
 
 std::tr1::shared_ptr<tinyxml2::XMLDocument> ammo::gateway::parseXml(const std::string &xmlString) {
   std::tr1::shared_ptr<tinyxml2::XMLDocument> document(new tinyxml2::XMLDocument);
 
   document->Parse(xmlString.c_str());
-
-  std::cout << document->FirstChildElement()->Name() << std::endl;
 
   return document;
 }
