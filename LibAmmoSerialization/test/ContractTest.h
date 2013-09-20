@@ -36,6 +36,22 @@ class ContractTest : public CPPUNIT_NS::TestFixture {
   CPPUNIT_TEST(testRelation);
 
   CPPUNIT_TEST(testContract);
+
+  CPPUNIT_TEST(testFieldRefNoName);
+  CPPUNIT_TEST(testFieldRefEmptyName);
+  CPPUNIT_TEST(testMessageNoEncoding);
+  CPPUNIT_TEST(testMessageEmptyEncoding);
+  CPPUNIT_TEST(testFieldNoType);
+  CPPUNIT_TEST(testFieldEmptyType);
+  CPPUNIT_TEST(testFieldNoName);
+  CPPUNIT_TEST(testFieldEmptyName);
+  CPPUNIT_TEST(testFieldInvalidNull);
+  CPPUNIT_TEST(testRelationNoName);
+  CPPUNIT_TEST(testRelationEmptyName);
+  CPPUNIT_TEST(testContractMissingSponsor);
+  CPPUNIT_TEST(testContractNoSponsorName);
+  CPPUNIT_TEST(testContractEmptySponsorName);
+
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -75,6 +91,22 @@ public:
   void testRelation();
 
   void testContract();
+
+  //tests for correct exception handling
+  void testFieldRefNoName();
+  void testFieldRefEmptyName();
+  void testMessageNoEncoding();
+  void testMessageEmptyEncoding();
+  void testFieldNoType();
+  void testFieldEmptyType();
+  void testFieldNoName();
+  void testFieldEmptyName();
+  void testFieldInvalidNull();
+  void testRelationNoName();
+  void testRelationEmptyName();
+  void testContractMissingSponsor();
+  void testContractNoSponsorName();
+  void testContractEmptySponsorName();
 
 private:
   ContractTest( const ContractTest &copy);

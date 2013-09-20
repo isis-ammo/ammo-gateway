@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <sstream>
 
 #include <tr1/memory>
 
@@ -12,6 +13,22 @@
 
 namespace ammo {
   namespace gateway {
+    class InvalidContractException : public std::exception {
+    public:
+      InvalidContractException(const std::string &message) : message(message) {
+
+      }
+
+      virtual ~InvalidContractException() throw() { }
+
+      virtual const char *what() const throw() {
+        return message.c_str();
+      }
+
+    private:
+      std::string message;
+    };
+
     enum FieldType {
       FIELD_TYPE_NULL = 0,
       FIELD_TYPE_BOOL = 1,
@@ -30,7 +47,7 @@ namespace ammo {
       FIELD_TYPE_FILE = 14
     };
 
-    FieldType fieldTypeFromString(const std::string &typeString);
+    FieldType fieldTypeFromString(const std::string &typeString) throw(InvalidContractException);
 
     class Name {
     public:
@@ -55,7 +72,7 @@ namespace ammo {
 
     class FieldRef {
     public:
-      FieldRef(tinyxml2::XMLElement *fieldRefNode);
+      FieldRef(tinyxml2::XMLElement *fieldRefNode) throw(InvalidContractException);
 
       Name getRefName() const { return refName; }
       FieldType getConvertToType() const { return convertToType; }
@@ -71,7 +88,7 @@ namespace ammo {
     public:
       typedef std::vector<FieldRef> FieldRefVector;
 
-      Message(tinyxml2::XMLElement *messageNode);
+      Message(tinyxml2::XMLElement *messageNode) throw(InvalidContractException);
 
       const std::string &getEncoding() const { return encoding; }
       const FieldRefVector &getFieldRefs() const { return fieldRefs; }
@@ -83,7 +100,7 @@ namespace ammo {
 
     class Field {
     public:
-      Field(tinyxml2::XMLElement *fieldNode);
+      Field(tinyxml2::XMLElement *fieldNode) throw(InvalidContractException);
 
       FieldType getType() const { return type; }
       Name getName() const { return name; }
@@ -101,7 +118,7 @@ namespace ammo {
       typedef std::vector<Field> FieldVector;
       typedef std::map<std::string, Message> MessageMap;
 
-      Relation(tinyxml2::XMLElement *relationNode);
+      Relation(tinyxml2::XMLElement *relationNode) throw(InvalidContractException);
 
       Name getName() const { return name; }
 
@@ -118,7 +135,7 @@ namespace ammo {
     public:
       typedef std::map<std::string, Relation> RelationMap;
 
-      Contract(tinyxml2::XMLElement *contractRoot);
+      Contract(tinyxml2::XMLElement *contractRoot) throw(InvalidContractException);
 
       /*
       * Gets the sponsor name for this contract.

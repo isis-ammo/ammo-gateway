@@ -230,3 +230,140 @@ void ContractTest::testContract() {
   CPPUNIT_ASSERT_EQUAL(std::string("testRelation1"), contract.getRelations().at("test relation 1").getName().toCamelCase());
   CPPUNIT_ASSERT_EQUAL(std::string("testRelation2"), contract.getRelations().at("test relation 2").getName().toCamelCase());
 }
+
+void ContractTest::testFieldRefNoName() {
+  const std::string testXml = "<field />";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> fieldRefDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(FieldRef(fieldRefDocument->FirstChildElement()), InvalidContractException);
+}
+
+void ContractTest::testFieldRefEmptyName() {
+  const std::string testXml = "<field ref=\"\" />";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> fieldRefDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(FieldRef(fieldRefDocument->FirstChildElement()), InvalidContractException);
+}
+
+void ContractTest::testMessageNoEncoding() {
+  const std::string testXml = "<message></message>";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> messageDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(Message(messageDocument->FirstChildElement()), InvalidContractException);
+}
+
+void ContractTest::testMessageEmptyEncoding() {
+  const std::string testXml = "<message encoding=\"\"></message>";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> messageDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(Message(messageDocument->FirstChildElement()), InvalidContractException);
+}
+
+void ContractTest::testFieldNoType() {
+  const std::string testXml = "<field name=\"test field\" default=\"default value\" null=\"no\" />";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> fieldDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(Field(fieldDocument->FirstChildElement()), InvalidContractException);
+}
+
+void ContractTest::testFieldEmptyType() {
+  const std::string testXml = "<field type=\"\" name=\"test field\" default=\"default value\" null=\"no\" />";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> fieldDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(Field(fieldDocument->FirstChildElement()), InvalidContractException);
+}
+
+void ContractTest::testFieldNoName() {
+  const std::string testXml = "<field type=\"TEXT\" default=\"default value\" null=\"no\" />";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> fieldDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(Field(fieldDocument->FirstChildElement()), InvalidContractException);
+}
+
+void ContractTest::testFieldEmptyName() {
+  const std::string testXml = "<field type=\"TEXT\" name=\"\" default=\"default value\" null=\"no\" />";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> fieldDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(Field(fieldDocument->FirstChildElement()), InvalidContractException);
+}
+
+void ContractTest::testFieldInvalidNull() {
+  const std::string testXml = "<field type=\"TEXT\" name=\"test field\" default=\"default value\" null=\"false\" />";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> fieldDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(Field(fieldDocument->FirstChildElement()), InvalidContractException);
+}
+
+void ContractTest::testRelationNoName() {
+  const std::string testXml = "<relation>"
+                                "<field type=\"INTEGER\" name=\"test field 1\" />"
+                                "<field type=\"INTEGER\" name=\"test field 2\" />"
+                                "<message encoding=\"terse\"></message>"
+                                "<message encoding=\"json\"></message>"
+                              "</relation>";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> relationDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(Relation(relationDocument->FirstChildElement()), InvalidContractException);
+}
+
+void ContractTest::testRelationEmptyName() {
+  const std::string testXml = "<relation name=\"\">"
+                                "<field type=\"INTEGER\" name=\"test field 1\" />"
+                                "<field type=\"INTEGER\" name=\"test field 2\" />"
+                                "<message encoding=\"terse\"></message>"
+                                "<message encoding=\"json\"></message>"
+                              "</relation>";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> relationDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(Relation(relationDocument->FirstChildElement()), InvalidContractException);
+}
+
+void ContractTest::testContractMissingSponsor() {
+  const std::string testXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                              "<content-provider name=\"test\">"
+                                "<relation name=\"test relation 1\"></relation>"
+                                "<relation name=\"test relation 2\"></relation>"
+                              "</content-provider>";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> contractDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(Contract(contractDocument->FirstChildElement()), InvalidContractException);
+}
+
+void ContractTest::testContractNoSponsorName() {
+  const std::string testXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                              "<content-provider name=\"test\">"
+                                "<sponsor />"
+                                "<relation name=\"test relation 1\"></relation>"
+                                "<relation name=\"test relation 2\"></relation>"
+                              "</content-provider>";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> contractDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(Contract(contractDocument->FirstChildElement()), InvalidContractException);
+}
+
+void ContractTest::testContractEmptySponsorName() {
+  const std::string testXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                              "<content-provider name=\"test\">"
+                                "<sponsor name=\"\" />"
+                                "<relation name=\"test relation 1\"></relation>"
+                                "<relation name=\"test relation 2\"></relation>"
+                              "</content-provider>";
+
+  std::tr1::shared_ptr<tinyxml2::XMLDocument> contractDocument = parseXml(testXml);
+
+  CPPUNIT_ASSERT_THROW(Contract(contractDocument->FirstChildElement()), InvalidContractException);
+}
+

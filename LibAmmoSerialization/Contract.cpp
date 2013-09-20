@@ -9,7 +9,7 @@
 
 using namespace ammo::gateway;
 
-FieldType ammo::gateway::fieldTypeFromString(const std::string &typeString) {
+FieldType ammo::gateway::fieldTypeFromString(const std::string &typeString) throw(InvalidContractException) {
   if(typeString == "NULL") {
     return FIELD_TYPE_NULL;
   } else if(typeString == "BOOL") {
@@ -41,7 +41,7 @@ FieldType ammo::gateway::fieldTypeFromString(const std::string &typeString) {
   } else if(typeString == "FILE") {
     return FIELD_TYPE_FILE;
   } else {
-    LOG_WARN("Invalid field type; assuming NULL");
+    throw InvalidContractException("Invalid contract: Invalid field type; assuming NULL");
     return FIELD_TYPE_NULL;
   }
 }
@@ -173,12 +173,15 @@ std::string Name::makeCobraCase(std::string name) {
   return camelCaseStream.str();
 }
 
-FieldRef::FieldRef(tinyxml2::XMLElement *fieldRefNode) : refName(""), convertToType(FIELD_TYPE_NULL), convertToTypeSet(false) {
+FieldRef::FieldRef(tinyxml2::XMLElement *fieldRefNode) throw(InvalidContractException) : refName(""), convertToType(FIELD_TYPE_NULL), convertToTypeSet(false) {
   const char *newRefName = fieldRefNode->Attribute("ref");
   if(newRefName != NULL) {
     refName = Name(std::string(newRefName));
+    if(refName.getName() == "") {
+      throw InvalidContractException("Invalid contract: Field reference name cannot be empty");
+    }
   } else {
-    LOG_ERROR("FieldRef found with no ref name");
+    throw InvalidContractException("Invalid contract: FieldRef found with no ref name");
   }
 
   const char *newType = fieldRefNode->Attribute("type");
@@ -190,12 +193,15 @@ FieldRef::FieldRef(tinyxml2::XMLElement *fieldRefNode) : refName(""), convertToT
   }
 }
 
-Message::Message(tinyxml2::XMLElement *messageNode) : encoding(""), fieldRefs() {
+Message::Message(tinyxml2::XMLElement *messageNode) throw(InvalidContractException) : encoding(""), fieldRefs() {
   const char *newEncoding = messageNode->Attribute("encoding");
   if(newEncoding != NULL) {
     encoding = newEncoding;
+    if(encoding == "") {
+      throw InvalidContractException("Invalid contract: Message encoding cannot be empty");
+    }
   } else {
-    LOG_ERROR("Encoding found with no encoding type");
+    throw InvalidContractException("Invalid contract: Encoding found with no encoding type");
   }
 
   for(tinyxml2::XMLElement *fieldRefChild = messageNode->FirstChildElement("field"); fieldRefChild != NULL; fieldRefChild = fieldRefChild->NextSiblingElement("field")) {
@@ -204,19 +210,23 @@ Message::Message(tinyxml2::XMLElement *messageNode) : encoding(""), fieldRefs() 
   }
 }
 
-Field::Field(tinyxml2::XMLElement *fieldNode) : type(FIELD_TYPE_NULL), name(""), defaultValue(""), allowNull(true) {
+Field::Field(tinyxml2::XMLElement *fieldNode) throw(InvalidContractException) : type(FIELD_TYPE_NULL), name(""), defaultValue(""), allowNull(true) {
   const char *newType = fieldNode->Attribute("type");
   if(newType != NULL) {
     type = fieldTypeFromString(std::string(newType));
   } else {
-    LOG_ERROR("Field found with no type");
+    throw InvalidContractException("Invalid contract: Field found with no type");
   }
 
   const char *newName = fieldNode->Attribute("name");
   if(newName != NULL) {
     name = Name(std::string(newName));
+
+    if(name.getName() == "") {
+      throw InvalidContractException("Invalid contract: Field name cannot be empty");
+    }
   } else {
-    LOG_ERROR("Field found with no name");
+    throw InvalidContractException("Invalid contract: Field found with no name");
   }
 
   const char *newDefault = fieldNode->Attribute("default");
@@ -233,19 +243,23 @@ Field::Field(tinyxml2::XMLElement *fieldNode) : type(FIELD_TYPE_NULL), name(""),
     } else if(std::string(newAllowNull) == "no") {
       allowNull = false;
     } else {
-      LOG_WARN("Invalid value for 'null' attribute (can be 'yes' or 'no'");
+      throw InvalidContractException("Invalid contract: Invalid value for 'null' attribute (can be 'yes' or 'no'");
     }
   } else {
     allowNull = true;
   }
 }
 
-Relation::Relation(tinyxml2::XMLElement *relationNode) : name(""), fields(), messages() {
+Relation::Relation(tinyxml2::XMLElement *relationNode) throw(InvalidContractException) : name(""), fields(), messages() {
   const char *newName = relationNode->Attribute("name");
   if(newName != NULL) {
     name = Name(std::string(newName));
+
+    if(name.getName() == "") {
+      throw InvalidContractException("Invalid contract: Field name cannot be empty");
+    }
   } else {
-    LOG_ERROR("Field found with no name");
+    throw InvalidContractException("Invalid contract: Relation found with no name");
   }
 
   for(tinyxml2::XMLElement *fieldChild = relationNode->FirstChildElement("field"); fieldChild != NULL; fieldChild = fieldChild->NextSiblingElement("field")) {
@@ -259,17 +273,21 @@ Relation::Relation(tinyxml2::XMLElement *relationNode) : name(""), fields(), mes
   }
 }
 
-Contract::Contract(tinyxml2::XMLElement *contractRoot) : sponsor(""), relations() {
+Contract::Contract(tinyxml2::XMLElement *contractRoot) throw(InvalidContractException) : sponsor(""), relations() {
   tinyxml2::XMLElement *sponsorChild = contractRoot->FirstChildElement("sponsor");
   if(sponsorChild != NULL) {
     const char *sponsorName = sponsorChild->Attribute("name");
     if(sponsorName != NULL) {
       sponsor = sponsorName;
+
+      if(sponsor == "") {
+        throw InvalidContractException("Invalid Contract: Sponsor name cannot be empty");
+      }
     } else {
-      LOG_ERROR("Sponsor element contained no name");
+      throw InvalidContractException("Invalid contract: Sponsor element contained no name");
     }
   } else {
-    LOG_ERROR("Contract was missing sponsor");
+    throw InvalidContractException("Invalid contract: Contract was missing sponsor");
   }
 
   for(tinyxml2::XMLElement *relationChild = contractRoot->FirstChildElement("relation"); relationChild != NULL; relationChild = relationChild->NextSiblingElement("relation")) {
