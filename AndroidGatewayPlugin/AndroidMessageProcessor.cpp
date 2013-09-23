@@ -241,6 +241,14 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
     
     LOG_DEBUG((long) commsHandler << " Sending heartbeat acknowledgement to connected device...");
     commsHandler->send(heartbeatAck);
+
+	PushData pushData;
+	pushData.mimeType = "ammo/edu.vu.isis.ammo.heartbeat";
+	pushData.scope = SCOPE_GLOBAL;
+	pushData.originUsername = this->userId;
+	pushData.originDevice = this->deviceId;
+    LOG_DEBUG((long) commsHandler << " Sending heartbeat push to gateway...");
+	gatewayConnector->pushData(pushData);
   }
 }
 
