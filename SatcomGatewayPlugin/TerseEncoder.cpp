@@ -10,6 +10,10 @@
 
 using namespace std;
 
+#ifdef WIN32
+#define atoll(str) _atoi64(str)
+#endif
+
 const std::string PLI_MIME_TYPE = "ammo/transapps.pli.locations";
 const std::string CHAT_MIME_TYPE = "ammo/transapps.chat.message_groupAll";
 

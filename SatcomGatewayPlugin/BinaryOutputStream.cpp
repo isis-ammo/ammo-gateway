@@ -1,3 +1,6 @@
+#define NOMINMAX //When building under visual studio, a max macro defined in winnt.h 
+                 //interferes with the members of numeric_limits
+
 #include "BinaryOutputStream.h"
 
 #include <limits>
