@@ -60,7 +60,7 @@ int SerialReaderThread::svc() {
           if(headerChecksumValid) {
             state = STATE_READING_DATA;
             payload.clear();
-            LOG_TRACE("Header checksum valid; allocationg buffer of size " << header.size);
+            LOG_TRACE("Header checksum valid; allocating buffer of size " << header.size);
             payload.resize(header.size);
             bytesRead = 0;
           } else {

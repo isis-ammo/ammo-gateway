@@ -156,7 +156,7 @@ int SerialConnector::svc() {
       }
       case STATE_SENDING: {
         sendAckPacket();
-        sendDataFragments();
+        //sendDataFragments(); //FIXME: turned off for build to Brad
         state = STATE_WAITING_FOR_ACK;
         break;
       }
@@ -537,8 +537,9 @@ void appendUInt16(std::ostream &stream, const uint16_t val) {
 
 //GatewayConnectorDelegate methods
 void SerialConnector::onConnect(ammo::gateway::GatewayConnector *sender) {
-  sender->registerDataInterest("ammo/transapps.pli.locations", this);
-  sender->registerDataInterest("ammo/transapps.chat.message_groupAll", this);
+  //FIXME: turned off for build for Brad (not quite working on device side)
+  //sender->registerDataInterest("ammo/transapps.pli.locations", this);
+  //sender->registerDataInterest("ammo/transapps.chat.message_groupAll", this);
 }
 
 void SerialConnector::onDisconnect(ammo::gateway::GatewayConnector *sender) {
