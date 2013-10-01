@@ -47,7 +47,7 @@ int SerialReaderThread::svc() {
           }
         } else {
           //got an invalid byte; reset and start over
-          LOG_WARN("Received bad magic number");
+          LOG_WARN("Received bad magic number (" << ((unsigned int) readChar & 0xff) << ")");
           state = STATE_READING_MAGIC;
           bytesRead = 0;
         }
