@@ -14,14 +14,15 @@ from twisted.internet import reactor
 latencies = []
 
 def onDataReceived(connector, msg):
+  print msg
   receivedTime = time.time()
-  if msg.type == AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE:
-    splitMessage = msg.data_message.data.split("/")
-    sequenceNumber = int(splitMessage[0])
-    sentTime = float(splitMessage[1])
-    timeDifference = receivedTime - sentTime
-    print "{0},{1:.9f}".format(sequenceNumber, timeDifference)
-    latencies.append(timeDifference)
+  #if msg.type == AmmoMessages_pb2.MessageWrapper.DATA_MESSAGE:
+  #  splitMessage = msg.data_message.data.split("/")
+  #  sequenceNumber = int(splitMessage[0])
+  #  sentTime = float(splitMessage[1])
+  #  timeDifference = receivedTime - sentTime
+  #  print "{0},{1:.9f}".format(sequenceNumber, timeDifference)
+  #  latencies.append(timeDifference)
 
 if __name__ == "__main__":
   print "Android Gateway Tester"
@@ -63,7 +64,8 @@ if __name__ == "__main__":
     connector.waitForAuthentication()
     
     print "Subscribing."
-    connector.subscribe("ammo/edu.vu.isis.ammo.test.TestData", scope)
+    connector.subscribe("ammo/edu.vu.isis.ammo.dash.event", scope)
+    connector.subscribe("ammo/edu.vu.isis.ammo.dash.media", scope)
     sequenceNumber = 0
     
     while True:

@@ -25,7 +25,7 @@ private:
   int rangeScale;
   int timeScale;
 
-  void processDash(const std::string &terseData);
+  std::string processDashMedia(const std::string &terseData);
 
   std::string parseTerseData(int mt, const char *data, size_t terseLength, std::string &originUser );
   void parseGroupPliBlob(std::string groupPliBlob, int32_t baseLat, int32_t baseLon, uint32_t baseTime);

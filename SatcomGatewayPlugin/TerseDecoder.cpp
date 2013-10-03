@@ -6,6 +6,7 @@
 
 #include "TerseDecoder.h"
 #include "SatcomConfigurationManager.h"
+#include "BinaryOutputStream.h"
 
 #include <fstream>
 
@@ -17,6 +18,7 @@ const char DEFAULT_PRIORITY = 50;
 const char *NEVADA_PLI_MIMETYPE = "ammo/com.aterrasys.nevada.locations";
 const char *TRANSAPPS_PLI_MIMETYPE = "ammo/transapps.pli.locations";
 const char *DASH_EVENT_MIMETYPE = "ammo/edu.vu.isis.ammo.dash.event";
+const char *DASH_MEDIA_MIMETYPE = "ammo/edu.vu.isis.ammo.dash.media";
 const char *CHAT_MESSAGE_ALL_MIMETYPE = "ammo/transapps.chat.message_groupAll";
 
 //Serial type ID constants
@@ -76,9 +78,10 @@ bool TerseDecoder::processMessage(const uint8_t dataType, const std::string &ter
       pushData.originUsername = originUser;
       break;
     case DASH_MEDIA_TYPEID:
-      //temporary hack for large media file testing; don't send anything
-      LOG_WARN("Received Dash Media; not forwarding to gateway");
-      processDash(terseData);
+      pushData.mimeType = DASH_MEDIA_MIMETYPE;
+      pushData.data = processDashMedia(terseData);
+      pushData.uri = "serial-dash-media";
+      processDashMedia(terseData);
       return false;
     default:
       LOG_ERROR("Unsupported terse data type: " << (int) dataType);
@@ -91,7 +94,7 @@ bool TerseDecoder::processMessage(const uint8_t dataType, const std::string &ter
   return true;
 }
 
-void TerseDecoder::processDash(const std::string &terseData) {
+std::string TerseDecoder::processDashMedia(const std::string &terseData) {
   const char *data = terseData.data();
   size_t cursor = 0;
   size_t length = terseData.length();
@@ -104,6 +107,22 @@ void TerseDecoder::processDash(const std::string &terseData) {
   std::ofstream eventFile(filename.data(), std::ofstream::out | std::ofstream::binary);
   eventFile.write(fileData->data(), fileData->length());
   eventFile.close();
+
+  uint64_t createdDate = extractInt64(data, cursor, length);
+  uint64_t modifiedDate = extractInt64(data, cursor, length);
+
+  std::ostringstream jsonStream;
+
+  jsonStream << "{\"data\":\"" << filename  << "\",\"created_date\":\"" << createdDate  << "\",\"event_id\":\"" << eventId << "\",\"modified_date\":\"" << modifiedDate << "\",\"data_type\":\"" << "image/jpeg" << "\"}";
+
+  BinaryOutputStream dataToSend(BinaryOutputStream::ORDER_BIG_ENDIAN);
+  dataToSend.appendBytes(jsonStream.str().c_str(), jsonStream.str().length() + 1); //we want the ending null terminator, which c_str() should have
+  dataToSend.appendBytes("data\0", 5);
+  dataToSend.appendUInt32(fileData->length());
+  dataToSend.appendBytes(fileData->data(), fileData->length());
+  dataToSend.appendUInt32(fileData->length());
+
+  return dataToSend.getString();
 }
 
 std::string TerseDecoder::extractString(const char *terse, size_t& cursor, size_t length)
@@ -309,6 +328,19 @@ std::string TerseDecoder::parseTerseData(int mt, const char *terse, size_t terse
     break;
 
   case DASH_EVENT_TYPEID:			// Dash-Event
+    {
+      std::string uuid = extractString(terse, cursor, terseLength);
+      int32_t mediaCount = extractInt32(terse, cursor, terseLength);
+      originUser = extractString(terse, cursor, terseLength);
+      int32_t latitude = extractInt32(terse, cursor, terseLength);
+      int32_t longitude = extractInt32(terse, cursor, terseLength);
+      std::string title = extractString(terse, cursor, terseLength);
+      std::string description = extractString(terse, cursor, terseLength);
+      uint64_t created = extractInt64(terse, cursor, terseLength);
+
+      jsonStr << "{\"created_date\":\"" << created << "\",\"modified_date\":\"" << created << "\",\"status\":\"" << 3 << "\",\"media_count\":\"" << mediaCount << "\",\"cid\":\"" << "null" << "\",\"size\":\"" << 0 << "\",\"display_name\":\"" << "<no_title>" << "\",\"category\":\"" << "null" <<"\",\"description\":\"" << description << "\",\"longitude\":\"" << longitude << "\",\"uuid\":\"" << uuid << "\",\"latitude\":\"" << latitude << "\",\"originator\":\"" << originUser << "\"}";
+    }
+    
     break;
   case CHAT_MESSAGE_ALL_TYPEID:			// Group-chat
     /*
