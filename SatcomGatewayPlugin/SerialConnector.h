@@ -79,6 +79,10 @@ public:
     return dataType;
   }
 
+  uint16_t getStartingSequenceNumber() { return startingSequenceNumber; }
+  uint16_t getFragmentsCount() { return fragmentsCount; }
+  uint16_t getReceivedFragmentsCount() { return receivedFragmentsCount; }
+
   /**
   * Precondition: complete message has been received (isMessageComplete() is true).
   * Behavior is undefined if it hasn't.

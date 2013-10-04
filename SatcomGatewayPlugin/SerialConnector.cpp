@@ -9,6 +9,8 @@
 #include "BinaryOutputStream.h"
 #include "TerseEncoder.h"
 
+const char *MIME_TYPE_TRANSFER_STATUS = "ammo/edu.vu.isis.ammo.satcom.transfer_status";
+
 DataMessageFragment::DataMessageFragment() : 
 sequenceNumber(0),
 index(0),
@@ -357,6 +359,25 @@ void SerialConnector::receivedMessageFragment(const DataMessage dataHeader, cons
   }
 
   messageIt->second.gotMessageFragment(dataHeader, data);
+
+  if(messageIt->second.getFragmentsCount() != 1) {
+    std::ostringstream transferStatusPushData;
+    transferStatusPushData << "{\"index\":\"" << messageIt->second.getStartingSequenceNumber();
+    transferStatusPushData << "\",\"received\":\"" << messageIt->second.getReceivedFragmentsCount();
+    transferStatusPushData << "\",\"total\":\"" << messageIt->second.getFragmentsCount() << "\"}";
+
+    ammo::gateway::PushData transferStatusPush;
+    transferStatusPush.uri = "satcom-status-update";
+    transferStatusPush.encoding = "json";
+    transferStatusPush.mimeType = MIME_TYPE_TRANSFER_STATUS;
+    transferStatusPush.ackThresholds.deviceDelivered = false;
+    transferStatusPush.ackThresholds.pluginDelivered = false;
+    transferStatusPush.scope = ammo::gateway::SCOPE_LOCAL;
+    transferStatusPush.data = transferStatusPushData.str();
+
+    gatewayConnector.pushData(transferStatusPush);
+
+  }
 
   if(messageIt->second.isMessageComplete()) {
     std::string completeMessage = messageIt->second.reconstructCompleteMessage();
