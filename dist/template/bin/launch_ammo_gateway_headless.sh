@@ -19,7 +19,6 @@ gatewaycorelog="$LOGDIR/GatewayCore.log.$datesuffix"
 androidpluginlog="$LOGDIR/AndroidGatewayPlugin.log.$datesuffix"
 datastorepluginlog="$LOGDIR/DataStoreGatewayPlugin.log.$datesuffix"
 ldappluginlog="$LOGDIR/LdapGatewayPlugin.log.$datesuffix"
-passpluginlog="$LOGDIR/PassGatewayPlugin.log.$datesuffix"
 mcastpluginlog="$LOGDIR/MCastGatewayPlugin.log.$datesuffix"
 rmcastpluginlog="$LOGDIR/RMCastGatewayPlugin.log.$datesuffix"
 
@@ -56,11 +55,5 @@ rmcastplugin.sh >$rmcastpluginlog 2>&1 &
 #echo "Launching LDAP Gateway Plugin..."
 #echo "  Log file in $ldappluginlog"
 #LdapGatewayPlugin > $ldappluginlog 2>&1 &
-
-#sleep 5
-#
-#echo "Launching Pass Gateway Plugin..."
-#echo "  Log file in $passpluginlog"
-#PassGatewayPlugin > $passpluginlog 2>&1 &
 
 echo "Gateway is started...  run ./kill_all_gateway.sh to stop."

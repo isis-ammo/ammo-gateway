@@ -75,7 +75,6 @@ rm -rf %{buildroot}
 /etc/ammo-gateway/LoggingConfig.json
 /etc/ammo-gateway/DataStorePluginConfig.json
 /etc/ammo-gateway/SerialPluginConfig.json
-/etc/ammo-gateway/PassPluginConfig.json
 /etc/ammo-gateway/keys
 /etc/ammo-gateway/jgroups/udp.xml
 /etc/ammo-gateway/jgroups/udpMedia.xml
@@ -85,7 +84,6 @@ rm -rf %{buildroot}
 /usr/bin/GatewayUsbTransfer
 /usr/bin/LdapGatewayPlugin
 /usr/bin/DataStoreGatewayPlugin
-/usr/bin/PassGatewayPlugin
 /usr/bin/SamplePushReceiverGatewayPlugin
 /usr/bin/SamplePushTestDriverPlugin
 /usr/bin/SpotPushReceiverGatewayPlugin
