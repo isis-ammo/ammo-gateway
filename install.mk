@@ -40,7 +40,6 @@ install: all
 	install -m 755 build/bin/LdapGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/DataStoreGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SerialGatewayPlugin $(INSTALL_DIR)/bin
-	install -m 755 build/bin/PassGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SamplePushReceiverGatewayPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SamplePushTestDriverPlugin $(INSTALL_DIR)/bin
 	install -m 755 build/bin/SpotPushReceiverGatewayPlugin $(INSTALL_DIR)/bin
@@ -94,7 +93,6 @@ install: all
 	install -m 644 build/etc/LoggingConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/DataStorePluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/SerialPluginConfig.json $(DESTDIR)/etc/ammo-gateway
-	install -m 644 build/etc/PassPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/MCastPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 644 build/etc/RMCastPluginConfig.json $(DESTDIR)/etc/ammo-gateway
 	install -m 755 RMCastPlugin/jgroups/udp.xml $(DESTDIR)/etc/ammo-gateway/jgroups
