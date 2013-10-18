@@ -13,6 +13,5 @@ workspace(AndroidGatewayPlugin) {
     SamplePushTestDriverPlugin/
     SpotPushReceiverGatewayPlugin/
     AtsGatewayPlugin/
-    PassGatewayPlugin/
   }
 }

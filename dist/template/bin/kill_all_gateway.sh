@@ -8,7 +8,6 @@ killall GatewayCore
 killall AndroidGatewayPlugin
 killall LdapGatewayPlugin
 killall DataStoreGatewayPlugin
-killall PassGatewayPlugin
 pkill -f edu.vu.isis.ammo.rmcastplugin.RMCastPlugin
 pkill -f edu.vu.isis.ammo.mcastplugin.MCastPlugin
 
@@ -20,7 +19,6 @@ killall -9 GatewayCore
 killall -9 AndroidGatewayPlugin
 killall -9 LdapGatewayPlugin
 killall -9 DataStoreGatewayPlugin
-killall -9 PassGatewayPlugin
 pkill -9 -f edu.vu.isis.ammo.rmcastplugin.RMCastPlugin
 pkill -9 -f edu.vu.isis.ammo.mcastplugin.MCastPlugin
 
