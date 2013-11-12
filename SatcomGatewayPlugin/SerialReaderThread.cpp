@@ -245,15 +245,16 @@ bool SerialReaderThread::processData(const SatcomHeader &header, const std::stri
             LOG_TRACE("Ack count short: " << std::hex << ackCountShort);
             bool isToken = (ackCountShort >> 15) == 1;
             uint16_t ackCount = ackCountShort & 0x7f;
+            vector<uint16_t> ackSequenceNumbers;
+            if(!isToken) {
+              size_t expectedPayloadSize = ackCount * sizeof(uint16_t) + sizeof(ackCountShort) + sizeof(payloadInfoByte);
 
-            size_t expectedPayloadSize = ackCount * sizeof(uint16_t) + sizeof(ackCountShort) + sizeof(payloadInfoByte);
-
-            if(expectedPayloadSize == payload.size()) {
-              vector<uint16_t> ackSequenceNumbers;
-              ackSequenceNumbers.reserve(ackCount);
-              for(int i = 0; i < ackCount; i++) {
-                uint16_t newAckSequenceNumber = payload[i*sizeof(uint16_t) + sizeof(ackCountShort) + sizeof(payloadInfoByte)];
-                ackSequenceNumbers.push_back(newAckSequenceNumber);
+              if(expectedPayloadSize == payload.size()) {
+                ackSequenceNumbers.reserve(ackCount);
+                for(int i = 0; i < ackCount; i++) {
+                  uint16_t newAckSequenceNumber = payload[i*sizeof(uint16_t) + sizeof(ackCountShort) + sizeof(payloadInfoByte)];
+                  ackSequenceNumbers.push_back(newAckSequenceNumber);
+                }
               }
 
               connector->receivedAckPacket(isToken, ackSequenceNumbers);
