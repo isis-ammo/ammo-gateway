@@ -134,7 +134,9 @@ nextSequenceNumber(0),
 tokenTimeout(SatcomConfigurationManager::getInstance().getTokenTimeout()),
 initialState(SatcomConfigurationManager::getInstance().getInitialState()),
 fragmentSize(1024), //TODO: make configurable
-fragmentsToSendPerCycle(3)
+fragmentsToSendPerCycle(3),
+myTokenSequenceNumber(1),
+lastReceivedTokenSequenceNumber(0)
 {
   
 }
@@ -450,9 +452,14 @@ void SerialConnector::enqueueDataMessage(const std::string &message, const bool 
   }
 }
 
-void SerialConnector::receivedAckPacket(const bool isToken, const std::vector<uint16_t> &acks) {
+void SerialConnector::receivedAckPacket(const bool isToken, const uint8_t ackCount, const std::vector<uint16_t> &acks) {
   if(isToken) {
-    signalEvent(EVENT_TOKEN_RECEIVED);
+    if(ackCount != lastReceivedTokenSequenceNumber) {
+      signalEvent(EVENT_TOKEN_RECEIVED);
+      myTokenSequenceNumber = (myTokenSequenceNumber + 1) % 0x7f;
+    } else {
+      LOG_WARN("Received duplicate token (seq num: " << ackCount << ")");
+    }
   } else {
     signalEvent(EVENT_MESSAGE_RECEIVED);
     LOG_DEBUG("Received ack");
@@ -551,7 +558,7 @@ void SerialConnector::sendAckPacket() {
 void SerialConnector::sendTokenPacket() {
   std::ostringstream ackPacketDataStream; //first byte is message type; second two bytes are ack info
   appendUInt8(ackPacketDataStream, 0x80); //1000 0000; ack or token packet
-  appendUInt16(ackPacketDataStream, 0x8000); //1000 0000 0000 0000; high byte set indicates that this is a token packet; no acks included
+  appendUInt16(ackPacketDataStream, 0x8000 | (myTokenSequenceNumber & 0x7f)); //1000 0000 0000 0000; high byte set indicates that this is a token packet; no acks included
 
   SerialWriterThread::MutableQueuedMessagePtr messageToSend(new std::string(ackPacketDataStream.str()));
 

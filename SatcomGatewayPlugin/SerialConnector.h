@@ -145,7 +145,7 @@ public:
   bool writeMessageFragment(const std::string &message);
 
   void receivedMessageFragment(const DataMessage dataHeader, const uint8_t shouldAck, const uint8_t dataType, const std::string &data);
-  void receivedAckPacket(const bool isToken, const std::vector<uint16_t> &acks);
+  void receivedAckPacket(const bool isToken, const uint8_t ackCount, const std::vector<uint16_t> &acks);
   void receivedReset();
 
   SequenceNumberQueue getSequenceNumbersToAck();
@@ -210,6 +210,9 @@ private:
   std::string initialState;
   uint16_t fragmentSize;
   int fragmentsToSendPerCycle;
+
+  uint8_t myTokenSequenceNumber;
+  uint8_t lastReceivedTokenSequenceNumber;
 
   void reset();
 

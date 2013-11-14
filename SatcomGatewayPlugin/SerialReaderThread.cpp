@@ -255,14 +255,14 @@ bool SerialReaderThread::processData(const SatcomHeader &header, const std::stri
                   uint16_t newAckSequenceNumber = payload[i*sizeof(uint16_t) + sizeof(ackCountShort) + sizeof(payloadInfoByte)];
                   ackSequenceNumbers.push_back(newAckSequenceNumber);
                 }
+              } else {
+                LOG_ERROR("Ack packet is not the correct size...  (expected = " << expectedPayloadSize << " actual = " << payload.size() << ")");
+                return false;
               }
+            } 
 
-              connector->receivedAckPacket(isToken, ackSequenceNumbers);
-              return true;
-            } else {
-              LOG_ERROR("Ack packet is not the correct size...  (expected = " << expectedPayloadSize << " actual = " << payload.size() << ")");
-              return false;
-            }
+            connector->receivedAckPacket(isToken, ackCount, ackSequenceNumbers);
+            return true;
           } else {
             LOG_ERROR("Not enough data to read ack byte");
             return false;
