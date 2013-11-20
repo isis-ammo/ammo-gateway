@@ -22,16 +22,20 @@ if not os.path.isdir(jar_dir):
 
 latencies = []
 
+def appendPath( jar ):
+	print "Append " + jar
+	sys.path.append(jar);
 
 if __name__ == "__main__":
   print "Java API Tester"
   print jar_dir
 
-  sys.path.append(jar_dir+"/dist/lib/gatewaypluginapi-1.3.9.jar")
-  sys.path.append(jar_dir+"/libs/json-20090211.jar")
-  sys.path.append(jar_dir+"/libs/slf4j-api-1.6.4.jar")
-  sys.path.append(jar_dir+"/libs/slf4j-simple-1.6.4.jar")
-  sys.path.append(jar_dir+"/libs/protobuf.jar")
+  appendPath(jar_dir+"/../JavaGatewayProtocol/target/gateway-protocol-1.7.5-SNAPSHOT-protoc24.jar")
+  appendPath(jar_dir+"/target/java-gateway-connector-1.7.5-SNAPSHOT.jar")
+  appendPath(jar_dir+"/libs/json-20090211.jar")
+  appendPath(jar_dir+"/libs/slf4j-api-1.6.4.jar")
+  appendPath(jar_dir+"/libs/slf4j-simple-1.6.4.jar")
+  appendPath(jar_dir+"/libs/protobuf.jar")
 
   from edu.vu.isis.ammo.gateway import GatewayConnector
   from edu.vu.isis.ammo.gateway import GatewayConnectorDelegate
@@ -73,7 +77,7 @@ if __name__ == "__main__":
       print "GatewayConnectorDelegate.onConnect"
       print "Subscribing."
       receiver  = DataPushReceiver( )
-      sender.registerDataInterest("ammo/transapps.chat.message_groupAll", receiver, None);
+      sender.registerDataInterest("ammo/transapps.sync.sync_message", receiver, None);
 
     def onDisconnect(self, sender):
       print "GatewayConnectorDelegate.onDisonnect"

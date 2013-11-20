@@ -1,51 +1,26 @@
-Copyright (c) Vanderbilt University, 2010-2011, ALL RIGHTS RESERVED, UNLESS
-OTHERWISE STATED.
-
-Developed under contract for DARPA by the Institute for Software Integrated
-Systems, Vanderbilt Univ.
-
-This AMMMO software is open-source, freely available, you are free to use,
-modify, copy, and distribute--perpetually and irrevocably--the AMMMO software
-source code and object code produced from the source, as well as copy and
-distribute modified versions of this software. You must, however, include this
-copyright statement along with any code built using AMMMO software that you
-release. No copyright statement needs to be provided if you just ship binary
-executables of your software products.
-
-You can use AMMMO software in commercial and/or binary software releases and are
-under no obligation to redistribute any of your source code that is built using
-AMMMO software. Note, however, that you may not do anything to the AMMMO
-software code, such as copyrighting it yourself or claiming authorship of the
-AMMMO software code that will prevent AMMMO software from being distributed
-freely using an open-source development model. You needn't inform anyone that
-you're using AMMMO software in your software, though we encourage you to let us
-know so we can promote your project in the AMMMO software success stories.
-
-The AMMMO web sites are maintained by the Institute for Software Integrated
-Systems (ISIS). Submissions are provided by the submitter ``as is'' with no
-warranties whatsoever, including any warranty of merchantability,
-noninfringement of third party intellectual property, or fitness for any
-particular purpose. In no event shall the submitter be liable for any direct,
-indirect, special, exemplary, punitive, or consequential damages, including
-without limitation, lost profits, even if advised of the possibility of such
-damages. Likewise, AMMMO software is provided as is with no warranties of any
-kind, including the warranties of design, merchantability, and fitness for a
-particular purpose, noninfringement, or arising from a course of dealing, usage
-or trade practice. Vanderbilt University, their employees, and students shall
-have no liability with respect to the infringement of copyrights, trade secrets
-or any patents by AMMMO software or any part thereof. Moreover, in no event will
-Vanderbilt University, their employees, or students be liable for any lost
-revenue or profits or other special, indirect and consequential damages or any
-damages whatsoever resulting from loss of use, data or profits, whether in an
-action of contract, negligence or other tortious action, arising out of or in
-connection with the use or performance of this software.
-
-AMMMO software is provided with no support and without any obligation on the
-part of Vanderbilt University, their employees, or students to assist in its
-use, correction, modification, or enhancement.
-
-The names AMMMO(TM), and Vanderbilt University, may not be used to endorse or
-promote products or services derived from this source without express written
-permission from Vanderbilt University. This license grants no permission to call
-products or services derived from this source AMMMO(TM), nor does it grant
-permission for the name Vanderbilt University to appear in their names.
+Copyright (C) 2010-2013 Vanderbilt University
+ 
+This software was developed by the Institute for Software Integrated
+Systems (ISIS) at Vanderbilt University, Tennessee, USA for the
+Transformative Apps program under DARPA, Contract # HR011-10-C-0175 and
+Contract # HR0011-12-C-0109.
+ 
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this data, including any software or models in source or binary
+form, as well as any drawings, specifications, and documentation
+(collectively "the Data"), to deal in the Data without restriction,
+including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Data, and to
+permit persons to whom the Data is furnished to do so, subject to the
+following conditions:
+ 
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Data.
+ 
+THE DATA IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS, SPONSORS, DEVELOPERS, CONTRIBUTORS, OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE DATA OR THE USE OR OTHER DEALINGS IN THE DATA. 
