@@ -1,8 +1,16 @@
 project {
-  includes += $(BOOST_1_55_ROOT)/include
-  libpaths += $(BOOST_1_55_ROOT)/lib
-  
-  libs += boost_log-mt boost_filesystem-mt boost_system-mt boost_thread-mt
+  specific(prop:microsoft) {
+    includes += $(BOOST_1_55_ROOT)
+    libpaths += $(BOOST_1_55_ROOT)/lib32-msvc-10.0
+
+    //This construct is undocumented, but is used by the UDM MPB supplied with ACE
+    Release::lit_libs += boost_log-vc100-mt-1_55 boost_filesystem-vc100-mt-1_55 boost_system-vc100-mt-1_55 boost_thread-vc100-mt-1_55
+    Debug::lit_libs += boost_log-vc100-mt-gd-1_55 boost_filesystem-vc100-mt-gd-1_55 boost_system-vc100-mt-gd-1_55 boost_thread-vc100-mt-gd-1_55
+  } else {
+    includes += $(BOOST_1_55_ROOT)/include
+    libpaths += $(BOOST_1_55_ROOT)/lib
+    libs += boost_log-mt boost_filesystem-mt boost_system-mt boost_thread-mt
+  }
   
   macros += BOOST_ALL_DYN_LINK
   
