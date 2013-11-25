@@ -19,6 +19,8 @@
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 
+#include <boost/filesystem.hpp>
+
 #ifdef WIN32
 #include <Windows.h>
 #include <shlwapi.h>
@@ -114,24 +116,46 @@ void setupLogging(std::string appName) {
   }
   
   if(logFile != "") { //blank filename or no logFile entry in config file writes to stderr
+    //we're not using the default trivial logging any more, so we need to register common attributes
+    boost::log::add_common_attributes();
+
     if(logFileMaxSize > 0) {
+      //log rotation is enabled
       std::string expandedFilename = expandLogFileName(logFile, appName);
       LOG_INFO("Logging to logrolled file with base name " << expandedFilename);
+
+      boost::filesystem::path logFilePath(expandedFilename);
+
+      LOG_INFO("Log filename " << (logFilePath.filename().generic_string() + ".%N"));
+      LOG_INFO("Log path " << (logFilePath.has_parent_path() ? logFilePath.parent_path().generic_string() : "."));
       
       boost::log::add_file_log
       (
-        boost::log::keywords::file_name = expandedFilename + ".%N",                                        
+        boost::log::keywords::file_name = expandedFilename, //logFilePath.filename().generic_string() + ".%N",                                        
         boost::log::keywords::rotation_size = logFileMaxSize * 1024,
         boost::log::keywords::max_size = logFileMaxSize * 1024 * logFileCount,
         boost::log::keywords::auto_flush = true,
+        boost::log::keywords::open_mode = std::ios_base::app | std::ios_base::out,
         boost::log::keywords::scan_method = boost::log::sinks::file::scan_matching,
-        boost::log::keywords::target = "."
+        boost::log::keywords::target = (logFilePath.has_parent_path() ? logFilePath.parent_path().generic_string() : "."),
+        boost::log::keywords::format = "[%TimeStamp%] [%ThreadID%] [%severity%] %Message%"
       );
+
+      /*sink->locked_backend()->set_file_collector(sinks::file::make_collector(
+        keywords::target = "logs",                      1
+        keywords::max_size = 16 * 1024 * 1024,          2
+        keywords::min_free_space = 100 * 1024 * 1024    3
+      ));*/
     } else {
+      //log rotation isn't enabled
+      std::string expandedFilename = expandLogFileName(logFile, appName);
+      boost::filesystem::path logFilePath(expandedFilename);
+
       boost::log::add_file_log
       (
-        boost::log::keywords::file_name = expandLogFileName(logFile, appName),
-        boost::log::keywords::auto_flush = true
+        boost::log::keywords::file_name = logFilePath.filename().generic_string() + ".%N",
+        boost::log::keywords::auto_flush = true,
+        boost::log::keywords::target = (logFilePath.has_parent_path() ? logFilePath.parent_path().generic_string() : ".")
       );
     }
   }
