@@ -18,6 +18,7 @@
 #include <boost/log/sinks/text_file_backend.hpp>
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/support/date_time.hpp>
 
 #include <boost/filesystem.hpp>
 
@@ -129,7 +130,7 @@ void setupLogging(std::string appName) {
       LOG_INFO("Log filename " << (logFilePath.filename().generic_string() + ".%N"));
       LOG_INFO("Log path " << (logFilePath.has_parent_path() ? logFilePath.parent_path().generic_string() : "."));
       
-      boost::log::add_file_log
+      boost::shared_ptr< boost::log::sinks::synchronous_sink< boost::log::sinks::text_file_backend > > sink = boost::log::add_file_log
       (
         boost::log::keywords::file_name = expandedFilename, //logFilePath.filename().generic_string() + ".%N",                                        
         boost::log::keywords::rotation_size = logFileMaxSize * 1024,
@@ -138,14 +139,17 @@ void setupLogging(std::string appName) {
         boost::log::keywords::open_mode = std::ios_base::app | std::ios_base::out,
         boost::log::keywords::scan_method = boost::log::sinks::file::scan_matching,
         boost::log::keywords::target = (logFilePath.has_parent_path() ? logFilePath.parent_path().generic_string() : "."),
-        boost::log::keywords::format = "[%TimeStamp%] [%ThreadID%] [%severity%] %Message%"
+        boost::log::keywords::format = (
+          boost::log::expressions::stream << "[" << boost::log::expressions::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") << "] "
+                                          << "[" << boost::log::expressions::attr<boost::log::attributes::current_thread_id::value_type>("ThreadID") << "] "
+                                          << std::setw(7) << std::setfill(' ') << boost::log::trivial::severity << ": "
+                                          << boost::log::expressions::smessage
+        )
       );
 
-      /*sink->locked_backend()->set_file_collector(sinks::file::make_collector(
-        keywords::target = "logs",                      1
-        keywords::max_size = 16 * 1024 * 1024,          2
-        keywords::min_free_space = 100 * 1024 * 1024    3
-      ));*/
+      sink->locked_backend()->set_file_collector(boost::log::sinks::file::make_collector(
+        boost::log::keywords::target = (logFilePath.has_parent_path() ? logFilePath.parent_path().generic_string() : ".")
+      ));
     } else {
       //log rotation isn't enabled
       std::string expandedFilename = expandLogFileName(logFile, appName);
