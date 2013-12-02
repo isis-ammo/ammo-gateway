@@ -44,6 +44,8 @@
 #include <stdint.h>
 #include <sstream>
 
+#include <ace/OS_NS_time.h>
+
 #include "SerialConfigurationManager.h"
 
 using namespace std;

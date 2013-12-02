@@ -30,6 +30,7 @@
 #define CONFIGURATION_MANAGER_H
 
 #include <string>
+#include <fstream>
 
 #include "json/value.h"
 
@@ -308,7 +309,7 @@ inline void ConfigurationManager::populate()
   std::string configFilename = findConfigFile();
   
   if(configFilename != "") {
-    ifstream configFile(configFilename.c_str());
+    std::ifstream configFile(configFilename.c_str());
     if(configFile) {
       Json::Value root;
       Json::Reader reader;
