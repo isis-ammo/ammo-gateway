@@ -29,8 +29,8 @@
 #ifndef TYPEDEFS_H
 #define TYPEDEFS_H
 
-#include <boost/tr1/memory>
-#include <boost/tr1/unordered_map>
+#include <boost/tr1/memory.hpp>
+#include <boost/tr1/unordered_map.hpp>
 
 #include <stdint.h>
 
