@@ -89,7 +89,9 @@ if __name__ == "__main__":
       jsonString = json.dumps(pliJson, separators=(",", ":"))
       print jsonString
       
-      connector.push("item:" + str(sequenceNumber), "ammo/transapps.pli.locations", jsonString, scope)
+      itemUid = "pli:" + uuid.uuid1().hex
+
+      connector.push(itemUid, "ammo/transapps.pli.locations", jsonString, scope)
       print "Pushed sequence number", sequenceNumber, "at", "{0:.6f}".format(time.time())
       sequenceNumber = sequenceNumber + 1
       time.sleep(options.rate)
