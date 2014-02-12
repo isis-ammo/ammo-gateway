@@ -1,3 +1,31 @@
+/* Copyright (C) 2010-2013 Vanderbilt University
+ *  
+ * This software was developed by the Institute for Software Integrated
+ * Systems (ISIS) at Vanderbilt University, Tennessee, USA for the
+ * Transformative Apps program under DARPA, Contract # HR011-10-C-0175 and
+ * Contract # HR0011-12-C-0109.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this data, including any software or models in source or binary
+ * form, as well as any drawings, specifications, and documentation
+ * (collectively "the Data"), to deal in the Data without restriction,
+ * including without limitation the rights to use, copy, modify, merge,
+ * publish, distribute, sublicense, and/or sell copies of the Data, and to
+ * permit persons to whom the Data is furnished to do so, subject to the
+ * following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Data.
+ *  
+ * THE DATA IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS, SPONSORS, DEVELOPERS, CONTRIBUTORS, OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE DATA OR THE USE OR OTHER DEALINGS IN THE DATA.
+ */
+
 /*Copyright (C) 2010-2012 Institute for Software Integrated Systems (ISIS)
 This software was developed by the Institute for Software Integrated
 Systems (ISIS) at Vanderbilt University, Tennessee, USA for the 
@@ -47,7 +75,8 @@ import edu.vu.isis.ammo.core.pb.AmmoMessages;
  *
  */
 class ReliableMulticastConnector {
-    private static final Logger logger = LoggerFactory.getLogger("net.rmcast");
+//    private static final Logger logger = LoggerFactory.getLogger("net.rmcast");
+    private Logger logger = null;
 
     private static final int BURP_TIME = 5 * 1000; // 5 seconds expressed in milliseconds
     
@@ -117,13 +146,26 @@ class ReliableMulticastConnector {
     static final int GATEWAY_MESSAGE_MAGIC = 0xdeadbeef;
     //static final byte[] GATEWAY_MESSAGE_MAGICB = { (byte)0xde, (byte)0xad, (byte)0xbe, (byte)0xef };
     static final byte[] GATEWAY_MESSAGE_MAGICB = { (byte)0xed, (byte)0xad, (byte)0xbe, (byte)0xef };
-    
 
-    public ReliableMulticastConnector(PluginServiceHandler plugin, String multicastAddr, int multicastPort) {
+    private String mChannelName = null;
+    private String mConfigFile = null;
+    private String mGroupName = null;
+
+    public ReliableMulticastConnector(PluginServiceHandler plugin, 
+				      String multicastAddr, 
+				      int multicastPort,
+				      String channelName,
+				      String configFile,
+				      String groupName) {
+  logger = LoggerFactory.getLogger("net." + mChannelName);
 	logger.info("Thread <{}>ReliableMulticastConnector::<constructor>", Thread.currentThread().getId());
 	this.mPlugin = plugin;
 	this.mMulticastAddress = multicastAddr;
 	this.mMulticastPort = multicastPort;
+	this.mGroupName = groupName;
+	
+	mChannelName = channelName;
+	mConfigFile = configFile;
 
 	this.connectorThread = new ConnectorThread(this);
 	mSenderQueue = new SenderQueue( this );
@@ -245,7 +287,8 @@ class ReliableMulticastConnector {
      *
      */
     private class ConnectorThread extends Thread implements ChannelListener { // jgroups listener interface
-	private final Logger logger = LoggerFactory.getLogger( "net.rmcast.connector" );
+//	private final Logger logger = LoggerFactory.getLogger( "net.rmcast.connector" );
+	private Logger logger = null;
 
 	private final String DEFAULT_HOST = "127.0.0.1";
 	private final int DEFAULT_PORT = 12475;
@@ -276,10 +319,12 @@ class ReliableMulticastConnector {
 
 
 	private ConnectorThread(ReliableMulticastConnector parent) {
+	    logger = LoggerFactory.getLogger( "net." + parent.mChannelName + ".connector" );
 	    logger.info("Thread <{}>ConnectorThread::<constructor>", Thread.currentThread().getId());
 	    this.parent = parent;
 	    this.state = new State();
 	    mIsConnected = new AtomicBoolean( false );
+      CONFIG_FILE = "jgroups/" + mConfigFile;
 	}
 
 	private class State {
@@ -366,10 +411,11 @@ class ReliableMulticastConnector {
                 logger.error( "Tried to create mJGroupChannel when we already had one." );
             try
             {
-            	File configFile = new File( findConfigFile("jgroups/udp.xml") );
+            	File configFile = new File( findConfigFile("jgroups/" + mConfigFile) );
             	parent.mJGroupChannel = new JChannel( configFile );
 		parent.mJGroupChannel.addChannelListener( this );
-            	parent.mJGroupChannel.setName( getLocalIpAddress() );
+            	//parent.mJGroupChannel.setName( getLocalIpAddress() );
+		          parent.mJGroupChannel.setName( getLocalIpAddress() + " " + mChannelName );
             	//parent.mJGroupChannel.setOpt( Channel.AUTO_RECONNECT, Boolean.TRUE ); // deprecated
             }
             catch ( Exception e )
@@ -405,7 +451,7 @@ class ReliableMulticastConnector {
 	    
 	    // connect Jchannel
 	    try {
-		parent.mJGroupChannel.connect( "AmmoGroup" );
+		parent.mJGroupChannel.connect( mGroupName);
 	    } catch ( Exception ex ) {
 		logger.error( "Exception while connecting to JGroups channel:  {} \n {}", ex.getMessage(), ex.getStackTrace() );
 	    }
@@ -456,7 +502,7 @@ class ReliableMulticastConnector {
         }
 
         private final static String CONFIG_DIRECTORY = "ammo-gateway";
-        private final static String CONFIG_FILE = "jgroups/udp.xml";
+        private String CONFIG_FILE = "jgroups/udp.xml";
 
         private String findConfigFile( String configFile ) {
             final String os = System.getProperty("os.name").toLowerCase();
@@ -570,6 +616,7 @@ class ReliableMulticastConnector {
                              SenderQueue iQueue,
                              JChannel iJChannel )
         {
+            logger = LoggerFactory.getLogger( "net." + mChannelName + ".sender" );
             mParent = iParent;
             mChannel = iChannel;
             mQueue = iQueue;
@@ -670,7 +717,7 @@ class ReliableMulticastConnector {
         private ReliableMulticastConnector mChannel;
         private SenderQueue mQueue;
         private JChannel mJChannel;
-        private final Logger logger = LoggerFactory.getLogger( "net.rmcast.sender" );
+        private Logger logger = null;
     }
 
 
@@ -683,6 +730,7 @@ class ReliableMulticastConnector {
         {
             mParent = iParent;
             mDestination = iDestination;
+            logger = LoggerFactory.getLogger( "net." + mChannelName + ".receiver" );
         }
 
 
@@ -827,8 +875,7 @@ class ReliableMulticastConnector {
         private int mState = ReliableMulticastConnector.TAKING; // FIXME
         private ConnectorThread mParent;
         private ReliableMulticastConnector mDestination;
-        private final Logger logger
-	    = LoggerFactory.getLogger( "net.rmcast.receiver" );
+        private Logger logger = null;
     }
 
 
