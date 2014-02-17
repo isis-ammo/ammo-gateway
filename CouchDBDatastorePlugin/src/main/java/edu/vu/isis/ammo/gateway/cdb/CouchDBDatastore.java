@@ -74,13 +74,16 @@ public class CouchDBDatastore {
 
             logger.debug("Item as JSON: {}", newNode);
 
-            if(newNode.has("_rev") && newNode.get("_rev").isTextual()) {
-                final String revisionId = newNode.get("_rev").asText();
-                logger.debug("Revision ID: {}", revisionId);
+            //parse out attachments if we need to
+            if(jsonLength < p.data.length) {
+                if(newNode.has("_rev") && newNode.get("_rev").isTextual()) {
+                    final String revisionId = newNode.get("_rev").asText();
+                    logger.debug("Revision ID: {}", revisionId);
 
-                parseBlobs(dbConnector, newNode, p.data, jsonLength);
-            } else {
-                logger.warn("CouchDB didn't add a revision ID to this object. It may not have been stored in the DB.");
+                    parseBlobs(dbConnector, newNode, p.data, jsonLength);
+                } else {
+                    logger.warn("CouchDB didn't add a revision ID to this object. It may not have been stored in the DB.");
+                }
             }
         } catch(JsonParseException e) {
             logger.error("Failed to parse JSON object", e);
@@ -146,7 +149,7 @@ public class CouchDBDatastore {
                 blobType = BlobTypeEnum.LARGE;
             }
 
-            newNode.put("_att_" + fieldName + "_blobType", blobType == BlobTypeEnum.SMALL ? 1:2);
+            newNode.put("att_" + fieldName + "_blobType", blobType == BlobTypeEnum.SMALL ? 1:2);
             dbConnector.update(newNode);
 
             if(newNode.has("_rev") && newNode.get("_rev").isTextual()) {
