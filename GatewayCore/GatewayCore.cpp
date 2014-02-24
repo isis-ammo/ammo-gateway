@@ -152,7 +152,7 @@ bool GatewayCore::unregisterPullInterest(std::string mime_type, MessageScope sco
   return foundSubscription;
 }
 
-bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originDevice, MessageScope messageScope, bool ackDeviceDelivered, bool ackPluginDelivered, char priority) {
+bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originDevice, MessageScope messageScope, bool ackDeviceDelivered, bool ackPluginDelivered, char priority, uint64_t receivedTime) {
   LOG_DEBUG("  Pushing data with uri: " << uri);
   LOG_DEBUG("                    type: " << mimeType);
   LOG_DEBUG("                    scope: " << messageScope);
@@ -162,7 +162,7 @@ bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uri, std::st
   
   for(it = handlers.begin(); it != handlers.end(); ++it) {
     if((*it) != sender) { //don't send pushed data to plugin that originated it, if it's subscribed to the same topic
-      (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, originDevice, messageScope, ackDeviceDelivered, ackPluginDelivered, priority);
+      (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, originDevice, messageScope, ackDeviceDelivered, ackPluginDelivered, priority, receivedTime);
     }
   }
   
@@ -181,7 +181,7 @@ bool GatewayCore::pushData(GatewayEventHandler *sender, std::string uri, std::st
 
       for(SubscriptionDataStore::SubscriptionHandlerSet::iterator it = subscribedHandlers.begin(); it != subscribedHandlers.end(); it++) {
         LOG_TRACE("Sending cross-gateway data");
-        crossGatewayHandlers[(*it)]->sendPushedData(uri, mimeType, encoding, data, originUser, priority);
+        crossGatewayHandlers[(*it)]->sendPushedData(uri, mimeType, encoding, data, originUser, priority, receivedTime);
       }
     }
   }
@@ -434,7 +434,7 @@ bool GatewayCore::unregisterPullInterestCrossGateway(std::string mimeType, std::
   return false;
 }
 
-bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originHandlerId, char priority) {
+bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originHandlerId, char priority, uint64_t receivedTime) {
   LOG_DEBUG("  Received cross-gateway push data with uri: " << uri);
   LOG_DEBUG("                                       type: " << mimeType);
   LOG_DEBUG("                                       from: " << originHandlerId);
@@ -461,7 +461,7 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, std::s
 
     for(it = handlers.begin(); it != handlers.end(); ++it) {
       if(scopeMap[*it] == SCOPE_GLOBAL) {  //disregarding scope for now; TODO: take scope into account
-        (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, "", SCOPE_GLOBAL, false, false, priority);
+        (*it)->sendPushedData(uri, mimeType, encoding, data, originUser, "", SCOPE_GLOBAL, false, false, priority, receivedTime);
       }
     }
 
@@ -475,7 +475,7 @@ bool GatewayCore::pushCrossGateway(std::string uri, std::string mimeType, std::s
     for(SubscriptionDataStore::SubscriptionHandlerSet::iterator it = subscribedHandlers.begin(); it != subscribedHandlers.end(); it++) {
       if(originHandlerId != (*it)) {
         LOG_TRACE("Sending cross-gateway data");
-        crossGatewayHandlers[(*it)]->sendPushedData(uri, mimeType, encoding, data, originUser, priority);
+        crossGatewayHandlers[(*it)]->sendPushedData(uri, mimeType, encoding, data, originUser, priority, receivedTime);
       }
     }
   }

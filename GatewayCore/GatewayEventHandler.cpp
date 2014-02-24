@@ -106,7 +106,14 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
       } else {
         scope = SCOPE_LOCAL;
       }
-      bool result = GatewayCore::getInstance()->pushData(this, msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), msg->push_data().origin_user() /*this->username*/, msg->push_data().origin_device(), scope, msg->push_data().thresholds().device_delivered(), msg->push_data().thresholds().plugin_delivered(), msg->message_priority());
+
+      int receivedTime = msg->push_data().received_time();
+      if(receivedTime == 0) {
+        //received time is missing; populate it here
+        LOG_WARN("Received time is missing; populating it (make sure you're running a current gateway library!)");
+        receivedTime = ACE_OS::gettimeofday().get_msec();
+      }
+      bool result = GatewayCore::getInstance()->pushData(this, msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), msg->push_data().origin_user() /*this->username*/, msg->push_data().origin_device(), scope, msg->push_data().thresholds().device_delivered(), msg->push_data().thresholds().plugin_delivered(), msg->message_priority(), receivedTime);
       if(result == true  && (msg->push_data().thresholds().device_delivered() || msg->push_data().thresholds().plugin_delivered())) {
         registeredPullResponsePluginIds.insert(msg->push_data().origin_device());
       }
@@ -218,7 +225,7 @@ int GatewayEventHandler::onError(const char errorCode) {
   return 0;
 }
 
-bool GatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originDevice, MessageScope scope, bool ackDeviceDelivered, bool ackPluginDelivered, char priority) {
+bool GatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, std::string originDevice, MessageScope scope, bool ackDeviceDelivered, bool ackPluginDelivered, char priority, uint64_t receivedTime) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
   pushMsg->set_uri(uri);
@@ -231,6 +238,8 @@ bool GatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, 
   ammo::gateway::protocol::AcknowledgementThresholds *thresholds = pushMsg->mutable_thresholds();
   thresholds->set_device_delivered(ackDeviceDelivered);
   thresholds->set_plugin_delivered(ackPluginDelivered);
+
+  pushMsg->set_received_time(receivedTime);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   msg->set_message_priority(priority);

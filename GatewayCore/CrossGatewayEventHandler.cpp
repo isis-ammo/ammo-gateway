@@ -99,7 +99,14 @@ int CrossGatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::Gatewa
     }
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA) {
     LOG_DEBUG("Received Push Data...");
-    GatewayCore::getInstance()->pushCrossGateway(msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), msg->push_data().origin_user(), gatewayId, msg->message_priority());
+    uint64_t receivedTime = msg->push_data().received_time();
+    if(receivedTime == 0) {
+      //Reject messages with unset received timestamp, because a missing value will break datastore sync
+      LOG_ERROR("PushData: received_time missing...  rejecting message!");
+      LOG_ERROR("          To resolve this error, update the connected gateway.");
+    } else {
+      GatewayCore::getInstance()->pushCrossGateway(msg->push_data().uri(), msg->push_data().mime_type(), msg->push_data().encoding(), msg->push_data().data(), msg->push_data().origin_user(), gatewayId, msg->message_priority(), msg->push_data().received_time());
+    }
   } else if(msg->type() == ammo::gateway::protocol::GatewayWrapper_MessageType_PULL_REQUEST) {
     LOG_DEBUG("Received Pull Request...");
     bool result = GatewayCore::getInstance()->pullRequestCrossGateway(msg->pull_request().request_uid(), msg->pull_request().plugin_id(), msg->pull_request().mime_type(), msg->pull_request().query(),
@@ -171,7 +178,7 @@ bool CrossGatewayEventHandler::sendUnsubscribeMessage(std::string mime_type) {
   return true;
 }
 
-bool CrossGatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, char priority) {
+bool CrossGatewayEventHandler::sendPushedData(std::string uri, std::string mimeType, std::string encoding, const std::string &data, std::string originUser, char priority, uint64_t receivedTime) {
   ammo::gateway::protocol::GatewayWrapper *msg = new ammo::gateway::protocol::GatewayWrapper();
   ammo::gateway::protocol::PushData *pushMsg = msg->mutable_push_data();
   pushMsg->set_uri(uri);
@@ -179,6 +186,7 @@ bool CrossGatewayEventHandler::sendPushedData(std::string uri, std::string mimeT
   pushMsg->set_data(data);
   pushMsg->set_encoding(encoding);
   pushMsg->set_origin_user(originUser);
+  pushMsg->set_received_time(receivedTime);
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   msg->set_message_priority(priority);
