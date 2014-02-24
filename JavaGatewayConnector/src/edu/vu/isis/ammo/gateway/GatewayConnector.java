@@ -163,6 +163,13 @@ public class GatewayConnector {
 
 	pushMsg.setThresholds(ackThresholds.build());
 
+        if(pushData.receivedTime == 0) {
+            logger.warn("pushData: received time not set by plugin; filling automatically");
+            pushMsg.setReceivedTime(System.currentTimeMillis());
+        } else {
+            pushMsg.setReceivedTime(pushData.receivedTime);
+        }
+
 	msg.setPushData(pushMsg.build());
 	msg.setType(GatewayPrivateMessages.GatewayWrapper.MessageType.PUSH_DATA);
 	msg.setMessagePriority((int)pushData.priority);
@@ -535,6 +542,7 @@ public class GatewayConnector {
 	    pushData.ackThresholds = new AcknowledgementThresholds();
 	    pushData.ackThresholds.deviceDelivered = msg.getThresholds().getDeviceDelivered();
 	    pushData.ackThresholds.pluginDelivered = msg.getThresholds().getPluginDelivered();
+            pushData.receivedTime = msg.getReceivedTime();
 	    try {
 	        listener.onPushDataReceived(this, pushData);
 	    } catch(Exception ex) {

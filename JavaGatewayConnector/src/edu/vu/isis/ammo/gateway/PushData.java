@@ -47,6 +47,8 @@ public class PushData {
 	      priority = 0;
 	      
 	      ackThresholds = new AcknowledgementThresholds();
+
+        receivedTime = 0;
     }
 
     /**
@@ -106,6 +108,13 @@ public class PushData {
      *  - pluginDelivered : the pushed data was delivered to a plugin
      */
     public AcknowledgementThresholds ackThresholds;
+
+    /**
+     * The time when this message entered the gateway network, in milliseconds
+     * since the POSIX epoch (00:00:00 1/1/1970 UTC).  If zero, this will be
+     * automatically populated when pushData() is called.
+     */
+    public long receivedTime;
     
     @Override public String toString() {
         return new String("Push URI: " + uri + " type: " + mimeType);
