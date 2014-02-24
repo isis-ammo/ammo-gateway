@@ -43,6 +43,7 @@ message PushData {
   optional string origin_device = 7;
   optional MessageScope scope = 5 [default = GLOBAL];
   optional AcknowledgementThresholds thresholds = 8;
+  optional uint64 received_time = 9 [default = 0];
 }
 
 /**

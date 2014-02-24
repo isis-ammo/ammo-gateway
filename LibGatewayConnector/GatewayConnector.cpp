@@ -35,6 +35,8 @@
 #include <string>
 #include <iostream>
 
+#include <ace/Time_Value.h>
+
 #include "log.h"
 
 using namespace std;
@@ -115,6 +117,13 @@ bool ammo::gateway::GatewayConnector::pushData(ammo::gateway::PushData &pushData
   ammo::gateway::protocol::AcknowledgementThresholds *thresholds = pushMsg->mutable_thresholds();
   thresholds->set_device_delivered(pushData.ackThresholds.deviceDelivered);
   thresholds->set_plugin_delivered(pushData.ackThresholds.pluginDelivered);
+
+  if(pushData.receivedTime == 0) {
+    LOG_WARN("pushData: receivedTime not set by caller; filling automatically")
+    pushMsg->set_received_time(ACE_OS::gettimeofday().get_msec());
+  } else {
+    pushMsg->set_received_time(pushData.receivedTime);
+  }
   
   msg->set_type(ammo::gateway::protocol::GatewayWrapper_MessageType_PUSH_DATA);
   msg->set_message_priority(pushData.priority);
@@ -373,6 +382,7 @@ void ammo::gateway::GatewayConnector::onPushDataReceived(const ammo::gateway::pr
   pushData.priority = messagePriority;
   pushData.ackThresholds.deviceDelivered = msg.thresholds().device_delivered();
   pushData.ackThresholds.pluginDelivered = msg.thresholds().plugin_delivered();
+  pushData.receivedTime = msg.received_time();
   
   for(map<string, DataPushReceiverListener *>::iterator it = receiverListeners.begin(); it != receiverListeners.end(); it++) {
     if(pushData.mimeType.find(it->first) == 0) {
@@ -471,7 +481,8 @@ ammo::gateway::PushData::PushData() :
   originDevice(""),
   scope(ammo::gateway::SCOPE_GLOBAL),
   priority(ammo::gateway::PRIORITY_NORMAL),
-  ackThresholds()
+  ackThresholds(),
+  receivedTime(0)
 {
   
 }

@@ -106,6 +106,10 @@ namespace ammo {
                                         ///  will be pushed to the device before objects with a lower priority,
                                         ///  if messages are queued.
       ammo::gateway::AcknowledgementThresholds ackThresholds;
+      uint64_t receivedTime;            ///< The time when this message entered the gateway network.  If set
+                                        ///  to 0 when pushData() is called, this timestamp will be automatically
+                                        ///  populated.  Should be the time, in milliseconds, since the POSIX
+                                        ///  epoch (00:00:00.000 1/1/1970 UTC).
       
       friend std::ostream& operator<<(std::ostream &os, const ammo::gateway::PushData &pushData) {
         os << "URI: " << pushData.uri << " type: " << pushData.mimeType;
