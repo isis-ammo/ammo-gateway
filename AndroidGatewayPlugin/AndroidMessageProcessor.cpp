@@ -143,6 +143,7 @@ void AndroidMessageProcessor::processMessage(ammo::protocol::MessageWrapper &msg
       pushData.priority = msg.message_priority();
       pushData.ackThresholds.deviceDelivered = dataMessage.thresholds().device_delivered();
       pushData.ackThresholds.pluginDelivered = dataMessage.thresholds().plugin_delivered();
+      pushData.receivedTime = ACE_OS::gettimeofday().get_msec();
       gatewayConnector->pushData(pushData);
       
       //Send acknowledgement back to device if that field of the acknowledgement
