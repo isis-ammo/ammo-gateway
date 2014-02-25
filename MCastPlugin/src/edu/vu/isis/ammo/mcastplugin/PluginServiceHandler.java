@@ -108,6 +108,7 @@ class PluginServiceHandler implements
 	    pushData.scope = (AmmoMessages.MessageScope.GLOBAL == dataMessage.getScope()) ?
 		MessageScope.SCOPE_GLOBAL :
 		MessageScope.SCOPE_LOCAL;
+      pushData.receivedTime = System.currentTimeMillis();
 	    mGatewayConnector.pushData(pushData);
 	} else 	if (false) { // TBD SKN (message.getType() == AmmoMessages.MessageWrapper.MessageType.SUBSCRIBE_MESSAGE) {
 	    // subscribe message check the sub map to see if we are not already subscribed to this type

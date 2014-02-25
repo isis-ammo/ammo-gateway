@@ -141,6 +141,7 @@ class PluginServiceHandler implements
 	    pushData.scope = (AmmoMessages.MessageScope.GLOBAL == dataMessage.getScope()) ?
 		MessageScope.SCOPE_GLOBAL :
 		MessageScope.SCOPE_LOCAL;
+      pushData.receivedTime = System.currentTimeMillis();
 	    mGatewayConnector.pushData(pushData);
 	    logger.info("received push message from: {} {}", pushData.originUserName, pushData);
 	} else if(message.getType() == AmmoMessages.MessageWrapper.MessageType.PUSH_ACKNOWLEDGEMENT) {
