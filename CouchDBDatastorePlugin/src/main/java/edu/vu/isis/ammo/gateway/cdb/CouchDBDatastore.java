@@ -57,6 +57,7 @@ public class CouchDBDatastore {
         newNode.put("encoding", p.encoding);
         newNode.put("origin_user", p.originUserName);
         newNode.put("origin_device", p.originDevice);
+        newNode.put("received_time", p.receivedTime);
 
         try {
             //find the end of the JSON data
