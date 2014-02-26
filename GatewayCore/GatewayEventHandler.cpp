@@ -107,7 +107,7 @@ int GatewayEventHandler::onMessageAvailable(ammo::gateway::protocol::GatewayWrap
         scope = SCOPE_LOCAL;
       }
 
-      int receivedTime = msg->push_data().received_time();
+      uint64_t receivedTime = msg->push_data().received_time();
       if(receivedTime == 0) {
         //received time is missing; populate it here
         LOG_WARN("Received time is missing; populating it (make sure you're running a current gateway library!)");
