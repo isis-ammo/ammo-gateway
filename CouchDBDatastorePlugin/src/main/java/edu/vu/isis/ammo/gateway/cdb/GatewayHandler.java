@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by jwilliams on 2/6/14.
  */
-public class GatewayHandler implements GatewayConnectorDelegate, DataPushReceiverListener {
+public class GatewayHandler implements GatewayConnectorDelegate, DataPushReceiverListener, PullRequestReceiverListener {
     private static final Logger logger = LoggerFactory.getLogger(GatewayHandler.class);
 
     private final CouchDBDatastore datastore;
@@ -36,6 +36,7 @@ public class GatewayHandler implements GatewayConnectorDelegate, DataPushReceive
 
         for(String type : mimeTypes) {
             sender.registerDataInterest(type, this, MessageScope.SCOPE_GLOBAL);
+            sender.registerPullInterest(type, this, MessageScope.SCOPE_LOCAL);
         }
     }
 
@@ -70,5 +71,10 @@ public class GatewayHandler implements GatewayConnectorDelegate, DataPushReceive
     @Override
     public void onPushAcknowledgementReceived(GatewayConnector sender, PushAcknowledgement ack) {
 
+    }
+
+    @Override
+    public void onPullRequestReceived(GatewayConnector sender, PullRequest pullReq) {
+        datastore.query(sender, pullReq);
     }
 }

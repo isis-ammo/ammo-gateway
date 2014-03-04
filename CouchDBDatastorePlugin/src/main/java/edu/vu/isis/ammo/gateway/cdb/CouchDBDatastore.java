@@ -1,28 +1,28 @@
 package edu.vu.isis.ammo.gateway.cdb;
 
+import com.google.common.base.Splitter;
 import com.google.common.primitives.Bytes;
-import edu.vu.isis.ammo.gateway.PushData;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
+import edu.vu.isis.ammo.gateway.*;
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
-import org.ektorp.AttachmentInputStream;
-import org.ektorp.CouchDbConnector;
-import org.ektorp.CouchDbInstance;
+import org.ektorp.*;
 import org.ektorp.http.HttpClient;
 import org.ektorp.http.StdHttpClient;
 import org.ektorp.impl.StdCouchDbInstance;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by jwilliams on 2/6/14.
@@ -162,6 +162,140 @@ public class CouchDBDatastore {
             } else {
                 logger.warn("CouchDB didn't add a revision ID to this object. It may not have been stored in the DB.");
             }
+        }
+    }
+
+    public void query(GatewayConnector sender, PullRequest query) {
+        logger.debug("Got query for type {}: {}", query.mimeType, query.query);
+        if(query.mimeType.equals("ammo/transapps.chat.message")) {
+            //query is JSON-formatted, and looks like:
+            /*
+            {
+                "groups" : [
+                    "CMD",
+                    "test1",
+                    "sup sup",
+                    "All",
+                    "sup",
+                    "hi sup",
+                    "testgroup1"
+                ],
+                "SYNC_UUID" : "afd06aa7-0d5d-48ec-9a59-956c3817c079",
+                "latestMessageTime" : "1375375718044",
+                "latestMessageUuid" : "c95f6ce0-20dc-40f6-9637-ec5c12a9cf85",
+                "username" : "brad"
+            }
+            */
+
+            try {
+                //Parse out query
+                final JSONObject jsonQuery = new JSONObject(query.query);
+
+                if(jsonQuery.has("latestMessageUuid")) {
+                    //look up timestamp for latest message in DB
+                    ViewQuery q = new ViewQuery()
+                            .designDocId("_design/views")
+                            .viewName("received_time_by_id")
+                            .key(jsonQuery.getString("latestMessageUuid"));
+
+                    List<JsonNode> results = dbConnector.queryView(q, JsonNode.class);
+                    logger.debug("Timestamp query results: {}", results);
+                } else {
+                    logger.error("Malformed chat query: {}", jsonQuery);
+                }
+            } catch(JSONException e) {
+                logger.error("Bad JSON query", e);
+            }
+        } else {
+            //parse datastore plugin compatible query
+            //uri,user,time_begin,time_end,directed_user
+            //negative times are relative to current time (all times in seconds)
+
+            List<String> splitQuery = Splitter.on(",")
+                                              .splitToList(query.query);
+            if(splitQuery.size() == 5) {
+                String queryUri = splitQuery.get(0);
+                String queryUser = splitQuery.get(1);
+                try {
+                    String queryTimeBegin = splitQuery.get(2);
+                    String queryTimeEnd = splitQuery.get(3);
+                    String queryDirectedUser = splitQuery.get(4);
+                    //TODO: handle queries other than time
+
+                    final ComplexKey start, end;
+
+                    if(!queryTimeBegin.equals("")) {
+                        final long parsedTimeBegin = Long.parseLong(queryTimeBegin);
+                        final long actualTimeBegin;
+                        final long currentTime = System.currentTimeMillis();
+                        if(parsedTimeBegin < 0) { //negative time means relative to current time
+                            actualTimeBegin = currentTime + parsedTimeBegin * 1000L;
+                        } else {
+                            actualTimeBegin = parsedTimeBegin;
+                        }
+                        logger.debug("Parsed: {} Actual: {} Current: {}", parsedTimeBegin, actualTimeBegin, currentTime);
+                        start = ComplexKey.of(query.mimeType, actualTimeBegin);
+                    } else {
+                        start = ComplexKey.of(query.mimeType, 0L);
+                    }
+
+                    if(!queryTimeEnd.equals("")) {
+                        final long parsedTimeEnd = Long.parseLong(queryTimeEnd);
+                        final long actualTimeEnd;
+                        if(parsedTimeEnd < 0) { //negative time means relative to current time
+                            actualTimeEnd = System.currentTimeMillis() + parsedTimeEnd * 1000L;
+                        } else {
+                            actualTimeEnd = parsedTimeEnd;
+                        }
+                        end = ComplexKey.of(query.mimeType, actualTimeEnd);
+                    } else {
+                        end = ComplexKey.of(query.mimeType, ComplexKey.emptyObject());
+                    }
+
+                    ViewQuery q = new ViewQuery()
+                            .designDocId("_design/views")
+                            .viewName("by_type_and_time")
+                            .startKey(start)
+                            .endKey(end);
+
+                    List<JsonNode> results = dbConnector.queryView(q, JsonNode.class);
+                    logger.debug("Query results: {}", results);
+
+                    for(JsonNode node : results) {
+                        sendResponseFromJson(node, query.requestUid, query.pluginId, sender);
+                    }
+
+                } catch(NumberFormatException e) {
+                    logger.error("Invalid number in time field");
+                }
+            } else {
+                logger.error("Malformed query ({}): not enough parameters", query);
+            }
+        }
+    }
+
+    private void sendResponseFromJson(JsonNode n, String requestId, String pluginId, GatewayConnector gatewayConnector) {
+        final PullResponse response = new PullResponse();
+
+        response.requestUid = requestId;
+        response.pluginId = pluginId;
+        response.mimeType = n.get("mime_type").asText();
+        response.uri = n.get("_id").asText();
+        response.encoding = n.get("encoding").asText();
+        response.priority = MessagePriority.PRIORITY_CTRL.getValue();
+
+        ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
+
+        try {
+            JsonGenerator g = jsonFactory.createJsonGenerator(dataStream, JsonEncoding.UTF8);
+            g.writeTree(n.get("data"));
+
+            response.data = dataStream.toByteArray();
+
+            gatewayConnector.pullResponse(response);
+
+        } catch(IOException e) {
+            logger.error("Error serializing JSON data", e);
         }
     }
 

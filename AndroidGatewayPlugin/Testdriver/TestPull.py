@@ -25,9 +25,14 @@ if __name__ == "__main__":
     
     connector.waitForAuthentication()
     
-    print "Subscribing to type text/plain"
-    connector.push("someUri", "blah_asdf", "directed message from user " + userName)
-    connector.pullRequest("blah", ",,1302228081,,stuff", "", 0, 0, False)
+    print "Publishing messages..."
+    for i in range(1,6):
+      print "Publishing", i
+      connector.push("test:" + str(i) + ":" + uuid.uuid1().hex, "text/plain", "{\"value\": \"" + str(i) + "\"}")
+      time.sleep(1)
+
+    print "Querying..."
+    connector.pullRequest("text/plain", ",,-4,,", "", 0, 0, False)
     
     while True:
       while(connector.isDataAvailable()):
