@@ -300,7 +300,9 @@ public class CouchDBDatastore {
             JsonGenerator g = jsonFactory.createJsonGenerator(dataStream, JsonEncoding.UTF8);
             g.writeTree(n.get("data"));
 
-            response.data = dataStream.toByteArray();
+
+
+            boolean firstAttachment = true;
 
             //Serialize out attachments (blobs/files)
             for(Iterator<String> fieldNameIt = n.getFieldNames(); fieldNameIt.hasNext(); ) {
@@ -310,9 +312,39 @@ public class CouchDBDatastore {
                     int lastUnderscore = fieldName.lastIndexOf('_');
                     String attachmentName = fieldName.substring(firstUnderscore + 1, lastUnderscore);
                     logger.debug("Field names: {}", attachmentName);
+
+                    //get the attachment from the DB
+                    AttachmentInputStream attachment = dbConnector.getAttachment(n.get("_id").asText(), attachmentName);
+                    logger.debug("Attachment: size {}", attachment.getContentLength());
+
+                    if(firstAttachment) {
+                        //JSON component is only null terminated if there are attachments
+                        dataStream.write(0x0);
+                    }
+                    dataStream.write(attachmentName.getBytes());
+                    dataStream.write(0x0);
+
+                    ByteBuffer fieldSizeBuffer = ByteBuffer.allocate(4);
+                    fieldSizeBuffer.order(ByteOrder.BIG_ENDIAN);
+                    fieldSizeBuffer.putInt((int) attachment.getContentLength());
+
+                    dataStream.write(fieldSizeBuffer.array());
+                    final byte[] attachmentData = new byte[(int)attachment.getContentLength()];
+                    attachment.read(attachmentData);
+                    dataStream.write(attachmentData);
+
+                    //write storage marker
+                    if(n.get(fieldName).asInt() == 1) { //BlobTypeEnum.SHORT; needs storage marker
+                        dataStream.write(BLOB_MARKER_FIELD);
+                    } else {
+                        dataStream.write(0);
+                    }
+                    //write remaining three bytes of size
+                    dataStream.write(fieldSizeBuffer.array(), 1, 3);
                 }
             }
 
+            response.data = dataStream.toByteArray();
             gatewayConnector.pullResponse(response);
 
         } catch(IOException e) {
