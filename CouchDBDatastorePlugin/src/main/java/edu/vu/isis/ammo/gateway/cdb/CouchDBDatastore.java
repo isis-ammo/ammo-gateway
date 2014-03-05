@@ -7,6 +7,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.node.ValueNode;
 import org.ektorp.*;
 import org.ektorp.http.HttpClient;
 import org.ektorp.http.StdHttpClient;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -222,6 +224,14 @@ public class CouchDBDatastore {
                     String queryDirectedUser = splitQuery.get(4);
                     //TODO: handle queries other than time
 
+                    final String queryMimeType;
+
+                    if(queryDirectedUser.equals("")) {
+                        queryMimeType = query.mimeType;
+                    } else {
+                        queryMimeType = query.mimeType + "_" + queryDirectedUser;
+                    }
+
                     final ComplexKey start, end;
 
                     if(!queryTimeBegin.equals("")) {
@@ -234,9 +244,9 @@ public class CouchDBDatastore {
                             actualTimeBegin = parsedTimeBegin;
                         }
                         logger.debug("Parsed: {} Actual: {} Current: {}", parsedTimeBegin, actualTimeBegin, currentTime);
-                        start = ComplexKey.of(query.mimeType, actualTimeBegin);
+                        start = ComplexKey.of(queryMimeType, actualTimeBegin);
                     } else {
-                        start = ComplexKey.of(query.mimeType, 0L);
+                        start = ComplexKey.of(queryMimeType, 0L);
                     }
 
                     if(!queryTimeEnd.equals("")) {
@@ -247,9 +257,9 @@ public class CouchDBDatastore {
                         } else {
                             actualTimeEnd = parsedTimeEnd;
                         }
-                        end = ComplexKey.of(query.mimeType, actualTimeEnd);
+                        end = ComplexKey.of(queryMimeType, actualTimeEnd);
                     } else {
-                        end = ComplexKey.of(query.mimeType, ComplexKey.emptyObject());
+                        end = ComplexKey.of(queryMimeType, ComplexKey.emptyObject());
                     }
 
                     ViewQuery q = new ViewQuery()
@@ -291,6 +301,17 @@ public class CouchDBDatastore {
             g.writeTree(n.get("data"));
 
             response.data = dataStream.toByteArray();
+
+            //Serialize out attachments (blobs/files)
+            for(Iterator<String> fieldNameIt = n.getFieldNames(); fieldNameIt.hasNext(); ) {
+                String fieldName = fieldNameIt.next();
+                if(fieldName.startsWith("att_") && fieldName.endsWith("_blobType")) {
+                    int firstUnderscore = fieldName.indexOf('_');
+                    int lastUnderscore = fieldName.lastIndexOf('_');
+                    String attachmentName = fieldName.substring(firstUnderscore + 1, lastUnderscore);
+                    logger.debug("Field names: {}", attachmentName);
+                }
+            }
 
             gatewayConnector.pullResponse(response);
 
