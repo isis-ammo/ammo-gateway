@@ -320,6 +320,7 @@ public class CouchDBDatastore {
                     if(firstAttachment) {
                         //JSON component is only null terminated if there are attachments
                         dataStream.write(0x0);
+                        firstAttachment = false;
                     }
                     dataStream.write(attachmentName.getBytes());
                     dataStream.write(0x0);
