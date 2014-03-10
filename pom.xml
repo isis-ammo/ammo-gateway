@@ -16,6 +16,7 @@
   <modules>
     <module>JavaGatewayProtocol</module>
     <module>JavaGatewayConnector</module>
+    <module>CouchDBDatastorePlugin</module>
   </modules>
 
  <organization>
