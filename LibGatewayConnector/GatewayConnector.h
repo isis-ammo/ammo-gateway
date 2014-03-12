@@ -41,6 +41,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <cstdint>
 
 #include "NetworkConnector.h"
 #include "NetworkEnumerations.h"

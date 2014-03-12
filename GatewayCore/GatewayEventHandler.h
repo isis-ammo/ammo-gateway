@@ -32,6 +32,7 @@
 #include <string>
 #include <set>
 #include <queue>
+#include <cstdint>
 
 #include "NetworkEventHandler.h"
 #include "protocol/GatewayPrivateMessages.pb.h"
