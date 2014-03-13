@@ -32,6 +32,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <cstdint>
 
 #include "NetworkAcceptor.h"
 #include "CrossGatewayEventHandler.h"
