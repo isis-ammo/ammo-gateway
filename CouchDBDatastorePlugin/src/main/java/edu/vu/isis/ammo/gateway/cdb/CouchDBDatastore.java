@@ -37,6 +37,7 @@ public class CouchDBDatastore {
     private final HttpClient httpClient;
     private final CouchDbInstance dbInstance;
     private final CouchDbConnector dbConnector;
+    private final DatastoreRepository repository;
 
     private final JsonFactory jsonFactory;
 
@@ -45,6 +46,7 @@ public class CouchDBDatastore {
         httpClient = new StdHttpClient.Builder().build();
         dbInstance = new StdCouchDbInstance(httpClient);
         dbConnector = dbInstance.createConnector(DATABASE_NAME, true);
+        repository = new DatastoreRepository(JsonNode.class, dbConnector);
         logger.info("DB connector created");
 
         jsonFactory = new JsonFactory(new ObjectMapper());
@@ -209,77 +211,12 @@ public class CouchDBDatastore {
                 logger.error("Bad JSON query", e);
             }
         } else {
-            //parse datastore plugin compatible query
-            //uri,user,time_begin,time_end,directed_user
-            //negative times are relative to current time (all times in seconds)
+            List<JsonNode> results = repository.getByDatastoreQuery(query.mimeType, query.query);
 
-            List<String> splitQuery = Splitter.on(",")
-                                              .splitToList(query.query);
-            if(splitQuery.size() == 5) {
-                String queryUri = splitQuery.get(0);
-                String queryUser = splitQuery.get(1);
-                try {
-                    String queryTimeBegin = splitQuery.get(2);
-                    String queryTimeEnd = splitQuery.get(3);
-                    String queryDirectedUser = splitQuery.get(4);
-                    //TODO: handle queries other than time
+            logger.debug("Query results: {}", results);
 
-                    final String queryMimeType;
-
-                    if(queryDirectedUser.equals("")) {
-                        queryMimeType = query.mimeType;
-                    } else {
-                        queryMimeType = query.mimeType + "_" + queryDirectedUser;
-                    }
-
-                    final ComplexKey start, end;
-
-                    if(!queryTimeBegin.equals("")) {
-                        final long parsedTimeBegin = Long.parseLong(queryTimeBegin);
-                        final long actualTimeBegin;
-                        final long currentTime = System.currentTimeMillis();
-                        if(parsedTimeBegin < 0) { //negative time means relative to current time
-                            actualTimeBegin = currentTime + parsedTimeBegin * 1000L;
-                        } else {
-                            actualTimeBegin = parsedTimeBegin;
-                        }
-                        logger.debug("Parsed: {} Actual: {} Current: {}", parsedTimeBegin, actualTimeBegin, currentTime);
-                        start = ComplexKey.of(queryMimeType, actualTimeBegin);
-                    } else {
-                        start = ComplexKey.of(queryMimeType, 0L);
-                    }
-
-                    if(!queryTimeEnd.equals("")) {
-                        final long parsedTimeEnd = Long.parseLong(queryTimeEnd);
-                        final long actualTimeEnd;
-                        if(parsedTimeEnd < 0) { //negative time means relative to current time
-                            actualTimeEnd = System.currentTimeMillis() + parsedTimeEnd * 1000L;
-                        } else {
-                            actualTimeEnd = parsedTimeEnd;
-                        }
-                        end = ComplexKey.of(queryMimeType, actualTimeEnd);
-                    } else {
-                        end = ComplexKey.of(queryMimeType, ComplexKey.emptyObject());
-                    }
-
-                    ViewQuery q = new ViewQuery()
-                            .designDocId("_design/views")
-                            .viewName("by_type_and_time")
-                            .startKey(start)
-                            .endKey(end);
-
-                    List<JsonNode> results = dbConnector.queryView(q, JsonNode.class);
-                    logger.debug("Query results: {}", results);
-
-                    for(JsonNode node : results) {
-                        sendResponseFromJson(node, query.requestUid, query.pluginId, sender);
-                    }
-
-                } catch(NumberFormatException e) {
-                    logger.error("Invalid number in time field");
-                }
-            } else {
-                logger.error("Malformed query ({}): not enough parameters", query);
+            for(JsonNode node : results) {
+                sendResponseFromJson(node, query.requestUid, query.pluginId, sender);
             }
         }
     }
