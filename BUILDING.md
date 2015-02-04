@@ -165,10 +165,10 @@ dependencies.
              sudo ln -s protobuf-java-2.4.1.jar protobuf.jar
              
  9. Build the gateway: (from $GATEWAY_ROOT)
- 
+
         ant
         
-  OSX build notes:
+### OSX build notes:
    * Compiled executables can be found in $GATEWAY_ROOT/build/bin/; note that
      executables should also be run from this directory so that they can find
      their configuration files.
