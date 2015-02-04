@@ -61,14 +61,16 @@ Building on Linux
      Buffers compiler) may be cleaned with 'ant realclean'.
 
 Building on Windows
-===================
+-------------------
 
-  Prerequisites:
-    * Visual Studio 2010
-    * Java 6 Development Kit:  http://www.oracle.com/technetwork/java/javasebusiness/downloads/java-archive-downloads-javase6-419409.html
-    * Apache Ant:  http://ant.apache.org/ (make sure the bin/ directory is in your PATH)
-    * Apache Maven:  http://maven.apache.org/ (make sure the bin/ directory is in your PATH)
-    * Msys or Cygwin Git (make sure the git binary is in your PATH)
+### Build Prerequisites
+ * Visual Studio 2010
+ * [Java 6 Development Kit](http://www.oracle.com/technetwork/java/javasebusiness/downloads/java-archive-downloads-javase6-419409.html)
+ * [Apache Ant](http://ant.apache.org/) (make sure the bin/ directory is in your PATH)
+ * [Apache Maven](http://maven.apache.org/) (make sure the bin/ directory is in your PATH)
+ * Msys or Cygwin Git (make sure the git binary is in your PATH)
+
+### Build instructions
 
  1. Download and extract the [pre-built ACE distribution][win32-prebuilt-ace].
 
