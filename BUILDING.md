@@ -1,23 +1,28 @@
-Build prerequisites (tested version): 
+Building the AMMO Gateway
+=========================
+
+Build prerequisites (tested version)
+------------------------------------
   * Google Protocol Buffers (2.4.1)
   * ACE (6.1.3)
   * Perl (Linux: 5.10.1, Windows 5.12.1)
   * libcurl (OpenSSL) (7.2.1)
    
-Building on Linux:
-==================
-  1) Install build dependencies using your distribution's package manager.  See
-     manifest.dpkg for a list of required packages.
+Building on Linux
+-----------------
+ 1. Install build dependencies using your distribution's package manager.  See
+    manifest.dpkg for a list of required packages.
      
-     On Ubuntu, these can be installed in one step with:
+    On Ubuntu, these can be installed in one step with:
+
         sudo apt-get install $(cat manifest.dpkg)
         
-  2) Download and extract ACE to a location of your choice.
-        http://download.dre.vanderbilt.edu/
-        e.g.
-        http://download.dre.vanderbilt.edu/previous_versions/ACE-6.1.3.tar.bz2
+ 2. Download and extract ACE to a location of your choice.  ACE is available at
+    [http://download.dre.vanderbilt.edu/](http://download.dre.vanderbilt.edu/)
+    ([tested version](http://download.dre.vanderbilt.edu/previous_versions/ACE-6.1.3.tar.bz2)).
   
-  3) Set environment variables (in .bashrc or similar):
+ 3. Set environment variables (in .bashrc or similar):
+
         export ACE_ROOT=(ACE_wrappers directory)
         export MPC_ROOT=$ACE_ROOT/MPC
         export TAO_ROOT=$ACE_ROOT/TAO
@@ -27,22 +32,27 @@ Building on Linux:
         export PATH=$PROTOBUF_ROOT/bin:$ACE_ROOT/bin:$PATH
         export LD_LIBRARY_PATH=$GATEWAY_ROOT/build/lib:$PROTOBUF_ROOT/lib:$ACE_ROOT/lib:$LD_LIBRARY_PATH
   
-  4) Create a file called "config.h" in $ACE_ROOT/ace/ containing:
+ 4. Create a file called `config.h` in `$ACE_ROOT/ace/` containing:
+
         #include "ace/config-linux.h"
         
-  5) Create a symbolic link called platform_macros.GNU in $ACE_ROOT/include/makeinclude
-     pointing to the file platform_linux.GNU
-     i.e. ln -s platform_linux.GNU platform_macros.GNU
-     (If platform_macros.GNU already exists you will need to remove it.)
+ 5. Create a symbolic link called platform_macros.GNU in $ACE_ROOT/include/makeinclude
+    pointing to the file platform_linux.GNU
+
+        ln -s platform_linux.GNU platform_macros.GNU
+
+    (If platform_macros.GNU already exists, you will need to remove it.)
         
-  6) Build ACE:
+ 6. Build ACE:
+
         cd $ACE_ROOT
         make
         
-  7) Build the gateway: (from $GATEWAY_ROOT)
+ 7. Build the gateway: (from $GATEWAY_ROOT)
+
         ant
   
-  Linux build notes:
+### Linux build notes:
    * Compiled executables can be found in $GATEWAY_ROOT/build/bin/; note that
      executables should also be run from this directory so that they can find
      their configuration files.
@@ -60,13 +70,12 @@ Building on Windows
     * Apache Maven:  http://maven.apache.org/ (make sure the bin/ directory is in your PATH)
     * Msys or Cygwin Git (make sure the git binary is in your PATH)
 
-  1) Download and extract the pre-built ACE distribution:
-        https://ammo.isis.vanderbilt.edu/builds/deps/Windows_32bit/ace-prebuilt-6.1.3.zip
+ 1. Download and extract the [pre-built ACE distribution][win32-prebuilt-ace].
 
-  2) Download and extract the build dependencies:
-        https://ammo.isis.vanderbilt.edu/builds/deps/Windows_32bit/gateway-prereqs-protobuf-2.4.1.zip
+ 2. Download and extract the [build dependencies][win32-build-deps].
 
-  3) Set environment variables:
+ 3. Set environment variables:
+
         ACE_ROOT=(ACE_wrappers directory extracted in step 1)
         GATEWAY_ROOT=(Root directory of this repository)
         JAVA_HOME=(JDK install directory; i.e. C:\Program Files\Java\jdk1.6.0_38)
@@ -74,34 +83,39 @@ Building on Windows
         PATH=%ACE_ROOT%\bin;%ACE_ROOT%\lib;%GATEWAY_ROOT%\build\bin;%GATEWAY_ROOT%\build\lib;%PROTOBUF_ROOT%\bin;%PROTOBUF_ROOT%\lib
         PROTOBUF_ROOT=(protobuf directory extracted in step 2)
 
-  4) Build the gateway (from %GATEWAY_ROOT%):
+ 4. Build the gateway (from %GATEWAY_ROOT%):
+
         ant
+
+[win32-prebuilt-ace]: https://ammo.isis.vanderbilt.edu/builds/deps/Windows_32bit/ace-prebuilt-6.1.3.zip
+[win32-build-deps]: https://ammo.isis.vanderbilt.edu/builds/deps/Windows_32bit/gateway-prereqs-protobuf-2.4.1.zip
      
 Building on Mac OS X (10.7/10.8):
-===========================
-** WARNING:  Homebrew (the package manager used for this tutorial) can conflict
-   with MacPorts and Fink.  If you have either installed, you may want to remove
-   it before proceeding.
-   
-   Prerequisite:  a current version of XCode.  The most recent version freely
-   available from http://developer.apple.com/ is recommended.
+---------------------------------
+**WARNING**: Homebrew (the package manager used for this tutorial) can conflict
+with MacPorts and Fink.  If you have either installed, you may want to remove
+it before proceeding.
 
-   Most OSX build dependencies are provided with OSX (if XCode is installed).
-   We use Homebrew (http://mxcl.github.com/homebrew/) to provide the missing 
-   dependencies.
+Prerequisite:  a current version of XCode.  The most recent version freely
+available from http://developer.apple.com/ is recommended.
+
+Most OSX build dependencies are provided with OSX (if XCode is installed).
+We use Homebrew (http://mxcl.github.com/homebrew/) to provide the missing 
+dependencies.
    
-  1) Download and install Homebrew:
-        ruby -e "$(curl -fsSLk https://gist.github.com/raw/323731/install_homebrew.rb)"
+ 1. Download and install Homebrew.  See the [Homebrew website](http://brew.sh/)
+    for install instructions.
         
-  2) Install Google Protocol Buffers:
+ 2. Install Google Protocol Buffers:
+
         brew install protobuf
-        
-  3) Download and extract ACE+TAO+CIAO to a location of your choice.
-        http://download.dre.vanderbilt.edu/
-        e.g.
-        http://download.dre.vanderbilt.edu/previous_versions/ACE+TAO+CIAO-6.1.3.tar.bz2
+
+ 3. Download and extract ACE+TAO+CIAO to a location of your choice.  ACE is available at
+    [http://download.dre.vanderbilt.edu/](http://download.dre.vanderbilt.edu/)
+    ([tested version](http://download.dre.vanderbilt.edu/previous_versions/ACE-6.1.3.tar.bz2)).
   
-  4) Set environment variables (in .bashrc or similar):
+ 4. Set environment variables (in .bashrc or similar):
+
         export ACE_ROOT=(ACE_wrappers directory)
         export MPC_ROOT=$ACE_ROOT/MPC
         export TAO_ROOT=$ACE_ROOT/TAO
@@ -111,40 +125,47 @@ Building on Mac OS X (10.7/10.8):
         export PATH=$ACE_ROOT/bin:$PATH
         export DYLD_LIBRARY_PATH=$GATEWAY_ROOT/build/lib:$ACE_ROOT/lib:$DYLD_LIBRARY_PATH
   
-  5) Create a file called "config.h" in $ACE_ROOT/ace/ containing:
+ 5. Create a file called "config.h" in $ACE_ROOT/ace/ containing:
+
         #define ACE_HAS_STANDARD_CPP_LIBRARY 1
         #include "ace/config-macosx-lion.h"
         
-  6) Create a symbolic link called platform_macros.GNU in $ACE_ROOT/include/makeinclude
-     pointing to the file platform_macosx_lion.GNU
-     i.e. ln -s platform_macosx_lion.GNU platform_macros.GNU
-     (If platform_macros.GNU already exists you will need to remove it.)
+ 6. Create a symbolic link called platform_macros.GNU in $ACE_ROOT/include/makeinclude
+    pointing to the file platform_macosx_lion.GNU
+
+        ln -s platform_macosx_lion.GNU platform_macros.GNU\
+
+    (If platform_macros.GNU already exists you will need to remove it.)
         
-  7) Build ACE (you may also build TAO and CIAO at this point, but they are not
-     currently required for the gateway):
+ 7. Build ACE (you may also build TAO and CIAO at this point, but they are not
+    currently required for the gateway):
+
         cd $ACE_ROOT
         make
         
-  8) Download and install the Protocol Buffers Java library:
-        a) Download and extract the latest Protocol Buffers tarball from Google:
-             http://code.google.com/p/protobuf/downloads/list
+ 8. Download and install the Protocol Buffers Java library:
+
+     1. Download and extract the [latest Protocol Buffers tarball][protobuf] from Google.
            
-        b) Symlink your copy of protoc into src/ of the extracted tarball:
+     2. Symlink your copy of protoc into src/ of the extracted tarball:
              cd protobuf-2.4.1/src
              ln -s /usr/local/bin/protoc .
         
-        c) Build the Protocol Buffers java library; from protobuf-2.4.1/java,
-           run: 
+     3. Build the Protocol Buffers java library; from protobuf-2.4.1/java,
+        run: 
+
              mvn package
                
-        d) Copy the generated library to /usr/share/java; from
-           protobuf-2.4.1/java, run:
+     4. Copy the generated library to /usr/share/java; from
+        protobuf-2.4.1/java, run:
+
              sudo cp target/protobuf-java-2.4.1.jar /usr/share/java
              cd /usr/share/java
              sudo ln -s protobuf-java-2.4.1.jar protobuf-java.jar
              sudo ln -s protobuf-java-2.4.1.jar protobuf.jar
              
-  8) Build the gateway: (from $GATEWAY_ROOT)
+ 9. Build the gateway: (from $GATEWAY_ROOT)
+ 
         ant
         
   OSX build notes:
@@ -154,3 +175,5 @@ Building on Mac OS X (10.7/10.8):
    * Generated object files may be cleaned with 'ant clean'; all generated
      files (including executables and C++ files generated by the Protocol
      Buffers compiler) may be cleaned with 'ant realclean'.
+
+[protobuf]: http://code.google.com/p/protobuf/downloads/list
